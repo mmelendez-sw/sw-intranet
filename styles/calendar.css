@@ -1,6 +1,19 @@
-.calendar {
-    background-color: var(--light-blue);
-    padding: 20px;
-    margin-right: 20px;
-    border-radius: 5px;
-  }
+.calendar-container {
+  margin: 20px auto;
+  max-width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  background-color: white;
+}
+
+.react-calendar {
+  border: none;
+  border-radius: 10px;
+}
+
+.react-calendar__tile--active {
+  background: #004E7C;
+  color: white;
+  border-radius: 5px;
+}

@@ -37,7 +37,8 @@ const HomePage: React.FC = () => {
         </div>
         <div className="announcement-section">
           <h2>Marketing Announcements</h2>
-          <p>Important Marketing announcements will be displayed here.</p>
+          <p>New Symphony Wireless Newsletter!</p>
+          <p>Read this new article!</p>
         </div>
         <div className="calendar-section">
           <h2>Calendar</h2>
