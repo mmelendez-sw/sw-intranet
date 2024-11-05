@@ -4,11 +4,6 @@
   border-radius: 10px;
   color: black; /* Set a default text color */
   background-color: white; /* Ensure the background is white */
-  color: black; /* Set the tile text color */
-}
-
-.react-calendar .button { 
-  color:white
 }
 
 .react-calendar__tile {
@@ -40,8 +35,8 @@
 }
 
 .react-calendar__navigation button {
-  background-color: black; /* Black background */
-  color: white; /* White text for contrast */
+  background-color: white; /* Black background */
+  color: black; /* White text for contrast */
   border: none; /* Remove default border */
   padding: 10px; /* Add padding for a better look */
   border-radius: 5px; /* Rounded corners */
