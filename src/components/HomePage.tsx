@@ -17,8 +17,15 @@ const HomePage: React.FC = () => {
       </div>
 
       <div className="right-section">
+        <div className="announcement-section">
+          <h2>HR Announcements</h2>
+          <p>11/4 - 11/15: Food Drive</p>
+          <p>11/6: Q&A Session</p>
+          <p>11/28: Thanksgiving Day</p>
+          <p>11/29: Black Friday</p>
+          <p>12/5: Symphony Wireless Holiday Party</p>
+        </div>
         <div className="quick-links">
-          <h2>Quick Links</h2>
           <div className="button-container">
             <button onClick={() => window.location.href = '/hr'}>HR Page</button>
             <button onClick={() => window.location.href = '/it'}>IT Page</button>
@@ -27,10 +34,6 @@ const HomePage: React.FC = () => {
             <button onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
             <button onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
           </div>
-        </div>
-        <div className="announcement-section">
-          <h2>HR Announcements</h2>
-          <p>Important HR announcements will be displayed here.</p>
         </div>
         <div className="announcement-section">
           <h2>Marketing Announcements</h2>
