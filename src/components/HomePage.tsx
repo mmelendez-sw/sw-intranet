@@ -7,7 +7,7 @@ import CalendarComponent from './Calendar';
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      <PhotoStream /> {/* Add the photo stream component at the top */}
+      {/* <PhotoStream /> Add the photo stream component at the top */}
       <div className="left-section">
         <div className="report-section">
           <h2>Reports</h2>
