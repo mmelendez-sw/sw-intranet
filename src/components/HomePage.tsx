@@ -35,6 +35,7 @@ const HomePage: React.FC = () => {
         <button className="link-button" onClick={() => window.open('https://www.salesforce.com/', '_blank')}>Salesforce</button>
         <button className="link-button" onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
         <button className="link-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
+        <button className="link-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
       </div>
     </div>
   </div>
