@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import '../../styles/carousel.css';
 
 const images = [
-  '../../../images/cr_1.png', // Replace with your image paths
-  '../../../images/cr_2.png',
-  '../../../images/ts_1.png',
-  '../../../images/ts_2.png',
+    require('../../images/cr_1.png'),
+    require('../../images/cr_2.png'),
+    require('../../images/ts_1.png'),
+    require('../../images/ts_2.png')
 ];
 
 const Carousel: React.FC = () => {
