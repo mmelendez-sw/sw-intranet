@@ -1,4 +1,5 @@
 import React from 'react';
+import Carousel from './Carousel';
 import '../../styles/home-page.css';
 
 const HomePage: React.FC = () => {
@@ -7,7 +8,7 @@ const HomePage: React.FC = () => {
       <div className="left-section">
         <div className="report-section">
           <h2>Reports</h2>
-          <p>Graphs and data visualization will be shown here.</p>
+          <Carousel />
         </div>
         <div className="industry-news-section">
           <h2>Industry News</h2>

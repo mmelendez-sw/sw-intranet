@@ -6,6 +6,7 @@ body {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
   }
   
   .app-container {
@@ -46,3 +47,7 @@ body {
     --light-beige: #F2EEE7;
     --bright-turquoise: #00DDF7;
   }
+
+* {
+    box-sizing: border-box;
+}
