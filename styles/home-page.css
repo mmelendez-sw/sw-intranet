@@ -11,7 +11,7 @@
 
 /* Left section: 60% width */
 .left-section {
-  flex: 3; /* 60% of the width (3 parts out of 5) */
+  flex: 5; /* 60% of the width (3 parts out of 5) */
   display: flex;
   flex-direction: column;
   gap: 20px;
