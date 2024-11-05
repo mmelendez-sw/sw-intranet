@@ -8,13 +8,13 @@ const HomePage: React.FC = () => {
         <h2 style={{ color: 'red' }}>Quick Links</h2>
         <div className="button-container">
           {/* Internal Links */}
-          <button onClick={() => window.location.href = '/hr'}>HR Page</button>
-          <button onClick={() => window.location.href = '/it'}>IT Page</button>
+          <button className="link-button" style={{ backgroundColor: 'red' }} onClick={() => window.location.href = '/hr'}>HR Page</button>
+          <button className="link-button" style={{ backgroundColor: 'red' }} onClick={() => window.location.href = '/it'}>IT Page</button>
           
           {/* External Links */}
-          <button onClick={() => window.open('https://www.salesforce.com/', '_blank')}>Salesforce</button>
-          <button onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
-          <button onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
+          <button className="link-button" style={{ backgroundColor: 'red' }} onClick={() => window.open('https://www.salesforce.com/', '_blank')}>Salesforce</button>
+          <button className="link-button" style={{ backgroundColor: 'red' }} onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
+          <button className="link-button" style={{ backgroundColor: 'red' }} onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
         </div>
       </div>
       <div className="calendar-section">
