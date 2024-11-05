@@ -5,16 +5,34 @@ body {
     padding: 0;
     width: 100%;
     height: 100%;
-}
-
-.app-container {
+  }
+  
+  .app-container {
     display: flex;
-    flex-direction: column;
-}
-
-.main-content {
+    flex-direction: row; /* Ensure it’s laid out horizontally */
+    width: 100%; /* Extend to full width */
+    height: 100%; /* Extend to full height */
+  }
+  
+  .main-content {
     display: flex;
-}
+    flex-direction: column; /* Ensure content stacks vertically */
+    flex-grow: 1; /* Allow it to expand fully */
+    width: 100%; /* Extend to full width */
+    margin: 0;
+    padding: 0;
+  }
+  
+  .quick-links-section {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap; /* Ensure buttons don’t overflow */
+  }
+  
+  .link-button {
+    margin: 5px;
+    background-color: #BD934A; /* Adjust color as needed */
+  }
 
 :root {
     --symphony-blue: #004E7C;
