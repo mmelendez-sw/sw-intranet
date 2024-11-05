@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/photo-stream.css';
 
-const image1 = '../../site_1.jpg'
+const image1 = '../../images/site_1.jpg'
 const images = [
   image1
 ];

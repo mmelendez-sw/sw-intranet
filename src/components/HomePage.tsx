@@ -4,6 +4,9 @@ import Carousel from '../components/Carousel'; // Ensure this is imported
 import CalendarComponent from '../components/Calendar'; // Ensure this is imported
 import '../../styles/home-page.css'; // Import your CSS file
 
+import siteImage from '../../images/site_1.jpg'; 
+import siteImage2 from '../../images/site_2.jpg'; 
+
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
@@ -17,6 +20,9 @@ const HomePage: React.FC = () => {
           <div className="industry-news-section">
             <h2>Industry News</h2>
             <p>Latest news and updates will be shown here.</p>
+            <div className="photo-section">
+              <img src={siteImage} alt="Site" className="homepage-image" />
+            </div>
           </div>
         </div>
 
