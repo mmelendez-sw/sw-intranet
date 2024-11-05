@@ -23,3 +23,9 @@ button {
 button:hover {
   background-color: var(--symphony-blue);
 }
+
+.home-page {
+  padding: 20px;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
