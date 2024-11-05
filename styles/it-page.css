@@ -1,0 +1,14 @@
+.it-page {
+    padding: 20px;
+    background-color: var(--light-beige);
+    border-radius: 5px;
+  }
+  
+  .it-page h1 {
+    color: var(--bold-blue);
+  }
+  
+  .it-page ul {
+    list-style-type: disc;
+    margin-left: 20px;
+  }
