@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Calendar, { CalendarProps } from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import '../../styles/calendar.css';
 
 const CalendarComponent: React.FC = () => {
   // Update the type of 'value' to match the types returned by react-calendar
