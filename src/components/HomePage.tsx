@@ -1,11 +1,13 @@
 import React from 'react';
 import Carousel from './Carousel';
+import PhotoStream from './PhotoStream';
 import '../../styles/home-page.css';
 import CalendarComponent from './Calendar';
 
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
+      <PhotoStream /> {/* Add the photo stream component at the top */}
       <div className="left-section">
         <div className="report-section">
           <h2>Reports</h2>

@@ -1,0 +1,37 @@
+.photo-stream {
+    position: relative;
+    width: 100%;
+    height: 300px; /* Adjust as needed */
+    overflow: hidden;
+    border-radius: 10px; /* Optional for rounded corners */
+    margin-bottom: 20px;
+  }
+  
+  .photo-stream-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the image covers the container */
+    transition: opacity 1s ease-in-out;
+  }
+  
+  /* Banner styling */
+  .banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 33.33%; /* Width for the 3x3 grid */
+    height: 33.33%; /* Height for the 3x3 grid */
+    background-color: #004E7C; /* Blue background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-left-radius: 10px; /* Match the border radius */
+  }
+  
+  .banner p {
+    color: white;
+    font-size: 18px; /* Adjust font size as needed */
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+  }

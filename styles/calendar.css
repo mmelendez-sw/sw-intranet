@@ -7,8 +7,8 @@
   color: black; /* Set the tile text color */
 }
 
-button {
-  color: black;
+.react-calendar .button { 
+  color:black
 }
 
 .react-calendar__tile {
