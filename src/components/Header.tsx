@@ -11,6 +11,7 @@ const Header: React.FC = () => {
         <a href="/resources">Resources</a>
         <a href="/contact">Contact</a>
       </nav>
+      <div className="user">Welcome, Matt!</div>
     </header>
   );
 };

@@ -2,6 +2,13 @@
   border: none;
   width: 100%; /* Ensure it takes the full width of its container */
   border-radius: 10px;
+  color: black; /* Set a default text color */
+  background-color: white; /* Ensure the background is white */
+  color: black; /* Set the tile text color */
+}
+
+button {
+  color: black;
 }
 
 .react-calendar__tile {
@@ -9,21 +16,23 @@
   padding: 10px;
   background: none;
   border: none;
+  color: black; /* Set the tile text color */
 }
 
 .react-calendar__tile--now {
-  background: #004E7C; /* Highlight for the current day */
-  color: white;
+  background:  #0078D4; /* Highlight for the current day */
+  color:white; /* Ensure the text is visible */
 }
 
 .react-calendar__tile--active {
   background: #0078D4; /* Selected day */
-  color: white;
+  color: white; /* Ensure the text is visible */
   border-radius: 8px;
 }
 
 .react-calendar__tile--range {
   background: #E0EAF4; /* Styling for range selection */
+  color: black; /* Ensure the text is visible */
 }
 
 .react-calendar__month-view__days__day--weekend {
