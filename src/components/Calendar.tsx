@@ -14,7 +14,7 @@ const CalendarComponent: React.FC = () => {
 
   return (
     <div className="calendar-container">
-      <h2>Calendar</h2>
+      {/* <h2>Calendar</h2> */}
       <Calendar onChange={onChange} value={value} />
       <p>
         Selected Date:{' '}

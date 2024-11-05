@@ -1,6 +1,7 @@
 import React from 'react';
 import Carousel from './Carousel';
 import '../../styles/home-page.css';
+import CalendarComponent from './Calendar';
 
 const HomePage: React.FC = () => {
   return (
@@ -42,7 +43,7 @@ const HomePage: React.FC = () => {
         </div>
         <div className="calendar-section">
           <h2>Calendar</h2>
-          <p>Event list and schedule will be shown here.</p>
+          <CalendarComponent />
         </div>
       </div>
     </div>
