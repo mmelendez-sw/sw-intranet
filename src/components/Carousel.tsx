@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import '../../styles/carousel.css';
 
-const images = [
-    require('../../images/cr_1.png'),
-    require('../../images/cr_2.png'),
-    require('../../images/ts_1.png'),
-    require('../../images/ts_2.png')
-];
+import image1 from '../../images/cr_1.png';
+import image2 from '../../images/cr_2.png';
+import image3 from '../../images/ts_1.png';
+import image4 from '../../images/ts_2.png';
+
+import test_image from '../images/cr_1.png'
+
+const images = [image1, image2, image3, image4];
 
 const Carousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -22,14 +24,19 @@ const Carousel: React.FC = () => {
   };
 
   return (
-    <div className="carousel">
-      <button className="carousel-button left" onClick={handlePrevClick}>
-        &#8250; {/* Left arrow */}
-      </button>
-      <img src={images[currentIndex]} alt={`Slide ${currentIndex}`} className="carousel-image" />
-      <button className="carousel-button right" onClick={handleNextClick}>
-        &#8249; {/* Right arrow */}
-      </button>
+    <div>
+        <div className="carousel">
+        <button className="carousel-button left" onClick={handlePrevClick}>
+            &#8250; {/* Left arrow */}
+        </button>
+        <img src={images[currentIndex]} alt={`Slide ${currentIndex}`} className="carousel-image" />
+        <button className="carousel-button right" onClick={handleNextClick}>
+            &#8249; {/* Right arrow */}
+        </button>
+        </div>
+        <div>
+            <img src={test_image} alt="Test Image 1" />
+        </div>
     </div>
   );
 };
