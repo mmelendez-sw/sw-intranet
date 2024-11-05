@@ -22,15 +22,19 @@ const HomePage: React.FC = () => {
           <div className="button-container">
             <button onClick={() => window.location.href = '/hr'}>HR Page</button>
             <button onClick={() => window.location.href = '/it'}>IT Page</button>
-            <button onClick={() => window.open('https://www.salesforce.com/', '_blank')}>Salesforce</button>
+            <button onClick={() => window.open('https://www.symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
             <button onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
             <button onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
             <button onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
           </div>
         </div>
         <div className="announcement-section">
-          <h2>Announcements</h2>
-          <p>Important announcements will be displayed here.</p>
+          <h2>HR Announcements</h2>
+          <p>Important HR announcements will be displayed here.</p>
+        </div>
+        <div className="announcement-section">
+          <h2>Marketing Announcements</h2>
+          <p>Important Marketing announcements will be displayed here.</p>
         </div>
         <div className="calendar-section">
           <h2>Calendar</h2>
