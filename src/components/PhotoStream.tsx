@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/photo-stream.css';
 
+const image1 = '../../site_1.jpg'
 const images = [
-  'path/to/image1.jpg', // Replace with the actual paths to your images
-  'path/to/image2.jpg',
-  'path/to/image3.jpg',
-  'path/to/image4.jpg',
-  'path/to/image5.jpg',
+  image1
 ];
 
 const PhotoStream: React.FC = () => {
