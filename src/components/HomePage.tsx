@@ -5,7 +5,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <div className="button-section">
-        <h2 style={{ color: 'red' }}>Quick Links</h2>
+        <h2 >Quick Links</h2>
         <div className="button-container">
           {/* Internal Links */}
           <button className="link-button" onClick={() => window.location.href = '/hr'}>HR Page</button>
