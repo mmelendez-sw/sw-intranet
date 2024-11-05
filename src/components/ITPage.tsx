@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/it-page.css';
+import '../../styles/it-page.css';
 
 const ITPage: React.FC = () => {
   return (

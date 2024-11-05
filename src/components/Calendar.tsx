@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/calendar.css';
+import '../../styles/calendar.css';
 
 const Calendar: React.FC = () => {
   return (

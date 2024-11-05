@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/home-page.css';
+import '../../styles/home-page.css';
 
 const HomePage: React.FC = () => {
   return (
