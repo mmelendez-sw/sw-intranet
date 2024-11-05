@@ -1,14 +1,14 @@
 .hr-page {
-    padding: 20px;
-    background-color: var(--light-gray);
-    border-radius: 5px;
-  }
+  padding: 20px;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
+
+.hr-page h1 {
+  color: var(--symphony-blue);
+}
   
-  .hr-page h1 {
-    color: var(--symphony-blue);
-  }
-  
-  .hr-page ul {
-    list-style-type: disc;
-    margin-left: 20px;
-  }
+.hr-page ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
