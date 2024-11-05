@@ -25,7 +25,55 @@ button:hover {
 }
 
 .home-page {
+  width: 100%;
+  max-width: 100%;
+  /* padding: 0; */
+  margin: 0 auto; /* Center if needed */
+  display: flex;
+  justify-content: center;
   padding: 20px;
-  background-color: var(--light-gray);
-  border-radius: 5px;
+  background-color: #f5f5f5; /* Adjust as needed */
+}
+
+.main-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Wider left column */
+  grid-template-rows: auto auto; /* Two rows */
+  grid-template-areas:
+    "report announcement"
+    "industry calendar";
+  gap: 20px;
+  width: 80%; /* Adjust width as needed */
+}
+
+.report-section {
+  grid-area: report;
+  background-color: #004E7C;
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.announcement-section {
+  grid-area: announcement;
+  background-color: #004E7C;
+  color: black;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.industry-news-section {
+  grid-area: industry;
+  background-color: #004E7C;
+  color: white;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.calendar-section {
+  grid-area: calendar;
+  background-color: #004E7C;
+  color: black;
+  padding: 20px;
+  border-radius: 15px;
 }
