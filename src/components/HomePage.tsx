@@ -4,17 +4,10 @@ import Carousel from '../components/Carousel'; // Ensure this is imported
 import CalendarComponent from '../components/Calendar'; // Ensure this is imported
 import '../../styles/home-page.css'; // Import your CSS file
 
-import siteImage from '../../images/site_1.jpg'; 
-import siteImage2 from '../../images/site_2.jpg'; 
-import siteImage3 from '../../images/site_3.jpg'; 
-import siteImage4 from '../../images/site_4.jpg'; 
-import siteImage5 from '../../images/site_5.jpg'; 
-
-
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      <PhotoStream /> {/* Add the photo stream component at the top */}
+      <PhotoStream /> 
       <div className="content-container">
         <div className="left-section">
           <div className="report-section">
