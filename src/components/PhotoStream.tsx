@@ -31,7 +31,7 @@ const PhotoStream: React.FC = () => {
       />
       {/* Banner overlay */}
       <div className="banner">
-        <p>Welcome to Symphony Wireless</p>
+        <p>Welcome to Symphony Wireless!</p>
       </div>
     </div>
   );
