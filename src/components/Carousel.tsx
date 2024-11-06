@@ -24,16 +24,12 @@ const Carousel: React.FC = () => {
   };
 
   return (
-    <div>
-        <div className="carousel">
-        <button className="carousel-button left" onClick={handlePrevClick}>
-            &#8250; {/* Left arrow */}
-        </button>
-        <img src={images[currentIndex]} alt={`Slide ${currentIndex}`} className="carousel-image" />
-        <button className="carousel-button right" onClick={handleNextClick}>
-            &#8249; {/* Right arrow */}
-        </button>
-        </div>
+    <div className="carousel">
+      <img src={images[currentIndex]} alt={`Slide ${currentIndex}`} className="carousel-image" />
+      <div className="carousel-controls">
+        <button onClick={handlePrevClick} className="carousel-button left">◄</button>
+        <button onClick={handleNextClick} className="carousel-button right">►</button>
+      </div>
     </div>
   );
 };

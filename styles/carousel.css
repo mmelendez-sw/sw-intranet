@@ -1,42 +1,45 @@
 .carousel {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 600px; /* Adjust as needed */
-    margin: 0 auto; /* Center the carousel */
-    overflow: hidden;
-    border-radius: 10px;
-  }
-  
-  .carousel-image {
-    width: 100%;
-    height: auto;
-  }
-  
-  .carousel-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    border: none;
-    color: white;
-    padding: 10px;
-    cursor: pointer;
-    z-index: 1;
-    border-radius: 50%;
-  }
-  
-  .carousel-button.left {
-    left: 10px;
-  }
-  
-  .carousel-button.right {
-    right: 10px;
-  }
-  
-  .carousel-button:hover {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-  
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px; /* Adjust as needed */
+  margin: 0 auto; /* Center the carousel */
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.carousel-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Position buttons at the bottom center */
+.carousel-controls {
+  position: absolute;
+  bottom: 10px; /* Position the buttons at the bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.carousel-button {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.carousel-button:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
