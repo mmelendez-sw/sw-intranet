@@ -29,7 +29,7 @@ const HomePage: React.FC = () => {
 
         <div className="right-section">
           <div className="announcement-section">
-            <h2>HR Announcements</h2>
+            <h2>HR Updates</h2>
             <p>11/4 - 11/15: Food Drive</p>
             <p>11/6: Q&A Session</p>
             <p>11/28: Thanksgiving Day</p>
@@ -47,7 +47,7 @@ const HomePage: React.FC = () => {
             </div>
           </div>
           <div className="announcement-section">
-            <h2>Marketing Announcements</h2>
+            <h2>Marketing Updates</h2>
             <p>New Symphony Wireless Newsletter!</p>
             <p>Read this new article!</p>
           </div>

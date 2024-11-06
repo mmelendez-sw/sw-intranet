@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 600px; /* Adjust as needed */
+  max-width: 120%; /* Adjust as needed */
   margin: 0 auto; /* Center the carousel */
   overflow: hidden;
   border-radius: 10px;
