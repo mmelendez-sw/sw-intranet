@@ -6,6 +6,10 @@ import '../../styles/home-page.css'; // Import your CSS file
 
 import siteImage from '../../images/site_1.jpg'; 
 import siteImage2 from '../../images/site_2.jpg'; 
+import siteImage3 from '../../images/site_3.jpg'; 
+import siteImage4 from '../../images/site_4.jpg'; 
+import siteImage5 from '../../images/site_5.jpg'; 
+
 
 const HomePage: React.FC = () => {
   return (
@@ -22,6 +26,10 @@ const HomePage: React.FC = () => {
             <p>Latest news and updates will be shown here.</p>
             <div className="photo-section">
               <img src={siteImage} alt="Site" className="homepage-image" />
+              <img src={siteImage2} alt="Site" className="homepage-image" />
+              <img src={siteImage3} alt="Site" className="homepage-image" />
+              <img src={siteImage4} alt="Site" className="homepage-image" />
+              <img src={siteImage5} alt="Site" className="homepage-image" />
             </div>
           </div>
         </div>

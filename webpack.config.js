@@ -28,6 +28,13 @@ module.exports = {
         options: {
           name: '[path][name].[ext]', // Keeps the original name and path
         },
+      }, 
+      {
+        test: /\.(png|jpe?g|gif)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'images/[hash][ext][query]' // Organizes images into an images folder within dist
+        }
       }
     ]
   },
