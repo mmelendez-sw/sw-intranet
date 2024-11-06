@@ -24,13 +24,6 @@ const HomePage: React.FC = () => {
           <div className="industry-news-section">
             <h2>Industry News</h2>
             <p>Latest news and updates will be shown here.</p>
-            <div className="photo-section">
-              <img src={siteImage} alt="Site" className="homepage-image" />
-              <img src={siteImage2} alt="Site" className="homepage-image" />
-              <img src={siteImage3} alt="Site" className="homepage-image" />
-              <img src={siteImage4} alt="Site" className="homepage-image" />
-              <img src={siteImage5} alt="Site" className="homepage-image" />
-            </div>
           </div>
         </div>
 

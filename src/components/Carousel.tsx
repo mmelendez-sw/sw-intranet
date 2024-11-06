@@ -34,9 +34,6 @@ const Carousel: React.FC = () => {
             &#8249; {/* Right arrow */}
         </button>
         </div>
-        <div>
-            <img src={test_image} alt="Test Image 1" />
-        </div>
     </div>
   );
 };
