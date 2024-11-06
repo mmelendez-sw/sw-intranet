@@ -1,10 +1,11 @@
 import React from 'react';
 import '../../styles/header.css';
+import logo from '../../images/symph_white_t.png'
 
 const Header: React.FC = () => {
   return (
     <header className="header">
-      <div className="logo">COMPANY LOGO</div>
+      <img src={logo} alt={'Logo'} className="logo-image" />
       <nav className="nav-bar">
         <a href="/">Home</a>
         <a href="/acquisitions">Acquisitions</a>
