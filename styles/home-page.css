@@ -27,7 +27,8 @@
   flex: 5; /* 60% of the width (3 parts out of 5) */
   display: flex;
   flex-direction: column;
-  margin-top: 0.5%
+  margin-top: 0.5%;
+  
 }
 
 /* Right section: 40% width */
@@ -35,7 +36,7 @@
   flex: 2; /* 40% of the width (2 parts out of 5) */
   display: flex;
   flex-direction: column;
-  margin-top: 0.5%
+  margin-top: 0.5%;
 }
 
 /* Styling for all content blocks */
@@ -47,11 +48,21 @@
   border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
 }
 
+.announcement-section { 
+  margin-top: 15px;
+}
+
 .column-container { 
   display: flex;
   flex-direction: row;
   margin-top: 2%;
   justify-content: space-around;
+  width: 100%;
+  gap: 20px;
+}
+
+.marketing-section, .events-section { 
+  width: 100%;
 }
 
 .report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p {
@@ -71,6 +82,7 @@
 .quick-links {
   background-color: #f5f5f5; /* Light background for contrast */
   padding: 8px;
+  margin-top: 10px;
   border-radius: 15px;
 }
 
