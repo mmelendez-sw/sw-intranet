@@ -18,8 +18,11 @@
 /* Content container for left and right sections */
 .content-container {
   display: flex;
-  gap: 20px; /* Space between left and right sections */
-  padding: 4.5% 8%;
+  gap: 20px; /*Space between left and right sections */
+  padding-left: 8%;
+  padding-right: 8%;
+  padding-top: 4.5%; /* Remove when photo stream*/
+  margin-top: 0;
 }
 
 /* Left section: 60% width */
@@ -28,7 +31,6 @@
   display: flex;
   flex-direction: column;
   margin-top: 0.5%;
-  
 }
 
 /* Right section: 40% width */

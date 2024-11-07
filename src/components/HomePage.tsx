@@ -22,7 +22,8 @@ const HomePage: React.FC = () => {
               </div>
               <div className="events-section">
                 <h2>Company Events</h2>
-                <p>Read this new article!</p>
+                <p>11/4-11/15: Food Drive</p>
+                <p>11/13: Hudson Grille Happy Hour</p>
               </div>
             </div>
           </div>
@@ -36,7 +37,6 @@ const HomePage: React.FC = () => {
           </div>
           <div className="announcement-section">
             <h2>HR Updates</h2>
-            <p>11/4-11/15: Food Drive</p>
             <p>11/6: Q&A Session</p>
             <p>11/28: Thanksgiving Day</p>
             <p>11/29: Black Friday</p>
