@@ -39,7 +39,7 @@
 }
 
 /* Styling for all content blocks */
-.report-section, .industry-news-section, .announcement-section, .calendar-section {
+.report-section, .announcement-section, .calendar-section, .marketing-section, .events-section {
   background-color: white; /* White background */
   color: black; /* Black text */
   /* padding: 20px; */
@@ -47,11 +47,18 @@
   border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
 }
 
-.report-section p, .industry-news-section p, .announcement-section p, .calendar-section p {
+.column-container { 
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: space-around;
+}
+
+.report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p {
   margin-left: 20px;
 }
 
-.report-section h2, .industry-news-section h2, .announcement-section h2, .calendar-section h2 {
+.report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2 {
   background-color: #c0e0ee; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;

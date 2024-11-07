@@ -14,13 +14,13 @@ const HomePage: React.FC = () => {
             <h2>Reports</h2>
             <Carousel />
           </div>
-          <div className="industry-news-section">
+          <div className="doubles-section">
             <div className="column-container">
-              <div className="column">
+              <div className="marketing-section">
                 <h2>Marketing Activities</h2>
                 <p>New Symphony Wireless Newsletter!</p>
               </div>
-              <div className="column">
+              <div className="events-section">
                 <h2>Company Events</h2>
                 <p>Read this new article!</p>
               </div>
