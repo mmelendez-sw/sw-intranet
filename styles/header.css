@@ -1,6 +1,6 @@
 .header {
-    background-color: var(--symphony-blue);
-    color: white;
+    background-color: #E7F4FA;
+    color: #004E7C;
     padding: 10px 20px;
     display: flex;
     justify-content: space-between;
@@ -15,7 +15,7 @@
 }
 
 .nav-bar a {
-    color: white;
+    color: #004E7C;
     margin-right: 15px;
     text-decoration: none;
 }
