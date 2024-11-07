@@ -15,8 +15,9 @@ const HomePage: React.FC = () => {
             <Carousel />
           </div>
           <div className="industry-news-section">
-            <h2>Industry News</h2>
-            <p>Latest news and updates will be shown here.</p>
+            <h2>Marketing Activities</h2>
+            <p>New Symphony Wireless Newsletter!</p>
+            <p>Read this new article!</p>
           </div>
         </div>
 
@@ -40,9 +41,9 @@ const HomePage: React.FC = () => {
             </div>
           </div>
           <div className="announcement-section">
-            <h2>Marketing Updates</h2>
-            <p>New Symphony Wireless Newsletter!</p>
-            <p>Read this new article!</p>
+            <h2>IT Updates</h2>
+            <p>Everyone is getting new laptops</p>
+            <p>Do not click any phishing links!</p>
           </div>
           <div className="calendar-section">
             <h2>Calendar</h2>
