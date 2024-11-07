@@ -15,11 +15,19 @@ const HomePage: React.FC = () => {
             <Carousel />
           </div>
           <div className="industry-news-section">
-            <h2>Marketing Activities</h2>
-            <p>New Symphony Wireless Newsletter!</p>
-            <p>Read this new article!</p>
+            <div className="column-container">
+              <div className="column">
+                <h2>Marketing Activities</h2>
+                <p>New Symphony Wireless Newsletter!</p>
+              </div>
+              <div className="column">
+                <h2>Company Events</h2>
+                <p>Read this new article!</p>
+              </div>
+            </div>
           </div>
         </div>
+
 
         <div className="right-section">
           <div className="calendar-section">
