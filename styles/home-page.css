@@ -21,7 +21,7 @@
   gap: 20px; /*Space between left and right sections */
   padding-left: 8%;
   padding-right: 8%;
-  padding-top: 4%; /* Remove when photo stream*/
+  /* padding-top: 4%; Remove when photo stream*/
   margin-top: 0;
 }
 
@@ -43,6 +43,7 @@
 
 .site-image { 
   width: 100%;
+  height: 20%;
 }
 
 /* Styling for all content blocks */
@@ -69,11 +70,13 @@
 
 .marketing-section, .events-section { 
   width: 100%;
+  height: 100%;
 }
 
 .report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p {
   margin-left: 20px;
   margin-right: 20px;
+  color: #62737a;
 }
 
 .report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2 {

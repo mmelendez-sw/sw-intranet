@@ -9,7 +9,7 @@ import food_drive from '../../images/food_drive.jpeg'
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      {/* <PhotoStream />  */}
+      <PhotoStream /> 
       <div className="content-container">
         <div className="left-section">
           <div className="report-section">
