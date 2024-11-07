@@ -1,11 +1,13 @@
 import React from 'react';
 import '../../styles/header.css';
 import logo from '../../images/symph_white_t.png'
+import logo2 from '../../images/SW_logo_transparent-1.png'
+import logo3 from '../../images/SW_logo_transparent-2.png'
 
 const Header: React.FC = () => {
   return (
     <header className="header">
-      <img src={logo} alt={'Logo'} className="logo-image" />
+      <img src={logo3} alt={'Logo'} className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/"> Home</a>
         <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions"> Acquisitions</a>
