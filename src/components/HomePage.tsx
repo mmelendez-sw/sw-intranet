@@ -3,6 +3,8 @@ import PhotoStream from '../components/PhotoStream'; // Ensure this is imported
 import Carousel from '../components/Carousel'; // Ensure this is imported
 import CalendarComponent from '../components/Calendar'; // Ensure this is imported
 import '../../styles/home-page.css'; // Import your CSS file
+import site2 from '../../images/site_2.jpg'
+import food_drive from '../../images/food_drive.jpeg'
 
 const HomePage: React.FC = () => {
   return (
@@ -18,10 +20,12 @@ const HomePage: React.FC = () => {
             <div className="column-container">
               <div className="marketing-section">
                 <h2>Marketing Activities</h2>
-                <p>New Symphony Wireless Newsletter!</p>
+                <img src={site2} alt={'Site'} className="site-image" />
+                <p>Telecom Lease Buyouts & Symphony Wireless: Maximizing Value with The Partner of Choice</p>
               </div>
               <div className="events-section">
                 <h2>Company Events</h2>
+                <img src={food_drive} alt={'Site'} className="site-image" />
                 <p>11/4-11/15: Food Drive</p>
                 <p>11/13: Hudson Grille Happy Hour</p>
               </div>

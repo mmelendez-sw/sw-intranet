@@ -41,6 +41,10 @@
   margin-top: 0.5%;
 }
 
+.site-image { 
+  width: 100%;
+}
+
 /* Styling for all content blocks */
 .report-section, .announcement-section, .calendar-section, .marketing-section, .events-section {
   background-color: white; /* White background */
@@ -69,6 +73,7 @@
 
 .report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p {
   margin-left: 20px;
+  margin-right: 20px;
 }
 
 .report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2 {
