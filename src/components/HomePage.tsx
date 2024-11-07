@@ -7,7 +7,7 @@ import '../../styles/home-page.css'; // Import your CSS file
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      <PhotoStream /> 
+      {/* <PhotoStream />  */}
       <div className="content-container">
         <div className="left-section">
           <div className="report-section">
@@ -22,6 +22,10 @@ const HomePage: React.FC = () => {
         </div>
 
         <div className="right-section">
+          <div className="calendar-section">
+            <h2>Calendar</h2>
+            <CalendarComponent />
+          </div>
           <div className="announcement-section">
             <h2>HR Updates</h2>
             <p>11/4-11/15: Food Drive</p>
@@ -45,10 +49,7 @@ const HomePage: React.FC = () => {
             <p>Everyone is getting new laptops</p>
             <p>Do not click any phishing links!</p>
           </div>
-          <div className="calendar-section">
-            <h2>Calendar</h2>
-            <CalendarComponent />
-          </div>
+          
         </div>
       </div>
     </div>

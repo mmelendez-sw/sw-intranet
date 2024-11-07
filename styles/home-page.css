@@ -19,7 +19,7 @@
 .content-container {
   display: flex;
   gap: 20px; /* Space between left and right sections */
-  padding: 0% 8%;
+  padding: 5% 8%;
 }
 
 /* Left section: 60% width */
