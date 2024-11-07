@@ -27,7 +27,7 @@
   flex: 5; /* 60% of the width (3 parts out of 5) */
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  margin-top: 0.5%
 }
 
 /* Right section: 40% width */
@@ -35,7 +35,7 @@
   flex: 2; /* 40% of the width (2 parts out of 5) */
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  margin-top: 0.5%
 }
 
 /* Styling for all content blocks */
@@ -50,7 +50,7 @@
 .column-container { 
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  margin-top: 2%;
   justify-content: space-around;
 }
 
@@ -103,6 +103,12 @@ button:hover {
   .content-container {
     flex-direction: column; /* Stack left and right sections vertically */
     padding: 5%; /* Adjust padding for smaller screens */
+  }
+
+  .column-container {
+    flex-direction: column; /* Stack left and right sections vertically */
+    padding: 5%; /* Adjust padding for smaller screens */
+    margin: 5%;
   }
 
   .button-container {
