@@ -44,7 +44,7 @@
   color: black; /* Black text */
   /* padding: 20px; */
   /* border-radius: 15px; */
-  border: 2px solid #8ec3dc; /* Thin Symphony Blue border */
+  border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
 }
 
 .report-section p, .industry-news-section p, .announcement-section p, .calendar-section p {
@@ -52,7 +52,7 @@
 }
 
 .report-section h2, .industry-news-section h2, .announcement-section h2, .calendar-section h2 {
-  background-color: #8ec3dc; /* Blue background */
+  background-color: #c0e0ee; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;
   margin: 0; /* Remove margin to ensure it starts at the top */
