@@ -43,8 +43,8 @@
   background-color: white; /* White background */
   color: black; /* Black text */
   /* padding: 20px; */
-  border-radius: 15px;
-  border: 4px solid #E7F4FA; /* Thin Symphony Blue border */
+  /* border-radius: 15px; */
+  border: 4px solid #8ec3dc; /* Thin Symphony Blue border */
 }
 
 .report-section p, .industry-news-section p, .announcement-section p, .calendar-section p {
@@ -52,7 +52,7 @@
 }
 
 .report-section h2, .industry-news-section h2, .announcement-section h2, .calendar-section h2 {
-  background-color: #E7F4FA; /* Blue background */
+  background-color: #8ec3dc; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;
   margin: 0; /* Remove margin to ensure it starts at the top */
@@ -75,7 +75,7 @@
 
 button {
   padding: 10px 0; /* Ensure consistent button height */
-  background-color: var(--bold-blue);
+  background-color: var(--symphony-blue);
   color: white;
   border: none;
   border-radius: 5px;

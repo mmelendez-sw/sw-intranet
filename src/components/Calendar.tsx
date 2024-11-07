@@ -17,12 +17,12 @@ const CalendarComponent: React.FC = () => {
     <div className="calendar-container">
       {/* <h2>Calendar</h2> */}
       <Calendar onChange={onChange} value={value} />
-      <p>
+      {/* <p>
         Selected Date:{' '}
         {Array.isArray(value)
           ? value.map(date => date.toDateString()).join(', ')
           : value?.toDateString()}
-      </p>
+      </p> */}
     </div>
   );
 };
