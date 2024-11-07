@@ -8,9 +8,10 @@ const Header: React.FC = () => {
       <img src={logo} alt={'Logo'} className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/"> Home</a>
-        <i className="fa-solid fa-wifi"></i><a href="/acquisitions"> Acquisitions</a>
+        <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions"> Acquisitions</a>
         <i className="fa-solid fa-wallet"></i><a href="/pricing"> Pricing</a>
         <i className="fa-brands fa-readme"></i><a href="/legal"> Legal</a>
+        <i className="fa-solid fa-icons"></i><a href="/marketing"> Marketing</a>
         <i className="fa-solid fa-user"></i><a href="/hr"> HR</a>
         <i className="fa-solid fa-laptop"></i><a href="/it"> IT</a>
       </nav>
