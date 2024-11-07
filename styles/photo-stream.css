@@ -18,19 +18,29 @@
   .banner {
     position: absolute;
     top: 12%;
-    left: 8%;
-    width: 20%; /* Width for the 3x3 grid */
-    height: 20%; /* Height for the 3x3 grid */
+    left: 15%;
+    width: 33%; /* Width for the 3x3 grid */
+    height: auto; /* Height for the 3x3 grid */
+    padding-bottom: 1%;
     background-color: #004E7C; /* Blue background */
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;/* Match the border radius */
+    justify-content: left;/* Match the border radius */
   }
   
+  .banner h2 {
+    color: white;
+    font-size: 24px; /* Adjust font size as needed */
+    font-weight: bold;
+    margin-left: 0;
+    text-align: left;
+    text-decoration: underline;
+  }
+
   .banner p {
     color: white;
     font-size: 18px; /* Adjust font size as needed */
-    font-weight: bold;
     margin: 0;
-    text-align: center;
+    text-align: left;
   }

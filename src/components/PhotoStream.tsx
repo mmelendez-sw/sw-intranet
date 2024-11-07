@@ -31,7 +31,10 @@ const PhotoStream: React.FC = () => {
       />
       {/* Banner overlay */}
       <div className="banner">
-        <p>Welcome to Symphony Wireless!</p>
+        <h2>Company Announcements</h2>
+        <p>- Food Drive is happening from 11/4-11/15!</p>
+        <p>- New Salesforce Workflow releasing in Dec</p>
+        <p>- Fill out your personal goal sheet for 2025</p>
       </div>
     </div>
   );
