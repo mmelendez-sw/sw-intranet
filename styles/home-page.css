@@ -47,7 +47,7 @@
 }
 
 /* Styling for all content blocks */
-.report-section, .announcement-section, .calendar-section, .marketing-section, .events-section {
+.report-section, .announcement-section, .calendar-section, .marketing-section, .events-section, .it-section {
   background-color: white; /* White background */
   color: black; /* Black text */
   /* padding: 20px; */
@@ -55,7 +55,7 @@
   border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
 }
 
-.announcement-section { 
+.it-section { 
   margin-top: 15px;
 }
 
@@ -73,13 +73,13 @@
   height: 100%;
 }
 
-.report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p {
+.report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p, .it-section p {
   margin-left: 20px;
   margin-right: 20px;
   color: #62737a;
 }
 
-.report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2 {
+.report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2, .it-section h2 {
   background-color: #c0e0ee; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;

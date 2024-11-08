@@ -34,17 +34,18 @@ const HomePage: React.FC = () => {
         </div>
 
 
-        <div className="right-section">
-          <div className="calendar-section">
-            <h2>Calendar</h2>
-            <CalendarComponent />
-          </div>
+        <div className="right-section">    
           <div className="announcement-section">
             <h2>HR Updates</h2>
             <p>11/6: Q&A Session</p>
             <p>11/28: Thanksgiving Day</p>
             <p>11/29: Black Friday</p>
             <p>12/5: Symphony Wireless Holiday Party</p>
+          </div>
+          <div className="it-section">
+            <h2>IT Updates</h2>
+            <p>Everyone is getting new laptops</p>
+            <p>Do not click any phishing links!</p>
           </div>
           <div className="quick-links">
             <div className="button-container">
@@ -56,12 +57,10 @@ const HomePage: React.FC = () => {
               <button onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
             </div>
           </div>
-          <div className="announcement-section">
-            <h2>IT Updates</h2>
-            <p>Everyone is getting new laptops</p>
-            <p>Do not click any phishing links!</p>
+          <div className="calendar-section">
+            <h2>Calendar</h2>
+            <CalendarComponent />
           </div>
-          
         </div>
       </div>
     </div>
