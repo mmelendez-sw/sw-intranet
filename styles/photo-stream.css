@@ -2,13 +2,13 @@
 .photo-stream {
   position: relative;
   width: 100%;
-  height: 100vh; /* Full viewport height, adjust as needed */
+  height: 100vh; /* Full viewport height */
   overflow: hidden;
   margin-top: 7rem;
   z-index: 0;
 }
 
-/* Image behind the update section */
+/* Background image behind the update section */
 .photo-stream .photo-stream-image {
   width: 100%;
   height: 100%;
@@ -22,7 +22,7 @@
 /* Scrolling banner overlay */
 .photo-stream .ticker-wrap {
   position: fixed;
-  top: 3.8rem;
+  top: 3.8rem; /* Adjusted to place the ticker higher */
   width: 100%;
   overflow: hidden;
   height: 3rem;
@@ -66,15 +66,16 @@
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
-  margin-top: -3rem; /* Adjust as needed to overlap the image */
+  margin-top: -3rem; /* Adjust to overlap the image */
 }
 
+/* Container for marketing and HR sections */
 .photo-stream .column-container {
   display: flex;
   flex-direction: row;
   padding-top: 5rem;
-  padding-left: 6%;
-  padding-right: 6%;
+  padding-left: 3%;
+  padding-right: 3%;
   justify-content: space-around;
   width: 100%;
   gap: 20px;
@@ -85,21 +86,25 @@
   background-color: white; /* White background */
   color: black; /* Black text */
   border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
+  width: 45%; /* Ensures both sections are side-by-side and centered */
 }
 
+/* Header styles for each section */
 .photo-stream .marketing-section h2, 
 .photo-stream .hr-section h2 {
   background-color: #c0e0ee; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;
-  margin: 0; /* Remove margin to ensure it starts at the top */
+  margin: 0; /* Ensure the header starts at the top */
   font-weight: bold;
   text-transform: uppercase;
 }
 
+/* Paragraph styles for content in each section */
 .photo-stream .marketing-section p, 
 .photo-stream .hr-section p {
   margin-left: 20px;
   margin-right: 20px;
-  color: #62737a;
+  color: #62737a; /* Subdued text color */
+  font-size: 1rem;
 }
