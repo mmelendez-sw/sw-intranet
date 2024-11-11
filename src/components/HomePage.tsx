@@ -19,7 +19,7 @@ const HomePage: React.FC = () => {
           <div className="doubles-section">
             <div className="column-container">
               <div className="marketing-section">
-                <h2>Marketing Activities</h2>
+                <h2>LinkedIn Articles</h2>
                 <img src={site2} alt={'Site'} className="site-image" />
                 <p>Telecom Lease Buyouts & Symphony Wireless: Maximizing Value with The Partner of Choice</p>
               </div>

@@ -22,7 +22,7 @@
     width: 33%; /* Width for the 3x3 grid */
     height: auto; /* Height for the 3x3 grid */
     padding-bottom: 1%;
-    background-color: #004E7C; /* Blue background */
+    background-color: white; /* Blue background */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -30,7 +30,7 @@
   }
   
   .banner h2 {
-    color: white;
+    color: #004E7C;
     font-size: 24px; /* Adjust font size as needed */
     font-weight: bold;
     margin-left: 0;
@@ -39,7 +39,7 @@
   }
 
   .banner p {
-    color: white;
+    color: #004E7C;
     font-size: 18px; /* Adjust font size as needed */
     margin: 0;
     text-align: left;
