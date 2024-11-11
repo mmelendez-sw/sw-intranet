@@ -3,12 +3,12 @@ import '../../styles/header.css';
 import logo4 from '../../images/symph_blue_t.png';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
-import { fetchUserPhoto } from '../graphClient';
+// import { fetchUserPhoto } from '../graphClient';
 
 const Header: React.FC = () => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  // const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const handleLogin = () => {
     instance.loginPopup(loginRequest).catch((e) => {
@@ -22,12 +22,12 @@ const Header: React.FC = () => {
     });
   };
 
-  useEffect(() => {
-    if (isAuthenticated && accounts[0]) {
-      // Fetch user photo after login
-      fetchUserPhoto(accounts[0]).then((photo) => setPhotoUrl(photo));
-    }
-  }, [isAuthenticated, accounts]);
+  // useEffect(() => {
+  //   if (isAuthenticated && accounts[0]) {
+  //     // Fetch user photo after login
+  //     fetchUserPhoto(accounts[0]).then((photo) => setPhotoUrl(photo));
+  //   }
+  // }, [isAuthenticated, accounts]);
 
   return (
     <header className="header">
@@ -44,14 +44,14 @@ const Header: React.FC = () => {
       <div className="user">
         {isAuthenticated && accounts[0] ? (
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {photoUrl && (
+            {/* {photoUrl && (
               <img
                 src={photoUrl}
                 alt="User"
                 className="user-photo"
                 style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }}
               />
-            )}
+            )} */}
             <span>Welcome, {accounts[0].name}!</span>
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </div>
