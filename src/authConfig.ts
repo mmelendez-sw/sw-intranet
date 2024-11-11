@@ -1,6 +1,6 @@
 export const msalConfig = {
     auth: {
-      clientId: "<Your Client ID>",
+      clientId: "543ae09d-95e7-47bb-b679-e4428c20918e",
       authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
       redirectUri: "http://localhost:3000",
     },
