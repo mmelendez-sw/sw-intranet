@@ -1,88 +1,28 @@
-.photo-stream {
-    position: relative;
-    width: 100%;
-    height: 100%; /* Adjust as needed */
-    overflow: hidden;
-    /* margin-bottom: 20px; */
-    margin-top: 7.5rem;
-  }
-  
-  .photo-stream-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures the image covers the container */
-    transition: opacity 1s ease-in-out;
-  }
-  
- 
-* {
-  box-sizing: border-box;
-}
-
-.ticker-wrap {
-  position: fixed;
-  top: 7.5%;
-  width: 100%;
-  overflow: hidden;
-  height: 3rem;
-  background-color: white;
-  padding-left: 100%;
-  box-sizing: content-box;
-  z-index: 1000;
-}
-
-.ticker {
-  display: inline-block;
-  height: 3rem;
-  line-height: 3rem;
-  white-space: nowrap;
-  padding-right: 100%;
-  box-sizing: content-box;
-  animation: ticker 30s linear infinite;
-}
-
-.ticker__item {
-  display: inline-block;
-  padding: 0 2rem;
-  font-size: 1.5rem;
-  color: #004E7C;
-}
-
-@keyframes ticker {
-  0% {
-    transform: translate3d(0, 0, 0);
-    visibility: visible;
-  }
-  100% {
-    transform: translate3d(-100%, 0, 0);
-  }
-}
-
-Main photo stream container
+/* Main container for photo stream */
 .photo-stream {
   position: relative;
   width: 100%;
   height: 100vh; /* Full viewport height, adjust as needed */
   overflow: hidden;
-  margin-top: 6rem;
+  margin-top: 7rem;
   z-index: 0;
 }
 
 /* Image behind the update section */
-.photo-stream-image {
+.photo-stream .photo-stream-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  position: absolute; /* Position it absolutely within the container */
+  position: absolute; /* Positioned absolutely within the container */
   top: 0;
   left: 0;
   z-index: 1; /* Ensure it stays below update-section */
 }
 
 /* Scrolling banner overlay */
-.ticker-wrap {
+.photo-stream .ticker-wrap {
   position: fixed;
-  top: 4.4rem;
+  top: 3.8rem;
   width: 100%;
   overflow: hidden;
   height: 3rem;
@@ -92,7 +32,7 @@ Main photo stream container
   z-index: 1000;
 }
 
-.ticker {
+.photo-stream .ticker {
   display: inline-block;
   height: 3rem;
   line-height: 3rem;
@@ -102,7 +42,7 @@ Main photo stream container
   animation: ticker 30s linear infinite;
 }
 
-.ticker__item {
+.photo-stream .ticker__item {
   display: inline-block;
   padding: 0 2rem;
   font-size: 1.5rem;
@@ -119,3 +59,41 @@ Main photo stream container
   }
 }
 
+/* Update section overlay */
+.photo-stream .update-section {
+  position: relative;
+  z-index: 2; /* Positioned above the photo stream image */
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: -3rem; /* Adjust as needed to overlap the image */
+}
+
+.photo-stream .column-container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.photo-stream .marketing-section, 
+.photo-stream .hr-section {
+  background-color: white; /* White background */
+  color: black; /* Black text */
+  border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
+}
+
+.photo-stream .marketing-section h2, 
+.photo-stream .hr-section h2 {
+  background-color: #c0e0ee; /* Blue background */
+  color: #004E7C; /* White text */
+  padding: 10px;
+  margin: 0; /* Remove margin to ensure it starts at the top */
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.photo-stream .marketing-section p, 
+.photo-stream .hr-section p {
+  margin-left: 20px;
+  margin-right: 20px;
+  color: #62737a;
+}
