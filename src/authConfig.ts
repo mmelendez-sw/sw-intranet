@@ -6,7 +6,7 @@ export const msalConfig = {
     },
     cache: {
       cacheLocation: "localStorage", // Use localStorage for persistence
-      storeAuthStateInCookie: false, // If you want cookies, set to true
+      storeAuthStateInCookie: true, // If you want cookies, set to true
     },
   };
   
