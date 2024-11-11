@@ -56,7 +56,7 @@ const Header: React.FC = () => {
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </div>
         ) : (
-          <button onClick={handleLogin} className="login-button">Login with Microsoft</button>
+          <button onClick={handleLogin} className="login-button">Microsoft Login</button>
         )}
       </div>
     </header>
