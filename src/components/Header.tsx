@@ -52,7 +52,7 @@ const Header: React.FC = () => {
                 style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }}
               />
             )} */}
-            <span>Welcome, {accounts[0].name}!</span>
+            <span>Welcome, {(accounts[0]?.name?.split(" ")[0]) || "User"}!</span>
             <button onClick={handleLogout} className="logout-button">Logout</button>
           </div>
         ) : (
