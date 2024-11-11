@@ -40,6 +40,20 @@ const PhotoStream: React.FC = () => {
           <div className="ticker__item">- Fill out your personal goal sheet for 2025</div>
         </div>
       </div>
+      <div className="update-section">
+        <div className="column-container">
+          <div className="marketing-section">
+            <h2>Marketing Updates</h2>
+            <p>11/4-11/15: Food Drive</p>
+            <p>11/13: Hudson Grille Happy Hour</p>
+          </div>
+          <div className="hr-section">
+            <h2>HR Announcements</h2>
+            <p>11/4-11/15: Food Drive</p>
+            <p>11/13: Hudson Grille Happy Hour</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

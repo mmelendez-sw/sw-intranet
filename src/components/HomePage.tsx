@@ -18,7 +18,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="doubles-section">
             <div className="column-container">
-              <div className="marketing-section">
+              <div className="press-section">
                 <h2>LinkedIn Articles</h2>
                 <img src={site2} alt={'Site'} className="site-image" />
                 <p>Telecom Lease Buyouts & Symphony Wireless: Maximizing Value with The Partner of Choice</p>

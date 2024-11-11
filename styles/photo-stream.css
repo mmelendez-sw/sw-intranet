@@ -57,3 +57,65 @@
     transform: translate3d(-100%, 0, 0);
   }
 }
+
+Main photo stream container
+.photo-stream {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Full viewport height, adjust as needed */
+  overflow: hidden;
+  margin-top: 6rem;
+  z-index: 0;
+}
+
+/* Image behind the update section */
+.photo-stream-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute; /* Position it absolutely within the container */
+  top: 0;
+  left: 0;
+  z-index: 1; /* Ensure it stays below update-section */
+}
+
+/* Scrolling banner overlay */
+.ticker-wrap {
+  position: fixed;
+  top: 4.4rem;
+  width: 100%;
+  overflow: hidden;
+  height: 3rem;
+  background-color: white;
+  padding-left: 100%;
+  box-sizing: content-box;
+  z-index: 1000;
+}
+
+.ticker {
+  display: inline-block;
+  height: 3rem;
+  line-height: 3rem;
+  white-space: nowrap;
+  padding-right: 100%;
+  box-sizing: content-box;
+  animation: ticker 30s linear infinite;
+}
+
+.ticker__item {
+  display: inline-block;
+  padding: 0 2rem;
+  font-size: 1.5rem;
+  color: #004E7C;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
