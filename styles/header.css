@@ -24,6 +24,7 @@
 .nav-bar a {
     color: #004E7C;
     margin-right: 30px;
+    margin-left: 10px;
     text-decoration: none;
     font-weight: 500;
     font-size: 1rem;
