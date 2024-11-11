@@ -14,33 +14,46 @@
     transition: opacity 1s ease-in-out;
   }
   
-  /* Banner styling */
-  .banner {
-    position: absolute;
-    top: 12%;
-    left: 15%;
-    width: 33%; /* Width for the 3x3 grid */
-    height: auto; /* Height for the 3x3 grid */
-    padding-bottom: 1%;
-    background-color: white; /* Blue background */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: left;/* Match the border radius */
-  }
-  
-  .banner h2 {
-    color: #004E7C;
-    font-size: 24px; /* Adjust font size as needed */
-    font-weight: bold;
-    margin-left: 0;
-    text-align: left;
-    text-decoration: underline;
-  }
+ 
+* {
+  box-sizing: border-box;
+}
 
-  .banner p {
-    color: #004E7C;
-    font-size: 18px; /* Adjust font size as needed */
-    margin: 0;
-    text-align: left;
+.ticker-wrap {
+  position: fixed;
+  top: 7.5%;
+  width: 100%;
+  overflow: hidden;
+  height: 3rem;
+  background-color: white;
+  padding-left: 100%;
+  box-sizing: content-box;
+  z-index: 1000;
+}
+
+.ticker {
+  display: inline-block;
+  height: 3rem;
+  line-height: 3rem;
+  white-space: nowrap;
+  padding-right: 100%;
+  box-sizing: content-box;
+  animation: ticker 30s linear infinite;
+}
+
+.ticker__item {
+  display: inline-block;
+  padding: 0 2rem;
+  font-size: 1.5rem;
+  color: #004E7C;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
   }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
