@@ -85,7 +85,7 @@
 .photo-stream .hr-section {
   background-color: white; /* White background */
   color: black; /* Black text */
-  border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
+  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
   width: 45%; /* Ensures both sections are side-by-side and centered */
 }
 
