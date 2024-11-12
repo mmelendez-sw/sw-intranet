@@ -41,8 +41,10 @@
 }
 
 .home-page .site-image { 
-  width: 100%;
-  height: 20%;
+  width: 100%;   /* Makes the image take the full viewport width */
+  height: auto;   /* Adjusts height automatically to maintain aspect ratio */
+  max-height: 80vh; /* Ensures the image height does not exceed 80% of the viewport height */
+  object-fit: cover; /* Keeps the aspect ratio intact and fills the area */
 }
 
 /* Styling for all content blocks */
