@@ -45,8 +45,8 @@ const HomePage: React.FC = () => {
           </div>
           <div className="it-section">
             <h2>IT Updates</h2>
-            <p>Everyone is getting new laptops</p>
-            <p>Do not click any phishing links!</p>
+            <p>New Laptops will be distibuted in batches</p>
+            <p>Do not fall bait to any phishing links!</p>
           </div>
           <div className="quick-links">
             <div className="button-container">
