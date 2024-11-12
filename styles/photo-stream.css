@@ -5,7 +5,7 @@
   height: 100vh; /* Full viewport height */
   overflow: hidden;
   margin-top: 6.8rem;
-  z-index: 0;
+  z-index: 5;
 }
 
 /* Background image behind the update section */
