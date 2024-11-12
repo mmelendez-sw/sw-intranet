@@ -133,6 +133,10 @@
   background-color: var(--symphony-blue);
 }
 
+.home-page .calendar-section { 
+  margin-top: 1rem;
+}
+
 /* Responsive styling */
 @media (max-width: 768px) {
   .home-page .content-container {
@@ -154,3 +158,4 @@
     height: 250px; /* Adjust height for smaller screens */
   }
 }
+

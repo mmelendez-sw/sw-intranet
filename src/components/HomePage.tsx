@@ -48,6 +48,10 @@ const HomePage: React.FC = () => {
             <p>New Laptops will be distibuted in batches</p>
             <p>Do not fall bait to any phishing links!</p>
           </div>
+          <div className="calendar-section">
+            <h2>Calendar</h2>
+            <CalendarComponent />
+          </div>
           <div className="quick-links">
             <div className="button-container">
               <button className="home-button" onClick={() => window.location.href = '/hr'}>HR Page</button>
@@ -57,10 +61,6 @@ const HomePage: React.FC = () => {
               <button className="home-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
               <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
             </div>
-          </div>
-          <div className="calendar-section">
-            <h2>Calendar</h2>
-            <CalendarComponent />
           </div>
         </div>
       </div>
