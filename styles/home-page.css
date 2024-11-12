@@ -115,7 +115,7 @@
   gap: 10px;
 }
 
-.home-page button {
+.home-page .home-button {
   padding: 10px 0; /* Ensure consistent button height */
   background-color: var(--symphony-blue);
   color: white;

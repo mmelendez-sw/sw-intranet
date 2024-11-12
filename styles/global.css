@@ -55,4 +55,5 @@ body {
 .date {
   color: black;
   font-weight: bold;
+  text-decoration: underline;
 }

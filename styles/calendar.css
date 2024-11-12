@@ -41,7 +41,7 @@
   padding: 10px; /* Add padding for a better look */
   border-radius: 5px; /* Rounded corners */
   cursor: pointer; /* Pointer cursor on hover */
-  font-size: 11px; /* Adjust font size */
+  font-size: 14px; /* Adjust font size */
   transition: background-color 0.3s ease;
 }
 

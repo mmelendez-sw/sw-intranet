@@ -26,8 +26,8 @@ const HomePage: React.FC = () => {
               <div className="events-section">
                 <h2>Company Events</h2>
                 <img src={food_drive} alt={'Site'} className="site-image" />
-                <p>11/4-11/15: Food Drive</p>
-                <p>11/13: Hudson Grille Happy Hour</p>
+                <p><span className="date">11/4-11/15:</span> Food Drive</p>
+                <p><span className="date">11/13:</span> Hudson Grille Happy Hour</p>
               </div>
             </div>
           </div>
@@ -36,11 +36,12 @@ const HomePage: React.FC = () => {
 
         <div className="right-section">    
           <div className="announcement-section">
-            <h2>Important Dates</h2>
-            <p>11/14: Jersey Day</p>
-            <p>11/28: Thanksgiving Day</p>
-            <p>11/29: Black Friday</p>
-            <p>12/5: Symphony Wireless Holiday Party</p>
+            <h2>Important Dates/Holidays</h2>
+            <p><span className="date">11/28:</span>  Thanksgiving Day</p>
+            <p><span className="date">11/29:</span>  Black Friday</p>
+            <p><span className="date">12/5:</span>  Symphony Wireless Holiday Party</p>
+            <p><span className="date">12/25:</span>  Christmas Day</p>
+            <p><span className="date">1/1:</span>  New Years Day</p>
           </div>
           <div className="it-section">
             <h2>IT Updates</h2>
@@ -49,12 +50,12 @@ const HomePage: React.FC = () => {
           </div>
           <div className="quick-links">
             <div className="button-container">
-              <button onClick={() => window.location.href = '/hr'}>HR Page</button>
-              <button onClick={() => window.location.href = '/it'}>IT Page</button>
-              <button onClick={() => window.open('https://www.symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
-              <button onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
-              <button onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
-              <button onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+              <button className="home-button" onClick={() => window.location.href = '/hr'}>HR Page</button>
+              <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button>
+              <button className="home-button" onClick={() => window.open('https://www.symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
+              <button className="home-button" onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
+              <button className="home-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
+              <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
             </div>
           </div>
           <div className="calendar-section">
