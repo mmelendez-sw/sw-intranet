@@ -49,10 +49,10 @@ const PhotoStream: React.FC = () => {
           </div>
           <div className="hr-section">
             <h2>HR Announcements</h2>
-            <p>11/4-11/15: Food Drive</p>
-            <p>11/13: Hudson Grille Happy Hour</p>
-            <p>11/14: Jersey Day</p>
-            <p>11/21: November Bagel Breakfast</p>
+            <p><span className="date">11/4-11/15:</span> Food Drive</p>
+            <p><span className="date">11/13:</span> Hudson Grille Happy Hour</p>
+            <p><span className="date">11/14:</span> Jersey Day</p>
+            <p><span className="date">11/21:</span> November Bagel Breakfast</p>
             {/* <p>12/12: Jersey Day</p>
             <p>12/19: December Bagel Breakfast</p> */}
           </div>
