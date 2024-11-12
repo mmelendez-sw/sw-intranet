@@ -15,19 +15,21 @@
 }
 
 .react-calendar__tile--now {
-  background:  #0078D4; /* Highlight for the current day */
+  background:  #004E7C; /* Highlight for the current day */
   color:white; /* Ensure the text is visible */
+  border-radius: 8px;
 }
 
 .react-calendar__tile--active {
-  background: #0078D4; /* Selected day */
+  background: #004E7C; /* Selected day */
   color: white; /* Ensure the text is visible */
   border-radius: 8px;
 }
 
 .react-calendar__tile--range {
-  background: #E0EAF4; /* Styling for range selection */
-  color: black; /* Ensure the text is visible */
+  background: #004E7C; /* Selected day */
+  color: white; /* Ensure the text is visible */
+  border-radius: 8px;
 }
 
 .react-calendar__month-view__days__day--weekend {
