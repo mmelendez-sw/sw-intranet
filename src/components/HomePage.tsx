@@ -4,7 +4,7 @@ import Carousel from '../components/Carousel'; // Ensure this is imported
 import CalendarComponent from '../components/Calendar'; // Ensure this is imported
 import '../../styles/home-page.css'; // Import your CSS file
 import site2 from '../../images/site_2.jpg'
-import food_drive from '../../images/food_drive.jpeg'
+import food_drive_2 from '../../images/food_drive_2.jpg'
 
 const HomePage: React.FC = () => {
   return (
@@ -25,7 +25,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="events-section">
                 <h2>Company Events</h2>
-                <img src={food_drive} alt={'Site'} className="site-image" />
+                <img src={food_drive_2} alt={'Site'} className="site-image" />
                 <p><span className="date">11/4-11/15:</span> Food Drive</p>
                 <p><span className="date">11/13:</span> Hudson Grille Happy Hour</p>
               </div>
