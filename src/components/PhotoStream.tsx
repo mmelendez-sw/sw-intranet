@@ -43,7 +43,7 @@ const PhotoStream: React.FC = () => {
       <div className="update-section">
         <div className="column-container">
           <div className="marketing-section">
-            <h2>Marketing Updates</h2>
+            <h2>Conferences and Events</h2>
             <p><span className="date">11/4-11/15:</span> New Jersey Wireless Association Holiday Social</p>
             <p><span className="date">11/13:</span> California Wireless Association SoCal Holiday Party</p>
             <p><span className="date">11/4-11/15:</span> ICSC New York</p>
