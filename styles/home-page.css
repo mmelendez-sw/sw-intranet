@@ -164,7 +164,6 @@
 /* Update section overlay */
 .home-page .update-section {
   position: relative;
-  z-index: 2; /* Positioned above the photo stream image */
   padding: 20px;
   width: 100%;
   box-sizing: border-box;
