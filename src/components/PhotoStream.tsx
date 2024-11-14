@@ -44,10 +44,10 @@ const PhotoStream: React.FC = () => {
         <div className="column-container">
           <div className="marketing-section">
             <h2>Conferences and Events</h2>
-            <p><span className="date">11/4-11/15:</span> New Jersey Wireless Association Holiday Social</p>
-            <p><span className="date">11/13:</span> California Wireless Association SoCal Holiday Party</p>
-            <p><span className="date">11/4-11/15:</span> ICSC New York</p>
-            <p><span className="date">11/13:</span> Florida Wireless Association Charity Social and Golf Tournament</p>
+            <p><span className="date">11/20:</span> New Jersey Wireless Association Holiday Social</p>
+            <p><span className="date">11/4:</span> California Wireless Association SoCal Holiday Party</p>
+            <p><span className="date">12/11-12/12:</span> ICSC New York</p>
+            <p><span className="date">12/13:</span> Florida Wireless Association Charity Social and Golf Tournament</p>
           </div>
           <div className="hr-section">
             <h2>HR Announcements</h2>
