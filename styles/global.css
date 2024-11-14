@@ -51,3 +51,9 @@ body {
 * {
     box-sizing: border-box;
 }
+
+.date {
+  color: black;
+  font-weight: bold;
+  text-decoration: underline;
+}

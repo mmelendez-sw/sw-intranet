@@ -8,25 +8,24 @@
   background-color: #f5f5f5; /* Light background */
 }
 
-/* PhotoStream container */
-.photo-stream {
+/* PhotoStream container in homepage */
+.home-page .photo-stream {
   width: 100%;
   height: 400px; /* Adjust height as needed */
   margin-bottom: 20px;
 }
 
 /* Content container for left and right sections */
-.content-container {
+.home-page .content-container {
   display: flex;
-  gap: 20px; /*Space between left and right sections */
+  gap: 20px; /* Space between left and right sections */
   padding-left: 8%;
   padding-right: 8%;
-  /* padding-top: 4%; Remove when photo stream*/
   margin-top: 0;
 }
 
 /* Left section: 60% width */
-.left-section {
+.home-page .left-section {
   flex: 5; /* 60% of the width (3 parts out of 5) */
   display: flex;
   flex-direction: column;
@@ -34,32 +33,37 @@
 }
 
 /* Right section: 40% width */
-.right-section {
+.home-page .right-section {
   flex: 2; /* 40% of the width (2 parts out of 5) */
   display: flex;
   flex-direction: column;
   margin-top: 0.5%;
 }
 
-.site-image { 
-  width: 100%;
-  height: 20%;
+.home-page .site-image { 
+  width: 100%;   /* Makes the image take the full viewport width */
+  height: auto;   /* Adjusts height automatically to maintain aspect ratio */
+  max-height: 80vh; /* Ensures the image height does not exceed 80% of the viewport height */
+  object-fit: cover; /* Keeps the aspect ratio intact and fills the area */
 }
 
 /* Styling for all content blocks */
-.report-section, .announcement-section, .calendar-section, .marketing-section, .events-section, .it-section {
+.home-page .report-section, 
+.home-page .announcement-section, 
+.home-page .calendar-section, 
+.home-page .press-section, 
+.home-page .events-section, 
+.home-page .it-section {
   background-color: white; /* White background */
   color: black; /* Black text */
-  /* padding: 20px; */
-  /* border-radius: 15px; */
-  border: 2px solid #b7d5e2; /* Thin Symphony Blue border */
+  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
 }
 
-.it-section { 
+.home-page .it-section { 
   margin-top: 15px;
 }
 
-.column-container { 
+.home-page .column-container { 
   display: flex;
   flex-direction: row;
   margin-top: 2%;
@@ -68,18 +72,29 @@
   gap: 20px;
 }
 
-.marketing-section, .events-section { 
+.home-page .press-section, 
+.home-page .events-section { 
   width: 100%;
   height: 100%;
 }
 
-.report-section p, .announcement-section p, .calendar-section p,.marketing-section p, .events-section p, .it-section p {
+.home-page .report-section p, 
+.home-page .announcement-section p, 
+.home-page .calendar-section p,
+.home-page .press-section p, 
+.home-page .events-section p, 
+.home-page .it-section p {
   margin-left: 20px;
   margin-right: 20px;
   color: #62737a;
 }
 
-.report-section h2, .announcement-section h2, .calendar-section h2, .marketing-section h2, .events-section h2, .it-section h2 {
+.home-page .report-section h2, 
+.home-page .announcement-section h2, 
+.home-page .calendar-section h2, 
+.home-page .press-section h2, 
+.home-page .events-section h2, 
+.home-page .it-section h2 {
   background-color: #c0e0ee; /* Blue background */
   color: #004E7C; /* White text */
   padding: 10px;
@@ -89,20 +104,20 @@
 }
 
 /* Quick Links */
-.quick-links {
+.home-page .quick-links {
   background-color: #f5f5f5; /* Light background for contrast */
   padding: 8px;
   margin-top: 10px;
   border-radius: 15px;
 }
 
-.button-container {
+.home-page .button-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3 columns */
   gap: 10px;
 }
 
-button {
+.home-page .home-button {
   padding: 10px 0; /* Ensure consistent button height */
   background-color: var(--symphony-blue);
   color: white;
@@ -116,28 +131,33 @@ button {
   height: 50px; /* Consistent height */
 }
 
-button:hover {
+.home-page button:hover {
   background-color: var(--symphony-blue);
+}
+
+.home-page .calendar-section { 
+  margin-top: 1rem;
 }
 
 /* Responsive styling */
 @media (max-width: 768px) {
-  .content-container {
+  .home-page .content-container {
     flex-direction: column; /* Stack left and right sections vertically */
     padding: 5%; /* Adjust padding for smaller screens */
   }
 
-  .column-container {
+  .home-page .column-container {
     flex-direction: column; /* Stack left and right sections vertically */
     padding: 5%; /* Adjust padding for smaller screens */
     margin: 5%;
   }
 
-  .button-container {
+  .home-page .button-container {
     grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens */
   }
 
-  .photo-stream {
+  .home-page .photo-stream {
     height: 250px; /* Adjust height for smaller screens */
   }
 }
+

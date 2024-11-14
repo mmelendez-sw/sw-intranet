@@ -29,12 +29,36 @@ const PhotoStream: React.FC = () => {
         alt={`Slide ${currentIndex}`}
         className="photo-stream-image"
       />
-      {/* Banner overlay */}
-      <div className="banner">
-        <h2>Company Announcements</h2>
-        <p>- Food Drive is happening from 11/4-11/15!</p>
-        <p>- New Salesforce Workflow releasing in Dec</p>
-        <p>- Fill out your personal goal sheet for 2025</p>
+      {/* Scrolling Banner overlay */}
+      <div className="ticker-wrap">
+        <div className="ticker">
+          <div className="ticker__item">- Food Drive is happening from 11/4-11/15!</div>
+          <div className="ticker__item">- New Salesforce Workflow releasing in December</div>
+          <div className="ticker__item">- Symphony Happy Hour at Hudson Grille on 11/13</div>
+          <div className="ticker__item">- Wear your favorite team's jersey on 11/14!</div>
+          <div className="ticker__item">- RSVP for the Holiday Party on 12/5!</div>
+          <div className="ticker__item">- Fill out your personal goal sheet for 2025</div>
+        </div>
+      </div>
+      <div className="update-section">
+        <div className="column-container">
+          <div className="marketing-section">
+            <h2>Conferences and Events</h2>
+            <p><span className="date">11/20:</span> New Jersey Wireless Association Holiday Social</p>
+            <p><span className="date">11/4:</span> California Wireless Association SoCal Holiday Party</p>
+            <p><span className="date">12/11-12/12:</span> ICSC New York</p>
+            <p><span className="date">12/13:</span> Florida Wireless Association Charity Social and Golf Tournament</p>
+          </div>
+          <div className="hr-section">
+            <h2>HR Announcements</h2>
+            <p><span className="date">11/14:</span> Jersey Day</p>
+            <p><span className="date">11/21:</span> November Bagel Breakfast</p>
+            <p><span className="date">12/12:</span> Ugly Sweater Day</p>
+            <p><span className="date">12/21:</span> December Bagel Breakfast</p>
+            {/* <p>12/12: Jersey Day</p>
+            <p>12/19: December Bagel Breakfast</p> */}
+          </div>
+        </div>
       </div>
     </div>
   );
