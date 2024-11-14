@@ -10,6 +10,26 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <PhotoStream /> 
+      <div className="update-section">
+        <div className="column-container">
+          <div className="marketing-section">
+            <h2>Conferences and Events</h2>
+            <p><span className="date">11/20:</span> New Jersey Wireless Association Holiday Social</p>
+            <p><span className="date">11/4:</span> California Wireless Association SoCal Holiday Party</p>
+            <p><span className="date">12/11-12/12:</span> ICSC New York</p>
+            <p><span className="date">12/13:</span> Florida Wireless Association Charity Social and Golf Tournament</p>
+          </div>
+          <div className="hr-section">
+            <h2>HR Announcements</h2>
+            <p><span className="date">11/14:</span> Jersey Day</p>
+            <p><span className="date">11/21:</span> November Bagel Breakfast</p>
+            <p><span className="date">12/12:</span> Ugly Sweater Day</p>
+            <p><span className="date">12/21:</span> December Bagel Breakfast</p>
+            {/* <p>12/12: Jersey Day</p>
+            <p>12/19: December Bagel Breakfast</p> */}
+          </div>
+        </div>
+      </div>
       <div className="content-container">
         <div className="left-section">
           {/* <div className="report-section">

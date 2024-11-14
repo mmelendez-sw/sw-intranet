@@ -9,7 +9,7 @@
 }
 
 /* PhotoStream container in homepage */
-.home-page .photo-stream {
+.home-page .home-page {
   width: 100%;
   height: 400px; /* Adjust height as needed */
   margin-bottom: 20px;
@@ -156,8 +156,57 @@
     grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens */
   }
 
-  .home-page .photo-stream {
+  .home-page .home-page {
     height: 250px; /* Adjust height for smaller screens */
   }
 }
 
+/* Update section overlay */
+.home-page .update-section {
+  position: relative;
+  z-index: 2; /* Positioned above the photo stream image */
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: -3rem; /* Adjust to overlap the image */
+}
+
+/* Container for marketing and HR sections */
+.home-page .column-container {
+  display: flex;
+  flex-direction: row;
+  padding-top: 5rem;
+  padding-left: 3%;
+  padding-right: 3%;
+  justify-content: space-around;
+  width: 100%;
+  gap: 20px;
+}
+
+.home-page .marketing-section, 
+.home-page .hr-section {
+  background-color: white; /* White background */
+  color: black; /* Black text */
+  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
+  width: 45%; /* Ensures both sections are side-by-side and centered */
+}
+
+/* Header styles for each section */
+.home-page .marketing-section h2, 
+.home-page .hr-section h2 {
+  background-color: #c0e0ee; /* Blue background */
+  color: #004E7C; /* White text */
+  padding: 10px;
+  margin: 0; /* Ensure the header starts at the top */
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Paragraph styles for content in each section */
+.home-page .marketing-section p, 
+.home-page .hr-section p {
+  margin-left: 20px;
+  margin-right: 20px;
+  color: #62737a; /* Subdued text color */
+  font-size: 1rem;
+}
