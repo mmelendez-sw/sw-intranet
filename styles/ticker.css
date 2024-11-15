@@ -1,17 +1,18 @@
-/* Scrolling banner overlay */
+/* Ticker Wrapper */
 .ticker-wrap {
     position: fixed;
-    top: 3.7rem; /* Positioned below the header */
-    width: 100%;
+    top: 3.7rem; /* Adjusted to place the ticker below the header */
+    left: 0; /* Aligns to the left edge of the viewport */
+    width: 100vw; /* Full viewport width */
     overflow: hidden;
     height: 3rem;
     background-color: white;
-    padding-left: 100%;
-    box-sizing: content-box;
-    z-index: 1000; /* Ensure it stays on top */
-  }
-  
-  .ticker {
+    padding: 0;
+    box-sizing: border-box;
+    z-index: 1000; /* Keep it on top */
+}
+
+.ticker {
     display: inline-block;
     height: 3rem;
     line-height: 3rem;
@@ -19,21 +20,21 @@
     padding-right: 100%;
     box-sizing: content-box;
     animation: ticker 30s linear infinite;
-  }
-  
-  .ticker__item {
+}
+
+.ticker__item {
     display: inline-block;
     padding: 0 2rem;
     font-size: 1.5rem;
     color: #004E7C;
-  }
-  
-  @keyframes ticker {
+}
+
+@keyframes ticker {
     0% {
-      transform: translate3d(0, 0, 0);
-      visibility: visible;
+        transform: translate3d(0, 0, 0);
+        visibility: visible;
     }
     100% {
-      transform: translate3d(-100%, 0, 0);
+        transform: translate3d(-100%, 0, 0);
     }
-  }
+}
