@@ -1,22 +1,24 @@
-/* photo-stream.css */
-
 /* Main container for photo stream */
 .photo-stream {
   position: relative;
   width: 100vw; /* Full viewport width */
-  height: 50vh; /* Adjust the height as desired */
+  height: 70vh; /* Increase the height to take up more space */
   overflow: hidden;
   margin: 0;
   padding: 0;
-  left: 0; /* Ensures it aligns with the left edge of the viewport */
+  top: 3.7rem; /* Adjusted to position below the ticker */
 }
 
 /* Background image within photo stream */
 .photo-stream .photo-stream-image {
-  width: 100vw; /* Ensures it spans the entire viewport width */
+  width: 100vw; /* Full viewport width */
   height: 100%;
-  object-fit: cover; /* Maintains aspect ratio and covers the entire area */
+  object-fit: cover; /* Ensures the image covers the container */
   position: absolute;
   top: 0;
   left: 0;
+}
+
+.photo-stream {
+  width: calc(100vw + 1px); /* Slight adjustment for viewport rounding issues */
 }

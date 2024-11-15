@@ -10,10 +10,9 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <Header />
-      <Ticker /> {/* Add the Ticker component here for fixed scrolling updates */}
+      <Ticker />
+      <PhotoStream /> {/* Ensure this is standalone and not nested within another container */}
       
-      <PhotoStream />
-
       <div className="content-container">
         <div className="main-content">
           <section className="analytics-section">

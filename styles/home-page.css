@@ -13,6 +13,7 @@ body {
   width: 100%;
   max-width: 95%; /* Set to 95% of viewport width for wider appearance */
   margin: 0 auto;
+  padding-top: 5vh;
 }
 
 /* Header */
