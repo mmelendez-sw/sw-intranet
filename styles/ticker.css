@@ -1,0 +1,39 @@
+/* Scrolling banner overlay */
+.ticker-wrap {
+    position: fixed;
+    top: 3.7rem; /* Positioned below the header */
+    width: 100%;
+    overflow: hidden;
+    height: 3rem;
+    background-color: white;
+    padding-left: 100%;
+    box-sizing: content-box;
+    z-index: 1000; /* Ensure it stays on top */
+  }
+  
+  .ticker {
+    display: inline-block;
+    height: 3rem;
+    line-height: 3rem;
+    white-space: nowrap;
+    padding-right: 100%;
+    box-sizing: content-box;
+    animation: ticker 30s linear infinite;
+  }
+  
+  .ticker__item {
+    display: inline-block;
+    padding: 0 2rem;
+    font-size: 1.5rem;
+    color: #004E7C;
+  }
+  
+  @keyframes ticker {
+    0% {
+      transform: translate3d(0, 0, 0);
+      visibility: visible;
+    }
+    100% {
+      transform: translate3d(-100%, 0, 0);
+    }
+  }
