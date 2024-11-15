@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/header.css';
-import logo4 from '../../images/symph_blue_t.png';
+import blue_logo from '../../images/symph_blue_t.png';
+import white_logo from '../../images/symph_white_t.png';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 // import { fetchUserPhoto } from '../graphClient';
@@ -31,7 +32,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="header">
-      <img src={logo4} alt="Logo" className="logo-image" />
+      <img src={white_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/">Home</a>
         <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions">Acquisitions</a>
