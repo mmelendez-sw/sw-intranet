@@ -21,10 +21,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="hr-section">
             <h2>HR Announcements</h2>
-            <p><span className="date">11/14:</span> Jersey Day</p>
-            <p><span className="date">11/21:</span> November Bagel Breakfast</p>
-            <p><span className="date">12/12:</span> Ugly Sweater Day</p>
-            <p><span className="date">12/21:</span> December Bagel Breakfast</p>
+            
             {/* <p>12/12: Jersey Day</p>
             <p>12/19: December Bagel Breakfast</p> */}
           </div>
@@ -66,11 +63,11 @@ const HomePage: React.FC = () => {
           </div>  
           <div className="announcement-section">
             <h2>Important Dates/Holidays</h2>
-            <p><span className="date">11/28:</span>  Thanksgiving Day</p>
-            <p><span className="date">11/29:</span>  Black Friday</p>
+            <p><span className="date">11/14:</span> Jersey Day</p>
+            <p><span className="date">11/21:</span> November Bagel Breakfast</p>
             <p><span className="date">12/5:</span>  Symphony Wireless Holiday Party</p>
-            <p><span className="date">12/25:</span>  Christmas Day</p>
-            <p><span className="date">1/1:</span>  New Years Day</p>
+            <p><span className="date">12/12:</span> Ugly Sweater Day</p>
+            <p><span className="date">12/21:</span> December Bagel Breakfast</p>
           </div>
           <div className="calendar-section">
             <h2>Calendar</h2>
