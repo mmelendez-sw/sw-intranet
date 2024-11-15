@@ -10,16 +10,9 @@ import Header from '../components/Header'
 const HomePage: React.FC = () => {
     return (
       <div className="home-page">
-        <Header /> 
-        
         <PhotoStream /> 
-  
         <div className="content-container">
           <div className="main-content">
-            <section className="analytics-section">
-              <h2>Current Analytics</h2>
-              <Carousel />
-            </section>
             <section className="events">
               <div className="event">
                 <h2>Company Events</h2>
@@ -30,12 +23,23 @@ const HomePage: React.FC = () => {
                 <p>Industry events and conference dates</p>
               </div>
             </section>
+            <section className="analytics-section">
+              <h2>Current Analytics</h2>
+              <Carousel />
+            </section>
           </div>
   
           <aside className="sidebar">
             <section className="updates">
               <h2>IT Updates</h2>
               <p>Important announcements from IT</p>
+            </section>
+            <section className="important-dates">
+              <h2>Important Dates</h2>
+              <ul>
+                <li>11/21 - Bagel Breakfast</li>
+                <li>12/05 - Company Party</li>
+              </ul>
             </section>
             <section className="important-dates">
               <h2>Important Dates</h2>
