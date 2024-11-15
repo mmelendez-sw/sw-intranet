@@ -1,15 +1,14 @@
-/* Main container for photo stream */
 .photo-stream {
   position: relative;
-  width: 100vw; /* Full viewport width */
-  height: 50vh; /* Adjust this height as needed */
+  width: 100vw; /* Ensure full viewport width */
+  height: 50vh; /* Adjust height as desired */
   overflow: hidden;
   margin: 0;
   padding: 0;
 }
 
 .photo-stream .photo-stream-image {
-  width: 100vw; /* Ensure it spans the full width of the viewport */
+  width: 100vw; /* Full width of the viewport */
   height: 100%;
   object-fit: cover;
   position: absolute;
