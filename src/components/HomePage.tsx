@@ -62,7 +62,7 @@ const HomePage: React.FC = () => {
             <p>Do not fall bait to any phishing links!</p>
           </div>  
           <div className="announcement-section">
-            <h2>Important Dates/Holidays</h2>
+            <h2>Important Dates</h2>
             <p><span className="date">11/14:</span> Jersey Day</p>
             <p><span className="date">11/21:</span> November Bagel Breakfast</p>
             <p><span className="date">12/5:</span>  Symphony Wireless Holiday Party</p>
