@@ -1,211 +1,168 @@
-/* Main container */
-.home-page {
-  display: flex;
-  flex-direction: column; /* Ensure the photo stream is on top */
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  background-color: #f5f5f5; /* Light background */
+/* Global Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f8fb;
+  color: #333;
 }
 
-/* PhotoStream container in homepage */
-.home-page .home-page {
+.home-page {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 400px; /* Adjust height as needed */
+  max-width: 95%; /* Set to 95% of viewport width for wider appearance */
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #003366;
+  color: #ffffff;
+}
+
+.header .logo {
+  width: 150px;
+}
+
+.nav-bar a {
+  margin: 0 15px;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.nav-bar a:hover {
+  color: #00aaff;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  text-align: center;
+  color: #ffffff;
+  overflow: hidden;
+  width: 100%;
+}
+
+.photo-stream-container {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 51, 102, 0.6);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.hero-text h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.hero-text p {
+  font-size: 1.2em;
+}
+
+/* Content Layout */
+.content-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+}
+
+.main-content, .sidebar {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Analytics Section */
+.analytics-section {
+  text-align: center;
+}
+
+.analytics-section h2 {
+  font-size: 1.8em;
+  color: #003366;
+  border-bottom: 2px solid #00aaff;
+  display: inline-block;
   margin-bottom: 20px;
 }
 
-/* Content container for left and right sections */
-.home-page .content-container {
+.carousel {
   display: flex;
-  gap: 20px; /* Space between left and right sections */
-  padding-left: 8%;
-  padding-right: 8%;
-  margin-top: 0;
+  justify-content: space-between;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
 }
 
-/* Left section: 60% width */
-.home-page .left-section {
-  flex: 5; /* 60% of the width (3 parts out of 5) */
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.5%;
+/* Events */
+.events .event {
+  padding: 15px;
+  background: #f0f8ff;
+  margin-bottom: 15px;
+  border-left: 5px solid #00aaff;
 }
 
-/* Right section: 40% width */
-.home-page .right-section {
-  flex: 2; /* 40% of the width (2 parts out of 5) */
-  display: flex;
-  flex-direction: column;
-  margin-top: 0.5%;
+/* Sidebar */
+.sidebar h2 {
+  font-size: 1.5em;
+  color: #003366;
+  border-bottom: 2px solid #00aaff;
+  padding-bottom: 5px;
 }
 
-.home-page .site-image { 
-  width: 100%;   /* Makes the image take the full viewport width */
-  height: auto;   /* Adjusts height automatically to maintain aspect ratio */
-  max-height: 80vh; /* Ensures the image height does not exceed 80% of the viewport height */
-  object-fit: cover; /* Keeps the aspect ratio intact and fills the area */
-}
-
-/* Styling for all content blocks */
-.home-page .report-section, 
-.home-page .announcement-section, 
-.home-page .calendar-section, 
-.home-page .press-section, 
-.home-page .events-section, 
-.home-page .it-section {
-  background-color: white; /* White background */
-  color: black; /* Black text */
-  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
-}
-
-.home-page .it-section { 
-  margin-top: 15px;
-}
-
-.home-page .column-container { 
-  display: flex;
-  flex-direction: row;
-  margin-top: 2%;
-  justify-content: space-around;
-  width: 100%;
-  gap: 20px;
-}
-
-.home-page .press-section, 
-.home-page .events-section { 
-  width: 100%;
-  height: 100%;
-}
-
-.home-page .report-section p, 
-.home-page .announcement-section p, 
-.home-page .calendar-section p,
-.home-page .press-section p, 
-.home-page .events-section p, 
-.home-page .it-section p {
-  margin-left: 20px;
-  margin-right: 20px;
-  color: #62737a;
-}
-
-.home-page .report-section h2, 
-.home-page .announcement-section h2, 
-.home-page .calendar-section h2, 
-.home-page .press-section h2, 
-.home-page .events-section h2, 
-.home-page .it-section h2 {
-  background-color: #c0e0ee; /* Blue background */
-  color: #004E7C; /* White text */
-  padding: 10px;
-  margin: 0; /* Remove margin to ensure it starts at the top */
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-/* Quick Links */
-.home-page .quick-links {
-  background-color: #f5f5f5; /* Light background for contrast */
-  padding: 8px;
-  margin-top: 10px;
-  border-radius: 15px;
-}
-
-.home-page .button-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
-  gap: 10px;
-}
-
-.home-page .home-button {
-  padding: 10px 0; /* Ensure consistent button height */
-  background-color: var(--symphony-blue);
-  color: white;
+.quick-links button {
+  background-color: #0066cc;
+  color: #ffffff;
   border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  text-transform: uppercase;
-  transition: background-color 0.3s ease;
-  width: 100%; /* Full width of the grid cell */
-  height: 50px; /* Consistent height */
-}
-
-.home-page button:hover {
-  background-color: var(--symphony-blue);
-}
-
-.home-page .calendar-section { 
-  margin-top: 1rem;
-}
-
-/* Responsive styling */
-@media (max-width: 768px) {
-  .home-page .content-container {
-    flex-direction: column; /* Stack left and right sections vertically */
-    padding: 5%; /* Adjust padding for smaller screens */
-  }
-
-  .home-page .column-container {
-    flex-direction: column; /* Stack left and right sections vertically */
-    padding: 5%; /* Adjust padding for smaller screens */
-    margin: 5%;
-  }
-
-  .home-page .button-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens */
-  }
-
-  .home-page .home-page {
-    height: 250px; /* Adjust height for smaller screens */
-  }
-}
-
-/* Update section overlay */
-.home-page .update-section {
-  position: relative;
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: -3rem; /* Adjust to overlap the image */
-}
-
-/* Container for marketing and HR sections */
-.home-page .column-container {
-  display: flex;
-  flex-direction: row;
-  padding-top: 5rem;
-  padding-left: 3%;
-  padding-right: 3%;
-  justify-content: space-around;
-  width: 100%;
-  gap: 20px;
-}
-
-.home-page .marketing-section, 
-.home-page .hr-section {
-  background-color: white; /* White background */
-  color: black; /* Black text */
-  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
-  width: 45%; /* Ensures both sections are side-by-side and centered */
-}
-
-/* Header styles for each section */
-.home-page .marketing-section h2, 
-.home-page .hr-section h2 {
-  background-color: #c0e0ee; /* Blue background */
-  color: #004E7C; /* White text */
   padding: 10px;
-  margin: 0; /* Ensure the header starts at the top */
-  font-weight: bold;
-  text-transform: uppercase;
+  margin: 5px 0;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-/* Paragraph styles for content in each section */
-.home-page .marketing-section p, 
-.home-page .hr-section p {
-  margin-left: 20px;
-  margin-right: 20px;
-  color: #62737a; /* Subdued text color */
-  font-size: 1rem;
+.quick-links button:hover {
+  background-color: #00aaff;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #003366;
+  color: #ffffff;
+  font-size: 0.9em;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .content-container {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-section {
+    height: auto;
+  }
+
+  .photo-stream-container {
+    height: 250px; /* Adjust height for mobile */
+  }
 }
