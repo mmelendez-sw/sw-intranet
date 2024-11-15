@@ -54,7 +54,7 @@ const HomePage: React.FC = () => {
       </div>
 
       <footer className="footer">
-        <p>&copy; 2024 Company Name. All rights reserved.</p>
+        <p>&copy; 2024 Symphony Wireless. All rights reserved.</p>
       </footer>
     </div>
   );

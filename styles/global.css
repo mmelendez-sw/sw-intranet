@@ -1,5 +1,6 @@
 /* General Styles */
 
+/* Reset margins and padding for body and html */
 html, body {
   margin: 0;
   padding: 0;
