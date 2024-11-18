@@ -17,8 +17,7 @@ const HomePage: React.FC = () => {
     <div className="home-page">
       <Header />
       <Ticker />
-      <PhotoStream /> {/* Ensure this is standalone and not nested within another container */}
-      
+      <PhotoStream />
       <div className="content-container">
         <div className="main-content">
         <section className="events">
