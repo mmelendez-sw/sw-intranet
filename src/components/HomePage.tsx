@@ -10,6 +10,7 @@ import img1 from '../../images/site_1.jpg'
 import img2 from '../../images/site_2.jpg'
 import img3 from '../../images/site_3.jpg'
 import img4 from '../../images/food_drive_2.jpg'
+import img5 from '../../images/team.jpg'
 
 const HomePage: React.FC = () => {
   return (
@@ -91,6 +92,10 @@ const HomePage: React.FC = () => {
           <section className="updates">
             <h2>Food Drive Update</h2>
             <img src={img4} alt="Food Drive" className="update-image" />
+          </section>
+          <section className="updates">
+            <h2>Symphony Wireless Team</h2>
+            <img src={img5} alt="Team Photo" className="update-image" />
           </section>
         </aside>
       </div>
