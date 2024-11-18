@@ -17,11 +17,9 @@ const HomePage: React.FC = () => {
         <div className="main-content">
           <section className="events">
             <div className="event">
-              <h2>Company Events</h2>
-              <p>11/21: November Bagel Breakfast</p>
-              <p>12/12: Ugly Sweater Day</p>
-              <p>12/5: Symphony Wireless Holiday Party</p>
-              <p>12/21: December Bagel Breakfast</p>
+              <h2>Marketing Updates</h2>
+              <p>Connect with Justin or Arwa for any marketing email questions</p>
+              <p>Marketing leads will be distributed based on your directors</p>
             </div>
             <div className="event">
               <h2>Conferences & Events</h2>
@@ -31,8 +29,11 @@ const HomePage: React.FC = () => {
               <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
             </div>
             <div className="event">
-              <h2>Conferences & Events</h2>
-              <p>Industry events and conference dates</p>
+              <h2>Company Events</h2>
+              <p>11/21: November Bagel Breakfast</p>
+              <p>12/12: Ugly Sweater Day</p>
+              <p>12/5: Symphony Wireless Holiday Party</p>
+              <p>12/21: December Bagel Breakfast</p>
             </div>
           </section>
           <section className="analytics-section">
@@ -61,7 +62,7 @@ const HomePage: React.FC = () => {
           <section className="quick-links">
             <h2>Quick Links</h2>
             <button>HR Page</button>
-            <button>IT Page</button>
+            <button>Ask IT</button>
             <button>Salesforce</button>
           </section>
         </aside>
