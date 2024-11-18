@@ -25,9 +25,12 @@ const HomePage: React.FC = () => {
           <div className="event blue-background">
             <div className="event-content">
               <div className="event-text">
-                <h2>Marketing Updates</h2>
-                <p>Connect with Justin or Arwa for any marketing email questions</p>
-                <p>Marketing leads will be distributed based on your directors</p>
+                <h2>October Team Accomplishments</h2>
+                <p>No rollover in October!</p>
+                <p>Record Breaking # of Signed LOIs at 36</p>
+                <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+                <p>Brought in $490k of new GCF</p>
+                <p>Generated 123 opportunities worth $92M</p>
               </div>
               <img src={img1} alt="Marketing Updates" />
             </div>
@@ -47,12 +50,9 @@ const HomePage: React.FC = () => {
           <div className="event blue-background">
             <div className="event-content">
               <div className="event-text">
-                <h2>October Team Accomplishments</h2>
-                <p>No rollover in October!</p>
-                <p>Record Breaking # of Signed LOIs at 36</p>
-                <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
-                <p>Brought in $490k of new GCF</p>
-                <p>Generated 123 opportunities worth $92M</p>
+                <h2>Marketing Updates</h2>
+                <p>Connect with Justin or Arwa for any marketing email questions</p>
+                <p>Marketing leads will be distributed based on your directors</p>
               </div>
               <img src={img3} alt="Team Accomplishments" />
             </div>
