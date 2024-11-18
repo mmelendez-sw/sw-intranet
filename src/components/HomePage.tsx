@@ -1,69 +1,108 @@
 import React from 'react';
-import PhotoStream from '../components/PhotoStream'; // Ensure this is imported
-import Carousel from '../components/Carousel'; // Ensure this is imported
-import CalendarComponent from '../components/Calendar'; // Ensure this is imported
-import '../../styles/home-page.css'; // Import your CSS file
-import site2 from '../../images/site_2.jpg'
-import food_drive_2 from '../../images/food_drive_2.jpg'
+import Header from '../components/Header';
+import Ticker from '../components/Ticker';
+import PhotoStream from '../components/PhotoStream';
+import Carousel from '../components/Carousel';
+import CalendarComponent from '../components/Calendar';
+import '../../styles/home-page.css';
+
+import img1 from '../../images/site_1.jpg'
+import img2 from '../../images/site_2.jpg'
+import img3 from '../../images/site_3.jpg'
+import img4 from '../../images/food_drive_2.jpg'
+import img5 from '../../images/team.jpg'
 
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
-      <PhotoStream /> 
+      <Header />
+      <Ticker />
+      <PhotoStream /> {/* Ensure this is standalone and not nested within another container */}
+      
       <div className="content-container">
-        <div className="left-section">
-          <div className="report-section">
+        <div className="main-content">
+        <section className="events">
+          <div className="event blue-background">
+            <div className="event-content">
+              <div className="event-text">
+                <h2>Marketing Updates</h2>
+                <p>Connect with Justin or Arwa for any marketing email questions</p>
+                <p>Marketing leads will be distributed based on your directors</p>
+              </div>
+              <img src={img1} alt="Marketing Updates" />
+            </div>
+          </div>
+          <div className="event white-background">
+            <div className="event-content">
+              <img src={img2} alt="Conferences & Events" />
+              <div className="event-text right">
+                <h2>Conferences & Events</h2>
+                <p>11/20: New Jersey Wireless Association Holiday Social</p>
+                <p>11/4: California Wireless Association SoCal Holiday Party</p>
+                <p>12/11-12/12: ICSC New York</p>
+                <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
+              </div>
+            </div>
+          </div>
+          <div className="event blue-background">
+            <div className="event-content">
+              <div className="event-text">
+                <h2>October Team Accomplishments</h2>
+                <p>No rollover in October!</p>
+                <p>Record Breaking # of Signed LOIs at 36</p>
+                <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+                <p>Brought in $490k of new GCF</p>
+                <p>Generated 123 opportunities worth $92M</p>
+              </div>
+              <img src={img3} alt="Team Accomplishments" />
+            </div>
+          </div>
+        </section>
+          <section className="analytics-section">
             <h2>Current Analytics</h2>
             <Carousel />
-          </div>
-          <div className="doubles-section">
-            <div className="column-container">
-              <div className="press-section">
-                <h2>Recent Press</h2>
-                <img src={site2} alt={'Site'} className="site-image" />
-                <p>Telecom Lease Buyouts & Symphony Wireless: Maximizing Value with The Partner of Choice</p>
-              </div>
-              <div className="events-section">
-                <h2>Company Events</h2>
-                <img src={food_drive_2} alt={'Site'} className="site-image" />
-                <p><span className="date">11/4-11/15:</span> Food Drive</p>
-                <p><span className="date">11/13:</span> Hudson Grille Happy Hour</p>
-              </div>
-            </div>
-          </div>
+          </section>
         </div>
 
-
-        <div className="right-section">    
-          <div className="announcement-section">
-            <h2>Important Dates/Holidays</h2>
-            <p><span className="date">11/28:</span>  Thanksgiving Day</p>
-            <p><span className="date">11/29:</span>  Black Friday</p>
-            <p><span className="date">12/5:</span>  Symphony Wireless Holiday Party</p>
-            <p><span className="date">12/25:</span>  Christmas Day</p>
-            <p><span className="date">1/1:</span>  New Years Day</p>
-          </div>
-          <div className="it-section">
+        <aside className="sidebar">
+          <section className="updates">
+            <h2>HR Announcements</h2>
+            <p>Important announcements from HR</p>
+          </section>
+          <section className="updates">
             <h2>IT Updates</h2>
-            <p>New Laptops will be distibuted in batches</p>
-            <p>Do not fall bait to any phishing links!</p>
-          </div>
-          <div className="calendar-section">
-            <h2>Calendar</h2>
-            <CalendarComponent />
-          </div>
-          <div className="quick-links">
-            <div className="button-container">
-              <button className="home-button" onClick={() => window.location.href = '/hr'}>HR Page</button>
-              <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button>
-              <button className="home-button" onClick={() => window.open('https://www.symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
-              <button className="home-button" onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
-              <button className="home-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
-              <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-            </div>
-          </div>
-        </div>
+            <p>Make Align appointment if you have a new laptop</p>
+            <p>Do not click any phishing links</p>
+          </section>
+          <section className="important-dates">
+            <h2>Important Dates</h2>
+            <ul>
+              <li>11/21 - November Bagel Breakfast</li>
+              <li>12/5 - Symphony Wireless Holiday Party</li>
+              <li>12/12 - Ugly Sweater Day</li>
+              <li>12/21 - December Bagel Breakfast</li>
+            </ul>
+          </section>
+          <section className="quick-links">
+            <h2>Quick Links</h2>
+            <button>HR Page</button>
+            <button>Ask IT</button>
+            <button>Salesforce</button>
+          </section>
+          <section className="updates">
+            <h2>Food Drive Update</h2>
+            <img src={img4} alt="Food Drive" className="update-image" />
+          </section>
+          <section className="updates">
+            <h2>Symphony Wireless Team</h2>
+            <img src={img5} alt="Team Photo" className="update-image" />
+          </section>
+        </aside>
       </div>
+
+      <footer className="footer">
+        <p>&copy; 2024 Symphony Wireless. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

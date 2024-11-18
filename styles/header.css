@@ -1,19 +1,19 @@
-/* header.css */
 .header {
-    background-color: #c0e0ee;
-    color: #004E7C;
+    width: 100%;
+    background-color: #004E7C;
+    color: #ffffff;
     padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1000;
     position: fixed;
-    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }
-
+  
 .logo-image {
-    max-height: 40px; /* Adjusted to display better, rather than using percentage */
-    max-width: 100px;
+    max-height: 40px;
 }
 
 .nav-bar {

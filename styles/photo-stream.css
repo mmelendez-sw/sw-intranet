@@ -1,110 +1,24 @@
 /* Main container for photo stream */
 .photo-stream {
   position: relative;
-  width: 100%;
-  height: 100vh; /* Full viewport height */
+  width: 100vw; /* Full viewport width */
+  height: 70vh; /* Increase the height to take up more space */
   overflow: hidden;
-  margin-top: 6.8rem;
-  z-index: 1; /* Lower than carousel and ticker */
+  margin: 0;
+  padding: 0;
+  top: 3.7rem; /* Adjusted to position below the ticker */
 }
 
-/* Background image behind the update section */
+/* Background image within photo stream */
 .photo-stream .photo-stream-image {
-  width: 100%;
-  height: 30vw;
-  object-fit: cover;
-  position: absolute; /* Positioned absolutely within the container */
+  width: 100vw; /* Full viewport width */
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the container */
+  position: absolute;
   top: 0;
   left: 0;
-  z-index: 1; /* Ensure it stays below update-section */
 }
 
-/* Scrolling banner overlay */
-.photo-stream .ticker-wrap {
-  position: fixed;
-  top: 3.7rem; /* Adjusted to place the ticker higher */
-  width: 100%;
-  overflow: hidden;
-  height: 3rem;
-  background-color: white;
-  padding-left: 100%;
-  box-sizing: content-box;
-  z-index: 1000;
-}
-
-.photo-stream .ticker {
-  display: inline-block;
-  height: 3rem;
-  line-height: 3rem;
-  white-space: nowrap;
-  padding-right: 100%;
-  box-sizing: content-box;
-  animation: ticker 30s linear infinite;
-}
-
-.photo-stream .ticker__item {
-  display: inline-block;
-  padding: 0 2rem;
-  font-size: 1.5rem;
-  color: #004E7C;
-}
-
-@keyframes ticker {
-  0% {
-    transform: translate3d(0, 0, 0);
-    visibility: visible;
-  }
-  100% {
-    transform: translate3d(-100%, 0, 0);
-  }
-}
-
-/* Update section overlay */
-.photo-stream .update-section {
-  position: relative;
-  z-index: 2; /* Positioned above the photo stream image */
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
-  margin-top: -3rem; /* Adjust to overlap the image */
-}
-
-/* Container for marketing and HR sections */
-.photo-stream .column-container {
-  display: flex;
-  flex-direction: row;
-  padding-top: 5rem;
-  padding-left: 3%;
-  padding-right: 3%;
-  justify-content: space-around;
-  width: 100%;
-  gap: 20px;
-}
-
-.photo-stream .marketing-section, 
-.photo-stream .hr-section {
-  background-color: white; /* White background */
-  color: black; /* Black text */
-  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
-  width: 45%; /* Ensures both sections are side-by-side and centered */
-}
-
-/* Header styles for each section */
-.photo-stream .marketing-section h2, 
-.photo-stream .hr-section h2 {
-  background-color: #c0e0ee; /* Blue background */
-  color: #004E7C; /* White text */
-  padding: 10px;
-  margin: 0; /* Ensure the header starts at the top */
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-/* Paragraph styles for content in each section */
-.photo-stream .marketing-section p, 
-.photo-stream .hr-section p {
-  margin-left: 20px;
-  margin-right: 20px;
-  color: #62737a; /* Subdued text color */
-  font-size: 1rem;
+.photo-stream {
+  width: calc(100vw + 1px); /* Slight adjustment for viewport rounding issues */
 }

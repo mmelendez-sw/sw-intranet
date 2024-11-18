@@ -1,163 +1,235 @@
-/* Main container */
+/* Global Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #e3eff6; /* Slightly deeper blue-gray for background */
+  color: #333;
+  overflow-x: hidden; /* Prevent horizontal scrolling issues */
+}
+
 .home-page {
   display: flex;
-  flex-direction: column; /* Ensure the photo stream is on top */
+  flex-direction: column;
   width: 100%;
-  max-width: 100%;
+  max-width: 100%; /* Ensure full width */
   margin: 0 auto;
-  background-color: #f5f5f5; /* Light background */
+  padding-top: 5vh;
 }
 
-/* PhotoStream container in homepage */
-.home-page .photo-stream {
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #003366; /* Deeper blue */
+  color: #ffffff;
+  position: fixed;
+  top: 0;
   width: 100%;
-  height: 400px; /* Adjust height as needed */
-  margin-bottom: 20px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
 }
 
-/* Content container for left and right sections */
-.home-page .content-container {
+.header .logo {
+  width: 150px;
+}
+
+.nav-bar {
   display: flex;
-  gap: 20px; /* Space between left and right sections */
-  padding-left: 8%;
-  padding-right: 8%;
-  margin-top: 0;
+  gap: 15px;
 }
 
-/* Left section: 60% width */
-.home-page .left-section {
-  flex: 5; /* 60% of the width (3 parts out of 5) */
+.nav-bar a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.nav-bar a:hover {
+  color: #009acb; /* Bright turquoise for hover */
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  text-align: center;
+  color: #ffffff;
+  overflow: hidden;
+  width: 100%;
+}
+
+.photo-stream-container {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 51, 102, 0.8); /* Deeper transparent background */
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.hero-text h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+.hero-text p {
+  font-size: 1.2em;
+}
+
+/* Content Layout */
+.content-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  margin-top: 75px;
+}
+
+.main-content, .sidebar {
+  background-color: #ffffff; /* White for clarity */
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Darker shadow for contrast */
+}
+
+/* Events Section */
+.events {
   display: flex;
   flex-direction: column;
-  margin-top: 0.5%;
+  gap: 15px;
+  margin: 20px 0;
 }
 
-/* Right section: 40% width */
-.home-page .right-section {
-  flex: 2; /* 40% of the width (2 parts out of 5) */
+.event {
   display: flex;
-  flex-direction: column;
-  margin-top: 0.5%;
+  align-items: center;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Add shadow for depth */
 }
 
-.home-page .site-image { 
-  width: 100%;   /* Makes the image take the full viewport width */
-  height: auto;   /* Adjusts height automatically to maintain aspect ratio */
-  max-height: 80vh; /* Ensures the image height does not exceed 80% of the viewport height */
-  object-fit: cover; /* Keeps the aspect ratio intact and fills the area */
+.event.blue-background {
+  background-color: #d9ecf9; /* Deeper blue background */
+  color: #003366; /* Dark blue text */
 }
 
-/* Styling for all content blocks */
-.home-page .report-section, 
-.home-page .announcement-section, 
-.home-page .calendar-section, 
-.home-page .press-section, 
-.home-page .events-section, 
-.home-page .it-section {
-  background-color: white; /* White background */
-  color: black; /* Black text */
-  border: 3px solid #b7d5e2; /* Thin Symphony Blue border */
+.event.white-background {
+  background-color: #ffffff; /* White background */
+  color: #333; /* Dark gray text */
 }
 
-.home-page .it-section { 
-  margin-top: 15px;
-}
-
-.home-page .column-container { 
+.event-content {
   display: flex;
-  flex-direction: row;
-  margin-top: 2%;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   gap: 20px;
 }
 
-.home-page .press-section, 
-.home-page .events-section { 
-  width: 100%;
-  height: 100%;
+.event-content.reverse {
+  flex-direction: row-reverse; /* Reverse content for middle section */
 }
 
-.home-page .report-section p, 
-.home-page .announcement-section p, 
-.home-page .calendar-section p,
-.home-page .press-section p, 
-.home-page .events-section p, 
-.home-page .it-section p {
-  margin-left: 20px;
-  margin-right: 20px;
-  color: #62737a;
+.event-content img {
+  width: 30%; /* Uniform image sizing */
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.home-page .report-section h2, 
-.home-page .announcement-section h2, 
-.home-page .calendar-section h2, 
-.home-page .press-section h2, 
-.home-page .events-section h2, 
-.home-page .it-section h2 {
-  background-color: #c0e0ee; /* Blue background */
-  color: #004E7C; /* White text */
-  padding: 10px;
-  margin: 0; /* Remove margin to ensure it starts at the top */
-  font-weight: bold;
-  text-transform: uppercase;
+.event-content .event-text {
+  flex: 1;
+  padding: 0 15px;
 }
 
-/* Quick Links */
-.home-page .quick-links {
-  background-color: #f5f5f5; /* Light background for contrast */
-  padding: 8px;
-  margin-top: 10px;
-  border-radius: 15px;
+.event-content .right { 
+  padding-left: 35%;
+  padding-right: 0;
 }
 
-.home-page .button-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columns */
-  gap: 10px;
+.event-content .event-text h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+  color: #003366;
 }
 
-.home-page .home-button {
-  padding: 10px 0; /* Ensure consistent button height */
-  background-color: var(--symphony-blue);
-  color: white;
+.event-content .event-text p {
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+/* Sidebar */
+.sidebar h2 {
+  font-size: 1.5em;
+  color: #003366; /* Deeper blue */
+  border-bottom: 2px solid #009acb;
+  padding-bottom: 5px;
+}
+
+.quick-links button {
+  background-color: #005b99; /* Rich blue for buttons */
+  color: #ffffff;
   border: none;
-  border-radius: 5px;
+  padding: 10px;
+  margin: 5px 0;
+  width: 100%;
   cursor: pointer;
-  font-size: 14px;
-  text-transform: uppercase;
   transition: background-color 0.3s ease;
-  width: 100%; /* Full width of the grid cell */
-  height: 50px; /* Consistent height */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
 }
 
-.home-page button:hover {
-  background-color: var(--symphony-blue);
+.quick-links button:hover {
+  background-color: #0073d6; /* Brighter blue on hover */
 }
 
-.home-page .calendar-section { 
-  margin-top: 1rem;
+.analytics-section h2 {
+  text-align: center; /* Center align the text */
+  font-size: 1.5em;
+  color: #003366; /* Match heading color in sidebar */
+  border-bottom: 2px solid #009acb; /* Turquoise underline */
+  padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-/* Responsive styling */
+.updates img {
+  width: 100%; 
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #003366; /* Deeper footer background */
+  color: #ffffff;
+  font-size: 0.9em;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-  .home-page .content-container {
-    flex-direction: column; /* Stack left and right sections vertically */
-    padding: 5%; /* Adjust padding for smaller screens */
+  .content-container {
+    grid-template-columns: 1fr;
   }
 
-  .home-page .column-container {
-    flex-direction: column; /* Stack left and right sections vertically */
-    padding: 5%; /* Adjust padding for smaller screens */
-    margin: 5%;
+  .events .event-content {
+    flex-direction: column; /* Stack content vertically on small screens */
+    text-align: center;
   }
 
-  .home-page .button-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns for smaller screens */
-  }
-
-  .home-page .photo-stream {
-    height: 250px; /* Adjust height for smaller screens */
+  .event-content img {
+    width: 100%; /* Images take full width on smaller devices */
+    height: auto;
   }
 }
-
