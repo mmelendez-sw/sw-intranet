@@ -28,13 +28,13 @@ const HomePage: React.FC = () => {
               <p>12/11-12/12: ICSC New York</p>
               <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
             </div>
-            <div className="event">
+            {/* <div className="event">
               <h2>Company Events</h2>
               <p>11/21: November Bagel Breakfast</p>
               <p>12/12: Ugly Sweater Day</p>
               <p>12/5: Symphony Wireless Holiday Party</p>
               <p>12/21: December Bagel Breakfast</p>
-            </div>
+            </div> */}
           </section>
           <section className="analytics-section">
             <h2>Current Analytics</h2>
@@ -55,8 +55,10 @@ const HomePage: React.FC = () => {
           <section className="important-dates">
             <h2>Important Dates</h2>
             <ul>
-              <li>11/21 - Bagel Breakfast</li>
-              <li>12/05 - Company Party</li>
+              <li>11/21 - November Bagel Breakfast</li>
+              <li>12/5 - Symphony Wireless Holiday Party</li>
+              <li>12/12 - Ugly Sweater Day</li>
+              <li>12/21 - December Bagel Breakfast</li>
             </ul>
           </section>
           <section className="quick-links">
