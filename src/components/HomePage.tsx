@@ -28,6 +28,14 @@ const HomePage: React.FC = () => {
               <p>12/11-12/12: ICSC New York</p>
               <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
             </div>
+            <div className="event">
+              <h2>October Team Accomplishments</h2>
+              <p>No rollover in October!</p>
+              <p>Record Breaking # of Signed LOIs at 36</p>
+              <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+              <p>Brought in $490k of new GCF</p>
+              <p>Generated 123 opportunities worth $92M</p>
+            </div>
             {/* <div className="event">
               <h2>Company Events</h2>
               <p>11/21: November Bagel Breakfast</p>
