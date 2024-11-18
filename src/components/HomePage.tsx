@@ -20,45 +20,43 @@ const HomePage: React.FC = () => {
       
       <div className="content-container">
         <div className="main-content">
-          <section className="events">
-            <div className="event blue-background">
-              <div className="event-content">
-                <img src={img1}  alt="Marketing Updates" className="event-image left" />
-                <div>
-                  <h2>Marketing Updates</h2>
-                  <p>Connect with Justin or Arwa for any marketing email questions</p>
-                  <p>Marketing leads will be distributed based on your directors</p>
-                </div>
+        <section className="events">
+          <div className="event blue-background">
+            <div className="event-content">
+              <div className="event-text">
+                <h2>Marketing Updates</h2>
+                <p>Connect with Justin or Arwa for any marketing email questions</p>
+                <p>Marketing leads will be distributed based on your directors</p>
+              </div>
+              <img src={img1} alt="Marketing Updates" />
+            </div>
+          </div>
+          <div className="event white-background">
+            <div className="event-content">
+              <img src={img2} alt="Conferences & Events" />
+              <div className="event-text right">
+                <h2>Conferences & Events</h2>
+                <p>11/20: New Jersey Wireless Association Holiday Social</p>
+                <p>11/4: California Wireless Association SoCal Holiday Party</p>
+                <p>12/11-12/12: ICSC New York</p>
+                <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
               </div>
             </div>
-            <div className="event white-background">
-              <div className="event-content">
-                <img src={img2} alt="Conferences & Events" className="event-image full-left" />
-                <div>
-                  <h2>Conferences & Events</h2>
-                  <p>11/20: New Jersey Wireless Association Holiday Social</p>
-                  <p>11/4: California Wireless Association SoCal Holiday Party</p>
-                  <p>12/11-12/12: ICSC New York</p>
-                  <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
-                </div>
+          </div>
+          <div className="event blue-background">
+            <div className="event-content">
+              <div className="event-text">
+                <h2>October Team Accomplishments</h2>
+                <p>No rollover in October!</p>
+                <p>Record Breaking # of Signed LOIs at 36</p>
+                <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+                <p>Brought in $490k of new GCF</p>
+                <p>Generated 123 opportunities worth $92M</p>
               </div>
+              <img src={img3} alt="Team Accomplishments" />
             </div>
-            <div className="event blue-background">
-              <div className="event-content">
-                <img src={img3} alt="October Team Accomplishments" className="event-image left" />
-                <div>
-                  <h2>October Team Accomplishments</h2>
-                  <ul>
-                    <li>No rollover in October!</li>
-                    <li>Record Breaking # of Signed LOIs at 36</li>
-                    <li>Closed on 13 acquisitions and deployed $9.5M of capital</li>
-                    <li>Brought in $490k of new GCF</li>
-                    <li>Generated 123 opportunities worth $92M</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </section>
+          </div>
+        </section>
           <section className="analytics-section">
             <h2>Current Analytics</h2>
             <Carousel />
