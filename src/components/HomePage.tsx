@@ -15,10 +15,6 @@ const HomePage: React.FC = () => {
       
       <div className="content-container">
         <div className="main-content">
-          <section className="analytics-section">
-            <h2>Current Analytics</h2>
-            <Carousel />
-          </section>
           <section className="events">
             <div className="event">
               <h2>Company Events</h2>
@@ -28,10 +24,22 @@ const HomePage: React.FC = () => {
               <h2>Conferences & Events</h2>
               <p>Industry events and conference dates</p>
             </div>
+            <div className="event">
+              <h2>Conferences & Events</h2>
+              <p>Industry events and conference dates</p>
+            </div>
+          </section>
+          <section className="analytics-section">
+            <h2>Current Analytics</h2>
+            <Carousel />
           </section>
         </div>
 
         <aside className="sidebar">
+          <section className="updates">
+            <h2>HR Announcements</h2>
+            <p>Important announcements from HR</p>
+          </section>
           <section className="updates">
             <h2>IT Updates</h2>
             <p>Important announcements from IT</p>
