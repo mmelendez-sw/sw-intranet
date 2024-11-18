@@ -102,6 +102,7 @@ body {
 
 /* Ticker Styles */
 .ticker-wrap {
+  margin-top: 10px;
   position: fixed;
   top: 3.7rem; /* Positioned below the header */
   width: 100%;
