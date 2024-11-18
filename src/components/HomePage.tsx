@@ -6,6 +6,10 @@ import Carousel from '../components/Carousel';
 import CalendarComponent from '../components/Calendar';
 import '../../styles/home-page.css';
 
+import img1 from '../../images/site_1.jpg'
+import img2 from '../../images/site_2.jpg'
+import img3 from '../../images/site_3.jpg'
+
 const HomePage: React.FC = () => {
   return (
     <div className="home-page">
@@ -18,7 +22,7 @@ const HomePage: React.FC = () => {
           <section className="events">
             <div className="event blue-background">
               <div className="event-content">
-                <img src="placeholder1.jpg" alt="Marketing Updates" className="event-image left" />
+                <img src={img1} alt="Marketing Updates" className="event-image left" />
                 <div>
                   <h2>Marketing Updates</h2>
                   <p>Connect with Justin or Arwa for any marketing email questions</p>
@@ -35,12 +39,12 @@ const HomePage: React.FC = () => {
                   <p>12/11-12/12: ICSC New York</p>
                   <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
                 </div>
-                <img src="placeholder2.jpg" alt="Conferences & Events" className="event-image right" />
+                <img src={img2} alt="Conferences & Events" className="event-image right" />
               </div>
             </div>
             <div className="event blue-background">
               <div className="event-content">
-                <img src="placeholder3.jpg" alt="October Team Accomplishments" className="event-image left" />
+                <img src={img3} alt="October Team Accomplishments" className="event-image left" />
                 <div>
                   <h2>October Team Accomplishments</h2>
                   <p>No rollover in October!</p>

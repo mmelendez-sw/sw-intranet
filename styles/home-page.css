@@ -114,13 +114,55 @@ body {
   scroll-snap-type: x mandatory;
 }
 
-/* Events */
+/* Events Section */
 .events .event {
+  display: flex;
+  align-items: center;
   padding: 15px;
-  background: #d9ecf9; /* Deeper sky-blue background */
   margin-bottom: 15px;
-  border-left: 5px solid #009acb; /* Bright turquoise accent */
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Add shadow for depth */
+}
+
+.events .event.blue-background {
+  background-color: #d9ecf9; /* Deeper blue background */
+  color: #003366; /* Dark blue text */
+}
+
+.events .event.white-background {
+  background-color: #ffffff; /* White background */
+  color: #333; /* Dark gray text */
+}
+
+.event-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 20px;
+}
+
+.event-content img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.event-content img.left {
+  order: 1; /* Image on the left */
+}
+
+.event-content img.right {
+  order: 2; /* Image on the right */
+}
+
+.event-content > div {
+  flex: 1;
+}
+
+.white-background .event-content > div {
+  text-align: right; /* Align text to the right for middle section */
 }
 
 /* Sidebar */
@@ -168,5 +210,15 @@ body {
 
   .photo-stream-container {
     height: 250px; /* Adjust height for mobile */
+  }
+
+  .events .event-content {
+    flex-direction: column; /* Stack content vertically on small screens */
+    text-align: center;
+  }
+
+  .event-content img {
+    width: 100%; /* Images take full width on smaller devices */
+    height: auto;
   }
 }
