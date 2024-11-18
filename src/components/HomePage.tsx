@@ -9,6 +9,7 @@ import '../../styles/home-page.css';
 import img1 from '../../images/site_1.jpg'
 import img2 from '../../images/site_2.jpg'
 import img3 from '../../images/site_3.jpg'
+import img4 from '../../images/food_drive_2.jpg'
 
 const HomePage: React.FC = () => {
   return (
@@ -22,7 +23,7 @@ const HomePage: React.FC = () => {
           <section className="events">
             <div className="event blue-background">
               <div className="event-content">
-                <img src={img1} alt="Marketing Updates" className="event-image left" />
+                <img src={img1}  alt="Marketing Updates" className="event-image left" />
                 <div>
                   <h2>Marketing Updates</h2>
                   <p>Connect with Justin or Arwa for any marketing email questions</p>
@@ -32,6 +33,7 @@ const HomePage: React.FC = () => {
             </div>
             <div className="event white-background">
               <div className="event-content">
+                <img src={img2} alt="Conferences & Events" className="event-image full-left" />
                 <div>
                   <h2>Conferences & Events</h2>
                   <p>11/20: New Jersey Wireless Association Holiday Social</p>
@@ -39,7 +41,6 @@ const HomePage: React.FC = () => {
                   <p>12/11-12/12: ICSC New York</p>
                   <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
                 </div>
-                <img src={img2} alt="Conferences & Events" className="event-image right" />
               </div>
             </div>
             <div className="event blue-background">
@@ -47,11 +48,13 @@ const HomePage: React.FC = () => {
                 <img src={img3} alt="October Team Accomplishments" className="event-image left" />
                 <div>
                   <h2>October Team Accomplishments</h2>
-                  <p>No rollover in October!</p>
-                  <p>Record Breaking # of Signed LOIs at 36</p>
-                  <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
-                  <p>Brought in $490k of new GCF</p>
-                  <p>Generated 123 opportunities worth $92M</p>
+                  <ul>
+                    <li>No rollover in October!</li>
+                    <li>Record Breaking # of Signed LOIs at 36</li>
+                    <li>Closed on 13 acquisitions and deployed $9.5M of capital</li>
+                    <li>Brought in $490k of new GCF</li>
+                    <li>Generated 123 opportunities worth $92M</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -86,6 +89,10 @@ const HomePage: React.FC = () => {
             <button>HR Page</button>
             <button>Ask IT</button>
             <button>Salesforce</button>
+          </section>
+          <section className="updates">
+            <h2>Food Drive Update</h2>
+            <img src={img4} alt="Food Drive" className="update-image" />
           </section>
         </aside>
       </div>

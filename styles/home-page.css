@@ -142,19 +142,24 @@ body {
   gap: 20px;
 }
 
-.event-content img {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
+.event-content.reverse {
+  flex-direction: row-reverse; /* Reverse content for middle section */
 }
 
-.event-content img.left {
+.event-content img {
+  width: 25%;
+  height: 15%;
+  object-fit: cover;
+  /* border-radius: 8px; */
+}
+
+.event-image.left {
   order: 1; /* Image on the left */
 }
 
-.event-content img.right {
-  order: 2; /* Image on the right */
+.event-image.full-left {
+  order: 0; /* Ensure image is all the way on the left */
+  margin-right: auto; /* Push text to the right */
 }
 
 .event-content > div {
@@ -162,9 +167,8 @@ body {
 }
 
 .white-background .event-content > div {
-  text-align: right; /* Align text to the right for middle section */
+  text-align: left; /* Ensure text aligns correctly */
 }
-
 /* Sidebar */
 .sidebar h2 {
   font-size: 1.5em;
@@ -187,6 +191,12 @@ body {
 
 .quick-links button:hover {
   background-color: #0073d6; /* Brighter blue on hover */
+}
+
+.updates img { 
+  width: 100%;
+  height: 15%;
+  object-fit: cover;
 }
 
 /* Footer */
