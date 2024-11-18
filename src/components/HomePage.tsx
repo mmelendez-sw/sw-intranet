@@ -16,33 +16,41 @@ const HomePage: React.FC = () => {
       <div className="content-container">
         <div className="main-content">
           <section className="events">
-            <div className="event">
-              <h2>Marketing Updates</h2>
-              <p>Connect with Justin or Arwa for any marketing email questions</p>
-              <p>Marketing leads will be distributed based on your directors</p>
+            <div className="event blue-background">
+              <div className="event-content">
+                <img src="placeholder1.jpg" alt="Marketing Updates" className="event-image left" />
+                <div>
+                  <h2>Marketing Updates</h2>
+                  <p>Connect with Justin or Arwa for any marketing email questions</p>
+                  <p>Marketing leads will be distributed based on your directors</p>
+                </div>
+              </div>
             </div>
-            <div className="event">
-              <h2>Conferences & Events</h2>
-              <p>11/20: New Jersey Wireless Association Holiday Social</p>
-              <p>11/4: California Wireless Association SoCal Holiday Party</p>
-              <p>12/11-12/12: ICSC New York</p>
-              <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
+            <div className="event white-background">
+              <div className="event-content">
+                <div>
+                  <h2>Conferences & Events</h2>
+                  <p>11/20: New Jersey Wireless Association Holiday Social</p>
+                  <p>11/4: California Wireless Association SoCal Holiday Party</p>
+                  <p>12/11-12/12: ICSC New York</p>
+                  <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
+                </div>
+                <img src="placeholder2.jpg" alt="Conferences & Events" className="event-image right" />
+              </div>
             </div>
-            <div className="event">
-              <h2>October Team Accomplishments</h2>
-              <p>No rollover in October!</p>
-              <p>Record Breaking # of Signed LOIs at 36</p>
-              <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
-              <p>Brought in $490k of new GCF</p>
-              <p>Generated 123 opportunities worth $92M</p>
+            <div className="event blue-background">
+              <div className="event-content">
+                <img src="placeholder3.jpg" alt="October Team Accomplishments" className="event-image left" />
+                <div>
+                  <h2>October Team Accomplishments</h2>
+                  <p>No rollover in October!</p>
+                  <p>Record Breaking # of Signed LOIs at 36</p>
+                  <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+                  <p>Brought in $490k of new GCF</p>
+                  <p>Generated 123 opportunities worth $92M</p>
+                </div>
+              </div>
             </div>
-            {/* <div className="event">
-              <h2>Company Events</h2>
-              <p>11/21: November Bagel Breakfast</p>
-              <p>12/12: Ugly Sweater Day</p>
-              <p>12/5: Symphony Wireless Holiday Party</p>
-              <p>12/21: December Bagel Breakfast</p>
-            </div> */}
           </section>
           <section className="analytics-section">
             <h2>Current Analytics</h2>
