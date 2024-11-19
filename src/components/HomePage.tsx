@@ -17,10 +17,10 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
   return (
-    <div className="home-page">
+    <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       <Header />
-      <PhotoStream /> {/* Always visible */}
       {isAuthenticated && <Ticker />} {/* Conditional rendering for Ticker */}
+      {isAuthenticated && <PhotoStream /> } {/* Conditional rendering for PhotoStream */}
       {isAuthenticated ? (
         <div className="content-container">
           <div className="main-content">
