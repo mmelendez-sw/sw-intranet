@@ -107,6 +107,7 @@
   padding-bottom: 5px;
 }
 
+
 .sidebar p,
 .sidebar ul,
 .sidebar button {
@@ -121,7 +122,12 @@
 .sidebar ul li {
   margin-bottom: 10px;
   list-style-type: disc;
+  color: #003366;
+  display: inline-block;
+  position: relative; /* Make it relative for the pseudo-element */
+  border-bottom: 2px solid #009acb; /* Keep the original border */
 }
+
 
 .sidebar .quick-links button {
   background-color: #005b99; /* Rich blue for buttons */

@@ -105,10 +105,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
             {/* Sidebar */}
             <aside className="sidebar">
-              {/* <section className="updates">
-                <h2>Company Announcements</h2>
-                <p>Important announcements from HR</p>
-              </section> */}
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
