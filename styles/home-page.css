@@ -146,6 +146,13 @@
   margin-top: auto;
 }
 
+.unauthenticated-message { 
+  padding: 20px; 
+  text-align: center; 
+  margin-top: 10%; 
+  font-size: 18px; 
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .content-container {
