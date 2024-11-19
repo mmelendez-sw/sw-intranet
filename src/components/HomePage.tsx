@@ -78,6 +78,20 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <p>Stay tuned for more exciting announcements!</p>
                 </div>
               </div>
+              <div className="card">
+                <img src={img4} alt="Food Drive" className="card-image" />
+                <div className="card-text">
+                  <h2>Food Drive Update</h2>
+                  <p>Help us make a difference with our annual food drive!</p>
+                </div>
+              </div>
+              <div className="card">
+                <img src={img4} alt="Food Drive" className="card-image" />
+                <div className="card-text">
+                  <h2>Food Drive Update</h2>
+                  <p>Help us make a difference with our annual food drive!</p>
+                </div>
+              </div>
             </div>
 
             {/* Sidebar */}
