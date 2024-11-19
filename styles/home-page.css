@@ -53,6 +53,11 @@
   color: #333;
 }
 
+.card:hover {
+  transform: translateY(-5px); /* Slightly lift the card */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
+}
+
 /* Alternate styles for even cards */
 .even-card {
   background-color: #d9ecf9; /* Light blue background for even cards */
