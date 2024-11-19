@@ -4,7 +4,7 @@
   grid-template-columns: 4fr 1fr; /* Main content and sidebar */
   gap: 20px;
   padding: 10px;
-  margin-top: 75px;
+  margin-top: 55px;
 }
 
 /* Grid Layout for Main Content */
@@ -17,22 +17,26 @@
 .card {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* Ensures the content flows top-down */
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   overflow: hidden; /* Ensures the image and content align perfectly */
+  min-height: 450px; /* Minimum height for the card */
   height: auto; /* Allow dynamic height based on content */
 }
 
 .card-image {
   width: 100%;
-  height: 300px; /* Standardized image height */
-  object-fit: cover; /* Ensures image scales and crops proportionally */
-  margin: 0; /* Removes any extra spacing around the image */
+  height: 300px; /* Standardize the image height */
+  object-fit: cover; /* Ensures the image scales and crops proportionally */
+  margin: 0; /* Removes any extra spacing */
 }
 
 .card-text {
-  padding: 15px; /* Padding for the text area */
+  padding: 0; /* Padding for the text area */
+  padding-left: 5px;
+  padding-right: 5px;
   text-align: center;
   margin: 0; /* Remove unnecessary margins */
   flex-grow: 0; /* Prevent text from stretching the card */
