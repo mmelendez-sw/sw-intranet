@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import '../../styles/header.css';
-import blue_logo from '../../images/symph_blue_t.png';
 import white_logo from '../../images/symph_white_t.png';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
-// import { fetchUserPhoto } from '../graphClient';
 
 const Header: React.FC = () => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
-  // const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleLogin = () => {
     instance.loginPopup(loginRequest).catch((e) => {
@@ -23,15 +22,48 @@ const Header: React.FC = () => {
     });
   };
 
-  // useEffect(() => {
-  //   if (isAuthenticated && accounts[0]) {
-  //     // Fetch user photo after login
-  //     fetchUserPhoto(accounts[0]).then((photo) => setPhotoUrl(photo));
-  //   }
-  // }, [isAuthenticated, accounts]);
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prevState) => !prevState);
+  };
+
+  const DropdownMenu = () =>
+    ReactDOM.createPortal(
+      isDropdownOpen && (
+        <div
+          className="dropdown-menu"
+          style={{
+            position: 'absolute',
+            top: '60px', // Adjust as needed to match header height
+            right: '20px',
+            background: 'white',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+            zIndex: 9999, // Ensure highest stacking order
+          }}
+        >
+          <button
+            onClick={handleLogout}
+            className="dropdown-item"
+            style={{
+              padding: '10px',
+              width: '100%',
+              backgroundColor: 'white',
+              border: 'none',
+              textAlign: 'left',
+              cursor: 'pointer',
+              color: '#333',
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      ),
+      document.body
+    );
 
   return (
-    <header className="header">
+    <header className="header" style={{ zIndex: 5000 }}>
       <img src={white_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/">Home</a>
@@ -44,20 +76,30 @@ const Header: React.FC = () => {
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {/* {photoUrl && (
-              <img
-                src={photoUrl}
-                alt="User"
-                className="user-photo"
-                style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }}
-              />
-            )} */}
-            <span>Welcome, {(accounts[0]?.name?.split(" ")[0]) || "User"}!</span>
-            <button onClick={handleLogout} className="logout-button">Logout</button>
+          <div className="user-dropdown" style={{ position: 'relative' }}>
+            <span
+              onClick={toggleDropdown}
+              className="user-name"
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              Welcome, {accounts[0]?.name?.split(' ')[0]}!{' '}
+              <i
+                className={`fa-solid fa-caret-down ${
+                  isDropdownOpen ? 'open' : ''
+                }`}
+                style={{ marginLeft: '5px' }}
+              ></i>
+            </span>
+            <DropdownMenu />
           </div>
         ) : (
-          <button onClick={handleLogin} className="login-button">Login</button>
+          <button onClick={handleLogin} className="login-button">
+            Login
+          </button>
         )}
       </div>
     </header>

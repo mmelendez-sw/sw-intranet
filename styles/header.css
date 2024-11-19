@@ -1,72 +1,152 @@
+/* Header Container */
 .header {
     width: 100%;
-    background-color: #004E7C;
-    color: #ffffff;
-    padding: 10px 20px;
+    background-color: #004E7C; /* Header background color */
+    color: #ffffff; /* Text color */
+    padding: 5px 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: fixed;
+    position: fixed; /* Fixes header at the top */
     top: 0;
     left: 0;
-    z-index: 1000;
-}
-  
-.logo-image {
-    max-height: 40px;
+    z-index: 5000; /* Ensures header is above most elements */
 }
 
+/* Logo */
+.logo-image {
+    max-height: 40px; /* Limits logo height */
+}
+
+/* Navigation Bar */
 .nav-bar {
     display: flex;
     align-items: center;
 }
 
 .nav-bar a {
-    color: #004E7C;
+    color: #ffffff; /* Link color */
     margin-right: 15px;
     margin-left: 5px;
     text-decoration: none;
     font-weight: 500;
     font-size: 1rem;
+    transition: color 0.3s ease;
+    margin-bottom: 0;
 }
 
+.nav-bar a:hover {
+    color: #e0e0e0; /* Link hover color */
+}
+
+/* User Section */
 .user {
     display: flex;
     align-items: center;
 }
 
+/* User Photo */
 .user-photo {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 50%; /* Circular photo */
     margin-right: 10px;
-    border: 2px solid #004E7C;
+    border: 2px solid #ffffff; /* Border matches header */
 }
 
+/* Welcome Text */
 .welcome-text {
-    color: #004E7C;
+    color: #ffffff; /* Matches header text */
     font-size: 1rem;
     margin-right: 15px;
 }
 
+/* Buttons */
 .login-button,
 .logout-button {
-    background-color: #004E7C;
-    color: #fff;
+    background-color: #004E7C; /* Button background color */
+    color: #ffffff; /* Button text color */
     border: none;
     padding: 8px 16px;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     border-radius: 4px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease; /* Smooth hover effect */
 }
 
 .logout-button { 
-    margin-left: 10px;
+    margin-left: 10px; /* Adds spacing between buttons */
 }
 
 .login-button:hover,
 .logout-button:hover {
-    background-color: #002e4c;
+    background-color: #002e4c; /* Darker blue on hover */
+}
+
+/* Dropdown Menu */
+.user-dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%; /* Aligns below the welcome text */
+    right: 0;
+    background-color: #ffffff; /* Dropdown background */
+    border: 1px solid #ddd; /* Light border */
+    border-radius: 4px; /* Rounded corners */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 9999; /* Ensure it appears above other elements */
+    min-width: 150px; /* Minimum width for dropdown */
+    
+}
+
+.dropdown-item {
+    padding: 10px;
+    background-color: #ffffff; /* Matches dropdown background */
+    color: #333; /* Text color */
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+    border: none;
+    width: 100%; /* Full width for button */
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0; /* Light gray hover background */
+    color: #000; /* Text becomes darker on hover */
+    text-align: center;
+}
+
+/* Adjustments for Accessibility */
+.nav-bar a:focus,
+.login-button:focus,
+.logout-button:focus,
+.dropdown-item:focus {
+    outline: 2px solid #ffffff; /* Highlight element on focus */
+    outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .nav-bar a {
+        margin: 5px 0; /* Spacing between links in small screens */
+    }
+
+    .user {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .login-button,
+    .logout-button {
+        margin: 5px 0; /* Spacing between buttons */
+    }
 }
