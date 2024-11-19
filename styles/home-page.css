@@ -28,7 +28,7 @@
 
 .card-text {
   padding: 15px 10px; /* Padding for the text area */
-  text-align: center;
+  text-align: left;
   margin: 0; /* Remove unnecessary margins */
   flex-grow: 1; /* Pushes the image down when there's insufficient text */
 }
@@ -46,7 +46,7 @@
   color: #003366;
 }
 
-.card-text p {
+.card-text li {
   font-size: 0.9em;
   line-height: 1.4; /* Tighter line height */
   margin: 5px 0; /* Uniform margins between paragraphs */
