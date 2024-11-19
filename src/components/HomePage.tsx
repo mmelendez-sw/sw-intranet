@@ -1,8 +1,5 @@
 import React from 'react';
 import Header from '../components/Header';
-import Ticker from '../components/Ticker';
-import PhotoStream from '../components/PhotoStream';
-import Carousel from '../components/Carousel';
 import '../../styles/home-page.css';
 
 import img1 from '../../images/site_1.jpg';
@@ -16,60 +13,74 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
-  console.log('HomePage Render - isAuthenticated:', isAuthenticated); // Debug
+  console.log('HomePage Render - isAuthenticated:', isAuthenticated);
 
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       <Header />
       {isAuthenticated ? (
         <>
-          {/* <Ticker />
-          <PhotoStream /> */}
           <div className="content-container">
-            <div className="main-content">
-              <section className="events">
-                <div className="event blue-background">
-                  <div className="event-content">
-                    <div className="event-text">
-                      <h2>October Team Accomplishments</h2>
-                      <p>No rollover in October!</p>
-                      <p>Record Breaking # of Signed LOIs at 36</p>
-                      <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
-                      <p>Brought in $490k of new GCF</p>
-                      <p>Generated 123 opportunities worth $92M</p>
-                    </div>
-                    <img src={img1} alt="Marketing Updates" />
-                  </div>
+            {/* Main content grid */}
+            <div className="grid-layout">
+              {/* Card 1 */}
+              <div className="card">
+                <img src={img1} alt="Team Accomplishments" className="card-image" />
+                <div className="card-text">
+                  <h2>October Team Accomplishments</h2>
+                  <p>No rollover in October!</p>
+                  <p>Record Breaking # of Signed LOIs at 36</p>
+                  <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
+                  <p>Brought in $490k of new GCF</p>
+                  <p>Generated 123 opportunities worth $92M</p>
                 </div>
-                <div className="event white-background">
-                  <div className="event-content">
-                    <img src={img2} alt="Conferences & Events" />
-                    <div className="event-text right">
-                      <h2>Conferences & Events</h2>
-                      <p>11/20: New Jersey Wireless Association Holiday Social</p>
-                      <p>11/4: California Wireless Association SoCal Holiday Party</p>
-                      <p>12/11-12/12: ICSC New York</p>
-                      <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
-                    </div>
-                  </div>
+              </div>
+              {/* Card 2 */}
+              <div className="card">
+                <img src={img2} alt="Conferences & Events" className="card-image" />
+                <div className="card-text">
+                  <h2>Conferences & Events</h2>
+                  <p>11/20: New Jersey Wireless Association Holiday Social</p>
+                  <p>11/4: California Wireless Association SoCal Holiday Party</p>
+                  <p>12/11-12/12: ICSC New York</p>
+                  <p>12/13: Florida Wireless Association Charity Golf Tournament</p>
                 </div>
-                <div className="event blue-background">
-                  <div className="event-content">
-                    <div className="event-text">
-                      <h2>Marketing Updates</h2>
-                      <p>Connect with Justin or Arwa for any marketing email questions</p>
-                      <p>Marketing leads will be distributed based on your directors</p>
-                    </div>
-                    <img src={img3} alt="Team Accomplishments" />
-                  </div>
+              </div>
+              {/* Card 3 */}
+              <div className="card">
+                <img src={img3} alt="Marketing Updates" className="card-image" />
+                <div className="card-text">
+                  <h2>Marketing Updates</h2>
+                  <p>Connect with Justin or Arwa for any marketing email questions</p>
+                  <p>Marketing leads will be distributed based on your directors</p>
                 </div>
-              </section>
-              <section className="analytics-section">
-                <h2>Current Analytics</h2>
-                <Carousel />
-              </section>
+              </div>
+              {/* Card 4 */}
+              <div className="card">
+                <img src={img4} alt="Food Drive" className="card-image" />
+                <div className="card-text">
+                  <h2>Food Drive Update</h2>
+                  <p>Help us make a difference with our annual food drive!</p>
+                </div>
+              </div>
+              {/* Card 5 */}
+              <div className="card">
+                <img src={img5} alt="Team Photo" className="card-image" />
+                <div className="card-text">
+                  <h2>Symphony Wireless Team</h2>
+                  <p>Meet the team that makes everything possible.</p>
+                </div>
+              </div>
+              {/* Card 6 */}
+              <div className="card">
+                <div className="card-text">
+                  <h2>Additional Updates</h2>
+                  <p>Stay tuned for more exciting announcements!</p>
+                </div>
+              </div>
             </div>
 
+            {/* Sidebar */}
             <aside className="sidebar">
               <section className="updates">
                 <h2>HR Announcements</h2>
@@ -95,19 +106,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button>Ask IT</button>
                 <button>Salesforce</button>
               </section>
-              <section className="updates">
-                <h2>Food Drive Update</h2>
-                <img src={img4} alt="Food Drive" className="update-image" />
-              </section>
-              <section className="updates">
-                <h2>Symphony Wireless Team</h2>
-                <img src={img5} alt="Team Photo" className="update-image" />
-              </section>
             </aside>
           </div>
         </>
       ) : (
-        <div style={{ padding: '20px', textAlign: 'center',marginTop: '10%', fontSize: '18px' }}>
+        <div className="unauthenticated-message">
           <h2>Welcome to the Symphony Wireless Intranet!</h2>
           <p>Please log in to access more features and content.</p>
         </div>
