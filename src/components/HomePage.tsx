@@ -53,10 +53,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card odd-card">
                 <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
-                  <h2>Key Highlights</h2>
-                  <p>RSVP for Symphony Holiday Party on December 5th</p>
-                  <p>Bagel Breakfast is November 21st</p>
-                  <p>Enjoy your Thanksgiving break!</p>
+                  <h2>Marketing Updates</h2>
+                  <p>Connect with Justin or Arwa for any marketing email questions</p>
+                  <p>Marketing leads will be distributed based on your directors</p>
                 </div>
               </div>
               {/* Card 4 */}
@@ -80,9 +79,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img6} alt="Food Drive" className="card-image" />
                 <div className="card-text">
-                  <h2>Marketing Updates</h2>
-                  <p>Connect with Justin or Arwa for any marketing email questions</p>
-                  <p>Marketing leads will be distributed based on your directors</p>
+                  <h2>Other Updates</h2>
+                  <p>RSVP for Symphony Holiday Party on December 5th</p>
+                  <p>Bagel Breakfast is November 21st</p>
+                  <p>Enjoy your Thanksgiving break!</p>
                 </div>
               </div>
             </div>
