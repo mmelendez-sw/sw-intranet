@@ -23,8 +23,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       <Header />
       {isAuthenticated ? (
         <>
-          <Ticker />
-          <PhotoStream />
+          {/* <Ticker />
+          <PhotoStream /> */}
           <div className="content-container">
             <div className="main-content">
               <section className="events">
