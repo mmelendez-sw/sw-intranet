@@ -41,7 +41,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 2 */}
               <div className="card even-card">
-                <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
                   <h2>Conferences & Events</h2>
                   <ul>
@@ -52,6 +51,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
                   </ul>
                 </div>
+                <img src={img2} alt="Conferences & Events" className="card-image" />
               </div>
               {/* Card 3 */}
               <div className="card odd-card">
@@ -70,14 +70,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 4 */}
               <div className="card even-card">
-                <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
                   <h2>Food Drive</h2>
                   <ul>
                     <li>Help us make a difference with our annual food drive!</li>
                   </ul>
                 </div>
-                
+                <img src={img4} alt="Food Drive" className="card-image" />
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
@@ -91,7 +90,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 6 */}
               <div className="card even-card">
-                <img src={img6} alt="Food Drive" className="card-image" />
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
@@ -100,6 +98,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>Enjoy your Thanksgiving break!</li>
                   </ul>
                 </div>
+                <img src={img6} alt="Food Drive" className="card-image" />
               </div>
             </div>
 
