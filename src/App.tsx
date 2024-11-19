@@ -10,7 +10,7 @@ import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
