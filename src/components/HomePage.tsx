@@ -16,6 +16,8 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
+  console.log('HomePage Render - isAuthenticated:', isAuthenticated); // Debug
+
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       <Header />

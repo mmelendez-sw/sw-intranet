@@ -12,6 +12,15 @@ const App: React.FC = () => {
   const [isAuthInitialized, setIsAuthInitialized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const checkAuthentication = () => {
+    const accounts = instance.getAllAccounts();
+    if (accounts.length > 0) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  };
+
   useEffect(() => {
     // Attempt silent SSO on app load
     instance
@@ -20,8 +29,8 @@ const App: React.FC = () => {
       })
       .then(() => {
         console.log('Silent SSO successful.');
-        setIsAuthenticated(true);
-        setIsAuthInitialized(true);
+        checkAuthentication();
+        setIsAuthInitialized(true); // Auth initialization complete
       })
       .catch((error) => {
         console.error('Silent SSO failed:', error);
@@ -32,17 +41,22 @@ const App: React.FC = () => {
             .loginPopup(loginRequest)
             .then(() => {
               console.log('Interactive login successful.');
-              setIsAuthenticated(true);
-              setIsAuthInitialized(true);
+              checkAuthentication();
+              setIsAuthInitialized(true); // Auth initialization complete
             })
             .catch((err) => {
               console.error('Interactive login failed:', err);
-              setIsAuthInitialized(true);
+              setIsAuthInitialized(true); // Still initialize the app
             });
         } else {
-          setIsAuthInitialized(true);
+          setIsAuthInitialized(true); // Initialize even if silent SSO fails
         }
       });
+  }, [instance]);
+
+  // Check authentication whenever the component mounts or MSAL state changes
+  useEffect(() => {
+    checkAuthentication();
   }, [instance]);
 
   if (!isAuthInitialized) {
@@ -69,7 +83,6 @@ const App: React.FC = () => {
               <Route path="/it" element={<ITPage />} />
             </>
           )}
-          {/* Redirect to home page if no matching route */}
           <Route
             path="*"
             element={
