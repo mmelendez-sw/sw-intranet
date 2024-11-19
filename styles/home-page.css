@@ -134,6 +134,18 @@
   font-size: 0.9em;
 }
 
+.home-page.unauthenticated {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background:  url('../images/site_1.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.home-page.unauthenticated .footer {
+  margin-top: auto;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .content-container {
