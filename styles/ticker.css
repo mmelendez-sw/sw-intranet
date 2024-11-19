@@ -1,15 +1,15 @@
 /* Ticker Wrapper */
 .ticker-wrap {
-    position: fixed;
-    top: 3.7rem; /* Adjusted to place the ticker below the header */
+    position: static;
+    top: 4rem; /* Adjusted to place the ticker below the header */
     left: 0; /* Aligns to the left edge of the viewport */
     width: 100vw; /* Full viewport width */
     overflow: hidden;
-    height: 3rem;
+    height: 4rem;
     background-color: white;
     padding: 0;
     box-sizing: border-box;
-    z-index: 1000; /* Keep it on top */
+    z-index: 5005; /* Keep it on top */
 }
 
 .ticker {
@@ -26,7 +26,8 @@
     display: inline-block;
     padding: 0 2rem;
     font-size: 1.5rem;
-    color: #004E7C;
+    color: red;
+    /* color: #004E7C; */
 }
 
 @keyframes ticker {
