@@ -217,6 +217,22 @@ body {
   font-size: 0.9em;
 }
 
+.home-page.unauthenticated {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background:  url('../images/site_1.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.home-page.unauthenticated .footer {
+  margin-top: auto;
+}
+
+/* .home-page.authenticated .content-container {
+  display: flex;
+} */
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .content-container {
