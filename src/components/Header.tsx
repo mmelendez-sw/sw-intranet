@@ -20,6 +20,7 @@ const Header: React.FC = () => {
     instance.logoutPopup().catch((e) => {
       console.error(e);
     });
+    setIsDropdownOpen(false)
   };
 
   const toggleDropdown = () => {
@@ -33,7 +34,7 @@ const Header: React.FC = () => {
           className="dropdown-menu"
           style={{
             position: 'absolute',
-            top: '60px', // Adjust as needed to match header height
+            top: '40px', // Adjust as needed to match header height
             right: '20px',
             background: 'white',
             border: '1px solid #ddd',
