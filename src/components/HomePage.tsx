@@ -7,6 +7,8 @@ import img2 from '../../images/site_2.jpg';
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/food_drive_2.jpg';
 import img5 from '../../images/team.jpg';
+import img6 from '../../images/site_4.jpg'
+import img7 from '../../images/site_5.jpg'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -39,6 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <div className="card-text">
                   <h2>Conferences & Events</h2>
+                  <p>11/18: Nareit's REITworld: 2024 Annual Conference</p>
                   <p>11/20: New Jersey Wireless Association Holiday Social</p>
                   <p>11/4: California Wireless Association SoCal Holiday Party</p>
                   <p>12/11-12/12: ICSC New York</p>
@@ -77,7 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>Additional Updates</h2>
                   <p>Stay tuned for more exciting announcements!</p>
                 </div>
-                <img src={img4} alt="Food Drive" className="card-image" />
+                <img src={img6} alt="Food Drive" className="card-image" />
               </div>
             </div>
 
