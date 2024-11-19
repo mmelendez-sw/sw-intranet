@@ -20,6 +20,7 @@ const Header: React.FC = () => {
     instance.logoutPopup().catch((e) => {
       console.error(e);
     });
+    setIsDropdownOpen(false)
   };
 
   const toggleDropdown = () => {
