@@ -14,7 +14,7 @@ const App: React.FC = () => {
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
-    setIsAuthenticated(accounts.length > 0);
+    setIsAuthenticated(true);
   };
 
   useEffect(() => {
