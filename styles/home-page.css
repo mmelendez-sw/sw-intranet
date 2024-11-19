@@ -11,7 +11,8 @@
 .grid-layout {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* Three cards per row */
-  gap: 20px;
+  grid-auto-rows: auto; /* Dynamically adjust row height */
+  gap: 20px; /* Space between cards */
 }
 
 .card {
@@ -69,6 +70,19 @@
 /* Alternate styles for even cards */
 .even-card {
   background-color: #d9ecf9; /* Light blue background for even cards */
+}
+
+.text-bar {
+  grid-column: 1 / -1; /* Span across all columns */
+  color: #003366;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-top: 1px solid #ddd;
+  border-bottom: 2px solid #009acb;
+  padding: 0; /* Reduce vertical padding */
+  line-height: 1.2; /* Adjust line height */
+  margin: 0;
 }
 
 /* Sidebar Styling */

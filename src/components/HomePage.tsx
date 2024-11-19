@@ -64,11 +64,15 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>       
                 </div>
               </div>
+              {/* Text Bar for Other Key Updates */}
+              <div className="text-bar">
+                  <h2>Key Updates</h2>
+              </div>
               {/* Card 4 */}
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
-                  <h2>Food Drive Update</h2>
+                  <h2>Food Drive</h2>
                   <ul>
                     <li>Help us make a difference with our annual food drive!</li>
                   </ul>
