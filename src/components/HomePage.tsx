@@ -32,11 +32,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <div className="event-content">
                     <div className="event-text">
                       <h2>October Team Accomplishments</h2>
-                      <p>No rollover in October!</p>
-                      <p>Record Breaking # of Signed LOIs at 36</p>
-                      <p>Closed on 13 acquisitions and deployed $9.5M of capital</p>
-                      <p>Brought in $490k of new GCF</p>
-                      <p>Generated 123 opportunities worth $92M</p>
+                      <li>No rollover in October!</li>
+                      <li>Record Breaking # of Signed LOIs at 36</li>
+                      <li>Closed on 13 acquisitions and deployed $9.5M of capital</li>
+                      <li>Brought in $490k of new GCF</li>
+                      <li>Generated 123 opportunities worth $92M</li>
                     </div>
                     <img src={img1} alt="Marketing Updates" />
                   </div>
@@ -46,10 +46,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <img src={img2} alt="Conferences & Events" />
                     <div className="event-text right">
                       <h2>Conferences & Events</h2>
-                      <p>11/20: New Jersey Wireless Association Holiday Social</p>
-                      <p>11/4: California Wireless Association SoCal Holiday Party</p>
-                      <p>12/11-12/12: ICSC New York</p>
-                      <p>12/13: Florida Wireless Association Charity Social and Golf Tournament</p>
+                      <ul>
+                        <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
+                        <li>11/20: New Jersey Wireless Association Holiday Social</li>
+                        <li>11/4: California Wireless Association SoCal Holiday Party</li>
+                        <li>12/11-12/12: ICSC New York</li>
+                        <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -57,8 +60,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <div className="event-content">
                     <div className="event-text">
                       <h2>Marketing Updates</h2>
-                      <p>Connect with Justin or Arwa for any marketing email questions</p>
-                      <p>Marketing leads will be distributed based on your directors</p>
+                      <ul>
+                        <li>Connect with Justin or Arwa for any marketing email questions</li>
+                        <li>Marketing leads will be distributed based on your directors</li>
+                      </ul>
                     </div>
                     <img src={img3} alt="Team Accomplishments" />
                   </div>

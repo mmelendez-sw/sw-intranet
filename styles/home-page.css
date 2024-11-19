@@ -144,7 +144,7 @@ body {
 }
 
 .event-content img {
-  width: 30%; /* Uniform image sizing */
+  width: 25%; /* Uniform image sizing */
   height: auto;
   object-fit: cover;
   border-radius: 8px;
@@ -164,6 +164,19 @@ body {
   font-size: 1.5em;
   margin-bottom: 10px;
   color: #003366;
+  display: inline-block;
+  position: relative; /* Make it relative for the pseudo-element */
+  border-bottom: 2px solid #009acb; /* Keep the original border */
+}
+
+.event-content .event-text h2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; /* Align with the original border */
+  left: 100%; /* Start after the original border */
+  width: 225px; /* Extend the border 20% */
+  height: 2px; /* Match the original border thickness */
+  background-color: #009acb; /* Same color as the border */
 }
 
 .event-content .event-text p {
