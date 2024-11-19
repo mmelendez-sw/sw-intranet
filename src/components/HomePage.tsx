@@ -24,7 +24,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             {/* Main content grid */}
             <div className="grid-layout">
               {/* Card 1 */}
-              <div className="card">
+              <div className="card odd-card">
                 <img src={img1} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
                   <h2>October Team Accomplishments</h2>
@@ -36,8 +36,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
               {/* Card 2 */}
-              <div className="card">
-                <img src={img2} alt="Conferences & Events" className="card-image" />
+              <div className="card even-card">
                 <div className="card-text">
                   <h2>Conferences & Events</h2>
                   <p>11/20: New Jersey Wireless Association Holiday Social</p>
@@ -45,9 +44,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <p>12/11-12/12: ICSC New York</p>
                   <p>12/13: Florida Wireless Association Charity Golf Tournament</p>
                 </div>
+                <img src={img2} alt="Conferences & Events" className="card-image" />
               </div>
               {/* Card 3 */}
-              <div className="card">
+              <div className="card odd-card">
                 <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
                   <h2>Marketing Updates</h2>
@@ -56,15 +56,15 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
               {/* Card 4 */}
-              <div className="card">
-                <img src={img4} alt="Food Drive" className="card-image" />
+              <div className="card even-card">
                 <div className="card-text">
                   <h2>Food Drive Update</h2>
                   <p>Help us make a difference with our annual food drive!</p>
                 </div>
+                <img src={img4} alt="Food Drive" className="card-image" />
               </div>
               {/* Card 5 */}
-              <div className="card">
+              <div className="card odd-card">
                 <img src={img5} alt="Team Photo" className="card-image" />
                 <div className="card-text">
                   <h2>Symphony Wireless Team</h2>
@@ -72,32 +72,19 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
               {/* Card 6 */}
-              <div className="card">
+              <div className="card even-card">
                 <div className="card-text">
                   <h2>Additional Updates</h2>
                   <p>Stay tuned for more exciting announcements!</p>
                 </div>
-              </div>
-              <div className="card">
                 <img src={img4} alt="Food Drive" className="card-image" />
-                <div className="card-text">
-                  <h2>Food Drive Update</h2>
-                  <p>Help us make a difference with our annual food drive!</p>
-                </div>
-              </div>
-              <div className="card">
-                <img src={img4} alt="Food Drive" className="card-image" />
-                <div className="card-text">
-                  <h2>Food Drive Update</h2>
-                  <p>Help us make a difference with our annual food drive!</p>
-                </div>
               </div>
             </div>
 
             {/* Sidebar */}
             <aside className="sidebar">
               <section className="updates">
-                <h2>HR Announcements</h2>
+                <h2>Company Announcements</h2>
                 <p>Important announcements from HR</p>
               </section>
               <section className="updates">
