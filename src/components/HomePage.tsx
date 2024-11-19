@@ -107,8 +107,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           </div>
         </>
       ) : (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h2>Welcome to Symphony Wireless</h2>
+        <div style={{ padding: '20px', textAlign: 'center',marginTop: '10%', fontSize: '18px' }}>
+          <h2>Welcome to the Symphony Wireless Intranet!</h2>
           <p>Please log in to access more features and content.</p>
         </div>
       )}
