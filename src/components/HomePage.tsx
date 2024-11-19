@@ -76,15 +76,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
 
             <aside className="sidebar">
-              <section className="updates">
-                <h2>HR Announcements</h2>
-                <p>Important announcements from HR</p>
-              </section>
-              <section className="updates">
-                <h2>IT Updates</h2>
-                <p>Make Align appointment if you have a new laptop</p>
-                <p>Do not click any phishing links</p>
-              </section>
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
@@ -93,6 +84,15 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <li>12/12 - Ugly Sweater Day</li>
                   <li>12/21 - December Bagel Breakfast</li>
                 </ul>
+              </section>
+              {/* <section className="updates">
+                <h2>HR Announcements</h2>
+                <p>Important announcements from HR</p>
+              </section> */}
+              <section className="updates">
+                <h2>IT Updates</h2>
+                <p>Make Align appointment if you have a new laptop</p>
+                <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
                 <h2>Quick Links</h2>
