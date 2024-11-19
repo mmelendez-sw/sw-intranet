@@ -144,7 +144,7 @@ body {
 }
 
 .event-content img {
-  width: 30%; /* Uniform image sizing */
+  width: 25%; /* Uniform image sizing */
   height: auto;
   object-fit: cover;
   border-radius: 8px;
@@ -153,6 +153,7 @@ body {
 .event-content .event-text {
   flex: 1;
   padding: 0 15px;
+  border-bottom: ;
 }
 
 .event-content .right { 
