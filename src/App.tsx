@@ -28,6 +28,11 @@ const App: React.FC = () => {
         checkAuthentication();
       }
 
+      if (event.eventType === EventType.LOGOUT_SUCCESS) {
+        console.log('Logout successful, updating state.');
+        checkAuthentication();
+      }
+
       if (event.eventType === EventType.ACCOUNT_ADDED || event.eventType === EventType.ACCOUNT_REMOVED) {
         console.log('Account state changed, updating state.');
         checkAuthentication();
