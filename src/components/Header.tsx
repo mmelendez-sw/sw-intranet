@@ -34,7 +34,7 @@ const Header: React.FC = () => {
           className="dropdown-menu"
           style={{
             position: 'fixed',
-            top: '60px', // Adjust as needed to match header height
+            top: '40px', // Adjust as needed to match header height
             right: '20px',
             background: 'white',
             border: '1px solid #ddd',
