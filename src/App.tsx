@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
+import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
@@ -9,64 +10,37 @@ import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
-  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
-    if (accounts.length > 0) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    setIsAuthenticated(accounts.length > 0);
   };
 
   useEffect(() => {
-    // Attempt silent SSO on app load
-    instance
-      .ssoSilent({
-        scopes: loginRequest.scopes,
-      })
-      .then(() => {
-        console.log('Silent SSO successful.');
-        checkAuthentication();
-        setIsAuthInitialized(true); // Auth initialization complete
-      })
-      .catch((error) => {
-        console.error('Silent SSO failed:', error);
-
-        if (error.name === 'InteractionRequiredAuthError') {
-          console.log('Fallback to interactive login required.');
-          instance
-            .loginPopup(loginRequest)
-            .then(() => {
-              console.log('Interactive login successful.');
-              checkAuthentication();
-              setIsAuthInitialized(true); // Auth initialization complete
-            })
-            .catch((err) => {
-              console.error('Interactive login failed:', err);
-              setIsAuthInitialized(true); // Still initialize the app
-            });
-        } else {
-          setIsAuthInitialized(true); // Initialize even if silent SSO fails
-        }
-      });
-  }, [instance]);
-
-  // Check authentication whenever the component mounts or MSAL state changes
-  useEffect(() => {
+    // Check authentication status on app load
     checkAuthentication();
-  }, [instance]);
 
-  if (!isAuthInitialized) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h2>Loading...</h2>
-        <p>Please wait while we check your authentication status.</p>
-      </div>
-    );
-  }
+    // Listen to MSAL events for account changes
+    const callbackId = instance.addEventCallback((event) => {
+      if (event.eventType === EventType.LOGIN_SUCCESS) {
+        console.log('Login successful, updating state.');
+        checkAuthentication();
+      }
+
+      if (event.eventType === EventType.ACCOUNT_ADDED || event.eventType === EventType.ACCOUNT_REMOVED) {
+        console.log('Account state changed, updating state.');
+        checkAuthentication();
+      }
+    });
+
+    return () => {
+      // Clean up event listener
+      if (callbackId) {
+        instance.removeEventCallback(callbackId);
+      }
+    };
+  }, [instance]);
 
   return (
     <Router>
@@ -85,9 +59,7 @@ const App: React.FC = () => {
           )}
           <Route
             path="*"
-            element={
-              <HomePage isAuthenticated={isAuthenticated} />
-            }
+            element={<HomePage isAuthenticated={isAuthenticated} />}
           />
         </Routes>
       </div>
