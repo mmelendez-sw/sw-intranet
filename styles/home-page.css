@@ -141,6 +141,10 @@
   background-color: #0073d6; /* Brighter blue on hover */
 }
 
+.sidebar .important-dates { 
+  margin-top: 75%;
+}
+
 .sidebar img {
   width: 100%;
   height: 200px; /* Fixed height to standardize */
