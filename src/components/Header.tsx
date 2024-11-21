@@ -73,7 +73,7 @@ const Header: React.FC = () => {
         <i className="fa-brands fa-readme"></i><a href="/">Legal</a>
         <i className="fa-solid fa-icons"></i><a href="/">Marketing</a>
         <i className="fa-solid fa-user"></i><a href="/">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/">Technology</a>
+        <i className="fa-solid fa-laptop"></i><a href="/under-development">Technology</a>
       </nav>
       {/* <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/">Home</a>
