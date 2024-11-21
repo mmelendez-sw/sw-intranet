@@ -68,13 +68,22 @@ const Header: React.FC = () => {
       <img src={white_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/">Home</a>
+        <i className="fa-solid fa-tower-cell"></i><a href="/under-development">Acquisitions</a>
+        <i className="fa-solid fa-wallet"></i><a href="/under-development">Origination</a>
+        <i className="fa-brands fa-readme"></i><a href="/under-development">Legal</a>
+        <i className="fa-solid fa-icons"></i><a href="/under-development">Marketing</a>
+        <i className="fa-solid fa-user"></i><a href="/under-development">Human Resources</a>
+        <i className="fa-solid fa-laptop"></i><a href="/under-development">Technology</a>
+      </nav>
+      {/* <nav className="nav-bar">
+        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
         <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions">Acquisitions</a>
         <i className="fa-solid fa-wallet"></i><a href="/origination">Origination</a>
         <i className="fa-brands fa-readme"></i><a href="/legal">Legal</a>
         <i className="fa-solid fa-icons"></i><a href="/marketing">Marketing</a>
         <i className="fa-solid fa-user"></i><a href="/hr">Human Resources</a>
         <i className="fa-solid fa-laptop"></i><a href="/it">Technology</a>
-      </nav>
+      </nav> */}
       <div className="user">
         {isAuthenticated && accounts[0] ? (
           <div className="user-dropdown" style={{ position: 'relative' }}>
