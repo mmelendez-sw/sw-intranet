@@ -45,9 +45,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Conferences & Events</h2>
                   <ul>
-                    <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
-                    <li>11/20: New Jersey Wireless Association Holiday Social</li>
-                    <li>11/4: California Wireless Association SoCal Holiday Party</li>
+                    {/* <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
+                    <li>11/20: New Jersey Wireless Association Holiday Social</li> */}
+                    <li>12/4: California Wireless Association SoCal Holiday Party</li>
                     <li>12/11-12/12: ICSC New York</li>
                     <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
                   </ul>
@@ -74,7 +74,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Food Drive</h2>
                   <ul>
-                    <li>Help us make a difference with our annual food drive!</li>
+                    <li>We provided the largest single donation that Feeding Westchest have ever received!</li>
+                    <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
                   </ul>
                 </div>
                 
@@ -96,7 +97,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>Other Updates</h2>
                   <ul>
                     <li>RSVP for Symphony Holiday Party on December 5th</li>
-                    <li>Bagel Breakfast is November 21st</li>
+                    {/* <li>Bagel Breakfast is November 21st</li> */}
                     <li>Enjoy your Thanksgiving break!</li>
                   </ul>
                 </div>
@@ -108,7 +109,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
-                  <li>11/21 - November Bagel Breakfast</li>
+                  {/* <li>11/21 - November Bagel Breakfast</li> */}
                   <li>12/5 - Symphony Wireless Holiday Party</li>
                   <li>12/12 - Ugly Sweater Day</li>
                   <li>12/21 - December Bagel Breakfast</li>
