@@ -49,7 +49,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Header />
+      {/* <Header /> */}
       <div className="main-content">
         <Routes>
           <Route

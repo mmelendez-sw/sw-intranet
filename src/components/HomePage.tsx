@@ -19,7 +19,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      <Header />
+      {/* <Header /> */}
       {isAuthenticated ? (
         <>
           <div className="content-container">
