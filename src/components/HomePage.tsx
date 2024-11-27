@@ -24,6 +24,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         <>
           <div className="content-container">
             {/* Main content grid */}
+            <div className="text-bar top-bar">
+              <h2>Message from our CEO</h2>
+              <p>The office will close at <strong>1 PM</strong> today (11/27) for Thanksgiving. Please confirm with your supervisor before leaving. </p>
+              <p>Have a safe and happy Thanksgiving! Reminder: we’re also closed Friday. (11/29)</p>
+            </div>
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
