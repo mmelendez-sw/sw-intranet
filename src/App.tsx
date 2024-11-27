@@ -7,7 +7,6 @@ import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import { loginRequest } from './authConfig';
-import UnderDevelopment from './components/UnderDevelopment';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
@@ -59,8 +58,8 @@ const App: React.FC = () => {
           />
           {isAuthenticated && (
             <>
-              <Route path="/under-development" element={<UnderDevelopment />} />
-              {/* <Route path="/it" element={<ITPage />} /> */}
+              <Route path="/hr" element={<HRPage />} />
+              <Route path="/it" element={<ITPage />} />
             </>
           )}
           <Route
