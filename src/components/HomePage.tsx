@@ -27,8 +27,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           {/* Highlighted Section for Quick Updates */}
           <div className="text-bar top-bar">
             <h2>Message from our CEO</h2>
-            <p>The office will close at <strong>1 PM</strong> today (11/27) for Thanksgiving. Please confirm with your supervisor before leaving. </p>
-            <p>Have a safe and happy Thanksgiving! Reminder: we’re also closed Friday. (11/29)</p>
+            <p>The office will close at 1 PM today (11/27) in observance of Thanksgiving. Please check with your supervisor before leaving.</p>
+            <p>Wishing you a safe and joyful Thanksgiving! A quick reminder: we will also be closed on Friday.</p>
           </div>
             {/* Main content grid */}
             <div className="grid-layout">
