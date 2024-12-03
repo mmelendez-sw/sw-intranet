@@ -129,9 +129,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </section>
               <section className="quick-links">
                 <h2>Quick Links</h2>
-                <button>HR Page</button>
-                <button>Ask IT</button>
-                <button>Salesforce</button>
+                <button className="home-button" onClick={() => window.open('https://www.symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
+                <button className="home-button" onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
+                <button className="home-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
+                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
               </section>
             </aside>
           </div>
