@@ -34,7 +34,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card odd-card">
                 <img src={img1} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
-                  <h2>Company Annoucements</h2>
+                  <h2>Company Announcements</h2>
                   <ul>
                       <li><strong>November Milestone Achieved!</strong> First time Symphony hit its CR quantity number (16 deals closed) and surpassed the CR capital deployment budget, deploying $14M vs. budgeted $11.5M.</li>
                       <li><strong>Strong LOI Performance:</strong> Signed 27 LOIs (vs. budgeted 26), representing $16.2M of committed capital.</li>
