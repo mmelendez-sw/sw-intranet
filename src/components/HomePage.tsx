@@ -105,7 +105,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     <li>RSVP for Symphony Holiday Party on December 5th</li>
                     {/* <li>Bagel Breakfast is November 21st</li> */}
-                    <li>Enjoy your Thanksgiving break!</li>
+                    {/* <li>Enjoy your Thanksgiving break!</li> */}
                   </ul>
                 </div>
               </div>
@@ -119,7 +119,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   {/* <li>11/21 - November Bagel Breakfast</li> */}
                   <li>12/5 - Symphony Wireless Holiday Party</li>
                   <li>12/12 - Ugly Sweater Day</li>
-                  <li>12/21 - December Bagel Breakfast</li>
+                  <li>12/12 - December Bagel Breakfast</li>
                 </ul>
               </section>
               <section className="updates">
