@@ -24,11 +24,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         <>
           <div className="content-container">
             {/* Main content grid */}
-            {/* <div className="text-bar top-bar">
-              <h2>Message from our CEO</h2>
-              <p>The office will close at 1 PM today (11/27) in observance of Thanksgiving. Please check with your supervisor before leaving.</p>
-              <p>Wishing you a safe and joyful Thanksgiving! A quick reminder: we will also be closed on Friday.</p>
-            </div> */}
+            <div className="text-bar top-bar">
+              <h2>Message from HR</h2>
+              <p>Thursday (12/5) is an optional work from home day in preparation for the Holiday Party. Friday is also work from home.</p>
+              <p>Ubers from the venue to home can be submitted for reimbursement. Excited to see you all at our annual Holiday Party on Thursday!</p>
+            </div>
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
@@ -36,11 +36,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Company Annoucements</h2>
                   <ul>
-                    <li>No rollover in October!</li>
-                    <li>Record Breaking # of Signed LOIs at 36</li>
-                    <li>Closed on 13 acquisitions and deployed $9.5M of capital</li>
-                    <li>Brought in $490k of new GCF</li>
-                    <li>Generated 123 opportunities worth $92M</li>
+                      <li><strong>November Milestone Achieved!</strong> First time Symphony hit its CR quantity number (16 deals closed) and surpassed the CR capital deployment budget, deploying $14M vs. budgeted $11.5M.</li>
+                      <li><strong>Strong LOI Performance:</strong> Signed 27 LOIs (vs. budgeted 26), representing $16.2M of committed capital.</li>
+                      <li><strong>Annual GCF Breakthrough:</strong> Surpassed $20M annual GCF, now at $20.6M, with contracted GCF growing to $25.3M. Aiming to close signed LOIs and reach $25M soon.</li>
+                      <li><strong>Asset Management Progress:</strong> Signed 21 revenue-generating leases YTD, contributing $307K in annual GCF, with more in progress.</li>
+                      <li><strong>Capital Deployment Momentum:</strong> Deployed $93.7M YTD; targeting over $100M by year-end for the first time ever—focus on early closures in December.</li>
+                      <li><strong>Q1 Pipeline Development:</strong> Driving origination efforts and leveraging team momentum to build a strong pipeline for the next quarter.</li>
                   </ul>
                 </div>
               </div>
@@ -103,7 +104,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     <li>RSVP for Symphony Holiday Party on December 5th</li>
                     {/* <li>Bagel Breakfast is November 21st</li> */}
-                    <li>Enjoy your Thanksgiving break!</li>
+                    {/* <li>Enjoy your Thanksgiving break!</li> */}
                   </ul>
                 </div>
               </div>
@@ -117,7 +118,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   {/* <li>11/21 - November Bagel Breakfast</li> */}
                   <li>12/5 - Symphony Wireless Holiday Party</li>
                   <li>12/12 - Ugly Sweater Day</li>
-                  <li>12/21 - December Bagel Breakfast</li>
+                  <li>12/12 - December Bagel Breakfast</li>
                 </ul>
               </section>
               <section className="updates">
