@@ -134,8 +134,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button>Salesforce</button>
                 <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button> */}
                 <button className="home-button" onClick={() => window.open('https://symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
-                <button className="home-button" onClick={() => window.open('https://www.trinet.com/', '_blank')}>Trinet</button>
-                <button className="home-button" onClick={() => window.open('https://www.concur.com/', '_blank')}>Concur</button>
+                <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
+                <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
               </section>
             </aside>
