@@ -24,11 +24,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         <>
           <div className="content-container">
             {/* Main content grid */}
-            <div className="text-bar top-bar">
+            {/* <div className="text-bar top-bar">
               <h2>Message from HR</h2>
               <p>Thursday (12/5) is an optional work from home day in preparation for the Holiday Party. Friday is also work from home.</p>
               <p>Ubers from the venue to home can be submitted for reimbursement. Excited to see you all at our annual Holiday Party on Thursday!</p>
-            </div>
+            </div> */}
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
