@@ -24,11 +24,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         <>
           <div className="content-container">
             {/* Main content grid */}
-            {/* <div className="text-bar top-bar">
-              <h2>Message from HR</h2>
-              <p>Thursday (12/5) is an optional work from home day in preparation for the Holiday Party. Friday is also work from home.</p>
-              <p>Ubers from the venue to home can be submitted for reimbursement. Excited to see you all at our annual Holiday Party on Thursday!</p>
-            </div> */}
+            <div className="text-bar top-bar">
+              <h2>Message from IT</h2>
+              <p>Exciting news! A new Salesforce instance will be launched on January 6th, 2025, bringing a seamless, continuous workflow across all departments!</p>
+              <p>Please ensure your teams are familiar with the new functionalities in preparation.</p>
+            </div>
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
