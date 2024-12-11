@@ -53,7 +53,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     {/* <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
                     <li>11/20: New Jersey Wireless Association Holiday Social</li> */}
-                    <li>12/4: California Wireless Association SoCal Holiday Party</li>
+                    {/* <li>12/4: California Wireless Association SoCal Holiday Party</li> */}
                     <li>12/11-12/12: ICSC New York</li>
                     <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
                   </ul>
@@ -102,8 +102,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    <li>RSVP for Symphony Holiday Party on December 5th</li>
-                    {/* <li>Bagel Breakfast is November 21st</li> */}
+                    {/* <li>RSVP for Symphony Holiday Party on December 5th</li> */}
+                    <li>Bagel Breakfast is December 12th!</li>
                     {/* <li>Enjoy your Thanksgiving break!</li> */}
                   </ul>
                 </div>
