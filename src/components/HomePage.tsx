@@ -49,13 +49,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>Conferences & Events</h2>
+                  <h2>HR Updates</h2>
                   <ul>
-                    {/* <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
-                    <li>11/20: New Jersey Wireless Association Holiday Social</li> */}
-                    {/* <li>12/4: California Wireless Association SoCal Holiday Party</li> */}
-                    <li>12/11-12/12: ICSC New York</li>
-                    <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
+                    <li>Employee Individual Bonus Goals due 12/31</li>
+                    <li>Employee Self Evaluation due 1/15</li>
+                    <li>Manager Performance Evaluations due 1/20</li>
                   </ul>
                 </div>
               </div>
