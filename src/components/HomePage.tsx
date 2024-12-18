@@ -119,11 +119,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
-                  {/* <li>11/21 - November Bagel Breakfast</li> */}
-                  {/* <li>12/5 - Symphony Wireless Holiday Party</li> */}
-                  <li>12/12 - December Bagel Breakfast</li>
-                  <li>12/13 - Angel Tree Program Ends</li>
                   <li>12/19 - Ugly Sweater Day</li>
+                  <li>12/25 - Christmas</li>
+                  <li>1/1 - New Years Day</li>
+                  <li>1/20 - Martin Luther King Jr. Day</li>
                 </ul>
               </section>
               <section className="updates">
