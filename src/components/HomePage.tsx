@@ -51,9 +51,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Conferences & Events</h2>
                   <ul>
-                    {/* <li>11/18: Nareit's REITworld: 2024 Annual Conference</li>
-                    <li>11/20: New Jersey Wireless Association Holiday Social</li> */}
-                    {/* <li>12/4: California Wireless Association SoCal Holiday Party</li> */}
                     <li>12/11-12/12: ICSC New York</li>
                     <li>12/13: Florida Wireless Association Charity Golf Tournament</li>
                   </ul>
