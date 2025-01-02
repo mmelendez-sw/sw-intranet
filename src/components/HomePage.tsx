@@ -102,7 +102,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     {/* <li>RSVP for Symphony Holiday Party on December 5th</li> */}
                     {/* <li>Bagel Breakfast is December 12th!</li> */}
-                    <li>Happy New Years!</li>
+                    <li>Happy New Year!</li>
                   </ul>
                 </div>
               </div>
