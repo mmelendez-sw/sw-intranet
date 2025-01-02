@@ -26,8 +26,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             {/* Main content grid */}
             <div className="text-bar top-bar">
               <h2>Message from IT</h2>
-              <p>Exciting news! A new Salesforce instance will be launched on January 6th, 2025, bringing a seamless, continuous workflow across all departments!</p>
-              <p>Please ensure your teams are familiar with the new functionalities in preparation.</p>
+              <p>Happy New Year Symphony Wireless! Hope you all had a wonderful holiday season!</p>
+              {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
             </div>
             <div className="grid-layout">
               {/* Card 1 */}
@@ -51,7 +51,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>HR Updates</h2>
                   <ul>
-                    <li>Employee Individual Bonus Goals due 12/31</li>
+                    {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
                     <li>Employee Self Evaluation due 1/15</li>
                     <li>Manager Performance Evaluations due 1/20</li>
                   </ul>
@@ -101,8 +101,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>Other Updates</h2>
                   <ul>
                     {/* <li>RSVP for Symphony Holiday Party on December 5th</li> */}
-                    <li>Bagel Breakfast is December 12th!</li>
-                    {/* <li>Enjoy your Thanksgiving break!</li> */}
+                    {/* <li>Bagel Breakfast is December 12th!</li> */}
+                    <li>Happy New Years!</li>
                   </ul>
                 </div>
               </div>
@@ -119,10 +119,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
-                  <li>12/19 - Ugly Sweater Day</li>
-                  <li>12/25 - Christmas</li>
-                  <li>1/1 - New Years Day</li>
+                  <li>1/9 - Jersey Day</li>
+                  <li>1/16 - Bagel Breakfast</li>
                   <li>1/20 - Martin Luther King Jr. Day</li>
+                  <li>1/23 - 2025 Kick Off</li>
+                  <li>2/17 - President's Day</li>
                 </ul>
               </section>
               <section className="updates">
