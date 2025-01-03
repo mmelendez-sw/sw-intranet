@@ -78,7 +78,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Food Drive</h2>
                   <ul>
-                    <li>We provided the largest single donation that Feeding Westchest have ever received!</li>
+                    <li>We provided the largest single donation that Feeding Westchester has ever received!</li>
                     <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
                   </ul>
                 </div>
