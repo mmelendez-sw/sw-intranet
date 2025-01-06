@@ -152,7 +152,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         </div>
       )}
       <footer className="footer">
-        <p>&copy; 2024 Symphony Wireless. All rights reserved.</p>
+        <p>&copy; 2025 Symphony Wireless. All rights reserved.</p>
       </footer>
     </div>
   );
