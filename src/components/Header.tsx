@@ -73,7 +73,7 @@ const Header: React.FC = () => {
         <i className="fa-brands fa-readme"></i><a href="/legal">Legal</a>
         <i className="fa-solid fa-icons"></i><a href="/marketing">Marketing</a>
         <i className="fa-solid fa-user"></i><a href="/hr">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/it">Technology</a>
+        <i className="fa-solid fa-laptop"></i><a href="/technology">Technology</a>
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
