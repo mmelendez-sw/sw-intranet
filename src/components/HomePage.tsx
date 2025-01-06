@@ -36,12 +36,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Company Announcements</h2>
                   <ul>
-                      <li><strong>November Milestone Achieved!</strong> First time Symphony hit its CR quantity number (16 deals closed) and surpassed the CR capital deployment budget, deploying $14M vs. budgeted $11.5M.</li>
-                      <li><strong>Strong LOI Performance:</strong> Signed 27 LOIs (vs. budgeted 26), representing $16.2M of committed capital.</li>
-                      <li><strong>Annual GCF Breakthrough:</strong> Surpassed $20M annual GCF, now at $20.6M, with contracted GCF growing to $25.3M. Aiming to close signed LOIs and reach $25M soon.</li>
-                      <li><strong>Asset Management Progress:</strong> Signed 21 revenue-generating leases YTD, contributing $307K in annual GCF, with more in progress.</li>
-                      <li><strong>Capital Deployment Momentum:</strong> Deployed $93.7M YTD; targeting over $100M by year-end for the first time ever—focus on early closures in December.</li>
-                      <li><strong>Q1 Pipeline Development:</strong> Driving origination efforts and leveraging team momentum to build a strong pipeline for the next quarter.</li>
+                      <li><strong>LOI Performance:</strong> December saw 27 LOIs signed (129% of target), committing $27M in capital (187% of goal). Year-end totals: 282 LOIs ($214.2M), achieving 123% and 140% of goals, respectively.</li>
+                      <li><strong>Record Closings:</strong> December's 27 closings (193% of goal) set a Symphony record. Year-end: 149 closings (101% of target).</li>
+                      <li><strong>Capital Deployment Milestone:</strong> $111.7M deployed in 2024 (108% of target), marking the first time Symphony surpassed $100M in a year.</li>
+                      <li><strong>GCF Growth:</strong> Added nearly $1M in December, ending the year at $21.6M in annual GCF.</li>
+                      <li><strong>Leasing Success:</strong> Over $318K in new amendments and collocation rents added in 2024.</li>
                   </ul>
                 </div>
               </div>
