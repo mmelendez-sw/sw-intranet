@@ -26,7 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             {/* Main content grid */}
             <div className="text-bar top-bar">
               <h2>Exciting News</h2>
-              <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Symphony Towers Press Release</a>.</p>  
+              <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p>  
               {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
             </div>
             <div className="grid-layout">
