@@ -25,8 +25,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           <div className="content-container">
             {/* Main content grid */}
             <div className="text-bar top-bar">
-              <h2>Message from IT</h2>
-              <p>Happy New Year Symphony Wireless! Hope you all had a wonderful holiday season!</p>
+              <h2>Message from HR</h2>
+              <p>Please complete your Employee Self Evaluations by this Wednesday, January 15th.</p>
               {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
             </div>
             <div className="grid-layout">
@@ -87,7 +87,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card odd-card">
                 <img src={img5} alt="Team Photo" className="card-image" />
                 <div className="card-text">
-                  <h2>Symphony Wireless Team</h2>
+                  <h2>Symphony Towers Infrastructure Team</h2>
                   <ul>
                     <li>Meet the team that makes everything possible.</li>
                   </ul>
@@ -147,12 +147,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
         </>
       ) : (
         <div className="unauthenticated-message">
-          <h2>Welcome to the Symphony Wireless Intranet!</h2>
+          <h2>Welcome to the Symphony Towers Infrastructure Intranet!</h2>
           <p>Please log in to access more features and content.</p>
         </div>
       )}
       <footer className="footer">
-        <p>&copy; 2025 Symphony Wireless. All rights reserved.</p>
+        <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import '../../styles/header.css';
 import white_logo from '../../images/symph_white_t.png';
+import sti_logo from '../../images/sti.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 
@@ -65,7 +66,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="header" style={{ zIndex: 5000 }}>
-      <img src={white_logo} alt="Logo" className="logo-image" />
+      <img src={sti_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <a href="/">Home</a>
         <i className="fa-solid fa-tower-cell"></i><a href="/">Acquisitions</a>
