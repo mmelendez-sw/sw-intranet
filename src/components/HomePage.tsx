@@ -25,8 +25,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           <div className="content-container">
             {/* Main content grid */}
             <div className="text-bar top-bar">
-              <h2>Message from HR</h2>
-              <p>Please complete your Employee Self Evaluations by this Wednesday, January 15th.</p>
+              <h2>Message from our CEO</h2>
+              <p>We are happy to annouce the .</p>
               {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
             </div>
             <div className="grid-layout">
@@ -109,11 +109,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
             {/* Sidebar */}
             <aside className="sidebar">
-              <div className="updates">
+              <section className="updates">
                 <h2>Message from HR</h2>
                 <p>Please complete your Employee Self Evaluations by this Wednesday, January 15th.</p>
                 {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
-              </div>
+              </section>
               <section className="updates">
                 <h2>Holiday Party Photos</h2>
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
