@@ -110,6 +110,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             {/* Sidebar */}
             <aside className="sidebar">
               <section className="updates">
+                <h2>Message from HR</h2>
+                <p>Please complete your Employee Self Evaluations by this Wednesday, January 15th.</p>
+                {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
+              </section>
+              <section className="updates">
                 <h2>Holiday Party Photos</h2>
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
                 <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
