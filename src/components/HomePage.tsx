@@ -137,10 +137,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="quick-links">
                 <h2>Quick Links</h2>
                 <button className="home-button" onClick={() => window.open('https://symphonywireless.lightning.force.com/', '_blank')}>Salesforce</button>
+                <button className="home-button" onClick={() => window.open('https://sitetracker-symphonywireless.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fsitetracker-symphonywireless.lightning.force.com%252Flightning%252Fpage%252Fhome', '_blank')}>SiteTracker</button>
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-                <button className="home-button" onClick={() => window.open('https://sitetracker-symphonywireless.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fsitetracker-symphonywireless.lightning.force.com%252Flightning%252Fpage%252Fhome', '_blank')}>SiteTracker</button>
               </section>
             </aside>
           </div>
