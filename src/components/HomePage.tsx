@@ -109,6 +109,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
             {/* Sidebar */}
             <aside className="sidebar">
+              <section className="quick-links">
+                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
+              </section>
               <section className="updates">
                 <h2>Exciting News</h2>
                 <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p>
@@ -141,7 +144,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
             </aside>
           </div>
