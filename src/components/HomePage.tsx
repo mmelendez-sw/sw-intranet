@@ -141,6 +141,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
             </aside>
           </div>
