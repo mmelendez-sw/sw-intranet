@@ -127,7 +127,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <h2>Important Dates</h2>
                 <ul>
                   {/* <li>1/9 - Jersey Day</li> */}
-                  <li>1/23 - 2025 Kick Off</li>
+                  {/* <li>1/23 - 2025 Kick Off</li> */}
                   <li>2/17 - President's Day</li>
                 </ul>
               </section>
