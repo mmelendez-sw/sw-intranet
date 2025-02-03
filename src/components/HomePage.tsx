@@ -132,7 +132,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="updates">
                 <h2>IT Updates</h2>
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                <p>Make Align appointment if you have a new laptop</p>
+                {/* <p>Make Align appointment if you have a new laptop</p> */}
                 <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
