@@ -50,9 +50,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>HR Updates</h2>
                   <ul>
-                    {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    <li>Employee Self Evaluation due 1/15</li>
-                    <li>Manager Performance Evaluations due 1/20</li>
+                    <li>2/20 - Bagel Breakfast</li>
+                    <li>2/27 - February Birthdays</li>
+                    <li>3/19 - All Hands Q&A</li>
+                    <li>3/19 - Employee Appreciation Happy Hour</li>
                   </ul>
                 </div>
               </div>
@@ -126,9 +127,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
-                  {/* <li>1/9 - Jersey Day</li> */}
-                  {/* <li>1/23 - 2025 Kick Off</li> */}
-                  <li>2/17 - President's Day</li>
+                  <li>4/18 - Good Friday</li>
+                  <li>5/26 - Memorial Day</li> 
+                  <li>6/19 - Juneteenth</li>
+                  <li>7/4 - Independence Day</li>
                 </ul>
               </section>
               <section className="updates">
