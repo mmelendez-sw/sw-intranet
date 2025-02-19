@@ -127,8 +127,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="important-dates">
                 <h2>Important Dates</h2>
                 <ul>
-                  {/* <li>1/23 - 2025 Kick Off</li> */}
-                  <li>2/17 - President's Day</li>
+                  <li>4/18 - Good Friday</li>
+                  <li>5/26 - Memorial Day</li> 
+                  <li>6/19 - Juneteenth</li>
+                  <li>7/4 - Independence Day</li>
                 </ul>
               </section>
               <section className="updates">
