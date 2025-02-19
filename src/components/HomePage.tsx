@@ -51,8 +51,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>HR Updates</h2>
                   <ul>
                     {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    <li>Employee Self Evaluation due 1/15</li>
-                    <li>Manager Performance Evaluations due 1/20</li>
+                    <li>2/20 - Bagel Breakfast</li>
+                    <li>2/27 - February Birthdays</li>
+                    <li>3/19 - All Hands Q&A</li>
+                    <li>3/19 - Employee Appreciation Happy Hour</li>
                   </ul>
                 </div>
               </div>
