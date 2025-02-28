@@ -144,15 +144,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
               </section>
-              {/* <section className="important-dates">
-                <h2>Important Dates</h2>
-                <ul>
-                  <li>4/18 - Good Friday</li>
-                  <li>5/26 - Memorial Day</li> 
-                  <li>6/19 - Juneteenth</li>
-                  <li>7/4 - Independence Day</li>
-                </ul>
-              </section> */}
             </aside>
           </div>
         </>
