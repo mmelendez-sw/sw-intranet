@@ -48,13 +48,15 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>HR Updates</h2>
+                  <h2>Important Dates</h2>
                   <ul>
                     {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    <li>2/20 - Bagel Breakfast</li>
-                    <li>2/27 - February Birthdays</li>
                     <li>3/19 - All Hands Q&A</li>
                     <li>3/19 - Employee Appreciation Happy Hour</li>
+                    <li>4/18 - Good Friday</li>
+                    <li>5/26 - Memorial Day</li> 
+                    <li>6/19 - Juneteenth</li>
+                    <li>7/4 - Independence Day</li>
                   </ul>
                 </div>
               </div>
@@ -115,25 +117,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
               <section className="updates">
-                <h2>Exciting News</h2>
-                <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
-              </section>
-              <section className="updates">
-                <h2>Holiday Party Photos</h2>
-                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-                <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
-              </section>
-              <section className="important-dates">
-                <h2>Important Dates</h2>
-                <ul>
-                  <li>4/18 - Good Friday</li>
-                  <li>5/26 - Memorial Day</li> 
-                  <li>6/19 - Juneteenth</li>
-                  <li>7/4 - Independence Day</li>
-                </ul>
-              </section>
-              <section className="updates">
                 <h2>IT Updates</h2>
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
                 {/* <p>Make Align appointment if you have a new laptop</p> */}
@@ -151,6 +134,25 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button> 
               </section>
+              <section className="updates">
+                <h2>Exciting News</h2>
+                <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
+              </section>
+              <section className="updates">
+                <h2>Holiday Party Photos</h2>
+                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
+                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
+                <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
+              </section>
+              {/* <section className="important-dates">
+                <h2>Important Dates</h2>
+                <ul>
+                  <li>4/18 - Good Friday</li>
+                  <li>5/26 - Memorial Day</li> 
+                  <li>6/19 - Juneteenth</li>
+                  <li>7/4 - Independence Day</li>
+                </ul>
+              </section> */}
             </aside>
           </div>
         </>
