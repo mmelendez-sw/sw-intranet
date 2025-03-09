@@ -57,7 +57,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li><strong>GCF Growth:</strong> Added $472K in February. The smaller deal sizes and two high-multiple deals impacted overall deployed capital.</li>
                     <li><strong>Leasing Success:</strong> Achieved just under $40K in annual cash flow from new leases and collocations. Emphasis needed on improving pipeline deal signings.</li>
                     <li><strong>Broker & Marketing Expansion:</strong> Nearing agreements on new broker partnerships and marketing initiatives for new locations.</li>
-                    <li><strong>CTI Integration Progress:</strong> System integration continues smoothly, but IT team is working on improving timelines and finalizing SF workflow. Employees encouraged to test and provide feedback.</li>
+                    <li><strong>CTI Integration Progress:</strong> System integration continues smoothly, but IT team is working on improving timelines and finalizing SF workflow. Employees are encouraged to test and provide feedback.</li>
                   </ul>
                 </div>
               </div>
