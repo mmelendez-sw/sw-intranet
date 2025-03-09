@@ -34,20 +34,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card odd-card">
                 <img src={img1} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
-                  <h2>Company Announcements</h2>
-                  <ul>
-                      <li><strong>LOI Performance:</strong> December saw 27 LOIs signed (129% of target), committing $27M in capital (187% of goal). Year-end totals: 282 LOIs ($214.2M), achieving 123% and 140% of goals, respectively.</li>
-                      <li><strong>Record Closings:</strong> December's 27 closings (193% of goal) set a Symphony record. Year-end: 149 closings (101% of target).</li>
-                      <li><strong>Capital Deployment Milestone:</strong> $111.7M deployed in 2024 (108% of target), marking the first time Symphony surpassed $100M in a year.</li>
-                      <li><strong>GCF Growth:</strong> Added nearly $1M in December, ending the year at $21.6M in annual GCF.</li>
-                      <li><strong>Leasing Success:</strong> Over $318K in new amendments and collocation rents added in 2024.</li>
-                  </ul>
-                </div>
-              </div>
-              {/* Card 2 */}
-              <div className="card even-card">
-                <img src={img2} alt="Conferences & Events" className="card-image" />
-                <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
                     {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
@@ -57,6 +43,21 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>5/26 - Memorial Day</li> 
                     <li>6/19 - Juneteenth</li>
                     <li>7/4 - Independence Day</li>
+                  </ul>
+                </div>
+              </div>
+              {/* Card 2 */}
+              <div className="card even-card">
+                <img src={img2} alt="Conferences & Events" className="card-image" />
+                <div className="card-text">
+                  <h2>Company Announcements</h2>
+                  <ul>
+                    <li><strong>LOI Performance:</strong> February saw 25 LOIs signed (156% of target), committing $13.5M in capital (114% of goal), exceeding budget expectations.</li>
+                    <li><strong>Record Closings:</strong> Closed 16 deals (160% of target), deploying $10.8M in capital (150% of goal). February initially projected 19–24 closings.</li>
+                    <li><strong>GCF Growth:</strong> Added $472K in February. The smaller deal sizes and two high-multiple deals impacted overall deployed capital.</li>
+                    <li><strong>Leasing Success:</strong> Achieved just under $40K in annual cash flow from new leases and collocations. Emphasis needed on improving pipeline deal signings.</li>
+                    <li><strong>Broker & Marketing Expansion:</strong> Nearing agreements on new broker partnerships and marketing initiatives for new locations.</li>
+                    <li><strong>CTI Integration Progress:</strong> System integration continues smoothly, but IT team is working on improving timelines and finalizing SF workflow. Employees are encouraged to test and provide feedback.</li>
                   </ul>
                 </div>
               </div>
