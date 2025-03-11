@@ -38,7 +38,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
                     <li>3/19 - All Hands Q&A</li>
-                    <li>3/19 - Employee Appreciation Happy Hour</li>
+                    <li>3/20 - Employee Appreciation Happy Hour</li>
                     <li>4/18 - Good Friday</li>
                     <li>5/26 - Memorial Day</li> 
                     <li>6/19 - Juneteenth</li>
