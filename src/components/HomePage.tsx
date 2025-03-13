@@ -66,10 +66,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
                   <h2>Acquisition Reports</h2>
-                  <ul>
-                    <li>Connect with Justin or Arwa for any marketing email questions</li>
-                    <li>Marketing leads will be distributed based on your directors</li>
-                  </ul>       
+                  <section className="quick-links">
+                    <h2>Acquisition Reports</h2>
+                    <button className="home-button" onClick={() => window.open('https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', '_self')}>Daily Opportunity Count</button>
+                    <button className="home-button" onClick={() => window.open('https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=7983c722-1351-4091-a28b-023c2d74063b', '_self')}>All Acquisitions</button>
+                    <button className="home-button" onClick={() => window.open('https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a', '_self')}>Daily Acquisitions</button>
+                  </section>   
                 </div>
               </div>
               {/* Text Bar for Other Key Updates */}
