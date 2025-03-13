@@ -65,7 +65,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card odd-card">
                 <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
-                  <h2>Marketing Updates</h2>
+                  <h2>Acquisition Reports</h2>
                   <ul>
                     <li>Connect with Justin or Arwa for any marketing email questions</li>
                     <li>Marketing leads will be distributed based on your directors</li>
