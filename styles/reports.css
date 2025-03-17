@@ -1,158 +1,87 @@
 /* General Layout */
 .outermost-container { 
     display: flex; 
-    flex-direction:row;
+    flex-direction: row;
 }
+
 .content-container {
+    flex: 1; /* Takes up remaining space after sidebar */
     display: grid;
-    grid-template-columns: 1fr; /* Single column layout */
+    grid-template-columns: 1fr; /* Single column layout for reports */
     gap: 20px;
     padding: 10px;
     margin-top: 55px;
-  }
-  
-  /* Grid Layout for Main Content */
-  .grid-layout {
-    display: flex;
-    flex-direction: column; /* Stack cards horizontally */
-    gap: 20px; /* Space between cards */
-  }
-  
-  .card {
-    display: flex;
-    flex-direction: row; /* Arrange content horizontally */
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    min-height: 200px; /* Reduce height to match horizontal format */
-    width: 100%;
-  }
-  
-  .card-text {
-    flex: 1;
-    padding: 20px;
-    text-align: left;
-  }
-  
-  .card-image {
-    width: 300px; /* Standardize the image width */
-    height: 100%; /* Ensure it spans the card height */
-    object-fit: cover;
-    margin: 0;
-  }
-  
-  .card-text h2 {
-    font-size: 1.5em;
-    color: #003366;
-    border-bottom: 2px solid #009acb;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-  }
-  
-  .card-text ul li {
-    margin-bottom: 10px;
-    list-style-type: disc;
-  }
-  
-  .card-text li {
-    font-size: 0.9em;
-    line-height: 1.4;
-    margin: 5px 0;
-    color: #333;
-  }
-  
-  .card:hover {
-    transform: translateX(5px); /* Slight horizontal movement on hover */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  }
-  
-  /* Alternate styles for even cards */
-  .even-card {
-    background-color: #d9ecf9;
-  }
-  
-  /* Sidebar Styling */
-  .sidebar {
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 20%; /* Fixes sidebar to the rightmost 20% */
     display: flex;
     flex-direction: column;
-    margin-top: 3em;
-    padding-top:75px;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    max-width: 25%;
-  }
-  
-  .sidebar section {
-    margin-bottom: 20px;
-  }
-  
-  .sidebar h2 {
-    font-size: 1.5em;
-    color: #003366;
-    border-bottom: 2px solid #009acb;
-    margin-bottom: 10px;
-    padding-bottom: 5px;
-  }
-  
-  .sidebar p,
-  .sidebar ul,
-  .sidebar button {
-    font-size: 0.9em;
-    color: #333;
-  }
-  
-  .sidebar .quick-links button {
+}
+
+/* Table Layout */
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.reports-table th, .reports-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.reports-table th {
+    background-color: #003366;
+    color: white;
+}
+
+.reports-table tr:nth-child(even) {
+    background-color: #d9ecf9;
+}
+
+/* Buttons */
+.home-button {
     background-color: #005b99;
-    color: #ffffff;
+    color: white;
     border: none;
     padding: 10px;
-    margin: 5px 0;
-    width: 100%;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .sidebar .quick-links button:hover {
+}
+
+.home-button:hover {
     background-color: #0073d6;
-  }
-  
-  .sidebar img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    margin-top: 10px;
-    border-radius: 8px;
-  }
-  
-  /* Footer */
-  .footer {
+}
+
+/* Footer */
+.footer {
     text-align: center;
     padding: 15px;
     background-color: #003366;
-    color: #ffffff;
+    color: white;
     font-size: 0.9em;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .grid-layout {
-      flex-direction: column;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .outermost-container {
+        flex-direction: column;
     }
-  
-    .card {
-      flex-direction: column; /* Stack content vertically on smaller screens */
-      align-items: flex-start;
+
+    .content-container {
+        grid-template-columns: 1fr;
     }
-  
-    .card-image {
-      width: 100%; /* Full width for smaller screens */
-      height: 200px;
+
+    .sidebar {
+        width: 100%;
     }
-  }
-  
+}

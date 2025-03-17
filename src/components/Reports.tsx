@@ -50,7 +50,7 @@ const TechnologyReports: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <aside className="sidebar">
+        <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>
