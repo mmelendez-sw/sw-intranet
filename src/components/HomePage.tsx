@@ -113,23 +113,23 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
 
             {/* Sidebar */}
-            <aside className="sidebar">
+            {/* <aside className="sidebar">
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
               <section className="updates">
-                <h2>IT Updates</h2>
+                <h2>IT Updates</h2> */}
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
                 {/* <p>Make Align appointment if you have a new laptop</p> */}
-                <p>Do not click any phishing links</p>
+                {/* <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
-                <h2>Quick Links</h2>
+                <h2>Quick Links</h2> */}
                 {/* <button>HR Page</button>
                 <button>Ask IT</button>
                 <button>Salesforce</button>
                 <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button> */}
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
+                {/* <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fsitetracker-symphonywireless.lightning.force.com%252Flightning%252Fpage%252Fhome', '_blank')}>SiteTracker</button>
                 <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
@@ -142,12 +142,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
               </section>
               <section className="updates">
-                <h2>Holiday Party Photos</h2>
+                <h2>Holiday Party Photos</h2> */}
                 {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
+                {/* <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
               </section>
-            </aside>
+            </aside> */}
           </div>
         </>
       ) : (
