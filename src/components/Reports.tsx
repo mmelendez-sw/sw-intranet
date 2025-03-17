@@ -26,7 +26,7 @@ const TechnologyReports: React.FC = () => {
       <Header />
       <div className="outermost-container">
         <div className="content-container">
-          <div className="text-bar">
+          <div className="reports-text-bar">
              <h2>Symphony Towers Infrastructure Status Reports</h2>
           </div>
           <table className="reports-table">
