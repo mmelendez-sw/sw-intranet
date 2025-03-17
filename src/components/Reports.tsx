@@ -52,7 +52,7 @@ const TechnologyReports: React.FC = () => {
                       </button>
                     ) : null}
                   </td>
-                  <td style={{ height: '50px' }}>{report.description || ''}</td>
+                  <td style={{ height: '55px' }}>{report.description || ''}</td>
                 </tr>
               ))}
             </tbody>
