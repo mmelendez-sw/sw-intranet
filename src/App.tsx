@@ -49,7 +49,7 @@ const App: React.FC = () => {
   }, [instance]);
 
   return (
-    <Router>
+    <Router basename='/'>
       <Header />
       <div className="main-content">
         <Routes>

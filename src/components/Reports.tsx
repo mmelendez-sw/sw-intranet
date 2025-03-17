@@ -23,7 +23,8 @@ const reports = [
 
 const TechnologyReports: React.FC = () => {
   return (
-    <div className="home-page authenticated">
+    // <div className="home-page authenticated">
+    <div className="home-page">
       <Header />
       <div className="outermost-container">
         <div className="content-container">
