@@ -2,6 +2,9 @@
 .outermost-container { 
     display: flex; 
     flex-direction: row;
+    padding-top: 4em;
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 .content-container {
@@ -10,7 +13,7 @@
     grid-template-columns: 1fr; /* Single column layout for reports */
     gap: 20px;
     padding: 10px;
-    margin-top: 55px;
+    margin-top: 10px;
 }
 
 /* Sidebar Styling */
