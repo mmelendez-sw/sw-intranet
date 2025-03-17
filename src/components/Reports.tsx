@@ -5,12 +5,12 @@ import '../../styles/reports.css';
 const reports = [
   {
     title: 'Daily Opportunity Count',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure opportunity count.',
+    description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
     link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
     title: 'All Acquisitions Summary',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure All Acquisitions count.',
+    description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=7983c722-1351-4091-a28b-023c2d74063b',
   },
   {
