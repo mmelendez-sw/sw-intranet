@@ -6,6 +6,7 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
+import TechnologyReports from './components/Reports';
 import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
@@ -60,6 +61,7 @@ const App: React.FC = () => {
             <>
               <Route path="/hr" element={<HRPage />} />
               <Route path="/it" element={<ITPage />} />
+              <Route path="/reports" element={<TechnologyReports />} />
             </>
           )}
           <Route
