@@ -57,6 +57,7 @@ const App: React.FC = () => {
             path="/"
             element={<HomePage isAuthenticated={isAuthenticated} />}
           />
+          <Route path="/reports" element={<TechnologyReports />} />
           {isAuthenticated && (
             <>
               <Route path="/hr" element={<HRPage />} />
