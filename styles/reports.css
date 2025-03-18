@@ -9,13 +9,14 @@
     justify-content: space-between;
 }
 
-.content-container {
+.reports-content-container {
     flex: 1; /* Takes up remaining space after sidebar */
     display: grid;
     grid-template-columns: 1fr; /* Single column layout for reports */
     gap: 20px;
     padding: 10px;
-    margin-top: 10px;
+    margin-top: 1%;
+    padding-right: 10%;
     max-width: 100%;
     align-items: center;
 }
