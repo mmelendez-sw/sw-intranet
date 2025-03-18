@@ -1,7 +1,6 @@
 /* General Layout */
 .content-container {
   display: grid;
-  grid-template-columns: 4fr 1fr; /* Main content and sidebar */
   gap: 20px;
   padding: 10px;
   margin-top: 10px;
