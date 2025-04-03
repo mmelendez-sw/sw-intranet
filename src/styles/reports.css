@@ -2,7 +2,7 @@
 .outermost-container { 
     display: flex; 
     flex-direction: row;
-    padding-top: 4em;
+    padding-top: 1em;
     padding-left: 10%;
     padding-right: 1%;
     padding-bottom: 1em;
