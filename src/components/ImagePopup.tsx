@@ -23,7 +23,7 @@ const ImagePopup: React.FC<ImagePopupProps> = ({ isAuthenticated }) => {
         setIsVisible(false);
         // Store current timestamp when popup auto-closes
         localStorage.setItem('lastSeenEmployeeAppreciation', Date.now().toString());
-      }, 5000); // Auto close after 5 seconds
+      }, 8000); // Auto close after 10 seconds
 
       return () => clearTimeout(timer);
     }
