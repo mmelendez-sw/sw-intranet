@@ -6,11 +6,13 @@ import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
+// import ImagePopup from './ImagePopup';
 
 const Header: React.FC = () => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
 
   const handleLogin = () => {
     instance.loginPopup(loginRequest).catch((e) => {
@@ -36,13 +38,13 @@ const Header: React.FC = () => {
           className="dropdown-menu"
           style={{
             position: 'fixed',
-            top: '40px', // Adjust as needed to match header height
+            top: '40px',
             right: '20px',
             background: 'white',
             border: '1px solid #ddd',
             borderRadius: '4px',
             boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            zIndex: 9999, // Ensure highest stacking order
+            zIndex: 9999,
           }}
         >
           <button
@@ -76,6 +78,12 @@ const Header: React.FC = () => {
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
         <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        {/* <button 
+          className="test-popup-button"
+          onClick={() => setShowPopup(true)}
+        >
+          Test Popup
+        </button> */}
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
@@ -105,6 +113,9 @@ const Header: React.FC = () => {
           </button>
         )}
       </div>
+      {/* {showPopup && (
+        <ImagePopup onClose={() => setShowPopup(false)} />
+      )} */}
     </header>
   );
 };
