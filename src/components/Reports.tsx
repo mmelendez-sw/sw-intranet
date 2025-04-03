@@ -51,7 +51,6 @@ const TechnologyReports: React.FC = () => {
                     {report.link ? (
                       <button 
                         className="report-button" 
-                        style={{ display: 'block', margin: '0 auto', fontWeight: "bold", height: '50px' }} 
                         onClick={() => window.open(report.link, '_blank')}
                       >
                         {report.title || ''}

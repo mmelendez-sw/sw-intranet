@@ -80,7 +80,12 @@
     word-wrap: break-word;
 }
 
-.report-button {
+.home-button:hover {
+    background-color: #0073d6;
+}
+
+/* Target report buttons specifically within the table */
+.reports-table td .report-button {
     background-color: #005b99;
     color: white;
     border: none;
@@ -99,7 +104,7 @@
     margin: 0 auto;
 }
 
-.report-button:hover {
+.reports-table td .report-button:hover {
     background-color: #0073d6;
 }
 
