@@ -7,9 +7,13 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     clean: true,
+    publicPath: '/',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.css'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.css'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
   module: {
     rules: [
@@ -23,10 +27,17 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(png|jpe?g|gif|svg)$/i,
+        test: /\.(png|jpe?g|gif|svg|ico)$/i,
         type: 'asset/resource',
         generator: {
-          filename: 'images/[name][hash][ext]', // Outputs images to 'dist/images' with original names
+          filename: 'assets/[name][ext]',
+        },
+      },
+      {
+        test: /\.webmanifest$/,
+        type: 'asset/resource',
+        generator: {
+          filename: '[name][ext]',
         },
       },
     ],
@@ -35,17 +46,21 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html',
-      favicon: './favicon.ico',
+      favicon: './public/favicon.ico',
+      manifest: './public/site.webmanifest',
     }),
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: path.join(__dirname, 'public'),
     },
     port: 3000,
     open: true,
     hot: true,
     historyApiFallback: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   },
   mode: 'development',
 };
