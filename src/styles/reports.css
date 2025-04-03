@@ -80,7 +80,26 @@
     word-wrap: break-word;
 }
 
-.home-button:hover {
+.report-button {
+    background-color: #005b99;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 200px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    white-space: normal;
+    word-wrap: break-word;
+    margin: 0 auto;
+}
+
+.report-button:hover {
     background-color: #0073d6;
 }
 
