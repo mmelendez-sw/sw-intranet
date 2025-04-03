@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from '../components/Header';
 import '../../styles/home-page.css';
 
 import img1 from '../../images/site_1.jpg';
@@ -19,7 +18,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      <Header />
       {isAuthenticated ? (
         <>
           <div className="content-container">
