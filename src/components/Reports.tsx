@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from '../components/Header';
 import '../../styles/reports.css';
 
 const reports = [
@@ -13,7 +12,7 @@ const reports = [
     description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=7983c722-1351-4091-a28b-023c2d74063b',
   },
-  {title: 'Asset Management TK Sites',
+  {title: 'TK Salesforce Sites',
     description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
     link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },  
@@ -31,9 +30,7 @@ const reports = [
 
 const TechnologyReports: React.FC = () => {
   return (
-    // <div className="home-page authenticated">
     <div className="home-page">
-      <Header />
       <div className="outermost-container">
         <div className="reports-content-container">
           <div className="reports-text-bar">

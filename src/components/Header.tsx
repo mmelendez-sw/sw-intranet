@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
@@ -68,13 +69,13 @@ const Header: React.FC = () => {
     <header className="header" style={{ zIndex: 5000 }}>
       <img src={sti_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
-        <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions">Acquisitions</a>
-        <i className="fa-solid fa-wallet"></i><a href="/origination">Origination</a>
-        <i className="fa-brands fa-readme"></i><a href="/legal">Legal</a>
-        <i className="fa-solid fa-icons"></i><a href="/marketing">Marketing</a>
-        <i className="fa-solid fa-user"></i><a href="/hr">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/technology">Technology</a>
+        <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
+        <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
+        <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
+        <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
+        <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
+        <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
+        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
