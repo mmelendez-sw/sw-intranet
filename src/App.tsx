@@ -49,7 +49,7 @@ const App: React.FC = () => {
   }, [instance]);
 
   return (
-    <Router basename='/'>
+    <Router>
       <Header />
       <div className="main-content">
         <Routes>
@@ -57,12 +57,12 @@ const App: React.FC = () => {
             path="/"
             element={<HomePage isAuthenticated={isAuthenticated} />}
           />
-          <Route path="/technology" element={<TechnologyReports />} />
           {isAuthenticated && (
             <>
               <Route path="/hr" element={<HRPage />} />
               <Route path="/it" element={<ITPage />} />
-              {/* <Route path="/reports" element={<TechnologyReports />} /> */}
+              <Route path="/technology" element={<TechnologyReports />} />
+              <Route path="/reports" element={<TechnologyReports />} />
             </>
           )}
           <Route
