@@ -38,7 +38,7 @@ body {
 
 .app-container {
   display: flex;
-  flex-direction: row; /* Ensure it’s laid out horizontally */
+  flex-direction: row; /* Ensure it's laid out horizontally */
   width: 100%; /* Extend to full width */
   height: 100%; /* Extend to full height */
 }
@@ -50,12 +50,13 @@ body {
   width: 100%; /* Extend to full width */
   margin: 0;
   padding: 0;
+  padding-top: 50px; /* Add padding to account for fixed header */
 }
 
 .quick-links-section {
   display: flex;
   justify-content: flex-start;
-  flex-wrap: wrap; /* Ensure buttons don’t overflow */
+  flex-wrap: wrap; /* Ensure buttons don't overflow */
 }
 
 .link-button {

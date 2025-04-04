@@ -6,17 +6,16 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
+import TechnologyReports from './components/Reports';
 import { loginRequest } from './authConfig';
-import UnderDevelopment from './components/UnderDevelopment';
-import ImagePopup from './components/ImagePopup';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
-    setIsAuthenticated(accounts.length > 0);
+    setIsAuthenticated(true);
   };
 
   useEffect(() => {
@@ -52,7 +51,6 @@ const App: React.FC = () => {
   return (
     <Router>
       <Header />
-      <ImagePopup isAuthenticated={isAuthenticated} />
       <div className="main-content">
         <Routes>
           <Route
@@ -61,8 +59,10 @@ const App: React.FC = () => {
           />
           {isAuthenticated && (
             <>
-              <Route path="/under-development" element={<UnderDevelopment />} />
-              {/* <Route path="/it" element={<ITPage />} /> */}
+              <Route path="/hr" element={<HRPage />} />
+              <Route path="/it" element={<ITPage />} />
+              <Route path="/technology" element={<TechnologyReports />} />
+              <Route path="/reports" element={<TechnologyReports />} />
             </>
           )}
           <Route

@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from '../components/Header';
 import '../../styles/home-page.css';
 
 import img1 from '../../images/site_1.jpg';
@@ -19,16 +18,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
 
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      <Header />
       {isAuthenticated ? (
         <>
           <div className="content-container">
-            {/* Main content grid */}
-            {/* <div className="text-bar top-bar"> */}
-              {/* <h2>Message from IT</h2> */}
-              {/* <p>The new Salesforce workflow and instance is live! Please do not hesitate to reach out to any tech team member for any assistance <a href="mailto:Symphony_Tech@symphonywireless.com" target="_blank">here</a>. Thank you!</p>   */}
-              {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
-            {/* </div> */}
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
@@ -36,9 +28,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                    {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    {/* <li>3/20: Employee Appreciation Happy Hour</li>
-                    <li>3/17 - 4/2: Dress for Success Clothing Drive</li> */}
                     <li>4/18: Good Friday</li>
                     <li>4/22-4/26: Earth Day Clean Up</li>
                     <li>5/26: Memorial Day</li> 
@@ -74,10 +63,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>       
                 </div>
               </div>
-              {/* Text Bar for Other Key Updates */}
-              <div className="text-bar">
-                  <h2>Key Updates</h2>
-              </div>
               {/* Card 4 */}
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
@@ -88,7 +73,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
                   </ul>
                 </div>
-                
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
@@ -106,38 +90,30 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    {/* <li>RSVP for Symphony Holiday Party on December 5th</li> */}
-                    {/* <li>Bagel Breakfast is December 12th!</li> */}
                     <li>Happy New Year!</li>
                   </ul>
                 </div>
               </div>
             </div>
 
-            {/* Sidebar */}
             <aside className="sidebar">
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
               <section className="updates">
                 <h2>IT Updates</h2>
-                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                {/* <p>Make Align appointment if you have a new laptop</p> */}
                 <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
                 <h2>Quick Links</h2>
-                {/* <button>HR Page</button>
-                <button>Ask IT</button>
-                <button>Salesforce</button>
-                <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button> */}
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fsitetracker-symphonywireless.lightning.force.com%252Flightning%252Fpage%252Fhome', '_blank')}>SiteTracker</button>
                 <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button> 
+                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
               </section>
               <section className="updates">
                 <h2>Exciting News</h2>
@@ -145,7 +121,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </section>
               <section className="updates">
                 <h2>Holiday Party Photos</h2>
-                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
                 <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
               </section>
