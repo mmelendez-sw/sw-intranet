@@ -2,7 +2,7 @@ export const msalConfig = {
   auth: {
     clientId: "543ae09d-95e7-47bb-b679-e4428c20918e",
     authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
-    redirectUri: "https://intranet.symphonywireless.com",
+    redirectUri: "https://fully-vertical-cards.d2ryoyr4gox6p1.amplifyapp.com",
     // redirectUri: "http://localhost:3000"
   },
   cache: {

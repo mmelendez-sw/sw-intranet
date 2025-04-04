@@ -1,10 +1,9 @@
 /* General Layout */
 .content-container {
   display: grid;
-  grid-template-columns: 4fr 1fr; /* Main content and sidebar */
   gap: 20px;
   padding: 10px;
-  margin-top: 55px;
+  margin-top: 10px;
 }
 
 /* Grid Layout for Main Content */
@@ -158,7 +157,7 @@
 .footer {
   text-align: center;
   padding: 15px;
-  background-color: #004E7C; /* Deeper footer background */
+  background-color: #003366; /* Deeper footer background */
   color: #ffffff;
   font-size: 0.9em;
 }

@@ -150,3 +150,20 @@
         margin: 5px 0; /* Spacing between buttons */
     }
 }
+
+.test-popup-button {
+    background-color: #004E7C;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    margin-left: 15px;
+}
+
+.test-popup-button:hover {
+    background-color: #002e4c;
+}

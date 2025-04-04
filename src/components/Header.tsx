@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
+// import ImagePopup from './ImagePopup';
 
 const Header: React.FC = () => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
 
   const handleLogin = () => {
     instance.loginPopup(loginRequest).catch((e) => {
@@ -35,13 +38,13 @@ const Header: React.FC = () => {
           className="dropdown-menu"
           style={{
             position: 'fixed',
-            top: '40px', // Adjust as needed to match header height
+            top: '40px',
             right: '20px',
             background: 'white',
             border: '1px solid #ddd',
             borderRadius: '4px',
             boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            zIndex: 9999, // Ensure highest stacking order
+            zIndex: 9999,
           }}
         >
           <button
@@ -68,32 +71,20 @@ const Header: React.FC = () => {
     <header className="header" style={{ zIndex: 5000 }}>
       <img src={sti_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
-        <i className="fa-solid fa-tower-cell"></i><a href="/">Acquisitions</a>
-        <i className="fa-solid fa-wallet"></i><a href="/">Origination</a>
-        <i className="fa-brands fa-readme"></i><a href="/">Legal</a>
-        <i className="fa-solid fa-icons"></i><a href="/">Marketing</a>
-        <i className="fa-solid fa-user"></i><a href="/">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/">Technology</a>
+        <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
+        <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
+        <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
+        <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
+        <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
+        <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
+        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        {/* <button 
+          className="test-popup-button"
+          onClick={() => setShowPopup(true)}
+        >
+          Test Popup
+        </button> */}
       </nav>
-      {/* <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
-        <i className="fa-solid fa-tower-cell"></i><a href="/under-development">Acquisitions</a>
-        <i className="fa-solid fa-wallet"></i><a href="/under-development">Origination</a>
-        <i className="fa-brands fa-readme"></i><a href="/under-development">Legal</a>
-        <i className="fa-solid fa-icons"></i><a href="/under-development">Marketing</a>
-        <i className="fa-solid fa-user"></i><a href="/under-development">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/under-development">Technology</a>
-      </nav> */}
-      {/* <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
-        <i className="fa-solid fa-tower-cell"></i><a href="/acquisitions">Acquisitions</a>
-        <i className="fa-solid fa-wallet"></i><a href="/origination">Origination</a>
-        <i className="fa-brands fa-readme"></i><a href="/legal">Legal</a>
-        <i className="fa-solid fa-icons"></i><a href="/marketing">Marketing</a>
-        <i className="fa-solid fa-user"></i><a href="/hr">Human Resources</a>
-        <i className="fa-solid fa-laptop"></i><a href="/it">Technology</a>
-      </nav> */}
       <div className="user">
         {isAuthenticated && accounts[0] ? (
           <div className="user-dropdown" style={{ position: 'relative' }}>
@@ -122,6 +113,9 @@ const Header: React.FC = () => {
           </button>
         )}
       </div>
+      {/* {showPopup && (
+        <ImagePopup onClose={() => setShowPopup(false)} />
+      )} */}
     </header>
   );
 };

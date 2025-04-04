@@ -1,0 +1,112 @@
+/* General Layout */
+.outermost-container { 
+    display: flex; 
+    flex-direction: row;
+    padding-top: 4em;
+    padding-left: 10%;
+    padding-right: 1%;
+    padding-bottom: 1em;
+    justify-content: space-between;
+}
+
+.reports-content-container {
+    flex: 1; /* Takes up remaining space after sidebar */
+    display: grid;
+    grid-template-columns: 1fr; /* Single column layout for reports */
+    gap: 20px;
+    padding: 10px;
+    margin-top: 1%;
+    padding-right: 10%;
+    max-width: 100%;
+    align-items: center;
+}
+
+.reports-text-bar {
+    grid-column: 1 / -1; /* Span across all columns */
+    color: #003366;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-top: 1px solid #ddd;
+    border-bottom: 2px solid #009acb;
+    padding: 15px 0; /* Reduce vertical padding */
+    line-height: 1; /* Adjust line height */
+}
+
+.reports-text-bar h2 { 
+    height: 0px;
+}
+
+
+/* Sidebar Styling */
+.sidebar {
+    width: 20%; /* Fixes sidebar to the rightmost 20% */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Table Layout */
+.reports-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.reports-table th, .reports-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.reports-table th {
+    background-color: #003366;
+    color: white;
+}
+
+.reports-table tr:nth-child(even) {
+    background-color: #d9ecf9;
+}
+
+/* Buttons */
+.home-button {
+    background-color: #005b99;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.home-button:hover {
+    background-color: #0073d6;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #003366;
+    color: white;
+    font-size: 0.9em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .outermost-container {
+        flex-direction: column;
+    }
+
+    .content-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+}
