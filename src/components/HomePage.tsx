@@ -37,10 +37,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>Important Dates</h2>
                   <ul>
                     {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    <li>3/20: Employee Appreciation Happy Hour</li>
-                    <li>3/17 - 4/2: Dress for Success Clothing Drive</li>
+                    {/* <li>3/20: Employee Appreciation Happy Hour</li>
+                    <li>3/17 - 4/2: Dress for Success Clothing Drive</li> */}
                     <li>4/18: Good Friday</li>
-                    <li>4/22-4/26: Earth Day Clean Up - Details Coming Soon!</li>
+                    <li>4/22-4/26: Earth Day Clean Up</li>
                     <li>5/26: Memorial Day</li> 
                     <li>6/4: All Hands Meeting in White Plains, NY</li>
                     <li>6/19: Juneteenth</li>
