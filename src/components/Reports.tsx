@@ -27,25 +27,25 @@ const reports = [
     description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
     link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },  
-  {
-    title: 'WIP - Daily Acquisitions Summary',
-    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-    link:'http://localhost:3000/technology'
-  },
-  {
-    title: 'WIP - In-Month Conversion Tracker',
-    description: 'Work In Progress - A tracker to view opportunity conversions by month.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-    link:'http://localhost:3000/technology'
-  },  
-  {
-    title: 'WIP - TS and CR Trends Report',
-    description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-    link:'http://localhost:3000/technology'
-  },
-      {},  {},  {},  {},  {},  {}
+  // {
+  //   title: 'WIP - Daily Acquisitions Summary',
+  //   description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+  //   link:'http://localhost:3000/technology'
+  // },
+  // {
+  //   title: 'WIP - In-Month Conversion Tracker',
+  //   description: 'Work In Progress - A tracker to view opportunity conversions by month.',
+  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+  //   link:'http://localhost:3000/technology'
+  // },  
+  // {
+  //   title: 'WIP - TS and CR Trends Report',
+  //   description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+  //   link:'http://localhost:3000/technology'
+  // },
+      {},  {},  {},  {},  {},  {},  {},  {},  {}
 ];
 
 const TechnologyReports: React.FC = () => {
