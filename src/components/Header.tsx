@@ -71,19 +71,13 @@ const Header: React.FC = () => {
     <header className="header" style={{ zIndex: 5000 }}>
       <img src={sti_logo} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
-        <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
-        <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
-        <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
-        <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
-        <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
-        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
-        {/* <button 
-          className="test-popup-button"
-          onClick={() => setShowPopup(true)}
-        >
-          Test Popup
-        </button> */}
+        <i className="fa-solid fa-house"></i> <a href="/">Home</a>
+        <i className="fa-solid fa-tower-cell"></i><a href="/">Acquisitions</a>
+        <i className="fa-solid fa-wallet"></i><a href="/">Origination</a>
+        <i className="fa-brands fa-readme"></i><a href="/">Legal</a>
+        <i className="fa-solid fa-icons"></i><a href="/">Marketing</a>
+        <i className="fa-solid fa-user"></i><a href="/">Human Resources</a>
+        <i className="fa-solid fa-laptop"></i><a href="/">Technology</a>
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
