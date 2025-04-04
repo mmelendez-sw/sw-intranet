@@ -12,20 +12,40 @@ const reports = [
     description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=7983c722-1351-4091-a28b-023c2d74063b',
   },
-  {title: 'TK Salesforce Sites',
+  {
+    title: 'TK Salesforce Sites',
     description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
     link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },  
-  {title: 'Easement and Towers Report',
-      description: 'A comprehensive look at Easements and Towers combined.',
-      link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  {
+    title: 'Easement and Towers Report',
+    description: 'A comprehensive look at Easements and Towers combined.',
+    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    // title: 'Daily Acquisitions Summary',
-    // description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    title: 'Portfolio Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
+    link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },  
+  {
+    title: 'WIP - Daily Acquisitions Summary',
+    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
     // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+    link:'http://localhost:3000/technology'
   },
-    {},  {},  {},  {},  {},  {},  {},  {},  {}
+  {
+    title: 'WIP - In-Month Conversion Tracker',
+    description: 'Work In Progress - A tracker to view opportunity conversions by month.',
+    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+    link:'http://localhost:3000/technology'
+  },  
+  {
+    title: 'WIP - TS and CR Trends Report',
+    description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+    link:'http://localhost:3000/technology'
+  },
+      {},  {},  {},  {},  {},  {}
 ];
 
 const TechnologyReports: React.FC = () => {
