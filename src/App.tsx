@@ -8,8 +8,6 @@ import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import TechnologyReports from './components/Reports';
 import { loginRequest } from './authConfig';
-import UnderDevelopment from './components/UnderDevelopment';
-import ImagePopup from './components/ImagePopup';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
@@ -53,7 +51,6 @@ const App: React.FC = () => {
   return (
     <Router>
       <Header />
-      <ImagePopup isAuthenticated={isAuthenticated} />
       <div className="main-content">
         <Routes>
           <Route
