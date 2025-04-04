@@ -59,10 +59,10 @@ const App: React.FC = () => {
           />
           {isAuthenticated && (
             <>
-              <Route path="/hr" element={<HRPage />} />
-              <Route path="/it" element={<ITPage />} />
+              {/* <Route path="/hr" element={<HRPage />} />
+              <Route path="/it" element={<ITPage />} /> */}
               <Route path="/technology" element={<TechnologyReports />} />
-              <Route path="/reports" element={<TechnologyReports />} />
+              {/* <Route path="/reports" element={<TechnologyReports />} /> */}
             </>
           )}
           <Route
