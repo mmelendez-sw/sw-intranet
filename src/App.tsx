@@ -11,11 +11,11 @@ import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
-    setIsAuthenticated(true);
+    setIsAuthenticated(accounts.length > 0);
   };
 
   useEffect(() => {
@@ -65,10 +65,6 @@ const App: React.FC = () => {
               {/* <Route path="/reports" element={<TechnologyReports />} /> */}
             </>
           )}
-          <Route
-            path="*"
-            element={<HomePage isAuthenticated={isAuthenticated} />}
-          />
         </Routes>
       </div>
     </Router>
