@@ -48,14 +48,6 @@ const App: React.FC = () => {
     };
   }, [instance]);
 
-  // Handle login redirect
-  if (!isAuthenticated) {
-    instance.loginRedirect(loginRequest).catch((error) => {
-      console.error('Login failed:', error);
-    });
-    return null; // Return null while redirecting
-  }
-
   return (
     <Router>
       <Header />
