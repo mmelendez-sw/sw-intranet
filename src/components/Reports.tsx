@@ -65,26 +65,27 @@ const TechnologyReports: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                  {/* <td style={{ height: '50px' }}>{report.title || ''}</td> */}  
-                  <td>
-                    {report.link ? (
+            {reports.map((report, index) => (
+              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                <td>
+                  {report.title ? (
+                    report.link ? (
                       <button 
                         className="report-button" 
                         onClick={() => window.open(report.link, '_blank')}
                       >
-                        {report.title || ''}
+                        {report.title}
                       </button>
-                    ) : ( <button 
-                    className="report-button" 
-                  >
-                    {report.title || ''}
-                  </button>)}
-                  </td>
-                  <td style={{ height: '55px' }}>{report.description || ''}</td>
-                </tr>
-              ))}
+                    ) : (
+                      <button className="report-button">
+                        {report.title}
+                      </button>
+                    )
+                  ) : null}
+                </td>
+                <td style={{ height: '55px' }}>{report.description || ''}</td>
+              </tr>
+            ))}
             </tbody>
           </table>
         </div>
