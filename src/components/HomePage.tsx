@@ -8,6 +8,7 @@ import img4 from '../../images/food_drive_2.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/employee-appreciation.png'
+import img8 from '../../images/earth_flyer.jpg'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -103,6 +104,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <h2>Other Updates</h2>
                   <ul>
                     <li>Please sign up for volunteer opportunities during our Earth Day Clean Up!</li>
+                    <li>
+                      <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} />
+                    </li>
                   </ul>
                 </div>
               </div>
