@@ -41,14 +41,26 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>Company Announcements</h2>
+                  <h2>Q1 Performance Highlights</h2>
                   <ul>
-                    <li><strong>LOI Performance:</strong> February saw 25 LOIs signed (156% of target), committing $13.5M in capital (114% of goal), exceeding budget expectations.</li>
-                    <li><strong>Record Closings:</strong> Closed 16 deals (160% of target), deploying $10.8M in capital (150% of goal). February initially projected 19–24 closings.</li>
-                    <li><strong>GCF Growth:</strong> Added $472K in February. The smaller deal sizes and two high-multiple deals impacted overall deployed capital.</li>
-                    <li><strong>Leasing Success:</strong> Achieved just under $40K in annual cash flow from new leases and collocations. Emphasis needed on improving pipeline deal signings.</li>
-                    <li><strong>Broker & Marketing Expansion:</strong> Nearing agreements on new broker partnerships and marketing initiatives for new locations.</li>
-                    <li><strong>CTI Integration Progress:</strong> System integration continues smoothly, but IT team is working on improving timelines and finalizing SF workflow. Employees are encouraged to test and provide feedback.</li>
+                    <li>
+                      <strong>LOI Acceleration:</strong> March marked our strongest LOI month of Q1 with 28 signed (excluding ROFR deals), representing $23M in capital commitment. This brought our Q1 total to 74 LOIs and $52M in commitment – 106% of our budget target.
+                    </li>
+                    <li>
+                      <strong>Closings & Capital Deployment:</strong> We closed 13 deals in March (vs. 23 budgeted), bringing the Q1 total to 45 deals (vs. 55 budgeted). Despite the shortfall in volume, we exceeded our capital deployment goal with $40.4M deployed against a $39.4M budget – 103% to plan.
+                    </li>
+                    <li>
+                      <strong>Acquired Cash Flow:</strong> Q1 ended slightly below goal at $1.96M, missing by $85K. This remains within striking distance to recover in Q2.
+                    </li>
+                    <li>
+                      <strong>Leasing Momentum:</strong> Signed $159K in annualized TCF from amendments and $194K in new leases across combined tower and easement assets, showing solid traction in lease-up efforts.
+                    </li>
+                    <li>
+                      <strong>Platform & Integration:</strong> Continued progress on CTI team and platform integration. Some projects are approaching critical path status, but executive leadership is actively driving initiatives to stay on schedule.
+                    </li>
+                    <li>
+                      <strong>Outlook:</strong> Q1 has set a positive tone for the year. With strong momentum across sourcing, LOIs, closings, and leasing, we are well-positioned to hit our annual company and bonus targets – provided we maintain executional intensity across all channels.
+                    </li>
                   </ul>
                 </div>
               </div>
