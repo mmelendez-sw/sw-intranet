@@ -7,7 +7,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/food_drive_2.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/site_5.jpg'
+import img7 from '../../images/employee-appreciation.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
