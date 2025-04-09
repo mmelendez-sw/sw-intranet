@@ -37,7 +37,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   <ul>
                     <li>4/18: Good Friday</li>
                     <li>4/22-4/26: Earth Day Clean Up</li>
-                      <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} />
+                    <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} />
                     <li>5/26: Memorial Day</li> 
                     <li>6/11: All Hands Meeting in White Plains, NY</li>
                     <li>6/19: Juneteenth</li>
