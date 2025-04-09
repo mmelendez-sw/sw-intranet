@@ -31,7 +31,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>4/18: Good Friday</li>
                     <li>4/22-4/26: Earth Day Clean Up</li>
                     <li>5/26: Memorial Day</li> 
-                    <li>6/4: All Hands Meeting in White Plains, NY</li>
+                    <li>6/11: All Hands Meeting in White Plains, NY</li>
                     <li>6/19: Juneteenth</li>
                     <li>7/4: Independence Day</li>
                   </ul>
