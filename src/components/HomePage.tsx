@@ -34,9 +34,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                    {/* <li>Employee Individual Bonus Goals due 12/31</li> */}
-                    {/* <li>3/20: Employee Appreciation Happy Hour</li>
-                    <li>3/17 - 4/2: Dress for Success Clothing Drive</li> */}
                     <li>4/18: Good Friday</li>
                     <li>4/22-4/26: Earth Day Clean Up</li>
                     <li>5/26: Memorial Day</li> 
@@ -63,18 +60,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 3 */}
               <div className="card odd-card">
-                <img src={img3} alt="Marketing Updates" className="card-image" />
+                <img src={img7} alt="Team Photo" className="card-image" />
                 <div className="card-text">
-                  <h2>Marketing Updates</h2>
+                  <h2>Symphony Towers Infrastructure Team</h2>
                   <ul>
-                    <li>Connect with Justin or Arwa for any marketing email questions</li>
-                    <li>Marketing leads will be distributed based on your directors</li>
-                  </ul>       
+                    <li>Happy Employee Appreciation Day!</li>
+                  </ul>
                 </div>
-              </div>
-              {/* Text Bar for Other Key Updates */}
-              <div className="text-bar">
-                  <h2>Key Updates</h2>
               </div>
               {/* Card 4 */}
               <div className="card even-card">
@@ -86,16 +78,16 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
                   </ul>
                 </div>
-                
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
-                <img src={img5} alt="Team Photo" className="card-image" />
+                <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
-                  <h2>Symphony Towers Infrastructure Team</h2>
+                  <h2>Marketing Updates</h2>
                   <ul>
-                    <li>Meet the team that makes everything possible.</li>
-                  </ul>
+                    <li>Connect with Justin or Arwa for any marketing email questions</li>
+                    <li>Marketing leads will be distributed based on your directors</li>
+                  </ul>       
                 </div>
               </div>
               {/* Card 6 */}
@@ -104,9 +96,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    {/* <li>RSVP for Symphony Holiday Party on December 5th</li> */}
-                    {/* <li>Bagel Breakfast is December 12th!</li> */}
-                    <li>Happy New Year!</li>
+                    <li>Please sign up for volunteer opportunities during our Earth Day Clean Up!</li>
                   </ul>
                 </div>
               </div>
