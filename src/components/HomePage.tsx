@@ -7,7 +7,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/food_drive_2.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/site_5.jpg'
+import img7 from '../../images/employee-appreciation.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -54,13 +54,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 3 */}
               <div className="card odd-card">
-                <img src={img3} alt="Marketing Updates" className="card-image" />
+                <img src={img7} alt="Team Photo" className="card-image" />
                 <div className="card-text">
-                  <h2>Marketing Updates</h2>
+                  <h2>Symphony Towers Infrastructure Team</h2>
                   <ul>
-                    <li>Connect with Justin or Arwa for any marketing email questions</li>
-                    <li>Marketing leads will be distributed based on your directors</li>
-                  </ul>       
+                    <li>Happy Employee Appreciation Day!</li>
+                  </ul>
                 </div>
               </div>
               {/* Card 4 */}
@@ -76,12 +75,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
-                <img src={img5} alt="Team Photo" className="card-image" />
+                <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
-                  <h2>Symphony Towers Infrastructure Team</h2>
+                  <h2>Marketing Updates</h2>
                   <ul>
-                    <li>Meet the team that makes everything possible.</li>
-                  </ul>
+                    <li>Connect with Justin or Arwa for any marketing email questions</li>
+                    <li>Marketing leads will be distributed based on your directors</li>
+                  </ul>       
                 </div>
               </div>
               {/* Card 6 */}
@@ -90,7 +90,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    <li>Happy New Year!</li>
+                    <li>Please sign up for volunteer opportunities during our Earth Day Clean Up!</li>
                   </ul>
                 </div>
               </div>
