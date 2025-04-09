@@ -73,11 +73,14 @@ const TechnologyReports: React.FC = () => {
                       <button 
                         className="report-button" 
                         onClick={() => window.open(report.link, '_blank')}
-                        disabled={!report.link}
                       >
                         {report.title || ''}
                       </button>
-                    ) : null}
+                    ) : ( <button 
+                    className="report-button" 
+                  >
+                    {report.title || ''}
+                  </button>)}
                   </td>
                   <td style={{ height: '55px' }}>{report.description || ''}</td>
                 </tr>
