@@ -31,6 +31,21 @@ const reports = [
     title: 'Site Tracker - Sales Pipeline Activity',
     description: 'A comprehensive look at current sales pipeline activity.',
     link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'WIP - Daily Acquisitions Summary',
+    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+  },
+  {
+    title: 'WIP - In-Month Conversion Tracker',
+    description: 'Work In Progress - A tracker to view opportunity conversions by month.',
+    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+  },  
+  {
+    title: 'WIP - TS and CR Trends Report',
+    description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
   }, {},  {},  {},  {},  {},  {},  {},  {}
 ];
 
@@ -58,6 +73,7 @@ const TechnologyReports: React.FC = () => {
                       <button 
                         className="report-button" 
                         onClick={() => window.open(report.link, '_blank')}
+                        disabled={!report.link}
                       >
                         {report.title || ''}
                       </button>
