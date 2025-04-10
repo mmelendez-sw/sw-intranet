@@ -6,6 +6,7 @@ import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
+import sti_logo_white from '../../images/sti-horizontal-white.png'
 // import ImagePopup from './ImagePopup';
 
 const Header: React.FC = () => {
@@ -69,7 +70,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="header" style={{ zIndex: 5000 }}>
-      <img src={sti_logo} alt="Logo" className="logo-image" />
+      <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
         <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
