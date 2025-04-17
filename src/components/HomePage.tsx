@@ -126,6 +126,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
+              <section className="quick-links">
+                <h2>HR Updates</h2>
+                <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
+                <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
+              </section>
               <section className="updates">
                 <h2>IT Updates</h2>
                 <p>Do not click any phishing links</p>
