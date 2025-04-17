@@ -86,6 +86,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>
                       <a href="https://www.youtube.com/watch?v=AUj_-d7XSPI" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
                     </li>
+                    <li>Check out Bernard's panel discussion on AI Powered Solutions for Wireless Construction and Deployment at the 2025 South Wireless Summit!</li>
+                    <li>
+                      <a href="https://symphonytowersinfrastructure.com/recent-press/ai-powered-solutions-for-wireless-construction-and-deployment/" target="_blank" rel="noopener noreferrer">South Wireless Summit Panel Discussion</a>
+                    </li>
                   </ul>       
                 </div>
               </div>  
