@@ -22,12 +22,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <>
           <div className="content-container">
-            {/* Main content grid */}
-            {/* <div className="text-bar top-bar"> */}
-              {/* <h2>Message from IT</h2> */}
-              {/* <p>The new Salesforce workflow and instance is live! Please do not hesitate to reach out to any tech team member for any assistance <a href="mailto:Symphony_Tech@symphonywireless.com" target="_blank">here</a>. Thank you!</p>   */}
-              {/* <p>Please ensure your teams are familiar with the new functionalities in preparation.</p> */}
-            {/* </div> */}
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
@@ -85,7 +79,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
                     </li>
-                    <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing</li>
+                    <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
                     </li>
@@ -128,42 +122,35 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
             </div>
 
-            {/* Sidebar */}
-            {/* <aside className="sidebar">
+            <aside className="sidebar">
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
               <section className="updates">
-                <h2>IT Updates</h2> */}
-                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                {/* <p>Make Align appointment if you have a new laptop</p> */}
-                {/* <p>Do not click any phishing links</p>
+                <h2>IT Updates</h2>
+                <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
-                <h2>Quick Links</h2> */}
-                {/* <button>HR Page</button>
-                <button>Ask IT</button>
-                <button>Salesforce</button>
-                <button className="home-button" onClick={() => window.location.href = '/it'}>IT Page</button> */}
-                {/* <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
+                <h2>Quick Links</h2>
+                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/?ec=302&startURL=%2Fvisualforce%2Fsession%3Furl%3Dhttps%253A%252F%252Fsitetracker-symphonywireless.lightning.force.com%252Flightning%252Fpage%252Fhome', '_blank')}>SiteTracker</button>
-                <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
+                <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button> 
+                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
               </section>
               <section className="updates">
                 <h2>Exciting News</h2>
                 <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
               </section>
               <section className="updates">
-                <h2>Holiday Party Photos</h2> */}
-                {/* <p className='imp-p'>Microsoft is experiencing outages on Teams and Outlook. We will update once the issues are resolved.</p> */}
-                {/* <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
+                <h2>Holiday Party Photos</h2>
+                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
               </section>
-            </aside> */}
+            </aside>
           </div>
         </>
       ) : (
