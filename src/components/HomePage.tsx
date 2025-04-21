@@ -28,6 +28,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <img src={img1} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
                   <h2>Important Dates</h2>
+                  <ul>
                     <li>4/22-4/26: Earth Day Clean Up</li>
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} />
                     <li>5/26: Memorial Day</li> 
