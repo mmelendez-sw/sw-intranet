@@ -9,6 +9,7 @@ import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/employee-appreciation.png'
 import img8 from '../../images/earth_flyer.jpg'
+import img9 from '../../images/earth-pic.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -25,12 +26,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
-                <img src={img1} alt="Team Accomplishments" className="card-image" />
+                <img src={img9} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
                     {/* <li>4/22-4/26: Earth Day Clean Up</li>
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
+                    <li>Thank you to everyone who participated in our Earth Day Clean Up!</li>
                     <li>5/26: Memorial Day</li> 
                     <li>6/11: All Hands Meeting in White Plains, NY</li>
                     <li>6/19: Juneteenth</li>
