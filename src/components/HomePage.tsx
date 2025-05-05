@@ -44,25 +44,28 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>Q1 Performance Highlights</h2>
+                  <h2>April Performance Highlights</h2>
                   <ul>
                     <li>
-                      <strong>LOI Acceleration:</strong> March marked our strongest LOI month of Q1 with 28 signed (excluding ROFR deals), representing $23M in capital commitment. This brought our Q1 total to 74 LOIs and $52M in commitment – 106% of our budget target.
+                      <strong>Overall Achievement:</strong> We achieved greater than 100% on all April targets, with close to 85% of our annual origination budgeted targets in our line-of-sight. We are poised to have a GREAT YEAR for all of us!
                     </li>
                     <li>
-                      <strong>Closings & Capital Deployment:</strong> We closed 13 deals in March (vs. 23 budgeted), bringing the Q1 total to 45 deals (vs. 55 budgeted). Despite the shortfall in volume, we exceeded our capital deployment goal with $40.4M deployed against a $39.4M budget – 103% to plan.
+                      <strong>Origination Performance:</strong> Total originated opportunities reached 113, with our internal team outperforming external brokers 51-44 – the first time this year. YTD, we have identified 472 opportunities worth $344M.
                     </li>
                     <li>
-                      <strong>Acquired Cash Flow:</strong> Q1 ended slightly below goal at $1.96M, missing by $85K. This remains within striking distance to recover in Q2.
+                      <strong>LOI Execution:</strong> Delivered 35 executed LOIs in April – one shy of breaking the company record. This was 219% of our monthly goal, achieved without signing multi-location portfolios, showcasing strong origination efforts across our teams.
                     </li>
                     <li>
-                      <strong>Leasing Momentum:</strong> Signed $159K in annualized TCF from amendments and $194K in new leases across combined tower and easement assets, showing solid traction in lease-up efforts.
+                      <strong>Deal Closings:</strong> Closed 16 deals worth $13.2M, achieving 145% of budget on quantity and 168% on capital deployment. YTD, we are at 92% of our annual goal for closed deals and 112% ($53M) on capital deployment, with GCF at 105% YTD.
                     </li>
                     <li>
-                      <strong>Platform & Integration:</strong> Continued progress on CTI team and platform integration. Some projects are approaching critical path status, but executive leadership is actively driving initiatives to stay on schedule.
+                      <strong>Organic Growth:</strong> Executed $55K of new TCF on easement assets and $31.2K on towers. While below April targets, the pipeline remains steady. YTD, we have signed $343K of new TCF on existing assets.
                     </li>
                     <li>
-                      <strong>Outlook:</strong> Q1 has set a positive tone for the year. With strong momentum across sourcing, LOIs, closings, and leasing, we are well-positioned to hit our annual company and bonus targets – provided we maintain executional intensity across all channels.
+                      <strong>Integration & Strategic Initiatives:</strong> Progress continues with Site Tracker and NetSuite integrations. We've improved AR through more aggressive handling of delinquent tenants. Additional strategic initiatives are in development.
+                    </li>
+                    <li>
+                      <strong>Community Impact:</strong> Successfully launched our volunteering and community program with strong colleague participation in initial opportunities.
                     </li>
                   </ul>
                 </div>
