@@ -48,7 +48,8 @@ const reports = [
         description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
       },  {title: 'WIP - Closing - Pipeline', 
         description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
-      },  {},  {},
+      },  
+      // {},  {},
       // {},  {},  {},  {},{},
 ];
 
