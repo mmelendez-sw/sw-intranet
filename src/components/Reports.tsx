@@ -44,7 +44,11 @@ const reports = [
     title: 'WIP - TS and CR Trends Report',
     description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
   },
-      {},  {},  {},  {},
+      {title: 'WIP - Origination Pipeline', 
+        description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
+      },  {title: 'WIP - Closing - Pipeline', 
+        description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
+      },  {},  {},
       // {},  {},  {},  {},{},
 ];
 
