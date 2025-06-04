@@ -44,28 +44,28 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>April Performance Highlights</h2>
+                  <h2>May Performance Highlights</h2>
                   <ul>
                     <li>
-                      <strong>Overall Achievement:</strong> We achieved greater than 100% on all April targets, with close to 85% of our annual origination budgeted targets in our line-of-sight. We are poised to have a GREAT YEAR for all of us!
+                      <strong>Overall Achievement:</strong> May was our 2nd best month of the year with 34 executed LOIs – 121% of our goal. Huge thanks to everyone for your continued efforts and focus!
                     </li>
                     <li>
-                      <strong>Origination Performance:</strong> Total originated opportunities reached 113, with our internal team outperforming external brokers 51-44 – the first time this year. YTD, we have identified 472 opportunities worth $344M.
+                      <strong>Origination Performance:</strong> We originated 101 opportunities, slightly under target. Andy and the team are working hard to boost this metric quickly.
                     </li>
                     <li>
-                      <strong>LOI Execution:</strong> Delivered 35 executed LOIs in April – one shy of breaking the company record. This was 219% of our monthly goal, achieved without signing multi-location portfolios, showcasing strong origination efforts across our teams.
+                      <strong>LOI Execution:</strong> We signed 34 LOIs in May, continuing a strong trend and showing solid momentum. We're heading into the summer months with excellent traction.
                     </li>
                     <li>
-                      <strong>Deal Closings:</strong> Closed 16 deals worth $13.2M, achieving 145% of budget on quantity and 168% on capital deployment. YTD, we are at 92% of our annual goal for closed deals and 112% ($53M) on capital deployment, with GCF at 105% YTD.
+                      <strong>Deal Closings:</strong> We closed 20 deals vs. a goal of 19, putting us at 96% of our annual closed deal goal and over 105% of our capital targets. Tremendous cross-functional teamwork!
                     </li>
                     <li>
-                      <strong>Organic Growth:</strong> Executed $55K of new TCF on easement assets and $31.2K on towers. While below April targets, the pipeline remains steady. YTD, we have signed $343K of new TCF on existing assets.
+                      <strong>Budget Metrics:</strong> May performance stood at: CRs – 105%, GCF – 104%, and TS – ~120% of budget. Year-to-date: CRs – 95% (#) and 110% ($), GCF – 104%, TS – 124%+.
                     </li>
                     <li>
-                      <strong>Integration & Strategic Initiatives:</strong> Progress continues with Site Tracker and NetSuite integrations. We've improved AR through more aggressive handling of delinquent tenants. Additional strategic initiatives are in development.
+                      <strong>Channel Performance:</strong> External brokers still drive 50% of performance. BD/M&A team hit 100% of their May targets – great leadership by Issac. Internal origination continues improving at 72% (CR #) and 80% (CR $).
                     </li>
                     <li>
-                      <strong>Community Impact:</strong> Successfully launched our volunteering and community program with strong colleague participation in initial opportunities.
+                      <strong>Looking Ahead:</strong> As summer approaches, let’s keep the momentum going. We're well positioned but need to push hard across all fronts to reach our full potential.
                     </li>
                   </ul>
                 </div>
