@@ -4,7 +4,7 @@ import '../../styles/home-page.css';
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
 import img3 from '../../images/site_3.jpg';
-import img4 from '../../images/food_drive_2.jpg';
+import img4 from '../../images/run-pic.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/employee-appreciation.png'
@@ -100,10 +100,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
-                  <h2>Food Drive</h2>
+                  <h2>JP Morgan Corporate Challenge</h2>
                   <ul>
-                    <li>We provided the largest single donation that Feeding Westchester has ever received!</li>
-                    <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
+                    <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
                   </ul>
                 </div>
               </div>
