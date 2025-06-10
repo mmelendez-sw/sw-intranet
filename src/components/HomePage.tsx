@@ -100,7 +100,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
-                  <h2>Food Drive</h2>
+                  <h2>JP Morgan Corporate Challenge</h2>
                   <ul>
                     <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
                   </ul>
