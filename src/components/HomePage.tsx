@@ -122,7 +122,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    <li>Please sign up for volunteer opportunities during our Earth Day Clean Up!</li>
+                    <li>Go Bowling tomorrow!</li>
                   </ul>
                 </div>
               </div>
