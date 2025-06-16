@@ -13,39 +13,44 @@ const reports = [
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
+    title: 'Portfolio Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
+    link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Site Tracker - Easement and Towers Report',
+    description: 'A comprehensive look at Easements and Towers combined.',
+    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Site Tracker - Sales Pipeline Activity',
+    description: 'A comprehensive look at current sales pipeline activity.',
+    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
     title: 'TK Salesforce Sites',
     description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
     link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },  
   {
-    title: 'Easement and Towers Report',
-    description: 'A comprehensive look at Easements and Towers combined.',
-    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    title: 'WIP - Daily Acquisitions Summary',
+    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
   },
   {
-    title: 'Portfolio Pipeline',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
-    link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    title: 'WIP - In-Month Conversion Tracker',
+    description: 'Work In Progress - A tracker to view opportunity conversions by month.',
   },  
-  // {
-  //   title: 'WIP - Daily Acquisitions Summary',
-  //   description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
-  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-  //   link:'http://localhost:3000/technology'
-  // },
-  // {
-  //   title: 'WIP - In-Month Conversion Tracker',
-  //   description: 'Work In Progress - A tracker to view opportunity conversions by month.',
-  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-  //   link:'http://localhost:3000/technology'
-  // },  
-  // {
-  //   title: 'WIP - TS and CR Trends Report',
-  //   description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
-  //   // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-  //   link:'http://localhost:3000/technology'
-  // },
-      {},  {},  {},  {},  {},  {},  {},  {},  {}
+  {
+    title: 'WIP - TS and CR Trends Report',
+    description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+  },
+      {title: 'WIP - Origination Pipeline', 
+        description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
+      },  {title: 'WIP - Closing - Pipeline', 
+        description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
+      },  
+      // {},  {},
+      // {},  {},  {},  {},{},
 ];
 
 const TechnologyReports: React.FC = () => {
@@ -64,22 +69,27 @@ const TechnologyReports: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                  {/* <td style={{ height: '50px' }}>{report.title || ''}</td> */}  
-                  <td>
-                    {report.link ? (
+            {reports.map((report, index) => (
+              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                <td>
+                  {report.title ? (
+                    report.link ? (
                       <button 
                         className="report-button" 
                         onClick={() => window.open(report.link, '_blank')}
                       >
-                        {report.title || ''}
+                        {report.title}
                       </button>
-                    ) : null}
-                  </td>
-                  <td style={{ height: '55px' }}>{report.description || ''}</td>
-                </tr>
-              ))}
+                    ) : (
+                      <button className="report-button">
+                        {report.title}
+                      </button>
+                    )
+                  ) : null}
+                </td>
+                <td style={{ height: '55px' }}>{report.description || ''}</td>
+              </tr>
+            ))}
             </tbody>
           </table>
         </div>

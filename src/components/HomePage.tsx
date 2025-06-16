@@ -4,10 +4,12 @@ import '../../styles/home-page.css';
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
 import img3 from '../../images/site_3.jpg';
-import img4 from '../../images/food_drive_2.jpg';
+import img4 from '../../images/run-pic.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/site_5.jpg'
+import img7 from '../../images/employee-appreciation.png'
+import img8 from '../../images/earth_flyer.jpg'
+import img9 from '../../images/earth-pic.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -24,14 +26,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
-                <img src={img1} alt="Team Accomplishments" className="card-image" />
+                <img src={img9} alt="Team Accomplishments" className="card-image" />
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                    <li>4/18: Good Friday</li>
-                    <li>4/22-4/26: Earth Day Clean Up</li>
-                    <li>5/26: Memorial Day</li> 
-                    <li>6/4: All Hands Meeting in White Plains, NY</li>
+                    {/* <li>4/22-4/26: Earth Day Clean Up</li>
+                    <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                     <li>6/19: Juneteenth</li>
                     <li>7/4: Independence Day</li>
                   </ul>
@@ -41,14 +41,29 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img2} alt="Conferences & Events" className="card-image" />
                 <div className="card-text">
-                  <h2>Company Announcements</h2>
+                  <h2>May Performance Highlights</h2>
                   <ul>
-                    <li><strong>LOI Performance:</strong> February saw 25 LOIs signed (156% of target), committing $13.5M in capital (114% of goal), exceeding budget expectations.</li>
-                    <li><strong>Record Closings:</strong> Closed 16 deals (160% of target), deploying $10.8M in capital (150% of goal). February initially projected 19–24 closings.</li>
-                    <li><strong>GCF Growth:</strong> Added $472K in February. The smaller deal sizes and two high-multiple deals impacted overall deployed capital.</li>
-                    <li><strong>Leasing Success:</strong> Achieved just under $40K in annual cash flow from new leases and collocations. Emphasis needed on improving pipeline deal signings.</li>
-                    <li><strong>Broker & Marketing Expansion:</strong> Nearing agreements on new broker partnerships and marketing initiatives for new locations.</li>
-                    <li><strong>CTI Integration Progress:</strong> System integration continues smoothly, but IT team is working on improving timelines and finalizing SF workflow. Employees are encouraged to test and provide feedback.</li>
+                    <li>
+                      <strong>Overall Achievement:</strong> May was our 2nd best month of the year with 34 executed LOIs – 121% of our goal. Huge thanks to everyone for your continued efforts and focus!
+                    </li>
+                    <li>
+                      <strong>Origination Performance:</strong> We originated 101 opportunities, slightly under target. Andy and the team are working hard to boost this metric quickly.
+                    </li>
+                    <li>
+                      <strong>LOI Execution:</strong> We signed 34 LOIs in May, continuing a strong trend and showing solid momentum. We're heading into the summer months with excellent traction.
+                    </li>
+                    <li>
+                      <strong>Deal Closings:</strong> We closed 20 deals vs. a goal of 19, putting us at 96% of our annual closed deal goal and over 105% of our capital targets. Tremendous cross-functional teamwork!
+                    </li>
+                    <li>
+                      <strong>Budget Metrics:</strong> May performance stood at: CRs – 105%, GCF – 104%, and TS – ~120% of budget. Year-to-date: CRs – 95% (#) and 110% ($), GCF – 104%, TS – 124%+.
+                    </li>
+                    <li>
+                      <strong>Channel Performance:</strong> External brokers still drive 50% of performance. BD/M&A team hit 100% of their May targets – great leadership by Issac. Internal origination continues improving at 72% (CR #) and 80% (CR $).
+                    </li>
+                    <li>
+                      <strong>Looking Ahead:</strong> As summer approaches, let’s keep the momentum going. We're well positioned but need to push hard across all fronts to reach our full potential.
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -58,29 +73,44 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Marketing Updates</h2>
                   <ul>
-                    <li>Connect with Justin or Arwa for any marketing email questions</li>
-                    <li>Marketing leads will be distributed based on your directors</li>
+                    <li>We're excited to share that our company logo has been updated as part of our ongoing brand refresh.
+                      To support this update, we've created a shared folder with updated logo files, templates, and brand collateral for your use. This folder will continue to be updated as additional materials become available.
+                      If you have any questions or need assistance, please feel free to reach out to Justin or Arwa.
+                      Thank you for helping us maintain a consistent and professional brand presence.</li>
+                    <li>
+                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
+                    </li>
+                    <li>Check out Bernard's panel discussion on AI Powered Solutions for Wireless Construction and Deployment at the 2025 South Wireless Summit!</li>
+                    <li>
+                      <a href="https://symphonytowersinfrastructure.com/recent-press/ai-powered-solutions-for-wireless-construction-and-deployment/" target="_blank" rel="noopener noreferrer">South Wireless Summit Panel Discussion</a>
+                    </li>
+                    <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
+                    <li>
+                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
+                    </li>
+                    <li>
+                      <a href="https://www.youtube.com/watch?v=AUj_-d7XSPI" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
+                    </li>  
                   </ul>       
                 </div>
-              </div>
+              </div>  
               {/* Card 4 */}
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
-                  <h2>Food Drive</h2>
+                  <h2>JP Morgan Corporate Challenge</h2>
                   <ul>
-                    <li>We provided the largest single donation that Feeding Westchester has ever received!</li>
-                    <li>Thank you to everyone who chipped in this Thanksgiving season.</li>
+                    <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
                   </ul>
                 </div>
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
-                <img src={img5} alt="Team Photo" className="card-image" />
+                <img src={img7} alt="Team Photo" className="card-image" />
                 <div className="card-text">
                   <h2>Symphony Towers Infrastructure Team</h2>
                   <ul>
-                    <li>Meet the team that makes everything possible.</li>
+                    <li>Happy Employee Appreciation Day!</li>
                   </ul>
                 </div>
               </div>
@@ -90,7 +120,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    <li>Happy New Year!</li>
+                    <li>Say hello to the summer interns!</li>
                   </ul>
                 </div>
               </div>
@@ -99,6 +129,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             <aside className="sidebar">
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
+              </section>
+              <section className="quick-links">
+                <h2>HR Updates</h2>
+                <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
+                <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
               </section>
               <section className="updates">
                 <h2>IT Updates</h2>
