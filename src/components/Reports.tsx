@@ -34,7 +34,7 @@ const reports = [
   },  
   {
     title: 'Tower Purchase Opportunities',
-    description: 'A comprehensive look at all the Tower Purchase transaction type opportunities.',
+    description: 'A complete view of all opportunities with the Tower Purchase transaction type.',
     link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=44739935-cc8c-4072-8232-79d8be3360f8',
   },  
   {
