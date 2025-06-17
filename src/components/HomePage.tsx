@@ -10,6 +10,8 @@ import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/employee-appreciation.png'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/earth-pic.png'
+import img10 from '../../images/cityHarvestMeshProject.png'
+import img11 from '../../images/bowling2025.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -34,12 +36,16 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                     <li>6/19: Juneteenth</li>
                     <li>7/4: Independence Day</li>
+                    <li>9/1: Labor Day</li> 
+                    <li>11/27: Thanksgiving Day</li> 
+                    <li>11/28: Day After Thanksgiving</li>
+                    <li>12/25: Christmas Day</li>
                   </ul>
                 </div>
               </div>
               {/* Card 2 */}
               <div className="card even-card">
-                <img src={img2} alt="Conferences & Events" className="card-image" />
+                <img src={img11} alt="Bowling 2025" className="card-image" />
                 <div className="card-text">
                   <h2>May Performance Highlights</h2>
                   <ul>
@@ -116,11 +122,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 6 */}
               <div className="card even-card">
-                <img src={img6} alt="Food Drive" className="card-image" />
+                <img src={img10} alt="Food Drive" className="card-image" />
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
-                    <li>Say hello to the summer interns!</li>
+                    <li>Thanks to everyone who joined the City Harvest mesh bag project! Together we made over 1,500 bags that will help deliver fresh produce to food pantries across NYC. We’re proud to make a difference—stay tuned for more ways to get involved!</li>
                   </ul>
                 </div>
               </div>
