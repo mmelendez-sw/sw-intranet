@@ -122,7 +122,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 6 */}
               <div className="card even-card">
-                <img src={img10} alt="Food Drive" className="card-image" />
+                <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
                 <div className="card-text">
                   <h2>Other Updates</h2>
                   <ul>
