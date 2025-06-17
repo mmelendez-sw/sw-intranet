@@ -124,7 +124,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
                 <div className="card-text">
-                  <h2>Other Updates</h2>
+                  <h2>City Harvest Mesh Bag Project</h2>
                   <ul>
                     <li>Thanks to everyone who joined the City Harvest mesh bag project! Together we made over 1,500 bags that will help deliver fresh produce to food pantries across NYC. We’re proud to make a difference—stay tuned for more ways to get involved!</li>
                   </ul>
