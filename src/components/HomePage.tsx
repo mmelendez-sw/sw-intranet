@@ -39,6 +39,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>9/1: Labor Day</li> 
                     <li>11/27: Thanksgiving Day</li> 
                     <li>11/28: Day After Thanksgiving</li>
+                    <li>12/4: Symphony Holiday Party</li>
                     <li>12/25: Christmas Day</li>
                   </ul>
                 </div>
