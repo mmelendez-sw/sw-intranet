@@ -68,7 +68,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
               {/* Card 3 */}
-              <div className="card odd-card">
+              <div className="card even-card">
                 <img src={img3} alt="Marketing Updates" className="card-image" />
                 <div className="card-text">
                   <h2>Marketing Updates</h2>
@@ -95,7 +95,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>  
               {/* Card 4 */}
-              <div className="card even-card">
+              <div className="card odd-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
                   <h2>JP Morgan Corporate Challenge</h2>

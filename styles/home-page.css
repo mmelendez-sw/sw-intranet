@@ -16,7 +16,7 @@
 /* Grid Layout for Main Content */
 .grid-layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Three cards per row */
+  grid-template-columns: repeat(2, 1fr); /* Two cards per row */
   grid-auto-rows: auto; /* Dynamically adjust row height */
   gap: 20px; /* Space between cards */
 }
