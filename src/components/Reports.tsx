@@ -37,7 +37,7 @@ const reports = [
     description: 'A complete view of all opportunities with the Tower Purchase transaction type.',
     link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=44739935-cc8c-4072-8232-79d8be3360f8',
   },  
-  {title: 'WIP - Closing - Pipeline', 
+  {title: 'Closing - Pipeline', 
     description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
     link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare'
   }, 
