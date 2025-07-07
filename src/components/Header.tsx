@@ -78,7 +78,7 @@ const Header: React.FC = () => {
         <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
-        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        <i className="fa-solid fa-laptop"></i><Link to="/reports">Reports</Link>
         {/* <button 
           className="test-popup-button"
           onClick={() => setShowPopup(true)}
