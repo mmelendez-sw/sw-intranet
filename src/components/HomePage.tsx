@@ -48,28 +48,39 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img11} alt="Bowling 2025" className="card-image" />
                 <div className="card-text">
-                  <h2>May Performance Highlights</h2>
+                  <h2>June & First Half 2025 Performance Highlights</h2>
                   <ul>
                     <li>
-                      <strong>Overall Achievement:</strong> May was our 2nd best month of the year with 34 executed LOIs – 121% of our goal. Huge thanks to everyone for your continued efforts and focus!
+                      <strong>Mid-Year Status:</strong> We are halfway through 2025 and ahead of our budget YTD. If we exceed full-year budget goals, bonus payouts will increase by <strong>2% for every 1%</strong> above budget.
                     </li>
                     <li>
-                      <strong>Origination Performance:</strong> We originated 101 opportunities, slightly under target. Andy and the team are working hard to boost this metric quickly.
+                      <strong>June Performance:</strong> CRs at 113% of budget, GCF at 112%, TS at 110%.
                     </li>
                     <li>
-                      <strong>LOI Execution:</strong> We signed 34 LOIs in May, continuing a strong trend and showing solid momentum. We're heading into the summer months with excellent traction.
+                      <strong>Year-to-Date Performance:</strong> 
+                      <ul>
+                        <li>CRs – 97% (#) and 111% ($) of budget</li>
+                        <li>GCF – 106% of budget</li>
+                        <li>TS – 115% (#) and 123% ($) of budget</li>
+                      </ul>
                     </li>
                     <li>
-                      <strong>Deal Closings:</strong> We closed 20 deals vs. a goal of 19, putting us at 96% of our annual closed deal goal and over 105% of our capital targets. Tremendous cross-functional teamwork!
+                      <strong>Channel Contributions:</strong> External brokers drove 57% of total CR performance in June (up from 50% in May). Internal team improved to 88% (CR #) and 85% (CR $), up from 72% and 80% in May.
                     </li>
                     <li>
-                      <strong>Budget Metrics:</strong> May performance stood at: CRs – 105%, GCF – 104%, and TS – ~120% of budget. Year-to-date: CRs – 95% (#) and 110% ($), GCF – 104%, TS – 124%+.
+                      <strong>Leasing Progress:</strong> Over $101K of new leasing cashflow in June, $537K YTD. ~$950K in forecasted leasing opportunities for H2, plus $380K in new leases from previously unpaid cable collocations.
                     </li>
                     <li>
-                      <strong>Channel Performance:</strong> External brokers still drive 50% of performance. BD/M&A team hit 100% of their May targets – great leadership by Issac. Internal origination continues improving at 72% (CR #) and 80% (CR $).
+                      <strong>Market Outlook:</strong> June saw a slowdown in new opportunities and LOIs due to summer seasonality and broader political/economic hesitation. Stay close to deals — they will close.
                     </li>
                     <li>
-                      <strong>Looking Ahead:</strong> As summer approaches, let’s keep the momentum going. We're well positioned but need to push hard across all fronts to reach our full potential.
+                      <strong>Focus Areas for Q3:</strong> Increase origination activity, execute LOIs aggressively, and close more internally to hit bonus-eligible overperformance.
+                    </li>
+                    <li>
+                      <strong>Platform Milestone:</strong> The new Site Tracker launches next week — it will integrate all Symphony and CTI data and serve as our unified system of record.
+                    </li>
+                    <li>
+                      <strong>Reminder:</strong> Look at your individual bonus goal forms — we’re well-positioned to achieve 105%+ bonuses if we maintain momentum. Let’s keep executing!
                     </li>
                   </ul>
                 </div>
