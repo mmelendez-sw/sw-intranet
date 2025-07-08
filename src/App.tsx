@@ -59,8 +59,8 @@ const App: React.FC = () => {
             element={<HomePage isAuthenticated={isAuthenticated} />}
           />
           <Route path="/acquisitions" element={<Acquisitions />} />
-          {/* <Route path="/hr" element={<HRPage />} />
-          <Route path="/it" element={<ITPage />} /> */}
+          <Route path="/hr" element={<HRPage />} />
+          {/* <Route path="/it" element={<ITPage />} /> */}
           {/* <Route path="/origination" element={<HRPage />} />
           <Route path="/acqusitions" element={<ITPage />} /> */}
           {/* <Route path="/legal" element={<HRPage />} />
