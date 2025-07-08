@@ -3,14 +3,9 @@ import '../styles/hr-page.css';
 
 const hrReports = [
   {
-    title: 'Employee Handbook',
-    description: 'Access the Symphony Towers Infrastructure Employee Handbook.',
-    link: '', // Add actual link if available
-  },
-  {
-    title: 'Benefits Overview',
-    description: 'Summary of employee benefits and resources.',
-    link: '', // Add actual link if available
+    title: 'TEST',
+    description: 'TEST',
+    link: '', 
   },
 ];
 
