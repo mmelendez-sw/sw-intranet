@@ -76,9 +76,9 @@ const Header: React.FC = () => {
         <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
         <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
         <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
-        <i className="fa-brands fa-icons"></i><Link to="/Marketing">Marketing</Link>
-        <i className="fa-solid fa-icons"></i><Link to="/IT">ITPage</Link>
-        <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
+        <i className="fa-brands fa-icons"></i><Link to="/marketing">Marketing</Link>
+        <i className="fa-solid fa-icons"></i><Link to="/it-page">IT</Link>
+        <i className="fa-solid fa-user"></i><Link to="/hr-page">Human Resources</Link>
         <i className="fa-solid fa-laptop"></i><Link to="/reports">Reports</Link>
         {/* <button 
           className="test-popup-button"

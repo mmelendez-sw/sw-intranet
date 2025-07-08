@@ -62,11 +62,11 @@ const App: React.FC = () => {
             element={<HomePage isAuthenticated={isAuthenticated} />}
           />
           <Route path="/acquisitions" element={<Acquisitions />} />
-          <Route path="/hr" element={<HRPage />} />
+          <Route path="/hr-page" element={<HRPage />} />
           <Route path="/origination" element={<Origination />} />
-          <Route path="/Legal" element={<Legal />}/>
-          <Route path="/Marketing" element={<Marketing />} />
-          <Route path="/IT" element={<ITPage />} />
+          <Route path="/legal" element={<Legal />}/>
+          <Route path="/marketing" element={<Marketing />} />
+          <Route path="/it-page" element={<ITPage />} />
           <Route path="/s" element={<Reports />} />
 
         </Routes>
