@@ -8,6 +8,7 @@ import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import Acquisitions from './components/Acquisitions';
+import Origination from './components/Origination';
 import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
@@ -60,6 +61,7 @@ const App: React.FC = () => {
           />
           <Route path="/acquisitions" element={<Acquisitions />} />
           <Route path="/hr" element={<HRPage />} />
+          <Route path="/origination" element={<Origination />} />
           {/* <Route path="/it" element={<ITPage />} /> */}
           {/* <Route path="/origination" element={<HRPage />} />
           <Route path="/acqusitions" element={<ITPage />} /> */}
