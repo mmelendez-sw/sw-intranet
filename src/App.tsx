@@ -5,11 +5,11 @@ import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
-import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import Acquisitions from './components/Acquisitions';
 import Origination from './components/Origination';
 import Legal from './components/Legal';
+import ITPage from './components/ITPage';
 import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
@@ -64,13 +64,9 @@ const App: React.FC = () => {
           <Route path="/hr" element={<HRPage />} />
           <Route path="/origination" element={<Origination />} />
           <Route path="/Legal" element={<Legal />}/>
-          {/* <Route path="/it" element={<ITPage />} /> */}
-          {/* <Route path="/origination" element={<HRPage />} />
-          <Route path="/acqusitions" element={<ITPage />} /> */}
-          {/* <Route path="/legal" element={<HRPage />} />
-          <Route path="/marketing" element={<ITPage />} /> */}
+          <Route path="/IT" element={<ITPage />} />
           <Route path="/s" element={<Reports />} />
-          {/* <Route path="/s" element={<Technologys />} /> */}
+
         </Routes>
       </div>
     </Router>

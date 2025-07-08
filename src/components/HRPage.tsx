@@ -1,53 +1,19 @@
 import React from 'react';
 import '../styles/hr-page.css';
 
-const hrReports = [
-  {
-    title: 'TEST',
-    description: 'TEST',
-    link: '', 
-  },
-];
-
 const HRPage: React.FC = () => {
   return (
     <div className="home-page">
       <div className="outermost-container">
-        <div className="reports-content-container">
-          <div className="reports-text-bar">
-             <h2>Human Resources</h2>
-          </div>
-          <table className="reports-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-            {hrReports.map((report, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                <td>
-                  {report.title ? (
-                    report.link ? (
-                      <button 
-                        className="report-button" 
-                        onClick={() => window.open(report.link, '_blank')}
-                      >
-                        {report.title}
-                      </button>
-                    ) : (
-                      <button className="report-button">
-                        {report.title}
-                      </button>
-                    )
-                  ) : null}
-                </td>
-                <td style={{ height: '55px' }}>{report.description || ''}</td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
+        <div className="it-page">
+          <h1>HR Department</h1>
+          <p>Welcome to the HR Department!</p>
+          <ul>
+            <li>Technical Support</li>
+            <li>Software Guides</li>
+            <li>Hardware Policies</li>
+            <li>Contact IT Helpdesk</li>
+          </ul>
         </div>
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
