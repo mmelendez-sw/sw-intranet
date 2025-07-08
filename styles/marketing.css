@@ -1,0 +1,14 @@
+.marketing {
+  padding: 20px;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
+
+.marketing h1 {
+  color: var(--symphony-blue);
+}
+  
+.marketing ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
