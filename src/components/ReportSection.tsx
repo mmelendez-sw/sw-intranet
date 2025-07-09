@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/report-section.css';
+import '../../styles/report-section.css';
 
 const ReportSection: React.FC = () => {
   return (

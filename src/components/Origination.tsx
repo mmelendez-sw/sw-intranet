@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/origination.css';
+import '../../styles/origination.css';
 
 const Origination: React.FC = () => {
   return (

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/hr-page.css';
+import '../../styles/hr-page.css';
 
 const HRPage: React.FC = () => {
   return (

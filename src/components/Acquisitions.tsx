@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/acquisitions.css';
+import '../../styles/acquisitions.css';
 
 const Acquisitions: React.FC = () => {
   return (

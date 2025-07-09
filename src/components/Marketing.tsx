@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/marketing.css';
+import '../../styles/marketing.css';
 
 const Marketing: React.FC = () => {
   return (

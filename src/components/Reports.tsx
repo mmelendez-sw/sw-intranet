@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/reports.css';
+import '../../styles/reports.css';
 
 const reports = [
   {
