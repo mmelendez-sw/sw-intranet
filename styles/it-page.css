@@ -18,7 +18,7 @@
   flex-direction: row;
   justify-content: center;
   gap: 24px;
-  margin: 32px 0 32px 0;
+  margin: 12px 0 32px 0;
   width: 75%;
   margin-left: auto;
   margin-right: auto;
@@ -26,7 +26,7 @@
 
 .it-heading {
   margin-top: 32px;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
