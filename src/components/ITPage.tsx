@@ -5,6 +5,10 @@ const ITPage: React.FC = () => {
   return (
     <div className="home-page">
       <div className="outermost-container">
+        <div className="it-heading">
+          <h1>IT Department</h1>
+          <p>Welcome to the IT department</p>
+        </div>
         <div className="it-main-columns">
           <div className="it-column blue-column">
             <h2>Release Notes</h2>

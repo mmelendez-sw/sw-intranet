@@ -5,7 +5,7 @@
   }
   
   .it-page h1 {
-    color: var(--bold-blue);
+    color: var(#004E7C);
   }
   
   .it-page ul {
@@ -21,10 +21,29 @@
   margin: 32px 0;
 }
 
+.it-heading {
+  margin-top: 32px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.it-heading h1 {
+  color: #004E7C;
+  font-size: 2em;
+  margin-bottom: 0.2em;
+}
+
+.it-heading p {
+  color: #222;
+  font-size: 1.1em;
+  margin-top: 0;
+}
+
 .it-column {
   flex: 1;
   min-width: 220px;
-  border-radius: 12px;
+  /* border-radius: 12px; */
+  border-radius: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   margin: 0 8px;
   display: flex;
@@ -33,9 +52,10 @@
 }
 
 .blue-column {
-  background: #2563eb; /* blue-600 */
+  background: #004E7C;
   color: #fff;
   padding: 24px 18px 18px 18px;
+  border-radius: 0;
 }
 
 .blue-column h2 {
