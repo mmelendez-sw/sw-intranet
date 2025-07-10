@@ -5,15 +5,37 @@ const ITPage: React.FC = () => {
   return (
     <div className="home-page">
       <div className="outermost-container">
-        <div className="it-page">
-          <h1>IT Department</h1>
-          <p>Welcome to the IT Department! Here you will find resources related to technical support, guides, and IT updates.</p>
-          <ul>
-            <li>Technical Support</li>
-            <li>Software Guides</li>
-            <li>Hardware Policies</li>
-            <li>Contact IT Helpdesk</li>
-          </ul>
+        <div className="it-main-columns">
+          <div className="it-column blue-column">
+            <h2>Release Notes</h2>
+            <div className="column-content">
+              <ul>
+                <li>Version 2.1: Improved VPN stability</li>
+                <li>Version 2.0: New self-service password reset</li>
+                <li>Version 1.9: Security patch updates</li>
+              </ul>
+            </div>
+          </div>
+          <div className="it-column blue-column">
+            <h2>Future Projects</h2>
+            <div className="column-content">
+              <ul>
+                <li>Mobile Device Management rollout</li>
+                <li>Cloud file storage migration</li>
+                <li>New helpdesk ticketing system</li>
+              </ul>
+            </div>
+          </div>
+          <div className="it-column blue-column">
+            <h2>FAQ</h2>
+            <div className="column-content">
+              <ul>
+                <li>How do I reset my password?</li>
+                <li>Where can I download company software?</li>
+                <li>How do I contact IT support?</li>
+              </ul>
+            </div>
+          </div>
         </div>
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
