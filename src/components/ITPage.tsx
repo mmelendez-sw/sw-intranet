@@ -36,7 +36,7 @@ const ITPage: React.FC = () => {
               <ul>
                 <li>How do I reset my password?</li>
                 <li>Where can I download company software?</li>
-                <li>How do I contact IT support? 1</li>
+                <li>How do I contact IT support?</li>
               </ul>
             </div>
           </div>
