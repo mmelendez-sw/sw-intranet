@@ -97,9 +97,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
                     </li>
-                    <li>Check out Bernard's panel discussion on AI Powered Solutions for Wireless Construction and Deployment at the 2025 South Wireless Summit!</li>
+                    <li>Check out Bernard's panel discussion on Telecom Lease Buyouts and Aggregation at Connect (X)!</li>
                     <li>
-                      <a href="https://symphonytowersinfrastructure.com/recent-press/ai-powered-solutions-for-wireless-construction-and-deployment/" target="_blank" rel="noopener noreferrer">South Wireless Summit Panel Discussion</a>
+                      <a href="https://symphonytowersinfrastructure.com/recent-press/telecom-lease-buyouts-and-aggregation-balancing-growth-control-and-value-connect-x-2025/" target="_blank" rel="noopener noreferrer">Telecom Lease Buyouts and Aggregation: Balancing Growth, Control, and Value | Connect (X) 2025</a>
                     </li>
                     <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
                     <li>
