@@ -4,11 +4,11 @@ import '../../styles/it-page.css';
 const ITPage: React.FC = () => {
   return (
     <div className="home-page">
+      <div className="it-heading">
+        <h1>IT Department</h1>
+        <p>Welcome to the IT department</p>
+      </div>
       <div className="outermost-container">
-        <div className="it-heading">
-          <h1>IT Department</h1>
-          <p>Welcome to the IT department</p>
-        </div>
         <div className="it-main-columns">
           <div className="it-column blue-column">
             <h2>Release Notes</h2>
@@ -36,7 +36,7 @@ const ITPage: React.FC = () => {
               <ul>
                 <li>How do I reset my password?</li>
                 <li>Where can I download company software?</li>
-                <li>How do I contact IT support?</li>
+                <li>How do I contact IT support? 1</li>
               </ul>
             </div>
           </div>
