@@ -8,11 +8,33 @@ const ITPage: React.FC = () => {
         <h1>IT Department</h1>
         <p>Welcome to the IT department</p>
       </div>
-      <div className="outermost-container">
-        <div className="it-main-columns">
-          <div className="it-column blue-column">
+      <div className="outermost-container it-flex-layout">
+        {/* Left Anchor Sidebar */}
+        <nav className="it-anchor-sidebar">
+          <ul>
+            <li><a href="#technology-updates">Technology Updates</a></li>
+            <li><a href="#release-notes">Release Notes</a></li>
+            <li><a href="#future-projects">Future Projects</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#report-issue">Report Issue</a></li>
+            <li><a href="#it-resources">IT Resources</a></li>
+          </ul>
+        </nav>
+        {/* Main Tiles Grid */}
+        <div className="it-tiles-grid">
+          <div className="it-tile blue-tile" id="technology-updates">
+            <h2>Technology Updates</h2>
+            <div className="tile-content">
+              <ul>
+                <li>New VPN rollout next month</li>
+                <li>Security awareness training available</li>
+                <li>Cloud migration in progress</li>
+              </ul>
+            </div>
+          </div>
+          <div className="it-tile blue-tile" id="release-notes">
             <h2>Release Notes</h2>
-            <div className="column-content">
+            <div className="tile-content">
               <ul>
                 <li>Version 2.1: Improved VPN stability</li>
                 <li>Version 2.0: New self-service password reset</li>
@@ -20,9 +42,9 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-column blue-column">
+          <div className="it-tile blue-tile" id="future-projects">
             <h2>Future Projects</h2>
-            <div className="column-content">
+            <div className="tile-content">
               <ul>
                 <li>Mobile Device Management rollout</li>
                 <li>Cloud file storage migration</li>
@@ -30,9 +52,9 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-column blue-column">
+          <div className="it-tile blue-tile" id="faq">
             <h2>FAQ</h2>
-            <div className="column-content">
+            <div className="tile-content">
               <ul>
                 <li>How do I reset my password?</li>
                 <li>Where can I download company software?</li>
@@ -40,7 +62,25 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
+          <div className="it-tile blue-tile" id="report-issue">
+            <h2>Report Issue</h2>
+            <div className="tile-content">
+              <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
+              <p>Contact IT for urgent issues or submit a ticket.</p>
+            </div>
+          </div>
+          <div className="it-tile blue-tile" id="it-resources">
+            <h2>IT Resources</h2>
+            <div className="tile-content">
+              <ul>
+                <li>Software Downloads</li>
+                <li>IT Policies & Procedures</li>
+                <li>Helpful Guides</li>
+              </ul>
+            </div>
+          </div>
         </div>
+        {/* Right Sidebar (existing) */}
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>

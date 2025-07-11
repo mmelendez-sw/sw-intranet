@@ -80,15 +80,126 @@
   font-size: 1em;
 }
 
-@media (max-width: 900px) {
-  .it-main-columns {
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .it-column {
-    margin: 0;
+.it-flex-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.it-anchor-sidebar {
+  width: 180px;
+  min-width: 140px;
+  margin-right: 24px;
+  position: sticky;
+  top: 100px;
+  align-self: flex-start;
+  background: #f5f7fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 18px 10px;
+  height: fit-content;
+}
+
+.it-anchor-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.it-anchor-sidebar li {
+  margin-bottom: 16px;
+}
+
+.it-anchor-sidebar a {
+  color: #004E7C;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1em;
+  transition: color 0.2s;
+}
+
+.it-anchor-sidebar a:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.it-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 28px;
+  flex: 1;
+  margin-right: 24px;
+}
+
+.it-tile {
+  background: #004E7C;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 28px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 180px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
+}
+
+.it-tile:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+}
+
+.it-tile h2 {
+  color: #fff;
+  margin-bottom: 12px;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+
+.tile-content ul {
+  list-style: disc inside;
+  padding-left: 0;
+  margin: 0;
+}
+
+.tile-content li {
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 1em;
+}
+
+@media (max-width: 1200px) {
+  .it-tiles-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, auto);
   }
 }
+
+@media (max-width: 900px) {
+  .it-flex-layout {
+    flex-direction: column;
+  }
+  .it-anchor-sidebar {
+    width: 100%;
+    min-width: 0;
+    margin: 0 0 18px 0;
+    position: static;
+    border-radius: 8px;
+    box-shadow: none;
+    padding: 10px 0;
+    background: none;
+  }
+  .it-tiles-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
+    margin-right: 0;
+  }
+}
+
+/* Remove border-radius for sharp corners if desired */
+.it-tile, .blue-tile {
+  border-radius: 0;
+}
+
