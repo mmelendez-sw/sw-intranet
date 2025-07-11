@@ -123,39 +123,74 @@
   text-decoration: underline;
 }
 
+/* --- MODERN, EXPERIMENTAL TILE DESIGN --- */
+
 .it-tiles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 28px;
+  gap: 32px;
   flex: 1;
   margin-right: 24px;
 }
 
 .it-tile {
-  background: #004E7C;
+  position: relative;
+  background: linear-gradient(135deg, #2563eb 60%, #60a5fa 100%);
   color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 28px 20px 20px 20px;
+  border-radius: 18px;
+  box-shadow: 0 6px 24px rgba(30, 64, 175, 0.13), 0 1.5px 4px rgba(0,0,0,0.07);
+  padding: 32px 24px 24px 24px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 180px;
-  transition: transform 0.12s, box-shadow 0.12s;
-  position: relative;
+  min-height: 200px;
+  transition: transform 0.18s, box-shadow 0.18s;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.it-tile::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+  z-index: 0;
 }
 
 .it-tile:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+  transform: translateY(-6px) scale(1.025);
+  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.18), 0 2px 8px rgba(0,0,0,0.10);
 }
 
 .it-tile h2 {
   color: #fff;
-  margin-bottom: 12px;
-  font-size: 1.25em;
-  font-weight: 600;
+  margin-bottom: 14px;
+  font-size: 1.35em;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Example icons for each tile (FontAwesome or similar) */
+.it-tile[data-icon="updates"] h2::before { content: '\f0e7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+.it-tile[data-icon="release"] h2::before { content: '\f0ad'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+.it-tile[data-icon="future"] h2::before { content: '\f135'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+.it-tile[data-icon="faq"] h2::before { content: '\f059'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+.it-tile[data-icon="report"] h2::before { content: '\f071'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+.it-tile[data-icon="resources"] h2::before { content: '\f1c0'; font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+
+.tile-content {
+  z-index: 2;
+  position: relative;
+  width: 100%;
 }
 
 .tile-content ul {
@@ -166,17 +201,52 @@
 
 .tile-content li {
   margin-bottom: 10px;
-  color: #fff;
-  font-size: 1em;
+  color: #f3f6fa;
+  font-size: 1.05em;
 }
 
+.it-tile .home-button {
+  background: #fff;
+  color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  margin-top: 4px;
+  box-shadow: 0 1px 4px rgba(30, 64, 175, 0.08);
+  transition: background 0.15s, color 0.15s;
+}
+
+.it-tile .home-button:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Add a subtle card overlay for depth */
+.it-tile::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 38px;
+  background: linear-gradient(0deg, rgba(0,0,0,0.08) 60%, transparent 100%);
+  z-index: 1;
+}
+
+/* Colorful tile variants for visual interest */
+.it-tile:nth-child(1) { background: linear-gradient(135deg, #2563eb 60%, #60a5fa 100%); }
+.it-tile:nth-child(2) { background: linear-gradient(135deg, #059669 60%, #34d399 100%); }
+.it-tile:nth-child(3) { background: linear-gradient(135deg, #f59e42 60%, #fbbf24 100%); }
+.it-tile:nth-child(4) { background: linear-gradient(135deg, #a21caf 60%, #f472b6 100%); }
+.it-tile:nth-child(5) { background: linear-gradient(135deg, #e11d48 60%, #f87171 100%); }
+.it-tile:nth-child(6) { background: linear-gradient(135deg, #0e7490 60%, #38bdf8 100%); }
+
+/* Responsive grid */
 @media (max-width: 1200px) {
   .it-tiles-grid {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(3, auto);
   }
 }
-
 @media (max-width: 900px) {
   .it-flex-layout {
     flex-direction: column;
@@ -198,8 +268,20 @@
   }
 }
 
-/* Remove border-radius for sharp corners if desired */
+/* --- REVERT TO OLD STYLE --- */
+/*
 .it-tile, .blue-tile {
+  background: #004E7C;
+  color: #fff;
   border-radius: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 28px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 180px;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
 }
+*/
 

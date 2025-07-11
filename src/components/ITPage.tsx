@@ -22,8 +22,9 @@ const ITPage: React.FC = () => {
         </nav>
         {/* Main Tiles Grid */}
         <div className="it-tiles-grid">
-          <div className="it-tile blue-tile" id="technology-updates">
+          <div className="it-tile" data-icon="updates" id="technology-updates">
             <h2>Technology Updates</h2>
+            <span className="tile-badge">New</span>
             <div className="tile-content">
               <ul>
                 <li>New VPN rollout next month</li>
@@ -32,8 +33,9 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile blue-tile" id="release-notes">
+          <div className="it-tile" data-icon="release" id="release-notes">
             <h2>Release Notes</h2>
+            <span className="tile-badge">v2.1</span>
             <div className="tile-content">
               <ul>
                 <li>Version 2.1: Improved VPN stability</li>
@@ -42,8 +44,9 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile blue-tile" id="future-projects">
+          <div className="it-tile" data-icon="future" id="future-projects">
             <h2>Future Projects</h2>
+            <span className="tile-badge">Coming Soon</span>
             <div className="tile-content">
               <ul>
                 <li>Mobile Device Management rollout</li>
@@ -52,8 +55,9 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile blue-tile" id="faq">
+          <div className="it-tile" data-icon="faq" id="faq">
             <h2>FAQ</h2>
+            <span className="tile-badge">Help</span>
             <div className="tile-content">
               <ul>
                 <li>How do I reset my password?</li>
@@ -62,15 +66,17 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile blue-tile" id="report-issue">
+          <div className="it-tile" data-icon="report" id="report-issue">
             <h2>Report Issue</h2>
+            <span className="tile-badge">Action</span>
             <div className="tile-content">
               <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               <p>Contact IT for urgent issues or submit a ticket.</p>
             </div>
           </div>
-          <div className="it-tile blue-tile" id="it-resources">
+          <div className="it-tile" data-icon="resources" id="it-resources">
             <h2>IT Resources</h2>
+            <span className="tile-badge">Tools</span>
             <div className="tile-content">
               <ul>
                 <li>Software Downloads</li>
