@@ -118,26 +118,28 @@
 
 .it-anchor-sidebar a {
   display: block;
-  background: #005b99;
-  color: #fff;
-  border: none;
-  border-radius: 0;
-  padding: 10px;
-  font-weight: 600;
-  font-size: inherit;
-  text-align: center;
-  text-decoration: none;
-  box-shadow: none;
-  transition: background-color 0.3s ease;
-  cursor: pointer;
-  font-family: 'Barlow', sans-serif;
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 10px;
+  background: #005b99 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 10px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.3s ease !important;
+  cursor: pointer !important;
+  font-family: 'Barlow', sans-serif !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin-bottom: 10px !important;
+  height: auto !important;
+  line-height: normal !important;
 }
 
 .it-anchor-sidebar a:last-child {
-  margin-bottom: 0;
+  margin-bottom: 0 !important;
 }
 
 .it-anchor-sidebar a:hover, .it-anchor-sidebar a:focus {
