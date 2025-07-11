@@ -124,7 +124,7 @@
   border-radius: 0;
   padding: 10px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: inherit;
   text-align: center;
   text-decoration: none;
   box-shadow: none;
@@ -133,8 +133,11 @@
   font-family: 'Barlow', sans-serif;
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  line-height: 20px;
+  margin-bottom: 10px;
+}
+
+.it-anchor-sidebar a:last-child {
+  margin-bottom: 0;
 }
 
 .it-anchor-sidebar a:hover, .it-anchor-sidebar a:focus {
