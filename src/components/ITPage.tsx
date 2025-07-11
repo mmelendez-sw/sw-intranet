@@ -1,6 +1,13 @@
 import React from 'react';
 import '../../styles/it-page.css';
 
+const scrollToTile = (id: string) => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
 const ITPage: React.FC = () => {
   return (
     <div className="home-page">
@@ -12,12 +19,12 @@ const ITPage: React.FC = () => {
         {/* Left Anchor Sidebar */}
         <nav className="it-anchor-sidebar">
           <ul>
-            <li><a href="#technology-updates">Technology Updates</a></li>
-            <li><a href="#release-notes">Release Notes</a></li>
-            <li><a href="#future-projects">Future Projects</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#report-issue">Report Issue</a></li>
-            <li><a href="#it-resources">IT Resources</a></li>
+            <li><button className="home-button" onClick={() => scrollToTile('technology-updates')}>Technology Updates</button></li>
+            <li><button className="home-button" onClick={() => scrollToTile('release-notes')}>Release Notes</button></li>
+            <li><button className="home-button" onClick={() => scrollToTile('future-projects')}>Future Projects</button></li>
+            <li><button className="home-button" onClick={() => scrollToTile('faq')}>FAQ</button></li>
+            <li><button className="home-button" onClick={() => scrollToTile('report-issue')}>Report Issue</button></li>
+            <li><button className="home-button" onClick={() => scrollToTile('it-resources')}>IT Resources</button></li>
           </ul>
         </nav>
         {/* Main Tiles Grid */}
