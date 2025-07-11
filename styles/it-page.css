@@ -98,29 +98,45 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 18px 10px;
   height: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .it-anchor-sidebar ul {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .it-anchor-sidebar li {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .it-anchor-sidebar a {
-  color: #004E7C;
-  text-decoration: none;
-  font-weight: 500;
+  display: block;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 0;
+  font-weight: 600;
   font-size: 1em;
-  transition: color 0.2s;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(30, 64, 175, 0.08);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
 }
 
-.it-anchor-sidebar a:hover {
-  color: #2563eb;
-  text-decoration: underline;
+.it-anchor-sidebar a:hover, .it-anchor-sidebar a:focus {
+  background: #1746a0;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.13);
 }
 
 /* --- MODERN, EXPERIMENTAL TILE DESIGN --- */
