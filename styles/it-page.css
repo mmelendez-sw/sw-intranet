@@ -93,10 +93,10 @@
   position: sticky;
   top: 100px;
   align-self: flex-start;
-  background: #f5f7fa;
+  background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  padding: 18px 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  padding: 20px;
   height: fit-content;
   display: flex;
   flex-direction: column;
@@ -131,6 +131,10 @@
   transition: background-color 0.3s ease;
   cursor: pointer;
   font-family: 'Barlow', sans-serif;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  line-height: 20px;
 }
 
 .it-anchor-sidebar a:hover, .it-anchor-sidebar a:focus {
