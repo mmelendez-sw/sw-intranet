@@ -26,7 +26,7 @@
 
 .it-heading {
   margin-top: 48px;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
@@ -317,5 +317,19 @@
 
 .outermost-container.it-flex-layout {
   padding-left: 0 !important;
+}
+
+/* Center the button in the Report Issue tile */
+#report-issue .tile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+#report-issue .home-button {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
