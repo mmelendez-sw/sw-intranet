@@ -90,7 +90,8 @@
   width: 20%;
   min-width: 0;
   max-width: none;
-  margin-right: 24px;
+  margin-right: 0;
+  margin-left: 0;
   position: sticky;
   top: 100px;
   align-self: flex-start;
@@ -312,4 +313,8 @@
   position: relative;
 }
 */
+
+.outermost-container.it-flex-layout {
+  padding-left: 0 !important;
+}
 
