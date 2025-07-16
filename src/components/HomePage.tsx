@@ -1,5 +1,6 @@
 import React from 'react';
 import '../../styles/home-page.css';
+import { UserInfo } from '../types/user';
 
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
@@ -14,15 +15,15 @@ import img10 from '../../images/cityHarvestMeshProject.png'
 import img11 from '../../images/bowling2025.png'
 
 interface HomePageProps {
-  isAuthenticated: boolean;
+  userInfo: UserInfo;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
-  console.log('HomePage Render - isAuthenticated:', isAuthenticated);
+const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
+  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
 
   return (
-    <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      {isAuthenticated ? (
+    <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
+      {userInfo.isAuthenticated ? (
         <>
           <div className="content-container">
             <div className="grid-layout">
@@ -79,7 +80,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                       <strong>Platform Milestone:</strong> The new Site Tracker launches next week — it will integrate all Symphony and CTI data and serve as our unified system of record.
                     </li>
                     <li>
-                      <strong>Reminder:</strong> Look at your individual bonus goal forms — we’re well-positioned to achieve 105%+ bonuses if we maintain momentum. Let’s keep executing!
+                      <strong>Reminder:</strong> Look at your individual bonus goal forms — we're well-positioned to achieve 105%+ bonuses if we maintain momentum. Let's keep executing!
                     </li>
                   </ul>
                 </div>
@@ -137,7 +138,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>City Harvest Mesh Bag Project</h2>
                   <ul>
-                    <li>Thanks to everyone who joined the City Harvest mesh bag project! Together we made over 1,500 bags that will help deliver fresh produce to food pantries across NYC. We’re proud to make a difference—stay tuned for more ways to get involved!</li>
+                    <li>Thanks to everyone who joined the City Harvest mesh bag project! Together we made over 1,500 bags that will help deliver fresh produce to food pantries across NYC. We're proud to make a difference—stay tuned for more ways to get involved!</li>
                   </ul>
                 </div>
               </div>
@@ -161,7 +162,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
                 <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+                {userInfo.isEliteGroup ? (
+                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Elite Reports</button>
+                ) : (
+                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+                )}
                 <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
                 <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
                 <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
