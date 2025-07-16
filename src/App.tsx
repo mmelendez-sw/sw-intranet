@@ -7,15 +7,35 @@ import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import TechnologyReports from './components/Reports';
-import { loginRequest } from './authConfig';
+import { loginRequest, isEliteGroupMember } from './authConfig';
+import { UserInfo } from './types/user';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo>({
+    isAuthenticated: false,
+    isEliteGroup: false,
+  });
 
   const checkAuthentication = () => {
     const accounts = instance.getAllAccounts();
-    setIsAuthenticated(accounts.length > 0);
+    if (accounts.length > 0) {
+      const account = accounts[0];
+      const email = account.username || account.homeAccountId;
+      const isElite = email ? isEliteGroupMember(email) : false;
+      
+      setUserInfo({
+        isAuthenticated: true,
+        isEliteGroup: isElite,
+        email: email,
+        name: account.name,
+      });
+    } else {
+      setUserInfo({
+        isAuthenticated: false,
+        isEliteGroup: false,
+      });
+    }
   };
 
   useEffect(() => {
@@ -50,18 +70,18 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Header />
+      <Header userInfo={userInfo} />
       <div className="main-content">
         <Routes>
           <Route
             path="/"
-            element={<HomePage isAuthenticated={isAuthenticated} />}
+            element={<HomePage userInfo={userInfo} />}
           />
-          {isAuthenticated && (
+          {userInfo.isAuthenticated && (
             <>
               {/* <Route path="/hr" element={<HRPage />} />
               <Route path="/it" element={<ITPage />} /> */}
-              <Route path="/technology" element={<TechnologyReports />} />
+              <Route path="/technology" element={<TechnologyReports userInfo={userInfo} />} />
               {/* <Route path="/reports" element={<TechnologyReports />} /> */}
             </>
           )}

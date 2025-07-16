@@ -15,3 +15,15 @@ export const msalConfig = {
 export const loginRequest = {
   scopes: ["User.Read"], // Adjust the scopes based on what you need
 };
+
+// Elite group members - add email addresses here
+export const eliteGroupEmails = [
+  'admin@symphonywireless.com',
+  'manager@symphonywireless.com',
+  // Add more elite group email addresses as needed
+];
+
+// Function to check if user is in elite group
+export const isEliteGroupMember = (userEmail: string): boolean => {
+  return eliteGroupEmails.includes(userEmail.toLowerCase());
+};

@@ -1,5 +1,10 @@
 import React from 'react';
 import '../styles/reports.css';
+import { UserInfo } from '../types/user';
+
+interface TechnologyReportsProps {
+  userInfo: UserInfo;
+}
 
 const reports = [
   {
@@ -60,13 +65,54 @@ const reports = [
       // {},  {},  {},  {},{},
 ];
 
-const TechnologyReports: React.FC = () => {
+// Elite reports - additional reports for elite group members
+const eliteReports = [
+  {
+    title: 'Elite - Executive Dashboard',
+    description: 'Executive-level dashboard with advanced analytics and KPIs for leadership team.',
+    link: 'https://app.powerbi.com/links/executive-dashboard-elite',
+  },
+  {
+    title: 'Elite - Financial Performance Deep Dive',
+    description: 'Detailed financial analysis and projections for elite group members.',
+    link: 'https://app.powerbi.com/links/financial-deep-dive-elite',
+  },
+  {
+    title: 'Elite - Strategic Planning Reports',
+    description: 'Strategic planning and long-term forecasting reports for decision makers.',
+    link: 'https://app.powerbi.com/links/strategic-planning-elite',
+  },
+  {
+    title: 'Elite - Competitive Analysis',
+    description: 'Competitive intelligence and market analysis for elite group access.',
+    link: 'https://app.powerbi.com/links/competitive-analysis-elite',
+  },
+];
+
+const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
+  const displayReports = userInfo.isEliteGroup ? [...reports, ...eliteReports] : reports;
+  const pageTitle = userInfo.isEliteGroup 
+    ? 'Symphony Towers Infrastructure Elite Status Reports' 
+    : 'Symphony Towers Infrastructure Status Reports';
+
   return (
     <div className="home-page">
       <div className="outermost-container">
         <div className="reports-content-container">
           <div className="reports-text-bar">
-             <h2>Symphony Towers Infrastructure Status Reports</h2>
+             <h2>{pageTitle}</h2>
+             {userInfo.isEliteGroup && (
+               <div style={{ 
+                 backgroundColor: '#FFD700', 
+                 color: '#000', 
+                 padding: '10px', 
+                 borderRadius: '5px', 
+                 marginTop: '10px',
+                 fontWeight: 'bold'
+               }}>
+                 ⭐ Elite Access - You have access to exclusive reports and analytics
+               </div>
+             )}
           </div>
           <table className="reports-table">
             <thead>
@@ -76,7 +122,7 @@ const TechnologyReports: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-            {reports.map((report, index) => (
+            {displayReports.map((report, index) => (
               <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
                 <td>
                   {report.title ? (
@@ -113,7 +159,11 @@ const TechnologyReports: React.FC = () => {
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
             <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
-            <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+            {userInfo.isEliteGroup ? (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Elite Reports</button>
+            ) : (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+            )}
             <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
             <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
             <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
