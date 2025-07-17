@@ -24,14 +24,20 @@ const App: React.FC = () => {
       const account = accounts[0];
       const email = account.username || account.homeAccountId;
       
+      console.log('🔍 Checking authentication for:', email);
+      
       // Check group membership asynchronously
       let isElite = false;
       try {
+        console.log('🔍 Checking elite group membership...');
         isElite = await isEliteGroupMember(instance);
+        console.log('🔍 Elite group membership result:', isElite);
       } catch (error) {
-        console.error('Error checking elite group membership:', error);
+        console.error('❌ Error checking elite group membership:', error);
         isElite = false;
       }
+      
+      console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, email, name: account.name });
       
       setUserInfo({
         isAuthenticated: true,
@@ -40,6 +46,7 @@ const App: React.FC = () => {
         name: account.name,
       });
     } else {
+      console.log('🔍 No accounts found, setting unauthenticated state');
       setUserInfo({
         isAuthenticated: false,
         isEliteGroup: false,
@@ -82,9 +89,17 @@ const App: React.FC = () => {
     if (userInfo.isAuthenticated) {
       // Add this to window for debugging
       (window as any).debugGroups = () => getGroupIds(instance);
+      (window as any).debugUserState = () => {
+        console.log('🔍 Current user state:', userInfo);
+        console.log('🔍 Is authenticated:', userInfo.isAuthenticated);
+        console.log('🔍 Is elite group:', userInfo.isEliteGroup);
+        console.log('🔍 User email:', userInfo.email);
+        console.log('🔍 User name:', userInfo.name);
+      };
       console.log('🔍 To find your group ID, run: window.debugGroups() in the console');
+      console.log('🔍 To check current user state, run: window.debugUserState() in the console');
     }
-  }, [userInfo.isAuthenticated, instance]);
+  }, [userInfo.isAuthenticated, instance, userInfo]);
 
   return (
     <Router>
