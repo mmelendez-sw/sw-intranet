@@ -13,5 +13,36 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-  scopes: ["User.Read"], // Adjust the scopes based on what you need
+  scopes: ["User.Read", "GroupMember.Read.All"], // Added GroupMember.Read.All for RBAC
+};
+
+// IntranetExecs security group ID
+export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
+
+// Function to check if user is in elite group using Microsoft Graph API
+export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> => {
+  try {
+    const graphScopes = ["User.Read", "GroupMember.Read.All"];
+    const accessToken = await msalInstance.acquireTokenSilent({ scopes: graphScopes });
+    
+    const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
+      headers: {
+        Authorization: `Bearer ${accessToken.accessToken}`,
+      },
+    });
+    
+    if (!res.ok) {
+      console.error('Failed to fetch group membership:', res.status, res.statusText);
+      return false;
+    }
+    
+    const groups = await res.json();
+    const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
+    
+    console.log('User group membership check:', { isInGroup, groups: groups.value });
+    return isInGroup;
+  } catch (error) {
+    console.error('Error checking group membership:', error);
+    return false;
+  }
 };

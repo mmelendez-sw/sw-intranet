@@ -7,9 +7,14 @@ import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
+import { UserInfo } from '../types/user';
 // import ImagePopup from './ImagePopup';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  userInfo: UserInfo;
+}
+
+const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -99,6 +104,16 @@ const Header: React.FC = () => {
               }}
             >
               Welcome, {accounts[0]?.name?.split(' ')[0]}!{' '}
+              {userInfo.isEliteGroup && (
+                <span style={{ 
+                  fontSize: '0.8em', 
+                  color: '#FFD700', 
+                  marginLeft: '5px',
+                  fontWeight: 'bold'
+                }}>
+                  ⭐ Elite
+                </span>
+              )}
               <i
                 className={`fa-solid fa-caret-down ${
                   isDropdownOpen ? 'open' : ''
