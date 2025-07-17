@@ -9,6 +9,7 @@ import ITPage from './components/ITPage';
 import TechnologyReports from './components/Reports';
 import { loginRequest, isEliteGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
+import { getGroupIds } from './utils/getGroupId';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
@@ -17,12 +18,20 @@ const App: React.FC = () => {
     isEliteGroup: false,
   });
 
-  const checkAuthentication = () => {
+  const checkAuthentication = async () => {
     const accounts = instance.getAllAccounts();
     if (accounts.length > 0) {
       const account = accounts[0];
       const email = account.username || account.homeAccountId;
-      const isElite = email ? isEliteGroupMember(email) : false;
+      
+      // Check group membership asynchronously
+      let isElite = false;
+      try {
+        isElite = await isEliteGroupMember(instance);
+      } catch (error) {
+        console.error('Error checking elite group membership:', error);
+        isElite = false;
+      }
       
       setUserInfo({
         isAuthenticated: true,
@@ -67,6 +76,15 @@ const App: React.FC = () => {
       }
     };
   }, [instance]);
+
+  // Temporary debug function - remove after getting the group ID
+  useEffect(() => {
+    if (userInfo.isAuthenticated) {
+      // Add this to window for debugging
+      (window as any).debugGroups = () => getGroupIds(instance);
+      console.log('🔍 To find your group ID, run: window.debugGroups() in the console');
+    }
+  }, [userInfo.isAuthenticated, instance]);
 
   return (
     <Router>
