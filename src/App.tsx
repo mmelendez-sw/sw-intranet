@@ -26,26 +26,47 @@ const App: React.FC = () => {
       
       console.log('🔍 Checking authentication for:', email);
       
-      // Check group membership asynchronously
+      // Check if we have cached elite status for this user
+      const cachedEliteStatus = localStorage.getItem(`elite_status_${email}`);
+      const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
       let isElite = false;
-      let retryCount = 0;
-      const maxRetries = 3;
       
-      while (retryCount < maxRetries && !isElite) {
-        try {
-          console.log('🔍 Checking elite group membership (attempt', retryCount + 1, ')...');
-          isElite = await isEliteGroupMember(instance);
-          console.log('🔍 Elite group membership result:', isElite);
-          break; // Success, exit retry loop
-        } catch (error) {
-          console.error('❌ Error checking elite group membership (attempt', retryCount + 1, '):', error);
-          retryCount++;
-          if (retryCount < maxRetries) {
-            console.log('🔍 Retrying in 2 seconds...');
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          } else {
-            console.log('🔍 Max retries reached, defaulting to non-elite');
-            isElite = false;
+      // Check if cache is still valid (24 hours)
+      const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
+      
+      if (cachedEliteStatus && cacheValid) {
+        isElite = cachedEliteStatus === 'true';
+        console.log('🔍 Using cached elite status:', isElite);
+      } else {
+        // Check group membership asynchronously
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries && !isElite) {
+          try {
+            console.log('🔍 Checking elite group membership (attempt', retryCount + 1, ')...');
+            isElite = await isEliteGroupMember(instance);
+            console.log('🔍 Elite group membership result:', isElite);
+            
+            // Cache the result with timestamp
+            localStorage.setItem(`elite_status_${email}`, isElite.toString());
+            localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
+            console.log('🔍 Cached elite status:', isElite);
+            
+            break; // Success, exit retry loop
+          } catch (error) {
+            console.error('❌ Error checking elite group membership (attempt', retryCount + 1, '):', error);
+            retryCount++;
+            if (retryCount < maxRetries) {
+              console.log('🔍 Retrying in 2 seconds...');
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            } else {
+              console.log('🔍 Max retries reached, defaulting to non-elite');
+              isElite = false;
+              // Cache the fallback result
+              localStorage.setItem(`elite_status_${email}`, 'false');
+              localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
+            }
           }
         }
       }
@@ -109,8 +130,24 @@ const App: React.FC = () => {
         console.log('🔍 User email:', userInfo.email);
         console.log('🔍 User name:', userInfo.name);
       };
+      (window as any).refreshEliteStatus = async () => {
+        console.log('🔍 Manually refreshing elite status...');
+        if (userInfo.email) {
+          localStorage.removeItem(`elite_status_${userInfo.email}`);
+          console.log('🔍 Cleared cached elite status');
+        }
+        await checkAuthentication();
+      };
+      (window as any).clearEliteCache = () => {
+        if (userInfo.email) {
+          localStorage.removeItem(`elite_status_${userInfo.email}`);
+          console.log('🔍 Cleared elite status cache for:', userInfo.email);
+        }
+      };
       console.log('🔍 To find your group ID, run: window.debugGroups() in the console');
       console.log('🔍 To check current user state, run: window.debugUserState() in the console');
+      console.log('🔍 To refresh elite status, run: window.refreshEliteStatus() in the console');
+      console.log('🔍 To clear elite cache, run: window.clearEliteCache() in the console');
     }
   }, [userInfo.isAuthenticated, instance, userInfo]);
 
