@@ -34,10 +34,19 @@ const App: React.FC = () => {
       // Check if cache is still valid (24 hours)
       const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
       
+      console.log('🔍 Cache check:', { 
+        cachedEliteStatus, 
+        cachedTimestamp, 
+        cacheValid, 
+        currentTime: Date.now(),
+        cacheAge: cachedTimestamp ? Date.now() - parseInt(cachedTimestamp) : 'N/A'
+      });
+      
       if (cachedEliteStatus && cacheValid) {
         isElite = cachedEliteStatus === 'true';
         console.log('🔍 Using cached elite status:', isElite);
       } else {
+        console.log('🔍 Cache invalid or missing, checking group membership...');
         // Check group membership asynchronously
         let retryCount = 0;
         const maxRetries = 3;
@@ -71,6 +80,7 @@ const App: React.FC = () => {
         }
       }
       
+      console.log('🔍 Final elite status:', isElite);
       console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, email, name: account.name });
       
       setUserInfo({
@@ -134,6 +144,7 @@ const App: React.FC = () => {
         console.log('🔍 Manually refreshing elite status...');
         if (userInfo.email) {
           localStorage.removeItem(`elite_status_${userInfo.email}`);
+          localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
           console.log('🔍 Cleared cached elite status');
         }
         await checkAuthentication();
@@ -141,13 +152,42 @@ const App: React.FC = () => {
       (window as any).clearEliteCache = () => {
         if (userInfo.email) {
           localStorage.removeItem(`elite_status_${userInfo.email}`);
+          localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
           console.log('🔍 Cleared elite status cache for:', userInfo.email);
+        }
+      };
+      (window as any).forceEliteCheck = async () => {
+        console.log('🔍 Force checking elite status (bypassing cache)...');
+        const accounts = instance.getAllAccounts();
+        if (accounts.length > 0) {
+          const account = accounts[0];
+          const email = account.username || account.homeAccountId;
+          
+          try {
+            console.log('🔍 Force checking group membership for:', email);
+            const isElite = await isEliteGroupMember(instance);
+            console.log('🔍 Force check result:', isElite);
+            
+            // Update cache and state
+            localStorage.setItem(`elite_status_${email}`, isElite.toString());
+            localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
+            
+            setUserInfo(prev => ({
+              ...prev,
+              isEliteGroup: isElite
+            }));
+            
+            console.log('🔍 Updated user state with elite status:', isElite);
+          } catch (error) {
+            console.error('❌ Force check failed:', error);
+          }
         }
       };
       console.log('🔍 To find your group ID, run: window.debugGroups() in the console');
       console.log('🔍 To check current user state, run: window.debugUserState() in the console');
       console.log('🔍 To refresh elite status, run: window.refreshEliteStatus() in the console');
       console.log('🔍 To clear elite cache, run: window.clearEliteCache() in the console');
+      console.log('🔍 To force elite check, run: window.forceEliteCheck() in the console');
     }
   }, [userInfo.isAuthenticated, instance, userInfo]);
 
