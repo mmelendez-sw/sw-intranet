@@ -61,6 +61,7 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
       
       const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
       console.log('🔍 Checking against group ID:', INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Found matching group:', groups.value.find((g: any) => g.id === INTRANET_EXECS_GROUP_ID));
       console.log('🔍 Is in elite group:', isInGroup);
       
       return isInGroup;
@@ -91,6 +92,7 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
       
       const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
       console.log('🔍 Checking against group ID:', INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Found matching group:', groups.value.find((g: any) => g.id === INTRANET_EXECS_GROUP_ID));
       console.log('🔍 Is in elite group:', isInGroup);
       
       return isInGroup;

@@ -41,8 +41,8 @@ export const getGroupIds = async (msalInstance: any) => {
       
       // Find the IntranetExecs group
       const intranetExecsGroup = groups.value.find((group: any) => 
-        group.displayName.toLowerCase().includes('intranetexecs') ||
-        group.displayName.toLowerCase().includes('intranet') && group.displayName.toLowerCase().includes('exec')
+        (group.displayName && group.displayName.toLowerCase().includes('intranetexecs')) ||
+        (group.displayName && group.displayName.toLowerCase().includes('intranet') && group.displayName.toLowerCase().includes('exec'))
       );
       
       if (intranetExecsGroup) {
@@ -83,8 +83,8 @@ export const getGroupIds = async (msalInstance: any) => {
       
       // Find the IntranetExecs group
       const intranetExecsGroup = groups.value.find((group: any) => 
-        group.displayName.toLowerCase().includes('intranetexecs') ||
-        group.displayName.toLowerCase().includes('intranet') && group.displayName.toLowerCase().includes('exec')
+        (group.displayName && group.displayName.toLowerCase().includes('intranetexecs')) ||
+        (group.displayName && group.displayName.toLowerCase().includes('intranet') && group.displayName.toLowerCase().includes('exec'))
       );
       
       if (intranetExecsGroup) {
