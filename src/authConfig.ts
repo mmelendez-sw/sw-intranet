@@ -36,33 +36,65 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
     
     const graphScopes = ["User.Read", "GroupMember.Read.All"];
     
-    // Acquire token with the active account
-    const accessToken = await msalInstance.acquireTokenSilent({ 
-      scopes: graphScopes,
-      account: activeAccount
-    });
-    
-    console.log('🔍 Got access token for Graph API');
-    
-    const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
-      headers: {
-        Authorization: `Bearer ${accessToken.accessToken}`,
-      },
-    });
-    
-    if (!res.ok) {
-      console.error('❌ Failed to fetch group membership:', res.status, res.statusText);
-      return false;
+    try {
+      // Try to acquire token silently first
+      const accessToken = await msalInstance.acquireTokenSilent({ 
+        scopes: graphScopes,
+        account: activeAccount
+      });
+      
+      console.log('🔍 Got access token for Graph API');
+      
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
+        headers: {
+          Authorization: `Bearer ${accessToken.accessToken}`,
+        },
+      });
+      
+      if (!res.ok) {
+        console.error('❌ Failed to fetch group membership:', res.status, res.statusText);
+        return false;
+      }
+      
+      const groups = await res.json();
+      console.log('🔍 User groups:', groups.value.map((g: any) => ({ name: g.displayName, id: g.id })));
+      
+      const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Checking against group ID:', INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Is in elite group:', isInGroup);
+      
+      return isInGroup;
+    } catch (silentError) {
+      console.log('🔍 Silent token acquisition failed, trying interactive login...');
+      
+      // If silent token acquisition fails, try interactive login
+      const accessToken = await msalInstance.acquireTokenPopup({ 
+        scopes: graphScopes,
+        account: activeAccount
+      });
+      
+      console.log('🔍 Got access token via interactive login');
+      
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
+        headers: {
+          Authorization: `Bearer ${accessToken.accessToken}`,
+        },
+      });
+      
+      if (!res.ok) {
+        console.error('❌ Failed to fetch group membership:', res.status, res.statusText);
+        return false;
+      }
+      
+      const groups = await res.json();
+      console.log('🔍 User groups:', groups.value.map((g: any) => ({ name: g.displayName, id: g.id })));
+      
+      const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Checking against group ID:', INTRANET_EXECS_GROUP_ID);
+      console.log('🔍 Is in elite group:', isInGroup);
+      
+      return isInGroup;
     }
-    
-    const groups = await res.json();
-    console.log('🔍 User groups:', groups.value.map((g: any) => ({ name: g.displayName, id: g.id })));
-    
-    const isInGroup = groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
-    console.log('🔍 Checking against group ID:', INTRANET_EXECS_GROUP_ID);
-    console.log('🔍 Is in elite group:', isInGroup);
-    
-    return isInGroup;
   } catch (error) {
     console.error('❌ Error checking group membership:', error);
     return false;
