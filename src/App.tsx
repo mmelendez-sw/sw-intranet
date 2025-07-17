@@ -47,6 +47,10 @@ const App: React.FC = () => {
         console.log('🔍 Using cached elite status:', isElite);
       } else {
         console.log('🔍 Cache invalid or missing, checking group membership...');
+        
+        // Wait a bit to ensure MSAL is fully initialized
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Check group membership asynchronously
         let retryCount = 0;
         const maxRetries = 3;
@@ -127,6 +131,18 @@ const App: React.FC = () => {
       }
     };
   }, [instance]);
+
+  // Additional effect to ensure group membership is checked after initial render
+  useEffect(() => {
+    if (userInfo.isAuthenticated && !userInfo.isEliteGroup) {
+      console.log('🔍 User authenticated but elite status not set, checking group membership...');
+      const timer = setTimeout(async () => {
+        await checkAuthentication();
+      }, 1000); // Wait 1 second after initial render
+      
+      return () => clearTimeout(timer);
+    }
+  }, [userInfo.isAuthenticated, userInfo.isEliteGroup]);
 
   // Temporary debug function - remove after getting the group ID
   useEffect(() => {
