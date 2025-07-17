@@ -3,8 +3,21 @@
 
 export const getGroupIds = async (msalInstance: any) => {
   try {
+    // Get the active account
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) {
+      console.log('❌ No accounts found, please log in first');
+      return;
+    }
+    
+    const activeAccount = accounts[0];
+    console.log('🔍 Using account:', activeAccount.username);
+    
     const graphScopes = ["User.Read", "GroupMember.Read.All"];
-    const accessToken = await msalInstance.acquireTokenSilent({ scopes: graphScopes });
+    const accessToken = await msalInstance.acquireTokenSilent({ 
+      scopes: graphScopes,
+      account: activeAccount
+    });
     
     const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
       headers: {

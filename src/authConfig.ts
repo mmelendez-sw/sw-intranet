@@ -23,8 +23,25 @@ export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> => {
   try {
     console.log('🔍 Starting elite group membership check...');
+    
+    // Get the active account
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) {
+      console.log('🔍 No accounts found, user not authenticated');
+      return false;
+    }
+    
+    const activeAccount = accounts[0];
+    console.log('🔍 Active account:', activeAccount.username);
+    
     const graphScopes = ["User.Read", "GroupMember.Read.All"];
-    const accessToken = await msalInstance.acquireTokenSilent({ scopes: graphScopes });
+    
+    // Acquire token with the active account
+    const accessToken = await msalInstance.acquireTokenSilent({ 
+      scopes: graphScopes,
+      account: activeAccount
+    });
+    
     console.log('🔍 Got access token for Graph API');
     
     const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
