@@ -18,9 +18,9 @@ export const getGroupIds = async (msalInstance: any) => {
     }
     
     const groups = await res.json();
-    console.log('Your group memberships:');
+    console.log('🔍 Your group memberships:');
     groups.value.forEach((group: any) => {
-      console.log(`Group: ${group.displayName} (${group.id})`);
+      console.log(`- ${group.displayName} (${group.id})`);
     });
     
     // Find the IntranetExecs group
@@ -31,13 +31,11 @@ export const getGroupIds = async (msalInstance: any) => {
     
     if (intranetExecsGroup) {
       console.log(`\n🎯 Found IntranetExecs group: ${intranetExecsGroup.displayName} (${intranetExecsGroup.id})`);
-      console.log(`\nCopy this ID to your authConfig.ts file:`);
+      console.log(`\n📋 Copy this line to your authConfig.ts file:`);
       console.log(`export const INTRANET_EXECS_GROUP_ID = '${intranetExecsGroup.id}';`);
     } else {
-      console.log('\n❌ IntranetExecs group not found. Available groups:');
-      groups.value.forEach((group: any) => {
-        console.log(`- ${group.displayName} (${group.id})`);
-      });
+      console.log('\n❌ IntranetExecs group not found in your memberships.');
+      console.log('Make sure you are a member of the IntranetExecs security group.');
     }
   } catch (error) {
     console.error('Error fetching group memberships:', error);

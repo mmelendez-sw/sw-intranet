@@ -16,8 +16,8 @@ export const loginRequest = {
   scopes: ["User.Read", "GroupMember.Read.All"], // Added GroupMember.Read.All for RBAC
 };
 
-// IntranetExecs security group ID - you'll need to replace this with the actual group ID
-export const INTRANET_EXECS_GROUP_ID = 'YOUR_SECURITY_GROUP_ID_HERE';
+// IntranetExecs security group ID
+export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 
 // Function to check if user is in elite group using Microsoft Graph API
 export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> => {
