@@ -28,13 +28,26 @@ const App: React.FC = () => {
       
       // Check group membership asynchronously
       let isElite = false;
-      try {
-        console.log('🔍 Checking elite group membership...');
-        isElite = await isEliteGroupMember(instance);
-        console.log('🔍 Elite group membership result:', isElite);
-      } catch (error) {
-        console.error('❌ Error checking elite group membership:', error);
-        isElite = false;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries && !isElite) {
+        try {
+          console.log('🔍 Checking elite group membership (attempt', retryCount + 1, ')...');
+          isElite = await isEliteGroupMember(instance);
+          console.log('🔍 Elite group membership result:', isElite);
+          break; // Success, exit retry loop
+        } catch (error) {
+          console.error('❌ Error checking elite group membership (attempt', retryCount + 1, '):', error);
+          retryCount++;
+          if (retryCount < maxRetries) {
+            console.log('🔍 Retrying in 2 seconds...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+            console.log('🔍 Max retries reached, defaulting to non-elite');
+            isElite = false;
+          }
+        }
       }
       
       console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, email, name: account.name });
