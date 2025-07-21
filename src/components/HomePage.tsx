@@ -18,6 +18,7 @@ interface HomePageProps {
 const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
   console.log('HomePage Render - isAuthenticated:', isAuthenticated);
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  const chartOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = powerbiContainerRef.current;
@@ -37,6 +38,24 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const overlay = chartOverlayRef.current;
+    if (!overlay) return;
+    const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
+      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+        e.preventDefault();
+      }
+    };
+    overlay.addEventListener('wheel', preventZoom, { passive: false });
+    overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+    overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+    return () => {
+      overlay.removeEventListener('wheel', preventZoom);
+      overlay.removeEventListener('gesturestart', preventZoom as EventListener);
+      overlay.removeEventListener('gesturechange', preventZoom as EventListener);
+    };
+  }, []);
+
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
@@ -46,20 +65,20 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '1000px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative' }}
+                style={{ width: '1100px', height: '660px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
               >
                 <iframe
                   title="Company Progress"
-                  width="1000"
-                  height="550"
+                  width="1100"
+                  height="660"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', pointerEvents: 'none' }}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.2)', transformOrigin: 'top left' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events only on chart area */}
-                <div style={{ position: 'absolute', top: '100px', left: 0, width: '1000px', height: '450px', zIndex: 2, background: 'transparent', pointerEvents: 'auto' }}></div>
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '120px', left: 0, width: '1100px', height: '540px', zIndex: 2, background: 'transparent', pointerEvents: 'auto' }}></div>
               </div>
               <div className="grid-layout">
                 {/* Card 1 */}
