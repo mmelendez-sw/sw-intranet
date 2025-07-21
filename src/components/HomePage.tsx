@@ -22,20 +22,20 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
         <>
-          {/* Power BI Report Embed */}
-          <div className="powerbi-embed-container" style={{ width: '100%', maxWidth: '1000px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-            <iframe
-              title="Company Progress"
-              width="100%"
-              height="500"
-              src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
-              frameBorder="0"
-              allowFullScreen={false}
-              style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block' }}
-            ></iframe>
-          </div>
           <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div className="main-content" style={{ flex: 1 }}>
+              {/* Power BI Report Embed */}
+              <div className="powerbi-embed-container" style={{ width: '100%', maxWidth: '100%', margin: '0 0 32px 0', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                <iframe
+                  title="Company Progress"
+                  width="100%"
+                  height="500"
+                  src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
+                  frameBorder="0"
+                  allowFullScreen={false}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block' }}
+                ></iframe>
+              </div>
               <div className="grid-layout">
                 {/* Card 1 */}
                 <div className="card odd-card">
@@ -139,7 +139,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
             </div>
-            <aside className="sidebar sidebar-narrow">
+            <aside className="sidebar sidebar-narrow" style={{ padding: '28px 24px', minWidth: '260px', maxWidth: '340px' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
