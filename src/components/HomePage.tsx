@@ -77,8 +77,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.03)', transformOrigin: 'top left' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
-                {/* Glass pane overlay to block pointer/zoom events over chart and button group, but not block clicks */}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '50px', left: 0, width: '1200px', height: '630px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '160px', left: 0, width: '1200px', height: '520px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
               <div className="grid-layout">
                 {/* Card 1 */}
