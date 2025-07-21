@@ -31,7 +31,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
               frameBorder="0"
               allowFullScreen={true}
-              style={{ border: '1px solid #ccc', borderRadius: '8px', background: '#fff', transform: 'scale(1.5)', transformOrigin: 'top left', position: 'relative', left: '-250px', top: '-120px' }}
+              style={{ border: '1px solid #ccc', borderRadius: '8px', background: '#fff', transform: 'scale(1.3)', transformOrigin: 'top left', position: 'relative', left: '-180px', top: '-120px' }}
             ></iframe>
           </div>
           <div className="content-container">
