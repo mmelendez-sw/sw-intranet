@@ -65,20 +65,20 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '1100px', height: '660px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
+                style={{ width: '1200px', height: '700px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
               >
                 <iframe
                   title="Company Progress"
-                  width="1100"
-                  height="660"
+                  width="1200"
+                  height="700"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.08)', transformOrigin: 'top left' }}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.03)', transformOrigin: 'top left' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
-                {/* Glass pane overlay to block pointer/zoom events over chart and button group */}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '40px', left: 0, width: '1100px', height: '600px', zIndex: 2, background: 'transparent', pointerEvents: 'auto' }}></div>
+                {/* Glass pane overlay to block pointer/zoom events over chart and button group, but not block clicks */}
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '50px', left: 0, width: '1200px', height: '630px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
               <div className="grid-layout">
                 {/* Card 1 */}
