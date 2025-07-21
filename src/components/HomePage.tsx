@@ -28,7 +28,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               title="Company Progress"
               width="100%"
               height="541.25"
-              src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4"
+              src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&config=eyJjb21tYW5kQmFyIjp7InNob3dGaWx0ZXJQYW5lIjoiZmFsc2UiLCJzaG93U2lkZVBhbmUiOiJmYWxzZSIsInNob3dUb29sYmFyIjoiZmFsc2UiLCJzaG93VGFicyI6ImZhbHNlIn0sImZvcm1GYWN0b3IiOjAuOCwic2Nyb2xsQmVoYXZpb3IiOiJub25lIn0%3D"
               frameBorder="0"
               allowFullScreen={true}
               style={{ border: '1px solid #ccc', borderRadius: '8px', background: '#fff' }}
