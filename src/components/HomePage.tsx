@@ -139,7 +139,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
             </div>
-            <aside className="sidebar sidebar-narrow" style={{ padding: '28px 24px', minWidth: '260px', maxWidth: '340px' }}>
+            <aside className="sidebar sidebar-narrow" style={{ padding: '40px', minWidth: '360px', maxWidth: '480px' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
