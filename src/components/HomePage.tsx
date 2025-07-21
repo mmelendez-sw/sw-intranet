@@ -41,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
         <>
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginLeft: '-24px' }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginLeft: '-24px', display: 'grid', gridTemplateColumns: '1fr 540px', gap: '32px', alignItems: 'start' }}>
             <div className="main-content" style={{ flex: 1 }}>
               {/* Power BI Report Embed */}
               <div
@@ -163,7 +163,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
             </div>
-            <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '500px', maxWidth: '600px', boxSizing: 'border-box', marginLeft: '-24px' }}>
+            <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '500px', maxWidth: '600px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '0', marginTop: '24px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
