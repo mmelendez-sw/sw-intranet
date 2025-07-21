@@ -25,10 +25,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div className="main-content" style={{ flex: 1 }}>
               {/* Power BI Report Embed */}
-              <div className="powerbi-embed-container" style={{ width: '100%', maxWidth: '100%', margin: '0 0 32px 0', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+              <div className="powerbi-embed-container" style={{ width: '900px', margin: '0 auto 32px auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center' }}>
                 <iframe
                   title="Company Progress"
-                  width="100%"
+                  width="900"
                   height="500"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
@@ -181,7 +181,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           <p>Please log in to access more features and content.</p>
         </div>
       )}
-      <footer className="footer">
+      <footer className="footer">git commit -am
         <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
       </footer>
     </div>
