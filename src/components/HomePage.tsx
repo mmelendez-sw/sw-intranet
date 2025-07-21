@@ -41,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
         <>
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginLeft: '-24px' }}>
             <div className="main-content" style={{ flex: 1 }}>
               {/* Power BI Report Embed */}
               <div
