@@ -93,7 +93,7 @@ const TechnologyReports: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <aside className="sidebar sidebar-narrow" style={{ padding: '40px', minWidth: '360px', maxWidth: '480px' }}>
+        <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '420px', maxWidth: '540px', boxSizing: 'border-box' }}>
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>
