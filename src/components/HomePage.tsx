@@ -23,15 +23,15 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <>
           {/* Power BI Report Embed */}
-          <div className="powerbi-embed-container" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto 32px auto', padding: '16px 0' }}>
+          <div className="powerbi-embed-container zoomed-powerbi" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto 32px auto', padding: '16px 0', overflow: 'hidden', height: '480px' }}>
             <iframe
               title="Company Progress"
-              width="100%"
-              height="541.25"
-              src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&config=eyJjb21tYW5kQmFyIjp7InNob3dGaWx0ZXJQYW5lIjoiZmFsc2UiLCJzaG93U2lkZVBhbmUiOiJmYWxzZSIsInNob3dUb29sYmFyIjoiZmFsc2UiLCJzaG93VGFicyI6ImZhbHNlIn0sImZvcm1GYWN0b3IiOjAuOCwic2Nyb2xsQmVoYXZpb3IiOiJub25lIn0%3D"
+              width="1200px"
+              height="900px"
+              src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
               frameBorder="0"
               allowFullScreen={true}
-              style={{ border: '1px solid #ccc', borderRadius: '8px', background: '#fff' }}
+              style={{ border: '1px solid #ccc', borderRadius: '8px', background: '#fff', transform: 'scale(1.5)', transformOrigin: 'top left', position: 'relative', left: '-250px', top: '-120px' }}
             ></iframe>
           </div>
           <div className="content-container">
