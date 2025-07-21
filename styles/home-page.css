@@ -161,6 +161,22 @@
   border-radius: 8px;
 }
 
+.sidebar-narrow {
+  width: 260px;
+  min-width: 200px;
+  max-width: 300px;
+  margin-left: 24px;
+  padding: 0;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 200px;
+  max-width: 300px;
+  margin-left: 24px;
+  padding: 0;
+}
+
 /* Footer */
 .footer {
   text-align: center;
