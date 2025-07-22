@@ -59,9 +59,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
-        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '24px', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '12px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 0', maxWidth: '1200px', width: '1200px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 0', maxWidth: '1350px', width: '1350px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
@@ -81,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '100%', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1100px' }}>
+              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1250px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
