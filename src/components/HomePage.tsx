@@ -61,17 +61,17 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '24px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0', maxWidth: '1200px', width: '1200px', padding: 0 }}>
-            <div className="main-content" style={{ flex: 1 }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 0', maxWidth: '1200px', width: '1200px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '1200px', height: '700px', margin: '0 auto 0 auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
+                style={{ width: '1200px', height: '500px', margin: '0 auto 0 auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
               >
                 <iframe
                   title="Company Progress"
                   width="1200"
-                  height="700"
+                  height="500"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
@@ -79,9 +79,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '1200px', height: '400px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '1200px', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout">
+              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1100px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '500px', maxWidth: '600px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '0', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '400px', maxWidth: '480px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '32px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
