@@ -148,7 +148,7 @@
   border: none;
   padding: 10px;
   margin: 5px 0;
-  width: calc(100% - 16px);
+  width: 100%;
   cursor: pointer;
   transition: background-color 0.3s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
