@@ -59,8 +59,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
-        <>
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px auto', maxWidth: '1800px', display: 'grid', gridTemplateColumns: '1fr 540px', gap: '32px', alignItems: 'start' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '24px', width: '100%' }}>
+          {/* Main Content White Box */}
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0', maxWidth: '1200px', width: '1200px', padding: 0 }}>
             <div className="main-content" style={{ flex: 1 }}>
               {/* Power BI Report Embed */}
               <div
@@ -183,7 +184,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
             </div>
-            <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '500px', maxWidth: '600px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '0', marginTop: '24px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)' }}>
+          </div>
+          {/* Sidebar White Box */}
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '500px', maxWidth: '600px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '0', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
@@ -217,8 +220,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
               </section>
             </aside>
-          </div>
-        </>
+        </div>
       ) : (
         <div className="unauthenticated-message">
           <h2>Welcome to the Symphony Towers Infrastructure Intranet!</h2>
