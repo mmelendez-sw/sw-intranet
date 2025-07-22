@@ -66,12 +66,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', height: '500px', margin: '0 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
+                style={{ width: '100%', height: '420px', margin: '0 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
                 <iframe
                   title="Company Progress"
                   width="100%"
-                  height="500"
+                  height="420"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
@@ -79,9 +79,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '100%', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '200px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px', marginTop: '-16px' }}>
+              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px', marginTop: '8px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
