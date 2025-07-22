@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '480px', maxWidth: '560px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '56px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '300px', maxWidth: '400px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '56px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
