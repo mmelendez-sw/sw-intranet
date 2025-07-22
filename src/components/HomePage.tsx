@@ -61,12 +61,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '6px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 30px', maxWidth: '1390px', width: '1390px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 50px', maxWidth: '1390px', width: '1390px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', height: '500px', margin: '0 0 32px 0', padding: 0, background: '#fff', border: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
+                style={{ width: '100%', height: '500px', margin: '0 0 32px 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
                 <iframe
                   title="Company Progress"
