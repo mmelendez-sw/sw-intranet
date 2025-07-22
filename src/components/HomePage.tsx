@@ -61,12 +61,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '6px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: 'none', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 30px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
+          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 0 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', height: '425px', margin: '0 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
+                style={{ width: '100%', height: '425px', margin: 0, padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
                 <iframe
                   title="Company Progress"
@@ -75,7 +75,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.6) translate(-20%, -15%)', transformOrigin: 'center center' }}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, -1%)', transformOrigin: 'center center' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '300px', maxWidth: '400px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '56px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '20px', marginTop: '0', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: '100%', borderRadius: '10px' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
