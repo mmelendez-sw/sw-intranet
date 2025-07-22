@@ -74,7 +74,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.03)', transformOrigin: 'top left' }}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.5)', transformOrigin: 'top left' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
