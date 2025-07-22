@@ -66,7 +66,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', height: '500px', margin: '0 0 32px 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
+                style={{ width: '100%', height: '500px', margin: '0 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
                 <iframe
                   title="Company Progress"
@@ -81,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '100%', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px' }}>
+              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px', marginTop: '-16px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
