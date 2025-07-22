@@ -61,12 +61,12 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '6px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 0 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
+          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 10px 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', height: '425px', margin: 0, padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
+                style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
                 <iframe
                   title="Company Progress"
@@ -81,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', marginTop: '8px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', padding: '0' }}>
+              <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '20px', marginTop: '0', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: '100%', borderRadius: '10px' }}>
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '10px', marginTop: '5px', marginBottom: '5px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: '100%', borderRadius: '10px' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
