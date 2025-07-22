@@ -66,20 +66,20 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               {/* Power BI Report Embed */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '1200px', height: '500px', margin: '0 auto 0 auto', padding: '16px 0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}
+                style={{ width: '1220px', height: '500px', margin: '0 auto 32px auto', padding: '0', background: '#fff', border: '1px solid #e0e0e0', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start' }}
               >
                 <iframe
                   title="Company Progress"
-                  width="1200"
+                  width="1220"
                   height="500"
                   src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
                   frameBorder="0"
                   allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.45) translate(-220px, -90px)', transformOrigin: 'top left' }}
+                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.5) translate(-220px, -60px)', transformOrigin: 'top left' }}
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 ></iframe>
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '1200px', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '1220px', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
               <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1100px' }}>
                 {/* Card 1 */}
@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '400px', maxWidth: '480px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '32px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
+          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '400px', maxWidth: '480px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '56px', marginTop: '40px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: 'fit-content' }}>
               <section className="quick-links">
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
