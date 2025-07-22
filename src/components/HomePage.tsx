@@ -81,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '260px', left: 0, width: '100%', height: '240px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
-              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px', marginTop: '-16px' }}>
+              <div className="grid-layout" style={{ margin: '0 auto', width: '100%', maxWidth: '1290px', marginTop: '8px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
