@@ -61,7 +61,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
       {isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '6px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 0', maxWidth: '1390px', width: '1390px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="content-container" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', background: '#fafbfc', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', margin: '40px 0 0 30px', maxWidth: '1390px', width: '1390px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
