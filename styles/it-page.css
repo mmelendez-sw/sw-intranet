@@ -35,21 +35,23 @@
 }
 
 .it-heading {
-  margin-top: 48px;
-  margin-bottom: 4px;
+  margin-top: 20px;
+  margin-bottom: -50px;
   text-align: center;
 }
 
 .it-heading h1 {
   color: #004E7C;
   font-size: 2em;
-  margin-bottom: 0.2em;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .it-heading p {
   color: #222;
   font-size: 1.1em;
   margin-top: 0;
+  margin-bottom: 0;
 }
 
 .it-column {
@@ -179,7 +181,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  min-height: 640px;
+  min-height: 320px;
   transition: transform 0.18s, box-shadow 0.18s;
   overflow: hidden;
   z-index: 1;
