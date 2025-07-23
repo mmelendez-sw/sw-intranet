@@ -5,12 +5,12 @@
 
 .it-page h1 {
   margin-top: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .it-page p {
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
 
 .it-page ul {
@@ -19,8 +19,8 @@
 }
 
 .it-page ul li {
-  height: 20px;
-  line-height: 20px;
+  height: 14px;
+  line-height: 14px;
 }
 
 .it-main-columns {
