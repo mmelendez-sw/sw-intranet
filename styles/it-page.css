@@ -1,17 +1,27 @@
+/* IT Page Styles */
 .it-page {
-    padding: 20px;
-    background-color: var(--light-gray);
-    border-radius: 5px;
-  }
-  
-  .it-page h1 {
-    color: var(#004E7C);
-  }
-  
-  .it-page ul {
-    list-style-type: disc;
-    margin-left: 20px;
-  }
+  margin-top: 12px;
+}
+
+.it-page h1 {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.it-page p {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.it-page ul {
+  margin-top: 0;
+  padding-left: 20px;
+}
+
+.it-page ul li {
+  height: 20px;
+  line-height: 20px;
+}
 
 .it-main-columns {
   display: flex;
