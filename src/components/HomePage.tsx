@@ -8,7 +8,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/run-pic.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/employee-appreciation.png'
+import img7 from '../../images/cityHarvestVolunteerEvent.jpg'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/earth-pic.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
@@ -36,7 +36,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     {/* <li>4/22-4/26: Earth Day Clean Up</li>
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                     {/* <li>6/19: Juneteenth</li> */}
-                    <li>9/1: Labor Day</li> 
+                    <li>8/14: City Harvest Volunteer Event</li>
+                    <li>9/1: Labor Day</li>
                     <li>11/27: Thanksgiving Day</li> 
                     <li>11/28: Day After Thanksgiving</li>
                     <li>12/4: Symphony Holiday Party</li>
@@ -98,10 +99,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
                     </li>
-                    <li>Check out Bernard's panel discussion on Telecom Lease Buyouts and Aggregation at Connect (X)!</li>
-                    <li>
-                      <a href="https://symphonytowersinfrastructure.com/recent-press/telecom-lease-buyouts-and-aggregation-balancing-growth-control-and-value-connect-x-2025/" target="_blank" rel="noopener noreferrer">Telecom Lease Buyouts and Aggregation: Balancing Growth, Control, and Value | Connect (X) 2025</a>
-                    </li>
                     <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
@@ -126,9 +123,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <div className="card odd-card">
                 <img src={img7} alt="Team Photo" className="card-image" />
                 <div className="card-text">
-                  <h2>Symphony Towers Infrastructure Team</h2>
+                  <h2>City Harvest Volunteer Event</h2>
                   <ul>
-                    <li>Happy Employee Appreciation Day!</li>
+                    <li>Come volunteer at NYC’s first and largest food rescue organization. We will be sorting
+bulk food donations into smaller, family-sized portions that can be easily distributed to
+soup kitchens and food pantries throughout the five boroughts.</li>
                   </ul>
                 </div>
               </div>
