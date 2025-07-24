@@ -1,38 +1,16 @@
 import React from 'react';
-import '../../styles/it-page.css';
+import '../../styles/home-page.css';
 
-const scrollToTile = (id: string) => {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-};
-
-const ITPage: React.FC = () => {
+const TechnologyPage: React.FC = () => {
   return (
-    <div className="home-page">
-      <div className="it-heading">
-        <h1>IT Department</h1>
-        <p>Welcome to the IT department</p>
-      </div>
-      <div className="outermost-container it-flex-layout">
-        {/* Left Anchor Sidebar */}
-        <nav className="it-anchor-sidebar">
-          <ul>
-            <li><button className="home-button" onClick={() => scrollToTile('technology-updates')}>Technology Updates</button></li>
-            <li><button className="home-button" onClick={() => scrollToTile('release-notes')}>Release Notes</button></li>
-            <li><button className="home-button" onClick={() => scrollToTile('future-projects')}>Future Projects</button></li>
-            <li><button className="home-button" onClick={() => scrollToTile('faq')}>FAQ</button></li>
-            <li><button className="home-button" onClick={() => scrollToTile('report-issue')}>Report Issue</button></li>
-            <li><button className="home-button" onClick={() => scrollToTile('it-resources')}>IT Resources</button></li>
-          </ul>
-        </nav>
-        {/* Main Tiles Grid */}
-        <div className="it-tiles-grid">
-          <div className="it-tile" data-icon="updates" id="technology-updates">
-            <h2>Technology Updates</h2>
-            <span className="tile-badge">New</span>
-            <div className="tile-content">
+    <div className="home-page technology-page authenticated">
+      <div className="content-container">
+        <h1 style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#003366', fontSize: '2.2em', marginBottom: '20px', marginTop: '20px', letterSpacing: '1px' }}>Technology</h1>
+        <div className="grid-layout" style={{ gridTemplateColumns: 'repeat(4, 1fr)', maxWidth: 1200 }}>
+          {/* Card 1 */}
+          <div className="card odd-card" style={{ minWidth: 350 }}>
+            <div className="card-text">
+              <h2>Technology Updates</h2>
               <ul>
                 <li>New VPN rollout next month</li>
                 <li>Security awareness training available</li>
@@ -40,10 +18,21 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile" data-icon="release" id="release-notes">
-            <h2>Release Notes</h2>
-            <span className="tile-badge">v2.1</span>
-            <div className="tile-content">
+          {/* Card 2 */}
+          <div className="card even-card" style={{ minWidth: 350 }}>
+            <div className="card-text">
+              <h2>Technology Resources</h2>
+              <ul>
+                <li>Software Downloads</li>
+                <li>Technology Policies & Procedures</li>
+                <li>Helpful Guides</li>
+              </ul>
+            </div>
+          </div>
+          {/* Card 3 */}
+          <div className="card odd-card" style={{ minWidth: 350 }}>
+            <div className="card-text">
+              <h2>Release Notes</h2>
               <ul>
                 <li>Version 2.1: Improved VPN stability</li>
                 <li>Version 2.0: New self-service password reset</li>
@@ -51,55 +40,24 @@ const ITPage: React.FC = () => {
               </ul>
             </div>
           </div>
-          <div className="it-tile" data-icon="future" id="future-projects">
-            <h2>Future Projects</h2>
-            <span className="tile-badge">Coming Soon</span>
-            <div className="tile-content">
-              <ul>
-                <li>Mobile Device Management rollout</li>
-                <li>Cloud file storage migration</li>
-                <li>New helpdesk ticketing system</li>
-              </ul>
-            </div>
-          </div>
-          <div className="it-tile" data-icon="faq" id="faq">
-            <h2>FAQ</h2>
-            <span className="tile-badge">Help</span>
-            <div className="tile-content">
+          {/* Card 4 */}
+          <div className="card even-card" style={{ minWidth: 350 }}>
+            <div className="card-text">
+              <h2>FAQ</h2>
               <ul>
                 <li>How do I reset my password?</li>
                 <li>Where can I download company software?</li>
-                <li>How do I contact IT support?</li>
-              </ul>
-            </div>
-          </div>
-          <div className="it-tile" data-icon="report" id="report-issue">
-            <h2>Report Issue</h2>
-            <span className="tile-badge">Action</span>
-            <div className="tile-content">
-              <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
-              <p>Contact IT for urgent issues or submit a ticket.</p>
-            </div>
-          </div>
-          <div className="it-tile" data-icon="resources" id="it-resources">
-            <h2>IT Resources</h2>
-            <span className="tile-badge">Tools</span>
-            <div className="tile-content">
-              <ul>
-                <li>Software Downloads</li>
-                <li>IT Policies & Procedures</li>
-                <li>Helpful Guides</li>
+                <li>How do I contact Technology support?</li>
               </ul>
             </div>
           </div>
         </div>
-        {/* Right Sidebar (existing) */}
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>
           <section className="updates">
-            <h2>IT Updates</h2>
+            <h2>Technology Updates</h2>
             <p>Do not click any phishing links</p>
           </section>
           <section className="quick-links">
@@ -131,4 +89,4 @@ const ITPage: React.FC = () => {
   );
 };
 
-export default ITPage;
+export default TechnologyPage;

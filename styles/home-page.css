@@ -5,8 +5,8 @@
 
 .content-container {
   display: grid;
-  grid-template-columns: 80% 20%; /* Main content takes 80%, sidebar 20% */
-  gap: 20px;
+  grid-template-columns: 3fr 1fr; /* Main content takes 3/4, sidebar 1/4 */
+  gap: 60px;
   padding: 10px;
   margin-top: 10px;
   max-width: 100%; /* Changed from 1400px to 100% */
@@ -99,9 +99,11 @@
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  height: 100%; /* Match the height of the content area */
-  position: sticky;
-  top: 20px;
+  width: 100%;
+  min-width: 240px;
+  max-width: 350px;
+  overflow-wrap: break-word;
+  margin-left: 30px;
 }
 
 .sidebar section {
@@ -209,6 +211,11 @@
     grid-template-columns: 1fr; /* Stack sidebar below content on smaller screens */
     max-width: 1200px; /* Limit width on medium screens */
   }
+  .sidebar {
+    max-width: 100%;
+    min-width: 0;
+    padding: 10px;
+  }
 
   .grid-layout {
     grid-template-columns: repeat(2, 1fr); /* Two cards per row on medium screens */
@@ -228,4 +235,16 @@
   .sidebar img {
     height: 150px;
   }
+}
+
+/* Move sidebar further right on Technology page only */
+.home-page.technology-page .sidebar {
+  margin-left: 200px;
+  margin-top: -50px;
+}
+
+/* Shift card grid to the right on Technology page only */
+.home-page.technology-page .grid-layout {
+  margin-left: 100px;
+  margin-top: -50px;
 }

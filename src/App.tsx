@@ -10,7 +10,7 @@ import Acquisitions from './components/Acquisitions';
 import Origination from './components/Origination';
 import Legal from './components/Legal';
 import Marketing from './components/Marketing';
-import ITPage from './components/ITPage';
+import TechnologyPage from './components/ITPage';
 import { loginRequest } from './authConfig';
 
 const App: React.FC = () => {
@@ -66,7 +66,7 @@ const App: React.FC = () => {
           <Route path="/origination" element={<Origination />} />
           <Route path="/legal" element={<Legal />}/>
           <Route path="/marketing" element={<Marketing />} />
-          <Route path="/it-page" element={<ITPage />} />
+          <Route path="/technology" element={<TechnologyPage />} />
           <Route path="/reports" element={<Reports />} />
 
         </Routes>

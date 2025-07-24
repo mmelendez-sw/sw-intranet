@@ -141,14 +141,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           </div>
         </div>
 
-        <aside className="sidebar">
+        <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
-          </section>
-          <section className="quick-links">
-            <h2>HR Updates</h2>
-            <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
-            <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
           </section>
           <section className="updates">
             <h2>IT Updates</h2>
@@ -157,13 +152,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
           <section className="quick-links">
             <h2>Quick Links</h2>
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-            <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
+            <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
+            <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
             <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
             <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
             <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
             <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-            <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+            <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button> 
           </section>
           <section className="updates">
             <h2>Exciting News</h2>
