@@ -121,13 +121,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </div>
               {/* Card 5 */}
               <div className="card odd-card">
-                <img src={img7} alt="Team Photo" className="card-image" />
+                <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
                 <div className="card-text">
                   <h2>City Harvest Volunteer Event</h2>
                   <ul>
                     <li>Come volunteer at NYC’s first and largest food rescue organization. We will be sorting
-bulk food donations into smaller, family-sized portions that can be easily distributed to
-soup kitchens and food pantries throughout the five boroughts.</li>
+                      bulk food donations into smaller, family-sized portions that can be easily distributed to
+                      soup kitchens and food pantries throughout the five boroughts.</li>
                   </ul>
                 </div>
               </div>
