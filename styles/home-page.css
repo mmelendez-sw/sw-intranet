@@ -294,7 +294,7 @@
 
 /* Move sidebar further right on Technology page only */
 .home-page.technology-page .sidebar {
-  margin-left: 150px;
+  margin-left: 130px;
 }
 
 /* Shift card grid to the right on Technology page only */
