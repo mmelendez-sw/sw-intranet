@@ -277,3 +277,14 @@
   display: block;
 }
 
+/* Layout overrides for Technology page */
+.technology-page .sidebar {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.technology-page .main-content {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+

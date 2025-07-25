@@ -5,8 +5,8 @@ const TechnologyPage: React.FC = () => {
   return (
     <div className="home-page technology-page authenticated">
       <div className="content-container">
-        <h1 style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#003366', fontSize: '2.2em', marginBottom: '20px', marginTop: '20px', letterSpacing: '1px' }}>Technology</h1>
-        <div className="grid-layout" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: 1200, gap: 40, marginLeft: 200 }}>
+        <div className="main-content">
+          <div className="grid-layout responsive-tech-grid">
           {/* Card 1 */}
           <div className="card odd-card" style={{ minHeight: 540 }}>
             <div className="card-text">
@@ -27,10 +27,17 @@ const TechnologyPage: React.FC = () => {
                 <li>Technology Policies & Procedures</li>
                 <li>Helpful Guides</li>
               </ul>
+              <button
+                className="home-button"
+                style={{ width: '40%', height: '10%', marginTop: '20px', marginLeft: '30%' }}
+                onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}
+              >
+                Reports
+              </button>
             </div>
           </div>
           {/* Card 3 */}
-          <div className="card odd-card blue-column" style={{ minHeight: 540 }}>
+          <div className="card even-card" style={{ minHeight: 540 }}>
             <div className="card-text">
               <h2>Release Notes</h2>
               <ul>
@@ -51,6 +58,7 @@ const TechnologyPage: React.FC = () => {
               </ul>
             </div>
           </div>
+        </div>
         </div>
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
