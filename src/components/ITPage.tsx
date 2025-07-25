@@ -6,9 +6,9 @@ const TechnologyPage: React.FC = () => {
     <div className="home-page technology-page authenticated">
       <div className="content-container">
         <h1 style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#003366', fontSize: '2.2em', marginBottom: '20px', marginTop: '20px', letterSpacing: '1px' }}>Technology</h1>
-        <div className="grid-layout" style={{ gridTemplateColumns: 'repeat(4, 1fr)', maxWidth: 1200 }}>
+        <div className="grid-layout" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: 1200, gap: 40, marginLeft: 200 }}>
           {/* Card 1 */}
-          <div className="card odd-card" style={{ minWidth: 350 }}>
+          <div className="card odd-card" style={{ minHeight: 540 }}>
             <div className="card-text">
               <h2>Technology Updates</h2>
               <ul>
@@ -19,7 +19,7 @@ const TechnologyPage: React.FC = () => {
             </div>
           </div>
           {/* Card 2 */}
-          <div className="card even-card" style={{ minWidth: 350 }}>
+          <div className="card even-card blue-column" style={{ minHeight: 540 }}>
             <div className="card-text">
               <h2>Technology Resources</h2>
               <ul>
@@ -30,7 +30,7 @@ const TechnologyPage: React.FC = () => {
             </div>
           </div>
           {/* Card 3 */}
-          <div className="card odd-card" style={{ minWidth: 350 }}>
+          <div className="card odd-card blue-column" style={{ minHeight: 540 }}>
             <div className="card-text">
               <h2>Release Notes</h2>
               <ul>
@@ -41,7 +41,7 @@ const TechnologyPage: React.FC = () => {
             </div>
           </div>
           {/* Card 4 */}
-          <div className="card even-card" style={{ minWidth: 350 }}>
+          <div className="card" style={{ minHeight: 540 }}>
             <div className="card-text">
               <h2>FAQ</h2>
               <ul>
