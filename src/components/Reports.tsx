@@ -103,14 +103,15 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
              <h2>{pageTitle}</h2>
              {userInfo.isEliteGroup && (
                <div style={{ 
-                 backgroundColor: '#FFD700', 
-                 color: '#000', 
-                 padding: '10px', 
-                 borderRadius: '5px', 
+                 backgroundColor: '#f0f0f0', 
+                 color: '#333', 
+                 padding: '8px', 
+                 borderRadius: '4px', 
                  marginTop: '10px',
-                 fontWeight: 'bold'
+                 fontSize: '0.9em',
+                 fontStyle: 'italic'
                }}>
-                 ⭐ Elite Access - You have access to exclusive reports and analytics
+                 Elite Access - Additional reports available
                </div>
              )}
           </div>

@@ -103,15 +103,15 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 alignItems: 'center',
               }}
             >
-              Welcome, {accounts[0]?.name?.split(' ')[0]}!{' '}
+              Welcome, {accounts[0]?.name?.split(' ')[0]}!
               {userInfo.isEliteGroup && (
                 <span style={{ 
                   fontSize: '0.8em', 
-                  color: '#FFD700', 
+                  color: '#666', 
                   marginLeft: '5px',
-                  fontWeight: 'bold'
+                  fontStyle: 'italic'
                 }}>
-                  ⭐ Elite
+                  (Elite)
                 </span>
               )}
               <i
