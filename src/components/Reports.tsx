@@ -58,34 +58,24 @@ const reports = [
     title: 'WIP - TS and CR Trends Report',
     description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
   },
-  {title: 'WIP - Origination Pipeline', 
-    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
-  },   
-      // {},  {},
-      // {},  {},  {},  {},{},
 ];
 
 // Elite reports - additional reports for elite group members
 const eliteReports = [
   {
-    title: 'Elite - Executive Dashboard',
-    description: 'Executive-level dashboard with advanced analytics and KPIs for leadership team.',
-    link: 'https://app.powerbi.com/links/executive-dashboard-elite',
+    title: 'Elite - Origination Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
+    link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'Elite - Financial Performance Deep Dive',
-    description: 'Detailed financial analysis and projections for elite group members.',
-    link: 'https://app.powerbi.com/links/financial-deep-dive-elite',
+    title: 'Elite - Closing Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
+    link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'Elite - Strategic Planning Reports',
-    description: 'Strategic planning and long-term forecasting reports for decision makers.',
-    link: 'https://app.powerbi.com/links/strategic-planning-elite',
-  },
-  {
-    title: 'Elite - Competitive Analysis',
-    description: 'Competitive intelligence and market analysis for elite group access.',
-    link: 'https://app.powerbi.com/links/competitive-analysis-elite',
+    title: 'Elite - Signed LOIs - SNDA',
+    description: 'A comprehensive look at Signed Letters of Intent and Subordination, Non-Disturbance, and Attornment agreements.',
+    link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
 ];
 
