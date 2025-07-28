@@ -4,8 +4,11 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react';
+import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
+// import ImagePopup from './ImagePopup';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -15,6 +18,20 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
+
+  const handleLogin = () => {
+    instance.loginPopup(loginRequest).catch((e) => {
+      console.error(e);
+    });
+  };
+
+  const handleLogout = () => {
+    instance.logoutPopup().catch((e) => {
+      console.error(e);
+    });
+    setIsDropdownOpen(false)
+  };
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState);
@@ -36,7 +53,8 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             zIndex: 9999,
           }}
         >
-          <div
+          <button
+            onClick={handleLogout}
             className="dropdown-item"
             style={{
               padding: '10px',
@@ -44,11 +62,12 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
               backgroundColor: 'white',
               border: 'none',
               textAlign: 'left',
+              cursor: 'pointer',
               color: '#333',
             }}
           >
-            Authentication Disabled
-          </div>
+            Logout
+          </button>
         </div>
       ),
       document.body
@@ -65,6 +84,12 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
         <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        {/* <button 
+          className="test-popup-button"
+          onClick={() => setShowPopup(true)}
+        >
+          Test Popup
+        </button> */}
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
@@ -104,6 +129,9 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           </button>
         )}
       </div>
+      {/* {showPopup && (
+        <ImagePopup onClose={() => setShowPopup(false)} />
+      )} */}
     </header>
   );
 };
