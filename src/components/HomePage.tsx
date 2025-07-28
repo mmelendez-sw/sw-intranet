@@ -64,7 +64,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {userInfo.isAuthenticated ? (
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: '6px', width: '100%' }}>
           {/* Main Content White Box */}
-          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 10px 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
+          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 0px 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               {/* Power BI Report Embed */}
               <div
@@ -204,20 +204,20 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             </div>
           </div>
           {/* Sidebar White Box */}
-          <aside className="sidebar sidebar-narrow" style={{ padding: '16px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', borderLeft: '2px solid #e0e0e0', borderRight: '2px solid #e0e0e0', marginLeft: '10px', marginTop: '5px', marginBottom: '5px', boxShadow: '2px 0 12px 0 rgba(0,0,0,0.07)', height: '100%', borderRadius: '10px' }}>
-              <section className="quick-links">
+          <aside className="sidebar sidebar-narrow" style={{ padding: '20px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginLeft: '10px', marginTop: '10px', marginBottom: '10px', display: 'flex', flexDirection: 'column' }}>
+              <section className="quick-links" style={{ marginBottom: '20px' }}>
                 <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
               </section>
-              <section className="quick-links">
+              <section className="quick-links" style={{ marginBottom: '20px' }}>
                 <h2>HR Updates</h2>
                 <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
                 <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
               </section>
-              <section className="updates">
+              <section className="updates" style={{ marginBottom: '20px' }}>
                 <h2>IT Updates</h2>
                 <p>Do not click any phishing links</p>
               </section>
-              <section className="quick-links">
+              <section className="quick-links" style={{ marginBottom: '20px' }}>
                 <h2>Quick Links</h2>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
@@ -232,11 +232,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
                 <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
               </section>
-              <section className="updates">
+              <section className="updates" style={{ marginBottom: '20px' }}>
                 <h2>Exciting News</h2>
                 <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
               </section>
-              <section className="updates">
+              <section className="updates" style={{ marginBottom: '20px', flexGrow: 1 }}>
                 <h2>Holiday Party Photos</h2>
                 <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
                 <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
@@ -249,7 +249,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           <p>Please log in to access more features and content!</p>
         </div>
       )}
-      <footer className="footer">
+      <footer className="footer" style={{ marginTop: '10px' }}>
         <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
       </footer>
     </div>
