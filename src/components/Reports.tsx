@@ -75,7 +75,7 @@ const eliteReports = [
 ];
 
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
-  const displayReports = userInfo.isEliteGroup ? [...reports, ...eliteReports] : reports;
+  const displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
   const pageTitle = userInfo.isEliteGroup 
     ? 'Symphony Towers Infrastructure Elite Status Reports' 
     : 'Symphony Towers Infrastructure Status Reports';
