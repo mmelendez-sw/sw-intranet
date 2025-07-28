@@ -1,9 +1,16 @@
 /* General Layout */
+.home-page {
+  padding: 0 1em;
+}
+
 .content-container {
   display: grid;
+  grid-template-columns: 80% 20%; /* Main content takes 80%, sidebar 20% */
   gap: 20px;
   padding: 10px;
   margin-top: 10px;
+  max-width: 100%; /* Changed from 1400px to 100% */
+  margin: 0 auto;
 }
 
 /* Grid Layout for Main Content */
@@ -92,6 +99,9 @@
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  height: 100%; /* Match the height of the content area */
+  position: sticky;
+  top: 20px;
 }
 
 .sidebar section {
@@ -105,7 +115,6 @@
   margin-bottom: 10px;
   padding-bottom: 5px;
 }
-
 
 .sidebar p,
 .sidebar ul,
@@ -127,7 +136,6 @@
   margin-bottom: 10px;
   list-style-type: disc;
 }
-
 
 .sidebar .quick-links button {
   background-color: #005b99; /* Rich blue for buttons */
@@ -182,21 +190,42 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (min-width: 1920px) { /* For 4K and larger screens */
   .content-container {
-    grid-template-columns: 1fr; /* Sidebar and content stack vertically */
+    max-width: 95%; /* Slight padding on very large screens */
+  }
+  
+  .card {
+    min-height: 500px; /* Slightly larger cards on big screens */
+  }
+  
+  .card-image {
+    height: 350px; /* Larger images on big screens */
+  }
+}
+
+@media (max-width: 1200px) {
+  .content-container {
+    grid-template-columns: 1fr; /* Stack sidebar below content on smaller screens */
+    max-width: 1200px; /* Limit width on medium screens */
   }
 
   .grid-layout {
-    grid-template-columns: 1fr; /* Cards stack vertically */
+    grid-template-columns: repeat(2, 1fr); /* Two cards per row on medium screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-layout {
+    grid-template-columns: 1fr; /* Cards stack vertically on small screens */
   }
 
   .card {
-    height: auto; /* Adjust card height for smaller screens */
+    height: auto;
   }
 
   .card-image,
   .sidebar img {
-    height: 150px; /* Adjust image height for smaller screens */
+    height: 150px;
   }
 }

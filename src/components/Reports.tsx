@@ -1,40 +1,104 @@
 import React from 'react';
 import '../styles/reports.css';
+import { UserInfo } from '../types/user';
+
+interface TechnologyReportsProps {
+  userInfo: UserInfo;
+}
 
 const reports = [
+  {
+    title: 'All Acquisitions Summary',
+    description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
+    link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
   {
     title: 'Daily Opportunity Count',
     description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
     link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'All Acquisitions Summary',
-    description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
-    link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=7983c722-1351-4091-a28b-023c2d74063b',
-  },
-  {title: 'TK Salesforce Sites',
-    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
-    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },  
-  {title: 'Easement and Towers Report',
-      description: 'A comprehensive look at Easements and Towers combined.',
-      link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    title: 'Portfolio Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
+    link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    // title: 'Daily Acquisitions Summary',
-    // description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
+    title: 'Tower Purchase Opportunities',
+    description: 'A complete view of all opportunities with the Tower Purchase transaction type.',
+    link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=44739935-cc8c-4072-8232-79d8be3360f8',
+  },  
+  {title: 'Closing - Pipeline', 
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
+    link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare'
+  }, 
+  {
+    title: 'Signed LOIs - SNDA',
+    description: 'A comprehensive look at Signed Letters of Intent and Subordination, Non-Disturbance, and Attornment agreements.',
+    link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
-    {},  {},  {},  {},  {},  {},  {},  {},  {}
+  {
+    title: 'WIP - Daily Acquisitions Summary',
+    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+  },
+  {
+    title: 'WIP - In-Month Conversion Tracker',
+    description: 'Work In Progress - A tracker to view opportunity conversions by month.',
+  },  
+  {
+    title: 'WIP - TS and CR Trends Report',
+    description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+  },
+  {
+    title: 'Site Tracker - Easement and Towers Report',
+    description: 'A comprehensive look at Easements and Towers combined.',
+    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Site Tracker - Sales Pipeline Activity',
+    description: 'A comprehensive look at current sales pipeline activity.',
+    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'TK Salesforce Sites',
+    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
+    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
 ];
 
-const TechnologyReports: React.FC = () => {
+// Elite reports - additional reports for elite group members
+const eliteReports = [
+  {
+    title: 'Elite - Origination Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
+    link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+];
+
+const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
+  const displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
+  const pageTitle = userInfo.isEliteGroup 
+    ? 'Symphony Towers Infrastructure Elite Status Reports' 
+    : 'Symphony Towers Infrastructure Status Reports';
+
   return (
     <div className="home-page">
       <div className="outermost-container">
         <div className="reports-content-container">
           <div className="reports-text-bar">
-             <h2>Symphony Towers Infrastructure Status Reports</h2>
+             <h2>{pageTitle}</h2>
+             {userInfo.isEliteGroup && (
+               <div style={{ 
+                 backgroundColor: '#f0f0f0', 
+                 color: '#333', 
+                 padding: '8px', 
+                 borderRadius: '4px', 
+                 marginTop: '10px',
+                 fontSize: '0.9em',
+                 fontStyle: 'italic'
+               }}>
+                 Elite Access - Additional reports available
+               </div>
+             )}
           </div>
           <table className="reports-table">
             <thead>
@@ -44,22 +108,27 @@ const TechnologyReports: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                  {/* <td style={{ height: '50px' }}>{report.title || ''}</td> */}  
-                  <td>
-                    {report.link ? (
+            {displayReports.map((report, index) => (
+              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                <td>
+                  {report.title ? (
+                    report.link ? (
                       <button 
                         className="report-button" 
                         onClick={() => window.open(report.link, '_blank')}
                       >
-                        {report.title || ''}
+                        {report.title}
                       </button>
-                    ) : null}
-                  </td>
-                  <td style={{ height: '55px' }}>{report.description || ''}</td>
-                </tr>
-              ))}
+                    ) : (
+                      <button className="report-button">
+                        {report.title}
+                      </button>
+                    )
+                  ) : null}
+                </td>
+                <td style={{ height: '55px' }}>{report.description || ''}</td>
+              </tr>
+            ))}
             </tbody>
           </table>
         </div>
@@ -74,8 +143,13 @@ const TechnologyReports: React.FC = () => {
           <section className="quick-links">
             <h2>Quick Links</h2>
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-            <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
+            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
             <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
+            {userInfo.isEliteGroup ? (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Elite Reports</button>
+            ) : (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+            )}
             <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
             <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
             <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>

@@ -6,9 +6,15 @@ import white_logo from '../../images/symph_white_t.png';
 import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
+import sti_logo_white from '../../images/sti-horizontal-white.png'
+import { UserInfo } from '../types/user';
 // import ImagePopup from './ImagePopup';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  userInfo: UserInfo;
+}
+
+const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -69,7 +75,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="header" style={{ zIndex: 5000 }}>
-      <img src={sti_logo} alt="Logo" className="logo-image" />
+      <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
         <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
@@ -97,7 +103,17 @@ const Header: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              Welcome, {accounts[0]?.name?.split(' ')[0]}!{' '}
+              Welcome, {accounts[0]?.name?.split(' ')[0]}!
+              {userInfo.isEliteGroup && (
+                <span style={{ 
+                  fontSize: '0.8em', 
+                  color: '#666', 
+                  marginLeft: '5px',
+                  fontStyle: 'italic'
+                }}>
+                  (Elite)
+                </span>
+              )}
               <i
                 className={`fa-solid fa-caret-down ${
                   isDropdownOpen ? 'open' : ''
