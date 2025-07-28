@@ -1,30 +1,22 @@
-/* Ensure full height layout */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-#root {
-  height: 100%;
-}
-
+/* General Layout */
 .home-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  padding: 0 1em;
 }
 
 .content-container {
-  flex: 1;
-  display: flex;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: 80% 20%; /* Main content takes 80%, sidebar 20% */
+  gap: 20px;
+  padding: 10px;
+  margin-top: 10px;
+  max-width: 100%; /* Changed from 1400px to 100% */
+  margin: 0 auto;
 }
 
 /* Grid Layout for Main Content */
 .grid-layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Two cards per row */
+  grid-template-columns: repeat(3, 1fr); /* Three cards per row */
   grid-auto-rows: auto; /* Dynamically adjust row height */
   gap: 20px; /* Space between cards */
 }
@@ -101,14 +93,15 @@ html, body {
 
 /* Sidebar Styling */
 .sidebar {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  min-width: unset;
-  max-width: unset;
-  padding: 0;
-  overflow: hidden;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  height: 100%; /* Match the height of the content area */
+  position: sticky;
+  top: 20px;
 }
 
 .sidebar section {
@@ -166,16 +159,6 @@ html, body {
   object-fit: cover; /* Ensures consistent scaling and cropping */
   margin-top: 10px;
   border-radius: 8px;
-}
-
-.sidebar-narrow {
-  width: 100%;
-  min-width: unset;
-  max-width: unset;
-  padding: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 /* Footer */
