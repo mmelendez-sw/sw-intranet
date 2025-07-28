@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { useMsal } from '@azure/msal-react';
-import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
@@ -376,7 +374,6 @@ const App: React.FC = () => {
       console.log('🔍 To start persistent elite check, run: window.startPersistentEliteCheck() in the console');
     }
   }, [userInfo.isAuthenticated, instance, userInfo]);
-
   return (
     <Router>
       <Header userInfo={userInfo} />
