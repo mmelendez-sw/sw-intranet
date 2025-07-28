@@ -8,7 +8,10 @@ import TechnologyReports from './components/Reports';
 
 const App: React.FC = () => {
   // Always set authentication to true to disable Microsoft auth
-  const isAuthenticated = true;
+  const userInfo = {
+    isAuthenticated: true,
+    isEliteGroup: true
+  };
 
   return (
     <Router>
@@ -17,7 +20,7 @@ const App: React.FC = () => {
         <Routes>
           <Route
             path="/"
-            element={<HomePage isAuthenticated={isAuthenticated} />}
+            element={<HomePage userInfo={userInfo} />}
           />
           <Route path="/technology" element={<TechnologyReports />} />
         </Routes>
