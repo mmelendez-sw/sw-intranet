@@ -47,6 +47,11 @@ const reports = [
     link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare'
   }, 
   {
+    title: 'Signed LOIs - SNDA',
+    description: 'A comprehensive look at Signed Letters of Intent and Subordination, Non-Disturbance, and Attornment agreements.',
+    link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
     title: 'WIP - Daily Acquisitions Summary',
     description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
   },
@@ -66,16 +71,6 @@ const eliteReports = [
     title: 'Elite - Origination Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
-    title: 'Elite - Closing Pipeline',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
-    link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
-    title: 'Elite - Signed LOIs - SNDA',
-    description: 'A comprehensive look at Signed Letters of Intent and Subordination, Non-Disturbance, and Attornment agreements.',
-    link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
 ];
 
