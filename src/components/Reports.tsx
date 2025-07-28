@@ -8,35 +8,20 @@ interface TechnologyReportsProps {
 
 const reports = [
   {
-    title: 'Daily Opportunity Count',
-    description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
-    link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
     title: 'All Acquisitions Summary',
     description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Daily Opportunity Count',
+    description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
+    link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
     title: 'Portfolio Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
     link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
-  {
-    title: 'Site Tracker - Easement and Towers Report',
-    description: 'A comprehensive look at Easements and Towers combined.',
-    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
-    title: 'Site Tracker - Sales Pipeline Activity',
-    description: 'A comprehensive look at current sales pipeline activity.',
-    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
-    title: 'TK Salesforce Sites',
-    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
-    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },  
   {
     title: 'Tower Purchase Opportunities',
     description: 'A complete view of all opportunities with the Tower Purchase transaction type.',
@@ -62,6 +47,21 @@ const reports = [
   {
     title: 'WIP - TS and CR Trends Report',
     description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
+  },
+  {
+    title: 'Site Tracker - Easement and Towers Report',
+    description: 'A comprehensive look at Easements and Towers combined.',
+    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Site Tracker - Sales Pipeline Activity',
+    description: 'A comprehensive look at current sales pipeline activity.',
+    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'TK Salesforce Sites',
+    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
+    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
 ];
 
