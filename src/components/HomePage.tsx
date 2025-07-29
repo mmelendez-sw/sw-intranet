@@ -147,6 +147,28 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 3 */}
                 <div className="card odd-card">
+                  <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
+                  <div className="card-text">
+                    <h2>City Harvest Volunteer Event</h2>
+                    <ul>
+                      <li>Come volunteer at NYC's first and largest food rescue organization. We will be sorting
+                        bulk food donations into smaller, family-sized portions that can be easily distributed to
+                        soup kitchens and food pantries throughout the five boroughts.</li>
+                    </ul>
+                  </div>
+                </div> 
+                {/* Card 4 */}
+                <div className="card even-card">
+                  <img src={img4} alt="Food Drive" className="card-image" />
+                  <div className="card-text">
+                    <h2>JP Morgan Corporate Challenge</h2>
+                    <ul>
+                      <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
+                    </ul>
+                  </div>
+                </div>
+                {/* Card 5 */}
+                <div className="card odd-card">
                   <img src={img3} alt="Marketing Updates" className="card-image" />
                   <div className="card-text">
                     <h2>Marketing Updates</h2>
@@ -167,29 +189,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </li>  
                     </ul>       
                   </div>
-                </div>  
-                {/* Card 4 */}
-                <div className="card even-card">
-                  <img src={img4} alt="Food Drive" className="card-image" />
-                  <div className="card-text">
-                    <h2>JP Morgan Corporate Challenge</h2>
-                    <ul>
-                      <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
-                    </ul>
-                  </div>
-                </div>
-                {/* Card 5 */}
-                <div className="card odd-card">
-                  <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
-                  <div className="card-text">
-                    <h2>City Harvest Volunteer Event</h2>
-                    <ul>
-                      <li>Come volunteer at NYC's first and largest food rescue organization. We will be sorting
-                        bulk food donations into smaller, family-sized portions that can be easily distributed to
-                        soup kitchens and food pantries throughout the five boroughts.</li>
-                    </ul>
-                  </div>
-                </div>
+                </div> 
                 {/* Card 6 */}
                 <div className="card even-card">
                   <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
