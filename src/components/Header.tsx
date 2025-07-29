@@ -17,6 +17,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // const [showPopup, setShowPopup] = useState(false);
 
