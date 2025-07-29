@@ -21,13 +21,13 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   // const [showPopup, setShowPopup] = useState(false);
 
   const handleLogin = () => {
-    instance.loginPopup(loginRequest).catch((e) => {
+    instance.loginPopup(loginRequest).catch((e: any) => {
       console.error(e);
     });
   };
 
   const handleLogout = () => {
-    instance.logoutPopup().catch((e) => {
+    instance.logoutPopup().catch((e: any) => {
       console.error(e);
     });
     setIsDropdownOpen(false)

@@ -8,7 +8,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/run-pic.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/cityHarvestEvent.png'
+import img7 from '../../images/cityHarvest2.png'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/earth-pic.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
