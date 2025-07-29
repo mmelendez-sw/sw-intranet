@@ -186,7 +186,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       ) : (
         <div className="unauthenticated-message">
           <h2>Welcome to the Symphony Towers Infrastructure Intranet!</h2>
-          <p>Please log in to access more features and content!</p>
+          <p>Please log in to access more features and content.</p>
         </div>
       )}
       <footer className="footer">
