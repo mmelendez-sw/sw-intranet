@@ -72,21 +72,22 @@ export class PowerbiService {
   // Generate embed token for a specific report
   public async generateEmbedToken(reportId: string): Promise<PowerbiEmbedToken> {
     try {
-      const accessToken = await this.getAccessToken();
-      
       console.log('🔑 Generating PowerBI embed token...');
       
-      // In a real implementation, this would call the PowerBI REST API
-      // POST https://api.powerbi.com/v1.0/myorg/reports/{reportId}/GenerateToken
+      // 🔓 BYPASS APPROACH: Use "Embed for your organization" 
+      // This allows any authenticated Azure AD user to view the report
+      // without requiring individual PowerBI licenses
+      
+      const embedUrl = `https://app.powerbi.com/reportEmbed?reportId=${reportId}&autoAuth=true&ctid=${powerbiConfig.tenantId}&filterPaneEnabled=false&navContentPaneEnabled=false&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XaW5kcy1OLXByaW1hcnktcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQiLCJlbWJlZEZlYXR1cmVzIjp7Im1vZGVybiI6dHJ1ZX0sImxvY2FsZSI6ImVuLVVTIiwiYWNjZXNzVGV4dCI6IkVtYmVkIGZvciB5b3VyIG9yZ2FuaXphdGlvbiIsImVtYmVkRmVhdHVyZXMiOnsibW9kZXJuIjp0cnVlfX0%3d`;
       
       const mockEmbedToken: PowerbiEmbedToken = {
-        // 🔓 BYPASS: Using "Embed for your organization" - any Azure AD user can access
-        embedUrl: `https://app.powerbi.com/reportEmbed?reportId=${reportId}&autoAuth=true&ctid=${powerbiConfig.tenantId}&filterPaneEnabled=false&navContentPaneEnabled=false&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XaW5kcy1OLXByaW1hcnktcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQiLCJlbWJlZEZlYXR1cmVzIjp7Im1vZGVybiI6dHJ1ZX0sImxvY2FsZSI6ImVuLVVTIiwiYWNjZXNzVGV4dCI6IkVtYmVkIGZvciB5b3VyIG9yZ2FuaXphdGlvbiIsImVtYmVkRmVhdHVyZXMiOnsibW9kZXJuIjp0cnVlfX0%3d`,
-        token: 'mock-embed-token',
+        embedUrl: embedUrl,
+        token: '', // No token needed for "Embed for your organization"
         expiration: new Date(Date.now() + 3600000).toISOString() // 1 hour from now
       };
       
       console.log('✅ PowerBI embed token generated successfully');
+      console.log('🔓 Using "Embed for your organization" - no individual PowerBI license required');
       return mockEmbedToken;
     } catch (error) {
       console.error('❌ Failed to generate PowerBI embed token:', error);

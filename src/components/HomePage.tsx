@@ -125,7 +125,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     title="Company Progress"
                     width="100%"
                     height="425"
-                    src={`${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}`}
+                    src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
                     frameBorder="0"
                     allowFullScreen={false}
                     style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
