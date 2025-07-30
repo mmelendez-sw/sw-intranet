@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
+import { PowerbiService } from '../services/powerbiService';
 
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
@@ -22,6 +23,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
   const chartOverlayRef = useRef<HTMLDivElement>(null);
+  const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
+  const [powerbiError, setPowerbiError] = useState<string | null>(null);
 
   useEffect(() => {
     const container = powerbiContainerRef.current;
@@ -59,6 +62,33 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     };
   }, []);
 
+  // Load PowerBI configuration
+  useEffect(() => {
+    const loadPowerbiConfig = async () => {
+      try {
+        const powerbiService = PowerbiService.getInstance();
+        
+        // Validate configuration first
+        if (!powerbiService.validateConfiguration()) {
+          setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
+          return;
+        }
+
+        // Generate embed token for the report
+        const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
+        setPowerbiConfig(embedToken);
+        setPowerbiError(null);
+      } catch (error) {
+        console.error('Failed to load PowerBI configuration:', error);
+        setPowerbiError('Failed to load PowerBI report. Please check configuration.');
+      }
+    };
+
+    if (userInfo.isAuthenticated) {
+      loadPowerbiConfig();
+    }
+  }, [userInfo.isAuthenticated]);
+
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {userInfo.isAuthenticated ? (
@@ -72,16 +102,46 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 className="powerbi-embed-container"
                 style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'flex-start', top: 0 }}
               >
-                <iframe
-                  title="Company Progress"
-                  width="100%"
-                  height="425"
-                  src="https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false"
-                  frameBorder="0"
-                  allowFullScreen={false}
-                  style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                  sandbox="allow-scripts allow-same-origin allow-popups"
-                ></iframe>
+                {powerbiError ? (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%', 
+                    color: '#d32f2f',
+                    textAlign: 'center',
+                    padding: '20px'
+                  }}>
+                    <div>
+                      <h3>⚠️ PowerBI Configuration Error</h3>
+                      <p>{powerbiError}</p>
+                      <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
+                        Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
+                      </p>
+                    </div>
+                  </div>
+                ) : powerbiConfig ? (
+                  <iframe
+                    title="Company Progress"
+                    width="100%"
+                    height="425"
+                    src={`${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}`}
+                    frameBorder="0"
+                    allowFullScreen={false}
+                    style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
+                    sandbox="allow-scripts allow-same-origin allow-popups"
+                  />
+                ) : (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    height: '100%', 
+                    color: '#666'
+                  }}>
+                    <div>Loading PowerBI report...</div>
+                  </div>
+                )}
                 {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div>
