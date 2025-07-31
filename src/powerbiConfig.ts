@@ -2,43 +2,19 @@
 // POWERBI SERVICE PRINCIPAL CONFIGURATION
 // ============================================================================
 // 
-// ⚠️  REQUIRED: Replace these placeholder values with your actual Azure AD credentials
+// ⚠️  USING EXISTING FINANCE SERVICE PRINCIPAL
 // 
-// 1. Create a Service Principal in Azure AD:
-//    - Go to Azure Portal > Azure Active Directory > App registrations
-//    - Click "New registration"
-//    - Name: "PowerBI-Service-Principal"
-//    - Supported account types: "Accounts in this organizational directory only"
-//    - Click "Register"
-//
-// 2. Get the Client ID:
-//    - Copy the "Application (client) ID" from the Overview page
-//
-// 3. Create a Client Secret:
-//    - Go to "Certificates & secrets" in the left menu
-//    - Click "New client secret"
-//    - Add description: "PowerBI Service Principal Secret"
-//    - Copy the secret value immediately (you won't see it again)
-//
-// 4. Get the Tenant ID:
-//    - Copy the "Directory (tenant) ID" from the Overview page
-//
-// 5. Grant PowerBI Permissions:
-//    - Go to "API permissions" in the left menu
-//    - Click "Add a permission"
-//    - Select "Power BI Service"
-//    - Choose "Application permissions"
-//    - Select "Report.Read.All" and "Workspace.Read.All"
-//    - Click "Grant admin consent"
-//
+// We're retrofitting the existing "Finance (Service Principal)" that already
+// has access to the PowerBI workspace instead of creating a new one.
+// 
 // ============================================================================
 
 export const powerbiConfig = {
-  // 🔑 REPLACE WITH YOUR ACTUAL CLIENT ID FROM AZURE AD APP REGISTRATION
-  clientId: "ee0298d2-1776-444c-ae9f-bc2525c60227",
+  // 🔑 REPLACE WITH FINANCE SERVICE PRINCIPAL CLIENT ID
+  clientId: "bc0967a9-c8b7-494e-a1d0-7f2cc60f8f96",
   
-  // 🔐 REPLACE WITH YOUR ACTUAL CLIENT SECRET FROM AZURE AD
-  clientSecret: "iVq8Q~vwAJa.ki_Tmm_CEdir7Sk~JNgn_fgmmc.w",
+  // 🔐 REPLACE WITH FINANCE SERVICE PRINCIPAL CLIENT SECRET
+  clientSecret: "CpS8Q~_DVcI21snvtunM5fVJhTxtm1lSOWkYqcIP",
   
   // 🏢 REPLACE WITH YOUR ACTUAL TENANT ID FROM AZURE AD
   tenantId: "63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",

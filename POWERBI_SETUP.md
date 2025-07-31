@@ -1,225 +1,128 @@
-# 🔐 POWERBI SERVICE PRINCIPAL SETUP GUIDE
+# PowerBI Service Principal Setup Guide
 
-## ⚠️  CRITICAL: YOU MUST COMPLETE THIS SETUP BEFORE POWERBI WILL WORK
+## Overview
+This guide will help you set up a PowerBI service principal in Azure AD to bypass individual user permissions and allow all authenticated users to view PowerBI reports without requiring individual PowerBI licenses.
 
-This guide will help you set up PowerBI authentication using a service principal, which eliminates the need for users to sign in to PowerBI directly.
+## Step 1: Create Service Principal in Azure AD
 
----
+### 1.1 Create App Registration
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to **Azure Active Directory** → **App registrations**
+3. Click **"New registration"**
+4. Fill in the details:
+   - **Name**: `PowerBI-Service-Principal`
+   - **Supported account types**: "Accounts in this organizational directory only"
+   - **Redirect URI**: Leave blank for now
+5. Click **"Register"**
 
-## 📋 PREREQUISITES
+### 1.2 Get Client ID and Tenant ID
+1. From the app registration overview page, copy:
+   - **Application (client) ID** → This is your `clientId`
+   - **Directory (tenant) ID** → This is your `tenantId`
 
-- Azure AD Administrator access
-- PowerBI Pro or Premium license
-- Access to your PowerBI workspace
+### 1.3 Create Client Secret
+1. In the left menu, click **"Certificates & secrets"**
+2. Click **"New client secret"**
+3. Add description: `PowerBI Service Principal Secret`
+4. Set expiration (recommend 24 months)
+5. Click **"Add"**
+6. **IMPORTANT**: Copy the secret value immediately (you won't see it again)
+   - This is your `clientSecret`
 
----
+## Step 2: Configure API Permissions
 
-## 🚀 STEP-BY-STEP SETUP
+### 2.1 Add PowerBI Permissions
+1. In the left menu, click **"API permissions"**
+2. Click **"Add a permission"**
+3. Select **"Power BI Service"**
+4. Choose **"Application permissions"**
+5. Select:
+   - ✅ `Tenant.Read.All` (this should be sufficient)
+   - If available: `Report.Read.All` and `Workspace.Read.All`
+6. Click **"Add permissions"**
 
-### Step 1: Create Azure AD Service Principal
+### 2.2 Grant Admin Consent
+1. Click the **"Grant admin consent"** button
+2. Confirm the permissions are granted
 
-1. **Go to Azure Portal**
-   - Navigate to: https://portal.azure.com
-   - Sign in with your admin account
+## Step 3: Grant Service Principal Access to PowerBI Workspace
 
-2. **Create App Registration**
-   - Go to **Azure Active Directory** > **App registrations**
-   - Click **"New registration"**
-   - Fill in the details:
-     - **Name**: `PowerBI-Service-Principal`
-     - **Supported account types**: `Accounts in this organizational directory only`
-     - **Redirect URI**: Leave blank for now
-   - Click **"Register"**
+### 3.1 Add Service Principal to PowerBI Workspace
+1. Go to [PowerBI Service](https://app.powerbi.com)
+2. Navigate to your workspace (the one containing your reports)
+3. Click **"Access"** in the workspace settings
+4. Click **"Add"**
+5. Search for your service principal name: `PowerBI-Service-Principal`
+6. Select it and assign **"Member"** or **"Admin"** role
+7. Click **"Add"**
 
-3. **Copy the Client ID**
-   - From the Overview page, copy the **"Application (client) ID"**
-   - This is your `CLIENT_ID` - save it for later
+### 3.2 Alternative: Grant Access via PowerShell
+If the above doesn't work, you can use PowerShell:
 
-4. **Copy the Tenant ID**
-   - From the Overview page, copy the **"Directory (tenant) ID"**
-   - This is your `TENANT_ID` - save it for later
+```powershell
+# Install PowerBI PowerShell module
+Install-Module -Name MicrosoftPowerBIMgmt
 
-### Step 2: Create Client Secret
+# Connect to PowerBI
+Connect-PowerBIServiceAccount
 
-1. **Go to Certificates & Secrets**
-   - In the left menu, click **"Certificates & secrets"**
-   - Click **"New client secret"**
-
-2. **Create the Secret**
-   - Description: `PowerBI Service Principal Secret`
-   - Expiration: Choose an appropriate duration (recommend 12 months)
-   - Click **"Add"**
-
-3. **Copy the Secret Value**
-   - **⚠️  IMPORTANT**: Copy the secret value immediately
-   - You won't be able to see it again after leaving this page
-   - This is your `CLIENT_SECRET` - save it securely
-
-### Step 3: Configure API Permissions
-
-1. **Go to API Permissions**
-   - In the left menu, click **"API permissions"**
-   - Click **"Add a permission"**
-
-2. **Add PowerBI Permissions**
-   - Select **"Power BI Service"**
-   - Choose **"Application permissions"**
-   - Select these permissions:
-     - ✅ `Report.Read.All`
-     - ✅ `Workspace.Read.All`
-   - Click **"Add permissions"**
-
-3. **Grant Admin Consent**
-   - Click **"Grant admin consent for [Your Organization]"**
-   - Confirm the action
-
-### Step 3.5: 🔓 BYPASS USER PERMISSIONS (IMPORTANT)
-
-**To allow ALL users to see the PowerBI report (bypass individual PowerBI access):**
-
-1. **Go to PowerBI Workspace**
-   - Navigate to: https://app.powerbi.com
-   - Go to your workspace containing the report
-
-2. **Grant Service Principal Access**
-   - Click **"Access"** in the workspace
-   - Click **"Add"**
-   - Search for your service principal name: `PowerBI-Service-Principal`
-   - Set role to **"Admin"** or **"Member"**
-   - Click **"Add"**
-
-3. **Alternative: Use "Embed for Your Organization"**
-   - In PowerBI, go to your report
-   - Click **"Share"** > **"Embed"**
-   - Choose **"Embed for your organization"**
-   - Copy the embed URL and update the service
-
-**Result:** Any authenticated user in your Azure AD can now see the report through your app, regardless of their individual PowerBI permissions.
-
-### Step 4: Get PowerBI Workspace ID
-
-1. **Go to PowerBI Service**
-   - Navigate to: https://app.powerbi.com
-   - Go to your workspace
-
-2. **Get Workspace ID**
-   - In the URL, you'll see something like: `https://app.powerbi.com/groups/12345678-1234-1234-1234-123456789012`
-   - The long string after `/groups/` is your `WORKSPACE_ID`
-
-### Step 5: Update Configuration File
-
-1. **Open the Configuration File**
-   - Navigate to: `src/powerbiConfig.ts`
-
-2. **Replace the Placeholder Values**
-   ```typescript
-   export const powerbiConfig = {
-     // 🔑 REPLACE WITH YOUR ACTUAL CLIENT ID FROM AZURE AD APP REGISTRATION
-     clientId: "YOUR_ACTUAL_CLIENT_ID_HERE",
-     
-     // 🔐 REPLACE WITH YOUR ACTUAL CLIENT SECRET FROM AZURE AD
-     clientSecret: "YOUR_ACTUAL_CLIENT_SECRET_HERE",
-     
-     // 🏢 REPLACE WITH YOUR ACTUAL TENANT ID FROM AZURE AD
-     tenantId: "YOUR_ACTUAL_TENANT_ID_HERE",
-     
-     // 📊 REPLACE WITH YOUR ACTUAL WORKSPACE ID FROM POWERBI
-     workspaceId: "YOUR_ACTUAL_WORKSPACE_ID_HERE",
-     
-     // 🔗 UPDATE AUTHORITY URL WITH YOUR TENANT ID
-     authority: "https://login.microsoftonline.com/YOUR_ACTUAL_TENANT_ID_HERE"
-   };
-   ```
-
-3. **Example with Real Values**
-   ```typescript
-   export const powerbiConfig = {
-     clientId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-     clientSecret: "ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZA567BCD890EFG",
-     tenantId: "12345678-1234-1234-1234-123456789012",
-     workspaceId: "87654321-4321-4321-4321-210987654321",
-     authority: "https://login.microsoftonline.com/12345678-1234-1234-1234-123456789012"
-   };
-   ```
-
----
-
-## 🔍 VERIFICATION STEPS
-
-### 1. Check Configuration
-```bash
-# The app will log configuration status on startup
-# Look for: "✅ PowerBI configuration validated successfully"
+# Add service principal to workspace
+Add-PowerBIWorkspaceUser -WorkspaceId "113D281A-8FE0-4D14-829E-30BDE3A28F49" -UserEmail "your-service-principal-name@yourtenant.onmicrosoft.com" -AccessRight Member
 ```
 
-### 2. Test PowerBI Service
-```javascript
-// In browser console, run:
-import { PowerbiService } from './src/services/powerbiService';
-const service = PowerbiService.getInstance();
-service.validateConfiguration(); // Should return true
+## Step 4: Find PowerBI IDs
+
+### 4.1 Get Report ID
+From your PowerBI report URL:
+```
+https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/da99a39683128769e3b5?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&experience=power-bi
+```
+- **Report ID**: `e091da31-91dd-42c2-9b17-099d2e07c492`
+
+### 4.2 Get Workspace ID
+1. Go to [PowerBI Admin Portal](https://app.powerbi.com/admin-portal)
+2. Navigate to **"Workspaces"**
+3. Find your workspace and copy the **Workspace ID**
+4. Or use the workspace ID from your URL: `113D281A-8FE0-4D14-829E-30BDE3A28F49`
+
+### 4.3 Get Tenant ID
+- **Tenant ID**: `63fbe43e-8963-4cb6-8f87-2ecc3cd029b4` (from your URLs)
+
+## Step 5: Update Configuration
+
+### 5.1 Update powerbiConfig.ts
+Update `src/powerbiConfig.ts` with your actual values:
+
+```typescript
+export const powerbiConfig = {
+  clientId: "YOUR_ACTUAL_CLIENT_ID",
+  clientSecret: "YOUR_ACTUAL_CLIENT_SECRET",
+  tenantId: "63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
+  workspaceId: "113D281A-8FE0-4D14-829E-30BDE3A28F49",
+  reportId: "e091da31-91dd-42c2-9b17-099d2e07c492",
+  authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4"
+};
 ```
 
-### 3. Check Network Tab
-- Open browser DevTools
-- Go to Network tab
-- Load the homepage
-- Look for PowerBI API calls (they may be mocked initially)
+## Troubleshooting
 
----
+### Issue: Users still prompted for sign-in
+**Solution**: Ensure the service principal has been added to the PowerBI workspace with appropriate permissions.
 
-## 🚨 TROUBLESHOOTING
+### Issue: CORS errors
+**Solution**: The current implementation uses a frontend-friendly approach that avoids CORS issues.
 
-### Common Issues:
+### Issue: Permission denied
+**Solution**: 
+1. Verify admin consent was granted for the API permissions
+2. Ensure the service principal is added to the PowerBI workspace
+3. Check that the workspace ID and report ID are correct
 
-1. **"Configuration Error"**
-   - Check that all placeholder values are replaced
-   - Verify Client ID, Client Secret, and Tenant ID are correct
+## Bypass User Permissions
 
-2. **"Permission Denied"**
-   - Ensure admin consent was granted for API permissions
-   - Check that the service principal has access to the PowerBI workspace
+The key to bypassing individual user permissions is:
+1. **Service Principal Access**: The service principal acts on behalf of the application
+2. **Workspace Membership**: Adding the service principal to the PowerBI workspace
+3. **Application Permissions**: Using `Tenant.Read.All` instead of delegated permissions
 
-3. **"Token Generation Failed"**
-   - Verify the Client Secret is correct and not expired
-   - Check that the Tenant ID matches your Azure AD tenant
-
-4. **"Workspace Not Found"**
-   - Verify the Workspace ID is correct
-   - Ensure the service principal has access to the workspace
-
----
-
-## 🔒 SECURITY NOTES
-
-- **Never commit secrets to version control**
-- **Use environment variables in production**
-- **Rotate client secrets regularly**
-- **Monitor service principal usage**
-
----
-
-## 📞 SUPPORT
-
-If you encounter issues:
-1. Check the browser console for error messages
-2. Verify all configuration values are correct
-3. Ensure all Azure AD permissions are properly set
-4. Contact your Azure AD administrator if needed
-
----
-
-## ✅ COMPLETION CHECKLIST
-
-- [ ] Azure AD App Registration created
-- [ ] Client ID copied and saved
-- [ ] Client Secret created and saved
-- [ ] Tenant ID copied and saved
-- [ ] API permissions configured
-- [ ] Admin consent granted
-- [ ] PowerBI Workspace ID obtained
-- [ ] Configuration file updated with real values
-- [ ] App restarted and tested
-- [ ] PowerBI embed loads without sign-in prompt
-
-**🎉 Once all items are checked, PowerBI authentication should work seamlessly!** 
+This approach allows any authenticated Azure AD user to view the reports without requiring individual PowerBI licenses. 

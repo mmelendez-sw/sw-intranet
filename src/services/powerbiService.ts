@@ -45,20 +45,20 @@ export class PowerbiService {
       console.log('📊 Using report ID:', reportId);
       console.log('🏢 Using tenant ID:', powerbiConfig.tenantId);
       
-      // 🔓 DIRECT EMBED APPROACH: Use PowerBI's "Embed for your organization"
-      // This approach works without requiring service principal token generation
-      // and bypasses CORS issues by using PowerBI's built-in authentication
+      // 🔓 SIMPLE EMBED APPROACH: Use the same URL format as your existing PowerBI links
+      // This should work for all authenticated users in your organization
+      // Based on your original URL: https://app.powerbi.com/links/20hwpUGCjf?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare
       
-      const embedUrl = `https://app.powerbi.com/reportEmbed?reportId=${reportId}&autoAuth=true&ctid=${powerbiConfig.tenantId}&filterPaneEnabled=false&navContentPaneEnabled=false&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XaW5kcy1OLXByaW1hcnktcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQiLCJlbWJlZEZlYXR1cmVzIjp7Im1vZGVybiI6dHJ1ZX0sImxvY2FsZSI6ImVuLVVTIiwiYWNjZXNzVGV4dCI6IkVtYmVkIGZvciB5b3VyIG9yZ2FuaXphdGlvbiIsImVtYmVkRmVhdHVyZXMiOnsibW9kZXJuIjp0cnVlfX0%3d`;
+      const embedUrl = `https://app.powerbi.com/reportEmbed?reportId=${reportId}&autoAuth=true&ctid=${powerbiConfig.tenantId}&filterPaneEnabled=false&navContentPaneEnabled=false&pbi_source=linkShare`;
       
       const embedToken: PowerbiEmbedToken = {
         embedUrl: embedUrl,
-        token: '', // No token needed for direct embed
+        token: '', // No token needed for simple embed
         expiration: new Date(Date.now() + 3600000).toISOString() // 1 hour from now
       };
       
       console.log('✅ PowerBI embed configuration generated successfully');
-      console.log('🔓 Using direct embed approach - works with existing Azure AD authentication');
+      console.log('🔓 Using simple embed approach - should work for all authenticated users');
       return embedToken;
     } catch (error) {
       console.error('❌ Failed to generate PowerBI embed configuration:', error);
