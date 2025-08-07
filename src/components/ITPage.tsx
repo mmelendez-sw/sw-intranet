@@ -6,59 +6,56 @@ const TechnologyPage: React.FC = () => {
     <div className="home-page technology-page authenticated">
       <div className="content-container">
         <div className="main-content">
-          <div className="grid-layout responsive-tech-grid">
-          {/* Card 1 */}
-          <div className="card odd-card" style={{ minHeight: 540 }}>
-            <div className="card-text">
-              <h2>Technology Updates</h2>
-              <ul>
-                <li>New VPN rollout next month</li>
-                <li>Security awareness training available</li>
-                <li>Cloud migration in progress</li>
-              </ul>
+          {/* Business Reports Button */}
+          <div className="business-reports-button-container">
+            <button 
+              className="home-button business-reports-button"
+              onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}
+            >
+              Business Reports
+            </button>
+          </div>
+          
+          {/* Technology Updates - Large Card */}
+          <div className="tech-updates-large-card">
+            <div className="card odd-card" style={{ minHeight: 540 }}>
+              <div className="card-text">
+                <h2>Technology Updates</h2>
+                <ul>
+                  <li>New VPN rollout next month</li>
+                  <li>Security awareness training available</li>
+                  <li>Cloud migration in progress</li>
+                </ul>
+              </div>
             </div>
           </div>
-          {/* Card 2 */}
-          <div className="card even-card blue-column" style={{ minHeight: 540 }}>
-            <div className="card-text">
-              <h2>Technology Resources</h2>
-              <ul>
-                <li>Software Downloads</li>
-                <li>Technology Policies & Procedures</li>
-                <li>Helpful Guides</li>
-              </ul>
-              <button
-                className="home-button"
-                style={{ width: '40%', height: '10%', marginTop: '20px', marginLeft: '30%' }}
-                onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}
-              >
-                Reports
-              </button>
+          
+          {/* Technology Resources and FAQ - Two Smaller Cards */}
+          <div className="tech-resources-faq-container">
+            {/* Technology Resources Card */}
+            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+              <div className="card-text">
+                <h2>Technology Resources</h2>
+                <ul>
+                  <li>Software Downloads</li>
+                  <li>Technology Policies & Procedures</li>
+                  <li>Helpful Guides</li>
+                </ul>
+              </div>
+            </div>
+            
+            {/* FAQ Card */}
+            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+              <div className="card-text">
+                <h2>FAQ</h2>
+                <ul>
+                  <li>How do I reset my password?</li>
+                  <li>Where can I download company software?</li>
+                  <li>How do I contact Technology support?</li>
+                </ul>
+              </div>
             </div>
           </div>
-          {/* Card 3 */}
-          <div className="card even-card" style={{ minHeight: 540 }}>
-            <div className="card-text">
-              <h2>Release Notes</h2>
-              <ul>
-                <li>Version 2.1: Improved VPN stability</li>
-                <li>Version 2.0: New self-service password reset</li>
-                <li>Version 1.9: Security patch updates</li>
-              </ul>
-            </div>
-          </div>
-          {/* Card 4 */}
-          <div className="card" style={{ minHeight: 540 }}>
-            <div className="card-text">
-              <h2>FAQ</h2>
-              <ul>
-                <li>How do I reset my password?</li>
-                <li>Where can I download company software?</li>
-                <li>How do I contact Technology support?</li>
-              </ul>
-            </div>
-          </div>
-        </div>
         </div>
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">

@@ -8,7 +8,7 @@
   grid-template-columns: minmax(0, 1fr) 350px;
   grid-template-rows: auto 1fr;
   gap: 40px;
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
   align-items: stretch;
   width: 100%;
@@ -17,6 +17,19 @@
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;
+}
+
+/* IT Page specific overrides */
+.home-page.technology-page .content-container {
+  max-width: 2000px;
+  gap: 60px;
+}
+
+.home-page.technology-page .main-content {
+  max-width: none;
+  width: 100%;
+  margin-left: 120px;
+  margin-top: -70px;
 }
 
 .main-content {
@@ -294,7 +307,8 @@
 
 /* Move sidebar further right on Technology page only */
 .home-page.technology-page .sidebar {
-  margin-left: 130px;
+  margin-left: 110px;
+  margin-top: -20px;
 }
 
 /* Shift card grid to the right on Technology page only */
@@ -336,5 +350,107 @@
     max-width: 100% !important;
     min-width: 0 !important;
     padding: 10px;
+  }
+}
+
+/* IT Page New Layout Styles */
+.business-reports-button-container {
+  text-align: center;
+  margin-bottom: 0;
+  margin-top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 30px;
+}
+
+.business-reports-button {
+  background-color: #005b99;
+  color: #ffffff;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.2em;
+  font-weight: 600;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1800px;
+  display: block;
+  margin: 0 auto;
+}
+
+.business-reports-button:hover {
+  background-color: #0073d6;
+}
+
+.tech-updates-large-card {
+  width: 100%;
+  margin-bottom: 40px;
+  margin-top: 0;
+}
+
+.tech-updates-large-card .card {
+  width: 100%;
+  min-height: 540px;
+}
+
+.tech-resources-faq-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  width: 100%;
+}
+
+.tech-resources-faq-container .card {
+  min-height: 540px;
+}
+
+.tech-updates-large-card,
+.tech-resources-faq-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.business-reports-button {
+  max-width: 1800px;
+}
+
+/* Responsive adjustments for the new layout */
+@media (max-width: 1200px) {
+  .tech-resources-faq-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .business-reports-button {
+    width: 100%;
+    max-width: 1400px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 1300px) {
+  .tech-updates-large-card,
+  .tech-resources-faq-container,
+  .business-reports-button {
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .business-reports-button {
+    width: 100%;
+    max-width: 95vw;
+    padding: 10px 25px;
+    font-size: 1em;
+  }
+  
+  .tech-updates-large-card .card,
+  .tech-resources-faq-container .card {
+    min-height: 400px;
   }
 }
