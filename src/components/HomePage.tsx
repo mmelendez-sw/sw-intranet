@@ -145,7 +145,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div> */}
               
-              <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0' }}>
+              <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0', marginTop: '10px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
                   <img src={img9} alt="Team Accomplishments" className="card-image" />
