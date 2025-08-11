@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
-import { PowerbiService } from '../services/powerbiService';
+// import { PowerbiService } from '../services/powerbiService';
 
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
@@ -21,28 +21,28 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
-  const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
   const chartOverlayRef = useRef<HTMLDivElement>(null);
-  const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
-  const [powerbiError, setPowerbiError] = useState<string | null>(null);
+  // const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
+  // const [powerbiError, setPowerbiError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const container = powerbiContainerRef.current;
-    if (!container) return;
-    const preventZoom: EventListener = (e) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    container.addEventListener('wheel', preventZoom, { passive: false });
-    container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      container.removeEventListener('wheel', preventZoom);
-      container.removeEventListener('gesturestart', preventZoom as EventListener);
-      container.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const container = powerbiContainerRef.current;
+  //   if (!container) return;
+  //   const preventZoom: EventListener = (e) => {
+  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   container.addEventListener('wheel', preventZoom, { passive: false });
+  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+  //   return () => {
+  //     container.removeEventListener('wheel', preventZoom);
+  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
+  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
+  //   };
+  // }, []);
 
   useEffect(() => {
     const overlay = chartOverlayRef.current;
@@ -63,31 +63,31 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   }, []);
 
   // Load PowerBI configuration
-  useEffect(() => {
-    const loadPowerbiConfig = async () => {
-      try {
-        const powerbiService = PowerbiService.getInstance();
+  // useEffect(() => {
+  //   const loadPowerbiConfig = async () => {
+  //     try {
+  //       const powerbiService = PowerbiService.getInstance();
         
-        // Validate configuration first
-        if (!powerbiService.validateConfiguration()) {
-          setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
-          return;
-        }
+  //       // Validate configuration first
+  //       if (!powerbiService.validateConfiguration()) {
+  //         setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
+  //         return;
+  //       }
 
-        // Generate embed token for the report
-        const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
-        setPowerbiConfig(embedToken);
-        setPowerbiError(null);
-      } catch (error) {
-        console.error('Failed to load PowerBI configuration:', error);
-        setPowerbiError('Failed to load PowerBI report. Please check configuration.');
-      }
-    };
+  //       // Generate embed token for the report
+  //       const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
+  //       setPowerbiConfig(embedToken);
+  //       setPowerbiError(null);
+  //     } catch (error) {
+  //       console.error('Failed to load PowerBI configuration:', error);
+  //       setPowerbiError('Failed to load PowerBI report. Please check configuration.');
+  //     }
+  //   };
 
-    if (userInfo.isAuthenticated) {
-      loadPowerbiConfig();
-    }
-  }, [userInfo.isAuthenticated]);
+  //   if (userInfo.isAuthenticated) {
+  //     loadPowerbiConfig();
+  //   }
+  // }, [userInfo.isAuthenticated]);
 
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
@@ -96,8 +96,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           {/* Main Content White Box */}
           <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 0px 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
-              {/* Power BI Report Embed */}
-              <div
+              {/* Power BI Report Embed - TEMPORARILY COMMENTED OUT */}
+              {/* <div
                 ref={powerbiContainerRef}
                 className="powerbi-embed-container"
                 style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
@@ -142,9 +142,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <div>Loading PowerBI report...</div>
                   </div>
                 )}
-                {/* Glass pane overlay to block pointer/zoom events over chart area only, not over buttons */}
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
-              </div>
+              </div> */}
+              
               <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
