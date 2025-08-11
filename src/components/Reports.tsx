@@ -8,6 +8,11 @@ interface TechnologyReportsProps {
 
 const reports = [
   {
+    title: 'Company Progress',
+    description: 'A comprehensive view of company performance metrics and progress indicators.',
+    link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false',
+  },
+  {
     title: 'All Acquisitions Summary',
     description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
