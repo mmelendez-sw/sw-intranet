@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/it-page.css';
 
 const ITPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="home-page technology-page authenticated">
       <div className="content-container">
@@ -10,7 +13,7 @@ const ITPage: React.FC = () => {
           <div className="business-reports-button-container">
             <button 
               className="home-button business-reports-button"
-              onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}
+              onClick={() => navigate('/reports')}
             >
               Business Reports
             </button>

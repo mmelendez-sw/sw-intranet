@@ -308,7 +308,7 @@
 /* Move sidebar further right on Technology page only */
 .home-page.technology-page .sidebar {
   margin-left: 110px;
-  margin-top: -20px;
+  margin-top: 10px;
 }
 
 /* Shift card grid to the right on Technology page only */
@@ -362,6 +362,7 @@
   display: flex;
   justify-content: center;
   padding-bottom: 30px;
+  margin-top: 50px;
 }
 
 .business-reports-button {
