@@ -11,6 +11,7 @@ const ITPage: React.FC = () => {
         <li>Software Guides</li>
         <li>Hardware Policies</li>
         <li>Contact IT Helpdesk</li>
+        <li>TEST</li>
       </ul>
     </div>
   );
