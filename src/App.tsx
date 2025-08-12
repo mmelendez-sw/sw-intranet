@@ -390,6 +390,7 @@ const App: React.FC = () => {
             <>
               {/* <Route path="/hr" element={<HRPage />} />
               <Route path="/it" element={<ITPage />} /> */}
+              <Route path="/it" element={<ITPage />} />
               <Route path="/technology" element={<TechnologyReports userInfo={userInfo} />} />
               {/* <Route path="/reports" element={<TechnologyReports />} /> */}
             </>

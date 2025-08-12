@@ -79,12 +79,13 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
+        <i className="fa-solid fa-tech"></i><Link to="/ITPage">Technology</Link>
         <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
         <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
         <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
-        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        <i className="fa-solid fa-laptop"></i><Link to="/technology">Reports</Link>
         {/* <button 
           className="test-popup-button"
           onClick={() => setShowPopup(true)}
