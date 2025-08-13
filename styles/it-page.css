@@ -394,7 +394,8 @@
 
 .tech-updates-large-card .card {
   width: 100%;
-  min-height: 540px;
+  min-height: auto; /* Allow dynamic height */
+  height: auto; /* Let content determine height */
 }
 
 .tech-resources-faq-container {

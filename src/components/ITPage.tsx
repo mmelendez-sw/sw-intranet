@@ -21,13 +21,19 @@ const ITPage: React.FC = () => {
           
           {/* Technology Updates - Large Card */}
           <div className="tech-updates-large-card">
-            <div className="card odd-card" style={{ minHeight: 540 }}>
+            <div className="card odd-card">
               <div className="card-text">
                 <h2>Technology Updates</h2>
                 <ul>
-                  <li>New VPN rollout next month</li>
-                  <li>Security awareness training available</li>
-                  <li>Cloud migration in progress</li>
+                  <li>New VPN rollout next month - All employees will be required to use the new secure VPN client for remote access. Training sessions will be scheduled throughout the month.</li>
+                  <li>Security awareness training available - Mandatory cybersecurity training modules are now available in the learning portal. All staff must complete these modules by the end of the quarter.</li>
+                  <li>Cloud migration in progress - We are currently migrating our legacy systems to the cloud infrastructure. This process will improve performance and reduce maintenance costs.</li>
+                  <li>Software license renewals - Annual software license renewals are due next month. Please review your department's software usage and submit any new license requests.</li>
+                  <li>Hardware refresh program - The IT department will begin rolling out new laptops and workstations starting next quarter. Priority will be given to departments with older equipment.</li>
+                  <li>Network infrastructure upgrades - We are upgrading our network switches and routers to support increased bandwidth requirements and improved security.</li>
+                  <li>Mobile device management - New mobile device management policies will be implemented to ensure company data security on personal devices used for work.</li>
+                  <li>Backup system improvements - Our backup systems are being upgraded to provide faster recovery times and better data protection.</li>
+
                 </ul>
               </div>
             </div>
