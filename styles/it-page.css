@@ -1,14 +1,458 @@
-.it-page {
-    padding: 20px;
-    background-color: var(--light-beige);
-    border-radius: 5px;
+/* General Layout */
+.home-page {
+  padding: 0 1em;
+}
+
+.content-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  grid-template-rows: auto 1fr;
+  gap: 40px;
+  max-width: 1800px;
+  margin: 0 auto;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+/* IT Page specific overrides */
+.home-page.technology-page .content-container {
+  max-width: 2000px;
+  gap: 60px;
+}
+
+.home-page.technology-page .main-content {
+  max-width: none;
+  width: 100%;
+  margin-left: 120px;
+  margin-top: -70px;
+}
+
+.main-content {
+  grid-column: 1;
+  grid-row: 2;
+  height: 100%;
+  min-height: 100%;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: 350px;
+  min-width: 220px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  height: 100%;
+  min-height: 100%;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content h1 {
+  text-align: center;
+  margin-top: -50px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Grid Layout for Main Content */
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Three cards per row */
+  grid-auto-rows: auto; /* Dynamically adjust row height */
+  gap: 20px; /* Space between cards */
+}
+
+.card {
+  display: flex;
+  flex-direction: column; /* Keep vertical stacking of elements */
+  justify-content: space-between; /* Ensure space between text and image */
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden; /* Ensures the image and content align perfectly */
+  min-height: 450px; /* Minimum height for the card */
+  height: auto; /* Allow dynamic height based on content */
+}
+
+.card-text {
+  padding: 5px 10px; /* Padding for the text area */
+  text-align: left;
+  margin: 0; /* Remove unnecessary margins */
+  flex-grow: 1; /* Pushes the image down when there's insufficient text */
+}
+
+.card-image {
+  width: 100%;
+  height: 300px; /* Standardize the image height */
+  object-fit: cover; /* Ensures the image scales and crops proportionally */
+  margin: 0; /* Removes any extra spacing */
+}
+
+.card-text h2 {
+  font-size: 1.5em;
+  color: #003366;
+  border-bottom: 2px solid #009acb; /* Adds a subtle underline */
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  text-align: center;
+}
+
+.card-text ul li {
+  margin-bottom: 10px;
+  list-style-type: disc;
+}
+
+.card-text li {
+  font-size: 0.9em;
+  line-height: 1.4; /* Tighter line height */
+  margin: 5px 0; /* Uniform margins between paragraphs */
+  color: #333;
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Slightly lift the card */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
+}
+
+/* Alternate styles for even cards */
+.even-card {
+  background-color: #d9ecf9; /* Light blue background for even cards */
+}
+
+.text-bar {
+  grid-column: 1 / -1; /* Span across all columns */
+  color: #003366;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-top: 1px solid #ddd;
+  border-bottom: 2px solid #009acb;
+  padding: 0; /* Reduce vertical padding */
+  line-height: 1.2; /* Adjust line height */
+  margin: 0;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  max-width: 350px;
+  min-width: 220px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  overflow-wrap: break-word;
+}
+
+.sidebar section {
+  margin-bottom: 20px;
+}
+
+.sidebar h2 {
+  font-size: 1.5em;
+  color: #003366;
+  border-bottom: 2px solid #009acb; /* Adds a subtle underline */
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+}
+
+.sidebar p,
+.sidebar ul,
+.sidebar button {
+  font-size: 0.9em;
+  color: #333;
+}
+
+.sidebar .imp-p { 
+  color: red; 
+  font-weight: bold;
+}
+
+.sidebar ul {
+  padding-left: 20px;
+}
+
+.sidebar ul li {
+  margin-bottom: 10px;
+  list-style-type: disc;
+}
+
+.sidebar .quick-links button {
+  background-color: #005b99; /* Rich blue for buttons */
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  margin: 5px 0;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+.sidebar .quick-links button:hover {
+  background-color: #0073d6; /* Brighter blue on hover */
+}
+
+.sidebar img {
+  width: 100%;
+  height: 200px; /* Fixed height to standardize */
+  object-fit: cover; /* Ensures consistent scaling and cropping */
+  margin-top: 10px;
+  border-radius: 8px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background-color: #003366; /* Deeper footer background */
+  color: #ffffff;
+  font-size: 0.9em;
+}
+
+.home-page.unauthenticated {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background:  url('../images/site_1.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.home-page.unauthenticated .footer {
+  margin-top: auto;
+}
+
+.unauthenticated-message { 
+  padding: 20px; 
+  text-align: center; 
+  margin-top: 10%; 
+  font-size: 18px; 
+}
+
+/* Center the Technology heading at the very top and in the middle */
+.technology-heading-centered {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+  text-align: center;
+  font-size: 2.5em;
+  color: #003366;
+  margin: 0 0 20px 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Responsive Design */
+@media (min-width: 1920px) { /* For 4K and larger screens */
+  .content-container {
+    max-width: 95%; /* Slight padding on very large screens */
   }
   
-  .it-page h1 {
-    color: var(--bold-blue);
+  .card {
+    min-height: 500px; /* Slightly larger cards on big screens */
   }
   
-  .it-page ul {
-    list-style-type: disc;
-    margin-left: 20px;
+  .card-image {
+    height: 350px; /* Larger images on big screens */
   }
+}
+
+@media (max-width: 1100px) {
+  .content-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 100vw;
+    padding-top: 40px;
+  }
+  .sidebar {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+    height: auto;
+  }
+  .main-content {
+    height: auto;
+  }
+  .technology-heading-centered {
+    font-size: 2em;
+    padding: 20px 0 0 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-layout {
+    grid-template-columns: 1fr; /* Cards stack vertically on small screens */
+  }
+
+  .card {
+    height: auto;
+  }
+
+  .card-image,
+  .sidebar img {
+    height: 150px;
+  }
+}
+
+/* Move sidebar further right on Technology page only */
+.home-page.technology-page .sidebar {
+  margin-left: 110px;
+  margin-top: 10px;
+}
+
+/* Shift card grid to the right on Technology page only */
+.home-page.technology-page .grid-layout {
+  margin-left: 100px;
+  margin-top: -50px;
+}
+
+/* Responsive grid for Technology page */
+.responsive-tech-grid {
+  display: grid;
+  grid-template-columns: 700px 700px;
+  gap: 40px;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 1500px) {
+  .responsive-tech-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .responsive-tech-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    margin-left: 0 !important;
+    gap: 18px;
+  }
+  .responsive-tech-grid .card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .home-page.technology-page .sidebar {
+    margin-left: 0 !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px;
+  }
+}
+
+/* IT Page New Layout Styles */
+.business-reports-button-container {
+  text-align: center;
+  margin-bottom: 0;
+  margin-top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 30px;
+  margin-top: 50px;
+}
+
+.business-reports-button {
+  background-color: #005b99;
+  color: #ffffff;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.2em;
+  font-weight: 600;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1800px;
+  display: block;
+  margin: 0 auto;
+}
+
+.business-reports-button:hover {
+  background-color: #0073d6;
+}
+
+.tech-updates-large-card {
+  width: 100%;
+  margin-bottom: 40px;
+  margin-top: 0;
+}
+
+.tech-updates-large-card .card {
+  width: 100%;
+  min-height: auto; /* Allow dynamic height */
+  height: auto; /* Let content determine height */
+}
+
+.tech-resources-faq-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  width: 100%;
+}
+
+.tech-resources-faq-container .card {
+  min-height: 540px;
+}
+
+.tech-updates-large-card,
+.tech-resources-faq-container {
+  max-width: 1800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.business-reports-button {
+  max-width: 1800px;
+}
+
+/* Responsive adjustments for the new layout */
+@media (max-width: 1200px) {
+  .tech-resources-faq-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .business-reports-button {
+    width: 100%;
+    max-width: 1400px;
+    padding: 12px 30px;
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 1300px) {
+  .tech-updates-large-card,
+  .tech-resources-faq-container,
+  .business-reports-button {
+    max-width: 95vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .business-reports-button {
+    width: 100%;
+    max-width: 95vw;
+    padding: 10px 25px;
+    font-size: 1em;
+  }
+  
+  .tech-updates-large-card .card,
+  .tech-resources-faq-container .card {
+    min-height: 400px;
+  }
+}

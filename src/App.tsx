@@ -6,7 +6,7 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
-import TechnologyReports from './components/Reports';
+import Reports from './components/Reports';
 import { loginRequest, isEliteGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
@@ -388,10 +388,13 @@ const App: React.FC = () => {
           />
           {userInfo.isAuthenticated && (
             <>
-              {/* <Route path="/hr" element={<HRPage />} />
-              <Route path="/it" element={<ITPage />} /> */}
-              <Route path="/technology" element={<TechnologyReports userInfo={userInfo} />} />
-              {/* <Route path="/reports" element={<TechnologyReports />} /> */}
+              <Route path="/ITPage" element={<ITPage />} />
+              <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+              <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
+              <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
+              <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />
+              <Route path="/marketing" element={<div>Marketing Page - Coming Soon</div>} />
+              <Route path="/hr" element={<div>Human Resources Page - Coming Soon</div>} />
             </>
           )}
         </Routes>
