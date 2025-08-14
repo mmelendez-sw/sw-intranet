@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
-// import { PowerbiService } from '../services/powerbiService';
+import { PowerbiService } from '../services/powerbiService';
 
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
@@ -20,29 +20,29 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
-  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
-  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
+  const powerbiContainerRef = useRef<HTMLDivElement>(null);
   const chartOverlayRef = useRef<HTMLDivElement>(null);
-  // const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
-  // const [powerbiError, setPowerbiError] = useState<string | null>(null);
+  const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
+  const [powerbiError, setPowerbiError] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   const container = powerbiContainerRef.current;
-  //   if (!container) return;
-  //   const preventZoom: EventListener = (e) => {
-  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-  //       e.preventDefault();
-  //     }
-  //   };
-  //   container.addEventListener('wheel', preventZoom, { passive: false });
-  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-  //   return () => {
-  //     container.removeEventListener('wheel', preventZoom);
-  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
-  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
-  //   };
-  // }, []);
+  useEffect(() => {
+    const container = powerbiContainerRef.current;
+    if (!container) return;
+    const preventZoom: EventListener = (e) => {
+      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+        e.preventDefault();
+      }
+    };
+    container.addEventListener('wheel', preventZoom, { passive: false });
+    container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+    container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', preventZoom);
+      container.removeEventListener('gesturestart', preventZoom as EventListener);
+      container.removeEventListener('gesturechange', preventZoom as EventListener);
+    };
+  }, []);
 
   useEffect(() => {
     const overlay = chartOverlayRef.current;
@@ -62,32 +62,32 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     };
   }, []);
 
-  // Load PowerBI configuration
-  // useEffect(() => {
-  //   const loadPowerbiConfig = async () => {
-  //     try {
-  //       const powerbiService = PowerbiService.getInstance();
+  // Load PowerBI configuration - Only if user has Power BI license
+  useEffect(() => {
+    const loadPowerbiConfig = async () => {
+      try {
+        const powerbiService = PowerbiService.getInstance();
         
-  //       // Validate configuration first
-  //       if (!powerbiService.validateConfiguration()) {
-  //         setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
-  //         return;
-  //       }
+        // Validate configuration first
+        if (!powerbiService.validateConfiguration()) {
+          setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
+          return;
+        }
 
-  //       // Generate embed token for the report
-  //       const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
-  //       setPowerbiConfig(embedToken);
-  //       setPowerbiError(null);
-  //     } catch (error) {
-  //       console.error('Failed to load PowerBI configuration:', error);
-  //       setPowerbiError('Failed to load PowerBI report. Please check configuration.');
-  //     }
-  //   };
+        // Generate embed token for the report
+        const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
+        setPowerbiConfig(embedToken);
+        setPowerbiError(null);
+      } catch (error) {
+        console.error('Failed to load PowerBI configuration:', error);
+        setPowerbiError('Failed to load PowerBI report. Please check configuration.');
+      }
+    };
 
-  //   if (userInfo.isAuthenticated) {
-  //     loadPowerbiConfig();
-  //   }
-  // }, [userInfo.isAuthenticated]);
+    if (userInfo.isAuthenticated && userInfo.hasPowerBILicense) {
+      loadPowerbiConfig();
+    }
+  }, [userInfo.isAuthenticated, userInfo.hasPowerBILicense]);
 
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
@@ -96,54 +96,82 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           {/* Main Content White Box */}
           <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: '0 0 0px 10px', padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
-              {/* Power BI Report Embed - TEMPORARILY COMMENTED OUT */}
-              {/* <div
-                ref={powerbiContainerRef}
-                className="powerbi-embed-container"
-                style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
-              >
-                {powerbiError ? (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#d32f2f',
-                    textAlign: 'center',
-                    padding: '20px'
-                  }}>
-                    <div>
-                      <h3>⚠️ PowerBI Configuration Error</h3>
-                      <p>{powerbiError}</p>
-                      <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                        Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
-                      </p>
+              
+              {/* Power BI Report Embed - Only show if user has Power BI license */}
+              {userInfo.hasPowerBILicense ? (
+                <div
+                  ref={powerbiContainerRef}
+                  className="powerbi-embed-container"
+                  style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
+                >
+                  {powerbiError ? (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      height: '100%', 
+                      color: '#d32f2f',
+                      textAlign: 'center',
+                      padding: '20px'
+                    }}>
+                      <div>
+                        <h3>⚠️ PowerBI Configuration Error</h3>
+                        <p>{powerbiError}</p>
+                        <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
+                          Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ) : powerbiConfig ? (
-                  <iframe
-                    title="Company Progress"
-                    width="100%"
-                    height="425"
-                    src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
-                    frameBorder="0"
-                    allowFullScreen={false}
-                    style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                  />
-                ) : (
-                  <div style={{ 
+                  ) : powerbiConfig ? (
+                    <iframe
+                      title="Company Progress"
+                      width="100%"
+                      height="425"
+                      src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
+                      frameBorder="0"
+                      allowFullScreen={false}
+                      style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  ) : (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      height: '100%', 
+                      color: '#666'
+                    }}>
+                      <div>Loading PowerBI report...</div>
+                    </div>
+                  )}
+                  <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                </div>
+              ) : (
+                <div
+                  style={{ 
+                    width: '100%', 
+                    height: '425px', 
+                    margin: '-42px 0 0 0', 
+                    padding: '20px', 
+                    background: '#fff', 
+                    border: 'none', 
+                    borderRadius: '10px', 
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.07)', 
                     display: 'flex', 
-                    alignItems: 'center', 
                     justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#666'
-                  }}>
-                    <div>Loading PowerBI report...</div>
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div>
+                    <h3>📊 Power BI Report</h3>
+                    <p>This report requires a Power BI license to view.</p>
+                    <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+                      Contact your administrator to request Power BI access.
+                    </p>
                   </div>
-                )}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
-              </div> */}
+                </div>
+              )}
               
               <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0', marginTop: '10px' }}>
                 {/* Card 1 */}
@@ -265,43 +293,43 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           </div>
           {/* Sidebar White Box */}
           <aside className="sidebar sidebar-narrow" style={{ padding: '30px', minWidth: '250px', maxWidth: '280px', boxSizing: 'border-box', background: '#fff', border: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', marginLeft: '10px', marginTop: '10px', marginBottom: '10px', display: 'flex', flexDirection: 'column' }}>
-              <section className="quick-links" style={{ marginBottom: '20px' }}>
-                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
-              </section>
-              <section className="quick-links" style={{ marginBottom: '20px' }}>
-                <h2>HR Updates</h2>
-                <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
-                <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
-              </section>
-              <section className="updates" style={{ marginBottom: '20px' }}>
-                <h2>IT Updates</h2>
-                <p>Do not click any phishing links</p>
-              </section>
-              <section className="quick-links" style={{ marginBottom: '20px' }}>
-                <h2>Quick Links</h2>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-                <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-                {userInfo.isEliteGroup ? (
-                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
-                ) : (
-                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
-                )}
-                <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-                <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-                <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-              </section>
-              <section className="updates" style={{ marginBottom: '20px' }}>
-                <h2>Exciting News</h2>
-                <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
-              </section>
-              <section className="updates" style={{ marginBottom: '20px', flexGrow: 1 }}>
-                <h2>Holiday Party Photos</h2>
-                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-                <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
-              </section>
-            </aside>
+            <section className="quick-links" style={{ marginBottom: '20px' }}>
+              <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
+            </section>
+            <section className="quick-links" style={{ marginBottom: '20px' }}>
+              <h2>HR Updates</h2>
+              <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
+              <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
+            </section>
+            <section className="updates" style={{ marginBottom: '20px' }}>
+              <h2>IT Updates</h2>
+              <p>Do not click any phishing links</p>
+            </section>
+            <section className="quick-links" style={{ marginBottom: '20px' }}>
+              <h2>Quick Links</h2>
+              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
+              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
+              <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
+              {userInfo.isEliteGroup ? (
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
+              ) : (
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
+              )}
+              <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
+              <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
+              <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
+              <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+            </section>
+            <section className="updates" style={{ marginBottom: '20px' }}>
+              <h2>Exciting News</h2>
+              <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
+            </section>
+            <section className="updates" style={{ marginBottom: '20px', flexGrow: 1 }}>
+              <h2>Holiday Party Photos</h2>
+              <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
+              <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
+            </section>
+          </aside>
         </div>
       ) : (
         <div className="unauthenticated-message">

@@ -8,6 +8,7 @@ import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import { loginRequest, isEliteGroupMember } from './authConfig';
+import { checkPowerBILicense } from './services/powerbiLicenseService';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 
@@ -28,38 +29,44 @@ const App: React.FC = () => {
       
       // Check if we have cached elite status for this user
       const cachedEliteStatus = localStorage.getItem(`elite_status_${email}`);
+      const cachedPowerBILicense = localStorage.getItem(`powerbi_license_${email}`);
       const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
       let isElite = false;
+      let hasPowerBILicense = false;
       
       // Check if cache is still valid (24 hours)
       const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
       
       console.log('🔍 Cache check:', { 
         cachedEliteStatus, 
+        cachedPowerBILicense,
         cachedTimestamp, 
         cacheValid, 
         currentTime: Date.now(),
         cacheAge: cachedTimestamp ? Date.now() - parseInt(cachedTimestamp) : 'N/A'
       });
       
-      if (cachedEliteStatus && cacheValid) {
+      if (cachedEliteStatus && cachedPowerBILicense && cacheValid) {
         isElite = cachedEliteStatus === 'true';
-        console.log('🔍 Using cached elite status:', isElite);
+        hasPowerBILicense = cachedPowerBILicense === 'true';
+        console.log('🔍 Using cached statuses - Elite:', isElite, 'Power BI:', hasPowerBILicense);
         
-        // Set user info immediately with cached elite status
+        // Set user info immediately with cached statuses
         setUserInfo({
           isAuthenticated: true,
           isEliteGroup: isElite,
+          hasPowerBILicense: hasPowerBILicense,
           email: email,
           name: account.name,
         });
       } else {
-        console.log('🔍 Cache invalid or missing, checking group membership...');
+        console.log('🔍 Cache invalid or missing, checking memberships and licenses...');
         
-        // Set user as authenticated immediately but with elite status pending
+        // Set user as authenticated immediately but with statuses pending
         setUserInfo({
           isAuthenticated: true,
           isEliteGroup: false, // Will be updated once we get the real status
+          hasPowerBILicense: false, // Will be updated once we get the real status
           email: email,
           name: account.name,
         });
@@ -67,60 +74,76 @@ const App: React.FC = () => {
         // Wait a bit to ensure MSAL is fully initialized
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Check group membership asynchronously with improved retry logic
+        // Check both elite group membership and Power BI license in parallel
         let retryCount = 0;
         const maxRetries = 5; // Increased retries
         const retryDelays = [1000, 2000, 3000, 5000, 8000]; // Progressive delays
         
         while (retryCount < maxRetries) {
           try {
-            console.log('🔍 Checking elite group membership (attempt', retryCount + 1, ')...');
-            isElite = await isEliteGroupMember(instance);
+            console.log('🔍 Checking elite group membership and Power BI license (attempt', retryCount + 1, ')...');
+            
+            // Check both in parallel
+            const [eliteResult, powerBILicenseResult] = await Promise.all([
+              isEliteGroupMember(instance),
+              checkPowerBILicense(instance)
+            ]);
+            
+            isElite = eliteResult;
+            hasPowerBILicense = powerBILicenseResult;
+            
             console.log('🔍 Elite group membership result:', isElite);
+            console.log('🔍 Power BI license result:', hasPowerBILicense);
             
-            // Cache the result with timestamp
+            // Cache the results with timestamp
             localStorage.setItem(`elite_status_${email}`, isElite.toString());
+            localStorage.setItem(`powerbi_license_${email}`, hasPowerBILicense.toString());
             localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-            console.log('🔍 Cached elite status:', isElite);
+            console.log('🔍 Cached statuses - Elite:', isElite, 'Power BI:', hasPowerBILicense);
             
-            // Update user info with the correct elite status
+            // Update user info with the correct statuses
             setUserInfo(prev => ({
               ...prev,
-              isEliteGroup: isElite
+              isEliteGroup: isElite,
+              hasPowerBILicense: hasPowerBILicense
             }));
             
             break; // Success, exit retry loop
           } catch (error) {
-            console.error('❌ Error checking elite group membership (attempt', retryCount + 1, '):', error);
+            console.error('❌ Error checking memberships and licenses (attempt', retryCount + 1, '):', error);
             retryCount++;
             if (retryCount < maxRetries) {
               const delay = retryDelays[retryCount - 1] || 8000;
               console.log(`🔍 Retrying in ${delay}ms...`);
               await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-              console.log('🔍 Max retries reached, defaulting to non-elite');
+              console.log('🔍 Max retries reached, defaulting to non-elite and no Power BI license');
               isElite = false;
-              // Cache the fallback result
+              hasPowerBILicense = false;
+              // Cache the fallback results
               localStorage.setItem(`elite_status_${email}`, 'false');
+              localStorage.setItem(`powerbi_license_${email}`, 'false');
               localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
               
-              // Update user info with fallback elite status
+              // Update user info with fallback statuses
               setUserInfo(prev => ({
                 ...prev,
-                isEliteGroup: false
+                isEliteGroup: false,
+                hasPowerBILicense: false
               }));
             }
           }
         }
         
-        console.log('🔍 Final elite status:', isElite);
-        console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, email, name: account.name });
+        console.log('🔍 Final statuses - Elite:', isElite, 'Power BI:', hasPowerBILicense);
+        console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, hasPowerBILicense: hasPowerBILicense, email, name: account.name });
       }
     } else {
       console.log('🔍 No accounts found, setting unauthenticated state');
       setUserInfo({
         isAuthenticated: false,
         isEliteGroup: false,
+        hasPowerBILicense: false,
       });
     }
   };
@@ -165,18 +188,21 @@ const App: React.FC = () => {
         
         // Check if we have a valid cached elite status
         const cachedEliteStatus = localStorage.getItem(`elite_status_${email}`);
+        const cachedPowerBILicense = localStorage.getItem(`powerbi_license_${email}`);
         const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
         const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
         
-        if (cachedEliteStatus && cacheValid) {
+        if (cachedEliteStatus && cachedPowerBILicense && cacheValid) {
           const isElite = cachedEliteStatus === 'true';
-          console.log('🔍 Initial elite check from cache:', isElite);
+          const hasPowerBILicense = cachedPowerBILicense === 'true';
+          console.log('🔍 Initial elite check from cache:', isElite, 'Power BI:', hasPowerBILicense);
           
           // Update user info immediately if we have valid cached elite status
           setUserInfo(prev => ({
             ...prev,
             isAuthenticated: true,
             isEliteGroup: isElite,
+            hasPowerBILicense: hasPowerBILicense,
             email: email,
             name: account.name,
           }));
@@ -184,11 +210,15 @@ const App: React.FC = () => {
           // If no valid cache, try an immediate elite check
           console.log('🔍 No valid cache, attempting immediate elite check...');
           try {
-            const isElite = await isEliteGroupMember(instance);
-            console.log('🔍 Immediate elite check result:', isElite);
+            const [isElite, hasPowerBILicense] = await Promise.all([
+              isEliteGroupMember(instance),
+              checkPowerBILicense(instance)
+            ]);
+            console.log('🔍 Immediate elite check result:', isElite, 'Power BI:', hasPowerBILicense);
             
             // Cache the result
             localStorage.setItem(`elite_status_${email}`, isElite.toString());
+            localStorage.setItem(`powerbi_license_${email}`, hasPowerBILicense.toString());
             localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
             
             // Update user info
@@ -196,6 +226,7 @@ const App: React.FC = () => {
               ...prev,
               isAuthenticated: true,
               isEliteGroup: isElite,
+              hasPowerBILicense: hasPowerBILicense,
               email: email,
               name: account.name,
             }));
@@ -279,6 +310,7 @@ const App: React.FC = () => {
         console.log('🔍 Current user state:', userInfo);
         console.log('🔍 Is authenticated:', userInfo.isAuthenticated);
         console.log('🔍 Is elite group:', userInfo.isEliteGroup);
+        console.log('🔍 Has Power BI license:', userInfo.hasPowerBILicense);
         console.log('🔍 User email:', userInfo.email);
         console.log('🔍 User name:', userInfo.name);
       };
@@ -286,6 +318,7 @@ const App: React.FC = () => {
         console.log('🔍 Manually refreshing elite status...');
         if (userInfo.email) {
           localStorage.removeItem(`elite_status_${userInfo.email}`);
+          localStorage.removeItem(`powerbi_license_${userInfo.email}`);
           localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
           console.log('🔍 Cleared cached elite status');
         }
@@ -294,6 +327,7 @@ const App: React.FC = () => {
       (window as any).clearEliteCache = () => {
         if (userInfo.email) {
           localStorage.removeItem(`elite_status_${userInfo.email}`);
+          localStorage.removeItem(`powerbi_license_${userInfo.email}`);
           localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
           console.log('🔍 Cleared elite status cache for:', userInfo.email);
         }
@@ -323,6 +357,29 @@ const App: React.FC = () => {
           } catch (error) {
             console.error('❌ Force check failed:', error);
           }
+        }
+      };
+      (window as any).checkPowerBILicense = async () => {
+        console.log('🔍 Manually checking Power BI license...');
+        try {
+          const hasLicense = await checkPowerBILicense(instance);
+          console.log('🔍 Power BI license check result:', hasLicense);
+          
+          // Update cache and state
+          const accounts = instance.getAllAccounts();
+          if (accounts.length > 0) {
+            const email = accounts[0].username || accounts[0].homeAccountId;
+            localStorage.setItem(`powerbi_license_${email}`, hasLicense.toString());
+            
+            setUserInfo(prev => ({
+              ...prev,
+              hasPowerBILicense: hasLicense
+            }));
+            
+            console.log('🔍 Updated user state with Power BI license status:', hasLicense);
+          }
+        } catch (error) {
+          console.error('❌ Power BI license check failed:', error);
         }
       };
       (window as any).startPersistentEliteCheck = async () => {
@@ -373,6 +430,7 @@ const App: React.FC = () => {
       console.log('🔍 To refresh elite status, run: window.refreshEliteStatus() in the console');
       console.log('🔍 To clear elite cache, run: window.clearEliteCache() in the console');
       console.log('🔍 To force elite check, run: window.forceEliteCheck() in the console');
+      console.log('🔍 To check Power BI license, run: window.checkPowerBILicense() in the console');
       console.log('🔍 To start persistent elite check, run: window.startPersistentEliteCheck() in the console');
     }
   }, [userInfo.isAuthenticated, instance, userInfo]);

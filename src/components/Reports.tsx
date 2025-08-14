@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/reports.css';
 import { UserInfo } from '../types/user';
+import { isPowerBIReport, getLicenseStatusIndicator } from '../services/powerbiLicenseService';
 
 interface TechnologyReportsProps {
   userInfo: UserInfo;
@@ -80,58 +81,158 @@ const eliteReports = [
 ];
 
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
-  const displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
-  const pageTitle = userInfo.isEliteGroup 
-    ? 'Symphony Towers Infrastructure Elite Status Reports' 
-    : 'Symphony Towers Infrastructure Status Reports';
+  // INDEPENDENT CONDITIONAL RENDERING:
+  // 1. Elite group membership - controls which reports are shown
+  // 2. Power BI license - controls which Power BI reports are accessible
+  
+  // Build reports array based on elite group membership (independent of Power BI license)
+  const getAvailableReports = () => {
+    if (userInfo.isEliteGroup) {
+      return [...eliteReports, ...reports];
+    } else {
+      return reports;
+    }
+  };
+  
+  const availableReports = getAvailableReports();
+  
+  // Get page title based on elite group membership (independent of Power BI license)
+  const getPageTitle = () => {
+    if (userInfo.isEliteGroup) {
+      return 'Symphony Towers Infrastructure Elite Status Reports';
+    } else {
+      return 'Symphony Towers Infrastructure Status Reports';
+    }
+  };
+
+  // Get elite access indicator (independent of Power BI license)
+  const getEliteIndicator = () => {
+    if (userInfo.isEliteGroup) {
+      return (
+        <div style={{ 
+          backgroundColor: '#f0f0f0', 
+          color: '#333', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          fontStyle: 'italic'
+        }}>
+          Elite Access - Additional reports available
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Get Power BI license status indicator (independent of elite group)
+  const getPowerBIIndicator = () => {
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    if (!hasPowerBILicense) {
+      return (
+        <div style={{ 
+          backgroundColor: '#fff3cd', 
+          color: '#856404', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          border: '1px solid #ffeaa7'
+        }}>
+          ⚠️ Limited Access - Power BI reports require a Power BI license. Contact your administrator to request access.
+        </div>
+      );
+    } else {
+      return (
+        <div style={{ 
+          backgroundColor: '#e8f4fd', 
+          color: '#1e3a8a', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          fontWeight: 'bold'
+        }}>
+          📊 Power BI License Active - Power BI Reports Available
+        </div>
+      );
+    }
+  };
+
+  // Enhanced report button with independent Power BI license checking
+  const getReportButton = (report: any) => {
+    const isPowerBI = isPowerBIReport(report);
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    if (report.link) {
+      return (
+        <button 
+          className="report-button" 
+          onClick={() => window.open(report.link, '_blank')}
+          disabled={isPowerBI && !hasPowerBILicense}
+          style={{
+            opacity: isPowerBI && !hasPowerBILicense ? 0.5 : 1,
+            cursor: isPowerBI && !hasPowerBILicense ? 'not-allowed' : 'pointer'
+          }}
+          title={isPowerBI && !hasPowerBILicense ? 'Power BI license required' : ''}
+        >
+          {report.title}
+          {isPowerBI && !hasPowerBILicense && <span style={{ marginLeft: '5px', fontSize: '0.8em' }}>🔒</span>}
+        </button>
+      );
+    } else {
+      return (
+        <button className="report-button">
+          {report.title}
+        </button>
+      );
+    }
+  };
+
+  // Get access indicator for each report (independent of other conditions)
+  const getReportAccessIndicator = (report: any) => {
+    const isPowerBI = isPowerBIReport(report);
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    if (isPowerBI) {
+      if (hasPowerBILicense) {
+        return <span style={{ color: 'green' }}>📊 Power BI</span>;
+      } else {
+        return <span style={{ color: 'red' }}>❌ License Required</span>;
+      }
+    } else {
+      return <span style={{ color: 'blue' }}>🔗 External</span>;
+    }
+  };
 
   return (
     <div className="home-page">
       <div className="outermost-container">
         <div className="reports-content-container">
           <div className="reports-text-bar">
-             <h2>{pageTitle}</h2>
-             {userInfo.isEliteGroup && (
-               <div style={{ 
-                 backgroundColor: '#f0f0f0', 
-                 color: '#333', 
-                 padding: '8px', 
-                 borderRadius: '4px', 
-                 marginTop: '10px',
-                 fontSize: '0.9em',
-                 fontStyle: 'italic'
-               }}>
-                 Elite Access - Additional reports available
-               </div>
-             )}
+             <h2>{getPageTitle()}</h2>
+             {getEliteIndicator()}
+             {getPowerBIIndicator()}
           </div>
           <table className="reports-table">
             <thead>
               <tr>
                 <th>Title</th>
                 <th>Description</th>
+                <th>Access</th>
               </tr>
             </thead>
             <tbody>
-            {displayReports.map((report, index) => (
+            {availableReports.map((report, index) => (
               <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
                 <td>
-                  {report.title ? (
-                    report.link ? (
-                      <button 
-                        className="report-button" 
-                        onClick={() => window.open(report.link, '_blank')}
-                      >
-                        {report.title}
-                      </button>
-                    ) : (
-                      <button className="report-button">
-                        {report.title}
-                      </button>
-                    )
-                  ) : null}
+                  {report.title ? getReportButton(report) : null}
                 </td>
                 <td style={{ height: '55px' }}>{report.description || ''}</td>
+                <td>
+                  {getReportAccessIndicator(report)}
+                </td>
               </tr>
             ))}
             </tbody>
