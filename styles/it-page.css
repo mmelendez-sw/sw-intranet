@@ -1,6 +1,7 @@
 /* General Layout */
 .home-page {
   padding: 0 1em;
+  margin-top: 60px; /* Add margin to account for fixed header */
 }
 
 .content-container {
@@ -455,4 +456,77 @@
   .tech-resources-faq-container .card {
     min-height: 400px;
   }
+}
+
+/* Blue column styles for the FAQ and Resources cards */
+.blue-column {
+  background: #004E7C;
+  color: #fff;
+  padding: 24px 18px 18px 18px;
+  border-radius: 0;
+}
+
+.blue-column h2 {
+  color: #fff;
+  margin-bottom: 12px;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.blue-column ul {
+  list-style: disc inside;
+  padding-left: 0;
+  margin: 0;
+}
+
+.blue-column li {
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 1em;
+}
+
+/* Home button styles */
+.home-button {
+  background-color: #005b99;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.home-button:hover {
+  background-color: #0073d6;
+}
+
+/* Updates section styles */
+.updates {
+  margin-bottom: 20px;
+}
+
+.updates h2 {
+  font-size: 1.3em;
+  color: #003366;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #009acb;
+  padding-bottom: 5px;
+}
+
+.updates p {
+  font-size: 0.9em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.updates a {
+  color: #005b99;
+  text-decoration: none;
+}
+
+.updates a:hover {
+  text-decoration: underline;
 }
