@@ -61,6 +61,13 @@
     margin-right: 15px;
 }
 
+.user-name {
+    color: #ffffff; /* Matches header text */
+    font-size: 1rem;
+    margin-right: 15px;
+    cursor: pointer;
+}
+
 /* Buttons */
 .login-button,
 .logout-button {

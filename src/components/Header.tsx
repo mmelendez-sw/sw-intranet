@@ -76,12 +76,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
         <i className="fa-solid fa-laptop"></i><Link to="/reports">Reports</Link>
-        {/* <button 
-          className="test-popup-button"
-          onClick={() => setShowPopup(true)}
-        >
-          Test Popup
-        </button> */}
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
@@ -113,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 style={{ marginLeft: '5px' }}
               ></i>
             </span>
-            <DropdownMenu />
+            {isDropdownOpen && <DropdownMenu />}
           </div>
         ) : (
           <button onClick={handleLogin} className="login-button">
@@ -121,9 +115,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           </button>
         )}
       </div>
-      {/* {showPopup && (
-        <ImagePopup onClose={() => setShowPopup(false)} />
-      )} */}
     </header>
   );
 };

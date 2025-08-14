@@ -1,6 +1,7 @@
 /* General Layout */
 .home-page {
   padding: 0 1em;
+  margin-top: 60px; /* Add margin to account for fixed header */
 }
 
 .content-container {

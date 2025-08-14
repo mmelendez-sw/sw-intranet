@@ -1,26 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/it-page.css';
 
-const TechnologyPage: React.FC = () => {
+const ITPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="home-page">
-      <div className="outermost-container">
-        <div className="content-container">
-          {/* Business Reports - Large Card */}
-          <div className="business-reports-large-card">
-            <div className="card odd-card" style={{ minHeight: 540 }}>
-              <div className="card-text">
-                <h2>Business Reports</h2>
-                <p>Access comprehensive business intelligence and analytics reports to drive informed decision-making.</p>
-                <button 
-                  className="home-button" 
-                  onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}
-                  style={{ marginTop: '20px' }}
-                >
-                  Business Reports
-                </button>
-              </div>
-            </div>
+    <div className="home-page technology-page authenticated">
+      <div className="content-container">
+        <div className="main-content">
+          {/* Business Reports Button */}
+          <div className="business-reports-button-container">
+            <button 
+              className="home-button business-reports-button"
+              onClick={() => navigate('/reports')}
+            >
+              Business Reports
+            </button>
           </div>
           
           {/* Technology Updates - Large Card */}
@@ -106,4 +102,4 @@ const TechnologyPage: React.FC = () => {
   );
 };
 
-export default TechnologyPage;
+export default ITPage;

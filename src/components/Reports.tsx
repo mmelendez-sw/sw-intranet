@@ -3,7 +3,7 @@ import '../styles/reports.css';
 import { UserInfo } from '../types/user';
 import { isPowerBIReport, getPowerBILicenseIndicator, getEliteGroupIndicator } from '../services/powerbiLicenseService';
 
-interface TechnologyReportsProps {
+interface ReportsProps {
   userInfo: UserInfo;
 }
 
@@ -80,7 +80,7 @@ const eliteReports = [
   },
 ];
 
-const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
+const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   // INDEPENDENT CONDITIONAL RENDERING:
   // 1. Elite group membership - controls which reports are shown
   // 2. Power BI license - controls which Power BI reports are accessible
@@ -279,4 +279,4 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   );
 };
 
-export default TechnologyReports;
+export default Reports;

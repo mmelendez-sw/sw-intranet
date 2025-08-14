@@ -301,17 +301,13 @@ const App: React.FC = () => {
             path="/"
             element={<HomePage userInfo={userInfo} />}
           />
-          {userInfo.isAuthenticated && (
-            <>
-              <Route path="/ITPage" element={<ITPage />} />
-              <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-              <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
-              <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
-              <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />
-              <Route path="/marketing" element={<div>Marketing Page - Coming Soon</div>} />
-              <Route path="/hr" element={<div>Human Resources Page - Coming Soon</div>} />
-            </>
-          )}
+          <Route path="/ITPage" element={<ITPage />} />
+          <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+          <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
+          <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
+          <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />
+          <Route path="/marketing" element={<div>Marketing Page - Coming Soon</div>} />
+          <Route path="/hr" element={<div>Human Resources Page - Coming Soon</div>} />
         </Routes>
       </div>
     </Router>
