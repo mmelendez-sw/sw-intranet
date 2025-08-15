@@ -71,19 +71,20 @@ const reports = [
   },
 ];
 
-// Elite reports - additional reports for elite group members
+// Elite reports - additional reports for elite group members (completely independent of Power BI license)
 const eliteReports = [
   {
     title: 'Elite - Origination Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    isEliteReport: true, // Mark as elite report
   },
 ];
 
 const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   // INDEPENDENT CONDITIONAL RENDERING:
-  // 1. Elite group membership - controls which reports are shown
-  // 2. Power BI license - controls which Power BI reports are accessible
+  // 1. Elite group membership - controls which reports are shown (completely independent)
+  // 2. Power BI license - controls which Power BI reports are accessible (only for non-elite reports)
   
   // Build reports array based on elite group membership (independent of Power BI license)
   const getAvailableReports = () => {
@@ -160,11 +161,31 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     }
   };
 
-  // Enhanced report button with independent Power BI license checking
+  // Enhanced report button with independent conditions
   const getReportButton = (report: any) => {
     const isPowerBI = isPowerBIReport(report);
+    const isEliteReport = report.isEliteReport || false;
     const hasPowerBILicense = userInfo.hasPowerBILicense || false;
     
+    // Elite reports are always accessible regardless of Power BI license
+    if (isEliteReport) {
+      return (
+        <button 
+          className="report-button" 
+          onClick={() => window.open(report.link, '_blank')}
+          style={{
+            backgroundColor: '#004E7C', // Elite blue color
+            color: '#ffffff',
+            fontWeight: 'bold'
+          }}
+        >
+          {report.title}
+          <span style={{ marginLeft: '5px', fontSize: '0.8em' }}>👑</span>
+        </button>
+      );
+    }
+    
+    // Regular reports follow Power BI license rules
     if (report.link) {
       return (
         <button 
@@ -193,8 +214,15 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   // Get access indicator for each report (independent of other conditions)
   const getReportAccessIndicator = (report: any) => {
     const isPowerBI = isPowerBIReport(report);
+    const isEliteReport = report.isEliteReport || false;
     const hasPowerBILicense = userInfo.hasPowerBILicense || false;
     
+    // Elite reports always show as accessible
+    if (isEliteReport) {
+      return <span style={{ color: '#004E7C', fontWeight: 'bold' }}>👑 Elite Access</span>;
+    }
+    
+    // Regular reports follow Power BI license rules
     if (isPowerBI) {
       if (hasPowerBILicense) {
         return <span style={{ color: 'green' }}>📊 Power BI</span>;
@@ -249,7 +277,7 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
           <section className="quick-links">
             <h2>Quick Links</h2>
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
+            <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
             <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
             {userInfo.isEliteGroup ? (
               <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Elite Reports</button>
