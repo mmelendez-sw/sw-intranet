@@ -388,7 +388,7 @@ const App: React.FC = () => {
           />
           {userInfo.isAuthenticated && (
             <>
-              <Route path="/ITPage" element={<ITPage />} />
+              <Route path="/technology" element={<ITPage />} />
               <Route path="/reports" element={<Reports userInfo={userInfo} />} />
               <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
               <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
