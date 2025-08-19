@@ -7,7 +7,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/run-pic.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/cityHarvestEvent.png'
+import img7 from '../../images/cityharvest3.png'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/earth-pic.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
@@ -92,10 +92,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>City Harvest Volunteer Event</h2>
                   <ul>
-                    <li>Come volunteer at NYC’s first and largest food rescue organization. We will be sorting
-                      bulk food donations into smaller, family-sized portions that can be easily distributed to
-                      soup kitchens and food pantries throughout the five boroughts.</li>
-                  </ul>
+                      <li>On August 14th, our volunteers joined City Harvest to help repack large quantities of fresh produce into family-sized portions for distribution across NYC. Much of the food City Harvest receives arrives in bulk containers, which can be hard to distribute equitably. Our team helped take thousands of pounds of apples and pears and repackage them into smaller units that local food programs can easily share with their communities. It was hands-on work with real impact, and we're proud to support an organization doing such essential work for New Yorkers in need. A huge thank you to everyone who participated and represented our team spirit and commitment to giving back!</li>
+                      <li>If you have any organizations you would like us to support, please let us know here: <a href="https://www.surveymonkey.com/r/NKSLSRW" target="_blank" rel="noopener noreferrer">https://www.surveymonkey.com/r/NKSLSRW</a>.</li>
+                    </ul>
                 </div>
               </div>
               {/* Card 4 */}
