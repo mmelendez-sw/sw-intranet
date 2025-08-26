@@ -77,6 +77,11 @@ const eliteReports = [
     description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
+  {
+    title: 'Elite - Scorecard Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
+    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  }
 ];
 
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
