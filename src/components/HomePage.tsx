@@ -36,7 +36,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                     {/* <li>6/19: Juneteenth</li> */}
                     {/* <li>7/4: Independence Day</li> */}
-                    <li>8/14: City Harvest Volunteer Event</li>
+                    <li>8/29: Early Office Closure at 2 PM EST for Labor Day</li>
                     <li>9/1: Labor Day</li> 
                     <li>11/27: Thanksgiving Day</li> 
                     <li>11/28: Day After Thanksgiving</li>
