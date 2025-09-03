@@ -42,8 +42,9 @@ const reports = [
     link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'WIP - Daily Acquisitions Summary',
-    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    title: 'Daily Acquisitions Summary',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
     title: 'WIP - In-Month Conversion Tracker',
