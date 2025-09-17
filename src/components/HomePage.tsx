@@ -9,7 +9,7 @@ import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/cityharvest3.png'
 import img8 from '../../images/earth_flyer.jpg'
-import img9 from '../../images/earth-pic.png'
+import img9 from '../../images/summer.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
 import img11 from '../../images/kossak.png'
 
@@ -36,6 +36,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                     {/* <li>6/19: Juneteenth</li> */}
                     {/* <li>7/4: Independence Day</li> */}
+                    <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
                     <li>10/8: All-Hands Meeting</li> 
                     <li>11/27: Thanksgiving Day</li> 
                     <li>11/28: Day After Thanksgiving</li>
