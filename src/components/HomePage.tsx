@@ -13,7 +13,7 @@ import img7 from '../../images/cityharvest3.png'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/earth-pic.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
-import img11 from '../../images/bowling2025.png'
+import img11 from '../../images/kossak.png'
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -167,39 +167,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card even-card">
                   <img src={img11} alt="Bowling 2025" className="card-image" />
                   <div className="card-text">
-                    <h2>June & First Half 2025 Performance Highlights</h2>
+                    <h2>2025 Jessica Moebs Memorial Golf Tournament</h2>
                     <ul>
                       <li>
-                        <strong>Mid-Year Status:</strong> We are halfway through 2025 and ahead of our budget YTD. If we exceed full-year budget goals, bonus payouts will increase by <strong>2% for every 1%</strong> above budget.
-                      </li>
-                      <li>
-                        <strong>June Performance:</strong> CRs at 113% of budget, GCF at 112%, TS at 110%.
-                      </li>
-                      <li>
-                        <strong>Year-to-Date Performance:</strong> 
-                        <ul>
-                          <li>CRs – 97% (#) and 111% ($) of budget</li>
-                          <li>GCF – 106% of budget</li>
-                          <li>TS – 115% (#) and 123% ($) of budget</li>
-                        </ul>
-                      </li>
-                      <li>
-                        <strong>Channel Contributions:</strong> External brokers drove 57% of total CR performance in June (up from 50% in May). Internal team improved to 88% (CR #) and 85% (CR $), up from 72% and 80% in May.
-                      </li>
-                      <li>
-                        <strong>Leasing Progress:</strong> Over $101K of new leasing cashflow in June, $537K YTD. ~$950K in forecasted leasing opportunities for H2, plus $380K in new leases from previously unpaid cable collocations.
-                      </li>
-                      <li>
-                        <strong>Market Outlook:</strong> June saw a slowdown in new opportunities and LOIs due to summer seasonality and broader political/economic hesitation. Stay close to deals — they will close.
-                      </li>
-                      <li>
-                        <strong>Focus Areas for Q3:</strong> Increase origination activity, execute LOIs aggressively, and close more internally to hit bonus-eligible overperformance.
-                      </li>
-                      <li>
-                        <strong>Platform Milestone:</strong> The new Site Tracker launches next week — it will integrate all Symphony and CTI data and serve as our unified system of record.
-                      </li>
-                      <li>
-                        <strong>Reminder:</strong> Look at your individual bonus goal forms — we're well-positioned to achieve 105%+ bonuses if we maintain momentum. Let's keep executing!
+                        Mike Kossak and Steven Lawson attended the 2025 Jessica Moebs Memorial Golf Tournament in North Carolina, supporting a scholarship fund established in Jessica’s memory. The fund helps young women from her hometown in Pulaski, NY, pursue education in STEM and athletics—reflecting Jessica’s passions and lasting impact on the TEP family.
                       </li>
                     </ul>
                   </div>
