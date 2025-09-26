@@ -84,7 +84,7 @@ const eliteReports = [
     link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   }, 
   {
-    title: 'Elite - Company Dashboard',
+    title: 'Elite - Company Progress',
     description: 'A complete view of current GCF and Capital Acquisition activity.',
     link: 'https://teams.microsoft.com/l/message/19:3eaf18162e344af488da509692b51f49@thread.v2/1758900373370?context=%7B%22contextType%22%3A%22chat%22%7D4739935-cc8c-4072-8232-79d8be3360f8',
   }
