@@ -47,6 +47,11 @@ const reports = [
     link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
+    title: 'Elite - Scorecard Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
+    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  }, 
+  {
     title: 'WIP - In-Month Conversion Tracker',
     description: 'Work In Progress - A tracker to view opportunity conversions by month.',
   },  
@@ -79,14 +84,9 @@ const eliteReports = [
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'Elite - Scorecard Pipeline',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
-    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  }, 
-  {
     title: 'Elite - Company Progress',
     description: 'A complete view of current GCF and Capital Acquisition activity.',
-    link: 'https://app.powerbi.com/links/Inugrl_UFI?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    link: 'https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/2695a41c69787864795c?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&experience=power-bi',
   }
 ];
 
