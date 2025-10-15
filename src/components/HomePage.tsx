@@ -156,7 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                       {/* <li>6/19: Juneteenth</li> */}
                       <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
-                      <li>10/8: All-Hands Meeting</li> 
+                      {/* <li>10/8: All-Hands Meeting</li>  */}
                       <li>11/27: Thanksgiving Day</li> 
                       <li>11/28: Day After Thanksgiving</li>
                       <li>12/4: Symphony Holiday Party</li>
