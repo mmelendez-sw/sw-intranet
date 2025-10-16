@@ -215,7 +215,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                         <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
                       </li>
                       <li>
-                        <a href="https://www.youtube.com/watch?v=7Fy5aG89xuI" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
+                        <a href="https://www.youtube.com/watch?v=W3ttrJHdPoM" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
                       </li>  
                     </ul>       
                   </div>
