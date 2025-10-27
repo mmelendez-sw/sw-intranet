@@ -6,7 +6,7 @@ import { UserInfo } from '../types/user';
 import img1 from '../../images/site_1.jpg';
 import img2 from '../../images/site_2.jpg';
 import img3 from '../../images/site_3.jpg';
-import img4 from '../../images/run-pic.jpg';
+import img4 from '../../images/coat.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/cityharvest3.png'
@@ -156,7 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                       {/* <li>6/19: Juneteenth</li> */}
                       <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
-                      {/* <li>10/8: All-Hands Meeting</li>  */}
+                      <li>10/27-10/29: Halloween Team Building</li> 
                       <li>11/27: Thanksgiving Day</li> 
                       <li>11/28: Day After Thanksgiving</li>
                       <li>12/4: Symphony Holiday Party</li>
@@ -191,9 +191,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card even-card">
                   <img src={img4} alt="Food Drive" className="card-image" />
                   <div className="card-text">
-                    <h2>JP Morgan Corporate Challenge</h2>
+                    <h2>Person to Person Coat Drive</h2>
                     <ul>
-                      <li>Thank you to all our employees who participated in the J.P. Morgan Race—your energy and enthusiasm helped support the Central Park Conservancy and made a meaningful impact!</li>
+                      <li>Thank you to our volunteers who joined us for the Person to Person coat drive in Darien, CT! Your kindness keeps our community warm.</li>
                     </ul>
                   </div>
                 </div>
