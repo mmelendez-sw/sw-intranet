@@ -9,7 +9,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
-import img7 from '../../images/cityharvest3.png'
+import img7 from '../../images/quiz.jpg'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/summer.png'
 import img10 from '../../images/cityHarvestMeshProject.png'
@@ -156,7 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                       {/* <li>6/19: Juneteenth</li> */}
                       <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
-                      <li>10/27-10/29: Halloween Team Building</li> 
+                      {/* <li>10/27-10/29: Halloween Team Building</li>  */}
                       <li>11/27: Thanksgiving Day</li> 
                       <li>11/28: Day After Thanksgiving</li>
                       <li>12/4: Symphony Holiday Party</li>
@@ -180,10 +180,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
                   <div className="card-text">
-                    <h2>City Harvest Volunteer Event</h2>
+                    <h2>Halloween Team Building</h2>
                     <ul>
-                      <li>On August 14th, our volunteers joined City Harvest to help repack large quantities of fresh produce into family-sized portions for distribution across NYC. Much of the food City Harvest receives arrives in bulk containers, which can be hard to distribute equitably. Our team helped take thousands of pounds of apples and pears and repackage them into smaller units that local food programs can easily share with their communities. It was hands-on work with real impact, and we're proud to support an organization doing such essential work for New Yorkers in need. A huge thank you to everyone who participated and represented our team spirit and commitment to giving back!</li>
-                      <li>If you have any organizations you would like us to support, please let us know here: <a href="https://www.surveymonkey.com/r/NKSLSRW" target="_blank" rel="noopener noreferrer">https://www.surveymonkey.com/r/NKSLSRW</a>.</li>
+                      <li>Spooktacular times at our Halloween celebration! Thanks to everyone who joined in the fun and brought their creativity to life.</li>
                     </ul>
                   </div>
                 </div> 
