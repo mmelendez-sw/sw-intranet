@@ -12,7 +12,7 @@ import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/quiz.jpg'
 import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/summer.png'
-import img10 from '../../images/cityHarvestMeshProject.png'
+import img10 from '../../images/alida.jpg'
 import img11 from '../../images/kossak.png'
 
 interface HomePageProps {
@@ -229,9 +229,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card even-card">
                   <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
                   <div className="card-text">
-                    <h2>City Harvest Mesh Bag Project</h2>
+                    <h2>InspirASIAN SoCal Topgolf Tournament</h2>
                     <ul>
-                      <li>Thanks to everyone who joined the City Harvest mesh bag project! Together we made over 1,500 bags that will help deliver fresh produce to food pantries across NYC. We're proud to make a difference—stay tuned for more ways to get involved!</li>
+                      <li>Great day connecting for a cause! Alida Montiel represented at the InspirASIAN SoCal Topgolf Tournament, an event organized with AT&T. This tournament serves as a key gathering for AT&T executives, vendors, and partners committed to supporting Asian & Pacific Islander communities. All proceeds go toward InspirASIAN's scholarship fund for deserving high school students.</li>
                     </ul>
                   </div>
                 </div>
