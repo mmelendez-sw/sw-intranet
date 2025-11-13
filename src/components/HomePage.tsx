@@ -11,7 +11,7 @@ import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/quiz.jpg'
 import img8 from '../../images/earth_flyer.jpg'
-import img9 from '../../images/summer.png'
+import img9 from '../../images/award.png'
 import img10 from '../../images/alida.jpg'
 import img11 from '../../images/kossak.png'
 
