@@ -34,10 +34,10 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     {/* <li>7/4: Independence Day</li> */}
                     <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
                     <li>11/11-12/3: Toy Store Donation with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
+                    <li>11/17: Last Day to Submit <a href="https://www.surveymonkey.com/r/KDR6LSN" target="_blank" rel="noopener noreferrer">Symphony 2025 Value Awards Survey</a></li>
                     <li>11/27: Thanksgiving Day</li> 
                     <li>11/28: Day After Thanksgiving</li>
                     <li>12/4: Symphony Holiday Party</li>
-                    <li>12/17: Last Day to Submit <a href="https://www.surveymonkey.com/r/KDR6LSN" target="_blank" rel="noopener noreferrer">Symphony 2025 Value Awards Survey</a></li>
                     <li>12/24: Christmas Eve Early Out at 1:00PM</li>
                     <li>12/25: Christmas Day</li>
                     <li>12/31: New Year's Eve Early Out at 1:00PM</li>
