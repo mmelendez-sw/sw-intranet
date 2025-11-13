@@ -1,14 +1,10 @@
 import React from 'react';
 import '../../styles/home-page.css';
 
-import img1 from '../../images/site_1.jpg';
-import img2 from '../../images/site_2.jpg';
+
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
-import img5 from '../../images/team.jpg';
-import img6 from '../../images/site_4.jpg'
 import img7 from '../../images/quiz.jpg'
-import img8 from '../../images/earth_flyer.jpg'
 import img9 from '../../images/award.png'
 import img10 from '../../images/alida.jpg'
 import img11 from '../../images/kossak.png'
