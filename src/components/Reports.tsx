@@ -47,11 +47,6 @@ const reports = [
     link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'Elite - Scorecard Pipeline',
-    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
-    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  }, 
-  {
     title: 'WIP - In-Month Conversion Tracker',
     description: 'Work In Progress - A tracker to view opportunity conversions by month.',
   },  
@@ -77,21 +72,57 @@ const reports = [
 ];
 
 // Elite reports - additional reports for elite group members
+// Reports can have an optional excludedEmails array to exclude specific users by email
 const eliteReports = [
   {
     title: 'Elite - Origination Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['arivera@symphonyinfra.com']
   },
   {
     title: 'Elite - Company Progress',
     description: 'A complete view of current GCF and Capital Acquisition activity.',
     link: 'https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/2695a41c69787864795c?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&experience=power-bi',
+    excludedEmails: ['arivera@symphonyinfra.com']
+  },
+  {
+    title: 'Elite - Scorecard Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
+    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['arivera@symphonyinfra.com']
+  }, 
+  {
+    title: 'Elite - Acquisition Team Commision Report',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Acquisition Team Commision Breakdown.',
+    link: 'https://app.powerbi.com/links/_K3tF0sy6t?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['jcymbalista@symphonyinfra.com','cdolgon@symphonyinfra.com','dlaub@symphonyinfra.com'], // Add emails to exclude (case-insensitive)
   }
+  // Example: To exclude specific users from a new report, add excludedEmails array:
+  // {
+  //   title: 'Elite - New Report Name',
+  //   description: 'Description of the new report.',
+  //   link: 'https://app.powerbi.com/links/...',
+  //   excludedEmails: ['user1@example.com', 'user2@example.com'], // Add emails to exclude (case-insensitive)
+  // }
 ];
 
+// Helper function to check if a user should see a report
+const shouldShowReport = (report: any, userEmail?: string): boolean => {
+  // If report has excludedEmails and user email is in the list, don't show it
+  if (report.excludedEmails && userEmail) {
+    return !report.excludedEmails.includes(userEmail.toLowerCase());
+  }
+  return true;
+};
+
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
-  const displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
+  // Filter reports based on elite group status and excluded emails
+  let displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
+  
+  // Filter out reports that the user should not see based on their email
+  displayReports = displayReports.filter(report => shouldShowReport(report, userInfo.email));
+  
   const pageTitle = userInfo.isEliteGroup 
     ? 'Symphony Towers Infrastructure Elite Status Reports' 
     : 'Symphony Towers Infrastructure Status Reports';
