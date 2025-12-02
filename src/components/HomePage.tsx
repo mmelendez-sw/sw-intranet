@@ -5,7 +5,7 @@ import '../../styles/home-page.css';
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
 import img7 from '../../images/quiz.jpg'
-import img9 from '../../images/award.png'
+import img9 from '../../images/site_2.jpg'
 import img10 from '../../images/alida.jpg'
 import img11 from '../../images/kossak.png'
 
@@ -34,9 +34,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     {/* <li>7/4: Independence Day</li> */}
                     <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
                     <li>11/11-12/3: Toy Store Donation with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
-                    {/* <li>11/17: Last Day to Submit <a href="https://www.surveymonkey.com/r/KDR6LSN" target="_blank" rel="noopener noreferrer">Symphony 2025 Value Awards Survey</a></li>
-                    <li>11/27: Thanksgiving Day</li> 
-                    <li>11/28: Day After Thanksgiving</li> */}
                     <li>12/4: Symphony Holiday Party</li>
                     <li>12/24: Christmas Eve Early Out at 1:00PM</li>
                     <li>12/25: Christmas Day</li>
