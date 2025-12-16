@@ -169,7 +169,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <h2>Happy Holidays from Symphony Towers Infrastructure!</h2>
                     <ul>
                       <li>
-                        Thank you to every who joined us for the Holiday Party! It was a great time celebrating the year and looking forward to 2026! The photos are linked below.
+                        Thank you to everyone who joined us for the Holiday Party! It was a wonderful opportunity to celebrate the year and look ahead to 2026. The photos are linked below.
                       </li>
                       <li>
                         <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
