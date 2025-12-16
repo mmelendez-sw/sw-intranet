@@ -28,13 +28,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                    {/* <li>4/22-4/26: Earth Day Clean Up</li>
-                    <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
-                    {/* <li>6/19: Juneteenth</li> */}
-                    {/* <li>7/4: Independence Day</li> */}
-                    <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
-                    <li>12/10: Toy Store Set Up Day with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
-                    <li>12/11: Toy Store with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
                     <li>12/24: Christmas Eve Early Out at 1:00PM</li>
                     <li>12/25: Christmas Day</li>
                     <li>12/31: New Year's Eve Early Out at 1:00PM</li>
