@@ -154,9 +154,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       {/* <li>4/22-4/26: Earth Day Clean Up</li>
                       <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
                       {/* <li>6/19: Juneteenth</li> */}
-                      <li>Celebrating a season of hard work and great teamwork. Here’s to an even brighter fall!</li>
-                      <li>12/10: Toy Store Set Up Day with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
-                      <li>12/11: Toy Store with <a href="https://p2phelps.org/" target="_blank" rel="noopener noreferrer">Person to Person</a></li>
                       <li>12/24: Christmas Eve Early Out at 1:00PM</li>
                       <li>12/25: Christmas Day</li>
                       <li>12/31: New Year's Eve Early Out at 1:00PM</li>
@@ -267,9 +264,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
               </section>
               <section className="updates" style={{ marginBottom: '20px', flexGrow: 1 }}>
-                <h2>Holiday Party Photos</h2>
+                <h2>2025 Holiday Party Photos</h2>
                 <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-                <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
+                <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
               </section>
             </aside>
         </div>
