@@ -40,10 +40,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               <div className="card even-card">
                 <img src={img11} alt="Bowling 2025" className="card-image" />
                 <div className="card-text">
-                  <h2>2025 Jessica Moebs Memorial Golf Tournament</h2>
+                  <h2>Happy Holidays from Symphony Towers Infrastructure!</h2>
                   <ul>
                     <li>
-                      Mike Kossak and Steven Lawson attended the 2025 Jessica Moebs Memorial Golf Tournament in North Carolina, supporting a scholarship fund established in Jessica’s memory. The fund helps young women from her hometown in Pulaski, NY, pursue education in STEM and athletics—reflecting Jessica’s passions and lasting impact on the TEP family.
+                      Thank you to every who joined us for the Holiday Party! It was a great time celebrating the year and looking forward to 2026! The photos are linked below.
+                    </li>
+                    <li>
+                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
                     </li>
                   </ul>
                 </div>
