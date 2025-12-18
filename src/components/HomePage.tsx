@@ -1,14 +1,12 @@
 import React from 'react';
 import '../../styles/home-page.css';
-import { UserInfo } from '../types/user';
+import { useAuth } from '../contexts/AuthContext';
 import { homePageCards, sidebarSections } from '../data/homePageData';
+import { Card } from './common/Card';
+import { Button } from './common/Button';
 
-interface HomePageProps {
-  userInfo: UserInfo;
-}
-
-const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
-  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
+const HomePage: React.FC = () => {
+  const { userInfo } = useAuth();
 
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
@@ -19,7 +17,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0', marginTop: '10px' }}>
                 {homePageCards.map((card) => (
-                  <div key={card.id} className={`card ${card.cardType}-card`}>
+                  <Card key={card.id} variant={card.cardType}>
                     <img src={card.image} alt={card.imageAlt} className="card-image" />
                     <div className="card-text">
                       <h2>{card.title}</h2>
@@ -37,7 +35,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                         ))}
                       </ul>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -71,13 +69,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     {section.title && <h2>{section.title}</h2>}
                     {section.content && <p>{section.content}</p>}
                     {buttonsToRender.map((button, index) => (
-                      <button
+                      <Button
                         key={index}
+                        variant="primary"
                         className="home-button"
                         onClick={() => window.open(button.url, button.openInNewTab ? '_blank' : '_self')}
                       >
                         {button.requiresElite && button.eliteLabel ? button.eliteLabel : button.label}
-                      </button>
+                      </Button>
                     ))}
                     {section.links && section.links.map((link, index) => (
                       <a key={index} href={link.url} target={link.openInNewTab ? '_blank' : '_self'} rel="noopener noreferrer">

@@ -1,0 +1,49 @@
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card-text {
+  padding: 20px;
+}
+
+.card-text h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #003366;
+}
+
+.card-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card-text li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.card-text a {
+  color: #003366;
+  text-decoration: underline;
+}
+
+.card-text a:hover {
+  color: #004488;
+}
+

@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/it-page.css';
+import { Button } from './common/Button';
+import { Card } from './common/Card';
 
 const ITPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,30 +13,31 @@ const ITPage: React.FC = () => {
         <div className="main-content">
           {/* Business Reports Button */}
           <div className="business-reports-button-container">
-            <button 
+            <Button 
+              variant="primary"
               className="home-button business-reports-button"
               onClick={() => navigate('/reports')}
             >
               Business Reports
-            </button>
+            </Button>
           </div>
           
           {/* Technology Updates - Large Card */}
           <div className="tech-updates-large-card">
-            <div className="card odd-card">
+            <Card variant="odd">
               <div className="card-text">
                 <h2>Technology Updates</h2>
                 <ul>
                   {/* Technology updates will be added here */}
                 </ul>
               </div>
-            </div>
+            </Card>
           </div>
           
           {/* Technology Resources and FAQ - Two Smaller Cards */}
           <div className="tech-resources-faq-container">
             {/* Technology Resources Card */}
-            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+            <Card variant="even" className="blue-column" style={{ minHeight: 540 }}>
               <div className="card-text">
                 <h2>Technology Resources</h2>
                 <ul>
@@ -43,10 +46,10 @@ const ITPage: React.FC = () => {
                   <li>Helpful Guides</li>
                 </ul>
               </div>
-            </div>
+            </Card>
             
             {/* FAQ Card */}
-            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+            <Card variant="even" className="blue-column" style={{ minHeight: 540 }}>
               <div className="card-text">
                 <h2>FAQ</h2>
                 <ul>
@@ -55,12 +58,18 @@ const ITPage: React.FC = () => {
                   <li>How do I contact Technology support?</li>
                 </ul>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
         <aside className="sidebar" style={{ width: '20%' }}>
           <section className="quick-links">
-            <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}
+            >
+              Report Technology Issue
+            </Button>
           </section>
           <section className="updates">
             <h2>Technology Updates</h2>
@@ -68,14 +77,62 @@ const ITPage: React.FC = () => {
           </section>
           <section className="quick-links">
             <h2>Quick Links</h2>
-            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-            <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-            <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
-            <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
-            <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-            <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-            <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-            <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button> 
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}
+            >
+              Salesforce
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}
+            >
+              SiteTracker
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}
+            >
+              Synaptek AI Search
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}
+            >
+              Reports
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://identity.trinet.com/', '_blank')}
+            >
+              Trinet
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://www.concursolutions.com/', '_blank')}
+            >
+              Concur
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}
+            >
+              Netsuite
+            </Button>
+            <Button 
+              variant="primary"
+              className="home-button" 
+              onClick={() => window.open('https://outlook.office.com/', '_blank')}
+            >
+              Outlook
+            </Button>
           </section>
           <section className="updates">
             <h2>Exciting News</h2>

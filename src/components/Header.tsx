@@ -1,74 +1,90 @@
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
-import sti_logo_white from '../../images/sti-horizontal-white.png'
-import { UserInfo } from '../types/user';
+import sti_logo_white from '../../images/sti-horizontal-white.png';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from './common/Button';
 
-interface HeaderProps {
-  userInfo: UserInfo;
-}
-
-const Header: React.FC<HeaderProps> = ({ userInfo }) => {
+const Header: React.FC = () => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
-  
+  const { userInfo } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const handleLogin = () => {
-    instance.loginPopup(loginRequest).catch((e: any) => {
-      console.error(e);
+    instance.loginPopup(loginRequest).catch((error: Error) => {
+      console.error('Login error:', error);
     });
   };
 
   const handleLogout = () => {
-    instance.logoutPopup().catch((e: any) => {
-      console.error(e);
+    instance.logoutPopup().catch((error: Error) => {
+      console.error('Logout error:', error);
     });
-    setIsDropdownOpen(false)
+    setIsDropdownOpen(false);
   };
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState);
   };
 
-  const DropdownMenu = () =>
-    ReactDOM.createPortal(
-      isDropdownOpen && (
-        <div
-          className="dropdown-menu"
+  const DropdownMenu = () => {
+    if (!isDropdownOpen) return null;
+
+    return createPortal(
+      <div
+        ref={dropdownRef}
+        className="dropdown-menu"
+        style={{
+          position: 'fixed',
+          top: '40px',
+          right: '20px',
+          background: 'white',
+          border: '1px solid #ddd',
+          borderRadius: '4px',
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+          zIndex: 9999,
+        }}
+      >
+        <button
+          onClick={handleLogout}
+          className="dropdown-item"
           style={{
-            position: 'fixed',
-            top: '40px',
-            right: '20px',
-            background: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-            zIndex: 9999,
+            padding: '10px',
+            width: '100%',
+            backgroundColor: 'white',
+            border: 'none',
+            textAlign: 'left',
+            cursor: 'pointer',
+            color: '#333',
           }}
         >
-          <button
-            onClick={handleLogout}
-            className="dropdown-item"
-            style={{
-              padding: '10px',
-              width: '100%',
-              backgroundColor: 'white',
-              border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#333',
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      ),
+          Logout
+        </button>
+      </div>,
       document.body
     );
+  };
 
   return (
     <header className="header" style={{ zIndex: 5000 }}>
@@ -116,9 +132,9 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             <DropdownMenu />
           </div>
         ) : (
-          <button onClick={handleLogin} className="login-button">
+          <Button onClick={handleLogin} variant="primary">
             Login
-          </button>
+          </Button>
         )}
       </div>
     </header>
