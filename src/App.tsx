@@ -4,7 +4,6 @@ import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
-import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import { loginRequest, isEliteGroupMember } from './authConfig';
