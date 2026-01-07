@@ -95,8 +95,8 @@ const eliteReports = [
   {
     title: 'Elite - Acquisition Team Commision Report',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Acquisition Team Commision Breakdown.',
-    link: 'https://app.powerbi.com/links/_K3tF0sy6t?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-    excludedEmails: ['jcymbalista@symphonyinfra.com','cdolgon@symphonyinfra.com','dlaub@symphonyinfra.com'], // Add emails to exclude (case-insensitive)
+    link: 'https://app.powerbi.com/links/yGE8PseRVw?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['jcymbalista@symphonyinfra.com','cdolgon@symphonyinfra.com'], // Add emails to exclude (case-insensitive)
   }
   // Example: To exclude specific users from a new report, add excludedEmails array:
   // {
