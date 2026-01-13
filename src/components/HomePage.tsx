@@ -158,7 +158,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <li>12/25: Christmas Day</li>
                       <li>12/31: New Year's Eve Early Out at 1:00PM</li> */}
                       {/* <li>1/1: New Year's Day</li> */}
-                      <li>1/12: 2026 All Hands/2026 Kickoff</li>
+                      <li>1/14: Symphony Breakfast</li>
                       <li>1/19: Martin Luther King Jr. Day</li>
                       <li>2/16: President's Day</li>
                       <li>5/25: Memorial Day</li>
