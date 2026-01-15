@@ -151,14 +151,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div className="card-text">
                     <h2>Important Dates</h2>
                     <ul>
-                      {/* <li>4/22-4/26: Earth Day Clean Up</li>
-                      <img src={img8} alt="Earth Day Flyer" style={{ maxWidth: '100%', marginTop: '10px' }} /> */}
-                      {/* <li>6/19: Juneteenth</li> */}
-                      {/* <li>12/24: Christmas Eve Early Out at 1:00PM</li>
-                      <li>12/25: Christmas Day</li>
-                      <li>12/31: New Year's Eve Early Out at 1:00PM</li> */}
-                      {/* <li>1/1: New Year's Day</li> */}
-                      <li>1/14: Symphony Breakfast</li>
                       <li>1/19: Martin Luther King Jr. Day</li>
                       <li>1/26-2/1: 2025 Performance Reviews</li>
                       <li>2/2-2/8: 2026 Goal Setting</li>
