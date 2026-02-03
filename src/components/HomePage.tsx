@@ -8,7 +8,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg';
-import img7 from '../../images/quiz.jpg';
+import img7 from '../../images/all-hands.jpg';
 import img8 from '../../images/earth_flyer.jpg';
 import img9 from '../../images/site_2.jpg';
 import img10 from '../../images/alida.jpg';
@@ -178,9 +178,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
                   <div className="card-text">
-                    <h2>Halloween Team Building</h2>
+                    <h2>Finance Team Seats Secured</h2>
                     <ul>
-                      <li>Spooktacular times at our Halloween celebration! Thanks to everyone who joined in the fun and brought their creativity to life.</li>
+                      <li>The Finance team’s seats are secured and are numbers ready for the All Hands Meeting.</li>
                     </ul>
                   </div>
                 </div> 
