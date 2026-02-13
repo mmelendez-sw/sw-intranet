@@ -12,7 +12,7 @@ import img7 from '../../images/all-hands.jpg';
 import img8 from '../../images/earth_flyer.jpg';
 import img9 from '../../images/site_2.jpg';
 import img10 from '../../images/alida.jpg';
-import img11 from '../../images/sip.jpg';
+import img11 from '../../images/sip.jpeg';
 
 interface HomePageProps {
   userInfo: UserInfo;
