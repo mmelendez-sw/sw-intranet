@@ -12,7 +12,7 @@ import img7 from '../../images/all-hands.jpg';
 import img8 from '../../images/earth_flyer.jpg';
 import img9 from '../../images/site_2.jpg';
 import img10 from '../../images/alida.jpg';
-import img11 from '../../images/santa.jpg';
+import img11 from '../../images/sip.jpg';
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -151,7 +151,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div className="card-text">
                     <h2>Important Dates</h2>
                     <ul>
-                      <li>2/2-2/8: 2026 Goal Setting</li>
                       <li>2/16: President's Day</li>
                       <li>4/3: Good Friday</li>
                       <li>5/25: Memorial Day</li>
@@ -163,10 +162,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card even-card">
                   <img src={img11} alt="Bowling 2025" className="card-image" />
                   <div className="card-text">
-                    <h2>Happy Holidays from Symphony Towers Infrastructure!</h2>
+                    <h2>Hidden Talents</h2>
                     <ul>
                       <li>
-                        Thank you to everyone who joined us for the Holiday Party! It was a wonderful opportunity to celebrate the year and look ahead to 2026. The photos are linked below.
+                        A fun-filled Paint & Sip that brought the team together.
                       </li>
                       <li>
                         <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
