@@ -28,6 +28,64 @@ const initialFormData: FormData = {
   siteType: '',
 };
 
+const US_STATES = [
+  { abbr: 'AL', name: 'Alabama' },
+  { abbr: 'AK', name: 'Alaska' },
+  { abbr: 'AZ', name: 'Arizona' },
+  { abbr: 'AR', name: 'Arkansas' },
+  { abbr: 'CA', name: 'California' },
+  { abbr: 'CO', name: 'Colorado' },
+  { abbr: 'CT', name: 'Connecticut' },
+  { abbr: 'DE', name: 'Delaware' },
+  { abbr: 'FL', name: 'Florida' },
+  { abbr: 'GA', name: 'Georgia' },
+  { abbr: 'HI', name: 'Hawaii' },
+  { abbr: 'ID', name: 'Idaho' },
+  { abbr: 'IL', name: 'Illinois' },
+  { abbr: 'IN', name: 'Indiana' },
+  { abbr: 'IA', name: 'Iowa' },
+  { abbr: 'KS', name: 'Kansas' },
+  { abbr: 'KY', name: 'Kentucky' },
+  { abbr: 'LA', name: 'Louisiana' },
+  { abbr: 'ME', name: 'Maine' },
+  { abbr: 'MD', name: 'Maryland' },
+  { abbr: 'MA', name: 'Massachusetts' },
+  { abbr: 'MI', name: 'Michigan' },
+  { abbr: 'MN', name: 'Minnesota' },
+  { abbr: 'MS', name: 'Mississippi' },
+  { abbr: 'MO', name: 'Missouri' },
+];
+
+const US_STATES_2 = [
+  { abbr: 'MT', name: 'Montana' },
+  { abbr: 'NE', name: 'Nebraska' },
+  { abbr: 'NV', name: 'Nevada' },
+  { abbr: 'NH', name: 'New Hampshire' },
+  { abbr: 'NJ', name: 'New Jersey' },
+  { abbr: 'NM', name: 'New Mexico' },
+  { abbr: 'NY', name: 'New York' },
+  { abbr: 'NC', name: 'North Carolina' },
+  { abbr: 'ND', name: 'North Dakota' },
+  { abbr: 'OH', name: 'Ohio' },
+  { abbr: 'OK', name: 'Oklahoma' },
+  { abbr: 'OR', name: 'Oregon' },
+  { abbr: 'PA', name: 'Pennsylvania' },
+  { abbr: 'RI', name: 'Rhode Island' },
+  { abbr: 'SC', name: 'South Carolina' },
+  { abbr: 'SD', name: 'South Dakota' },
+  { abbr: 'TN', name: 'Tennessee' },
+  { abbr: 'TX', name: 'Texas' },
+  { abbr: 'UT', name: 'Utah' },
+  { abbr: 'VT', name: 'Vermont' },
+  { abbr: 'VA', name: 'Virginia' },
+  { abbr: 'WA', name: 'Washington' },
+  { abbr: 'WV', name: 'West Virginia' },
+  { abbr: 'WI', name: 'Wisconsin' },
+  { abbr: 'WY', name: 'Wyoming' },
+];
+
+const ALL_STATES = [...US_STATES, ...US_STATES_2];
+
 const generateTag = (): string => {
   const now = new Date();
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -217,9 +275,8 @@ const LeadGeneration: React.FC = () => {
     <div className="lead-generation-page">
       <div className="lead-generation-container">
         <div className="lead-generation-header">
-          <h1>Lead Generation</h1>
+          <h1>Symphony Towers Infrastructure — Lead Generation</h1>
           <p>Submit a new lead by filling out the form below. An email will be sent to the team for follow-up.</p>
-          <span className="lead-tag-badge">{tag}</span>
         </div>
 
         {submitStatus === 'success' && (
@@ -322,15 +379,18 @@ const LeadGeneration: React.FC = () => {
               </div>
               <div className="lead-form-group">
                 <label htmlFor="state">State <span className="required">*</span></label>
-                <input
-                  type="text"
+                <select
                   id="state"
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  placeholder="e.g. NY"
                   required
-                />
+                >
+                  <option value="">Select a state...</option>
+                  {ALL_STATES.map(s => (
+                    <option key={s.abbr} value={s.abbr}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="lead-form-group">
                 <label htmlFor="zipCode">Zip Code <span className="required">*</span></label>
