@@ -7,6 +7,7 @@ import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
+import LeadGeneration from './components/LeadGeneration';
 import { loginRequest, isEliteGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
@@ -390,6 +391,9 @@ const App: React.FC = () => {
             <>
               <Route path="/technology" element={<ITPage />} />
               <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+              {userInfo.email?.toLowerCase() === 'mmelendez@symphonyinfra.com' && (
+                <Route path="/lead-generation" element={<LeadGeneration />} />
+              )}
               <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
               <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
               <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />

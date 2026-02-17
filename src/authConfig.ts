@@ -13,7 +13,7 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-  scopes: ["User.Read", "GroupMember.Read.All"], // Added GroupMember.Read.All for RBAC
+  scopes: ["User.Read", "GroupMember.Read.All", "Mail.Send"], // Added Mail.Send for lead generation email
 };
 
 // IntranetExecs security group ID
