@@ -387,13 +387,11 @@ const App: React.FC = () => {
             path="/"
             element={<HomePage userInfo={userInfo} />}
           />
+          <Route path="/lead-generation" element={<LeadGeneration userInfo={userInfo} />} />
           {userInfo.isAuthenticated && (
             <>
               <Route path="/technology" element={<ITPage />} />
               <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-              {userInfo.email?.toLowerCase() === 'mmelendez@symphonyinfra.com' && (
-                <Route path="/lead-generation" element={<LeadGeneration />} />
-              )}
               <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
               <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
               <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />

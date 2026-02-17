@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMsal } from '@azure/msal-react';
+import { Navigate } from 'react-router-dom';
+import { UserInfo } from '../types/user';
 import '../../styles/lead-generation.css';
 
 interface FormData {
@@ -107,11 +109,21 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-const LeadGeneration: React.FC = () => {
+interface LeadGenerationProps {
+  userInfo: UserInfo;
+}
+
+const ALLOWED_EMAIL = 'mmelendez@symphonyinfra.com';
+
+const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  if (!userInfo.isAuthenticated || userInfo.email?.toLowerCase() !== ALLOWED_EMAIL) {
+    return <Navigate to="/" replace />;
+  }
 
   const tag = useMemo(() => generateTag(), []);
 
