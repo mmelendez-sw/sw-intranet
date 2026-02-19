@@ -28,7 +28,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                      <li>2/16: President's Day</li>
+                      {/* <li>2/16: President's Day</li> */}
                       <li>4/3: Good Friday</li>
                       <li>5/25: Memorial Day</li>
                       <li>6/19: Juneteenth</li>
