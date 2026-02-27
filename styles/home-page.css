@@ -40,7 +40,7 @@
 }
 
 .homepage-hero .homepage-hero-title {
-  margin: 0 auto;
+  margin: 0;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
   font-size: clamp(2rem, 4vw, 4rem);
@@ -50,7 +50,7 @@
   max-width: min(90%, 900px);
   text-align: left;
   align-self: center;
-  transform: translate(clamp(-40px, -3vw, -12px), clamp(8px, 1.2vw, 18px));
+  transform: translateX(-5%);
 }
 
 .homepage-hero-line {
