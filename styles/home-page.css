@@ -48,8 +48,9 @@
   line-height: 1.05;
   letter-spacing: 0.01em;
   max-width: min(90%, 900px);
-  text-align: center;
+  text-align: left;
   align-self: center;
+  transform: translate(clamp(-40px, -3vw, -12px), clamp(8px, 1.2vw, 18px));
 }
 
 .homepage-hero-line {
