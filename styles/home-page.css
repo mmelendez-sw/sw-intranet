@@ -28,7 +28,8 @@
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   padding: clamp(14px, 2.2vw, 28px) clamp(18px, 4.8vw, 72px);
   background: linear-gradient(
     90deg,
@@ -38,7 +39,7 @@
   );
 }
 
-.homepage-hero-title {
+.homepage-hero .homepage-hero-title {
   margin: 0;
   color: #ffffff;
   font-family: 'Montserrat', sans-serif;
@@ -47,6 +48,8 @@
   line-height: 1.05;
   letter-spacing: 0.01em;
   max-width: min(90%, 900px);
+  text-align: left;
+  align-self: flex-start;
 }
 
 .homepage-hero-line {
