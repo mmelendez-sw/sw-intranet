@@ -1,6 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 /* General Layout */
 .home-page {
   padding: 0 1em;
+}
+
+.homepage-hero {
+  position: relative;
+  width: 100%;
+  height: clamp(180px, 20vw, 330px);
+  margin: 10px 0 0;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.homepage-hero-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.homepage-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: clamp(14px, 2.2vw, 28px) clamp(18px, 4.8vw, 72px);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 44, 78, 0.35) 0%,
+    rgba(0, 44, 78, 0.2) 45%,
+    rgba(0, 44, 78, 0.1) 100%
+  );
+}
+
+.homepage-hero-title {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  max-width: min(90%, 900px);
+}
+
+.homepage-hero-line {
+  display: block;
+}
+
+.homepage-hero-line strong {
+  font-weight: 700;
 }
 
 .content-container {
@@ -215,7 +269,41 @@
   }
 }
 
+@media (min-width: 1920px) {
+  .homepage-hero {
+    height: clamp(250px, 16vw, 360px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(2.6rem, 3.4vw, 4.6rem);
+  }
+}
+
+@media (max-width: 1200px) {
+  .homepage-hero {
+    height: clamp(180px, 24vw, 280px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+    max-width: 95%;
+  }
+}
+
 @media (max-width: 768px) {
+  .homepage-hero {
+    height: clamp(150px, 34vw, 220px);
+  }
+
+  .homepage-hero-overlay {
+    padding: 14px 16px;
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1.4rem, 7vw, 2.2rem);
+    line-height: 1.08;
+  }
+
   .grid-layout {
     grid-template-columns: 1fr; /* Cards stack vertically on small screens */
   }
@@ -227,5 +315,11 @@
   .card-image,
   .sidebar img {
     height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .homepage-hero {
+    height: clamp(135px, 38vw, 170px);
   }
 }

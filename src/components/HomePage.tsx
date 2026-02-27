@@ -13,6 +13,7 @@ import img8 from '../../images/earth_flyer.jpg';
 import img9 from '../../images/site_2.jpg';
 import img10 from '../../images/alida.jpg';
 import img11 from '../../images/sip.jpeg';
+import howBanner from '../../images/H.O.W.-banner.png';
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -144,6 +145,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
               </div> */}
               
+              <section className="homepage-hero" aria-label="Homepage banner">
+                <img src={howBanner} alt="Homepage banner" className="homepage-hero-image" />
+                <div className="homepage-hero-overlay">
+                  <h1 className="homepage-hero-title">
+                    <span className="homepage-hero-line"><strong>H</strong>ighest standards</span>
+                    <span className="homepage-hero-line"><strong>O</strong>ne team</span>
+                    <span className="homepage-hero-line"><strong>W</strong>in!</span>
+                  </h1>
+                </div>
+              </section>
+
               <div className="grid-layout" style={{ margin: '10px auto 10px auto', width: '100%', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', padding: '0', marginTop: '10px' }}>
                 {/* Card 1 */}
                 <div className="card odd-card">
