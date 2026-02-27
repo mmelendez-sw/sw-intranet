@@ -50,7 +50,7 @@
   max-width: min(90%, 900px);
   text-align: left;
   align-self: center;
-  transform: translateX(-5%);
+  transform: translate(-5%, clamp(8px, 1vh, 14px));
 }
 
 .homepage-hero-line {
