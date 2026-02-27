@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(14px, 2.2vw, 28px) clamp(18px, 4.8vw, 72px);
+  padding: 0 clamp(18px, 4.8vw, 72px);
   background: linear-gradient(
     90deg,
     rgba(0, 44, 78, 0.35) 0%,
@@ -50,7 +50,9 @@
   max-width: min(90%, 900px);
   text-align: left;
   align-self: center;
-  transform: translateX(-7%);
+  position: relative;
+  left: -4.5vw;
+  transform: none;
 }
 
 .homepage-hero-line {
@@ -291,6 +293,7 @@
   .homepage-hero-title {
     font-size: clamp(1.8rem, 4.5vw, 3.2rem);
     max-width: 95%;
+    left: -3.2vw;
   }
 }
 
@@ -306,6 +309,7 @@
   .homepage-hero-title {
     font-size: clamp(1.4rem, 7vw, 2.2rem);
     line-height: 1.08;
+    left: -2vw;
   }
 
   .grid-layout {
