@@ -51,7 +51,8 @@
   text-align: left;
   align-self: center;
   position: relative;
-  left: -4.5vw;
+  left: -6vw;
+  top: 8px;
   transform: none;
 }
 
@@ -293,7 +294,8 @@
   .homepage-hero-title {
     font-size: clamp(1.8rem, 4.5vw, 3.2rem);
     max-width: 95%;
-    left: -3.2vw;
+    left: -4.5vw;
+    top: 6px;
   }
 }
 
@@ -309,7 +311,8 @@
   .homepage-hero-title {
     font-size: clamp(1.4rem, 7vw, 2.2rem);
     line-height: 1.08;
-    left: -2vw;
+    left: -3vw;
+    top: 4px;
   }
 
   .grid-layout {
