@@ -52,7 +52,7 @@
   align-self: center;
   position: relative;
   left: -6vw;
-  top: 14px;
+  top: 18px;
   transform: none;
 }
 
@@ -295,7 +295,7 @@
     font-size: clamp(1.8rem, 4.5vw, 3.2rem);
     max-width: 95%;
     left: -4.5vw;
-    top: 10px;
+    top: 12px;
   }
 }
 
@@ -312,7 +312,7 @@
     font-size: clamp(1.4rem, 7vw, 2.2rem);
     line-height: 1.08;
     left: -3vw;
-    top: 8px;
+    top: 10px;
   }
 
   .grid-layout {
