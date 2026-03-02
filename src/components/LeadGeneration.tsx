@@ -317,7 +317,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         <tr>
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Photos</td>
           <td style="padding: 12px; border: 1px solid #dee2e6;">${
-            data.photos.length > 0 ? data.photos.map((p) => p.name).join(', ') : 'No photos attached'
+            data.photos.length > 0 ? data.photos.map((p, index) => getGeneratedPhotoName(p, index)).join(', ') : 'No photos attached'
           }</td>
         </tr>
         <tr style="background-color: #f8f9fa;">
@@ -443,6 +443,16 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
             <div>
               <strong>Lead submitted successfully!</strong>
               <p>We are one step closer to our team goal, and you are one step closer to winning the contest.</p>
+            </div>
+          </div>
+        )}
+
+        {submitStatus === 'sending' && (
+          <div className="lead-alert lead-alert-sending">
+            <i className="fa-solid fa-spinner fa-spin"></i>
+            <div>
+              <strong>Submitting your lead...</strong>
+              <p>Please wait while we upload photos and send the submission email.</p>
             </div>
           </div>
         )}

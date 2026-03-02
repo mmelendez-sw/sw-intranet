@@ -88,6 +88,17 @@
   color: #22a84f;
 }
 
+.lead-alert-sending {
+  background: #eff6ff;
+  border: 2px solid #60a5fa;
+  color: #1e40af;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+}
+
+.lead-alert-sending i {
+  color: #2563eb;
+}
+
 .lead-alert-error {
   background: #fef2f2;
   border: 1px solid #f5a3a3;
