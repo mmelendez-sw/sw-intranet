@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
 import { UserInfo } from '../types/user';
@@ -126,6 +126,19 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const toSafeToken = (value: string, fallback: string): string => {
+  const cleaned = value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+  return cleaned || fallback;
+};
+
+const getMonthYearToken = (): string => {
+  const now = new Date();
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = monthNames[now.getMonth()];
+  const year = String(now.getFullYear()).slice(-2);
+  return `${month}${year}`;
+};
+
 interface LeadGenerationProps {
   userInfo: UserInfo;
 }
@@ -138,6 +151,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [gpsFromAutoFill, setGpsFromAutoFill] = useState(false);
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
@@ -148,6 +162,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
   const tag = useMemo(() => generateTag(), []);
   const hasLatLong = Boolean(formData.latitude.trim() && formData.longitude.trim());
+  const emailPrefix = useMemo(
+    () => (userInfo.email || 'unknown').split('@')[0].trim() || 'unknown',
+    [userInfo.email]
+  );
   const filteredStates = useMemo(() => {
     const query = stateSearchQuery.trim().toLowerCase();
     if (!query) return ALL_STATES;
@@ -155,6 +173,23 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       s.abbr.toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
     ));
   }, [stateSearchQuery]);
+
+  useEffect(() => {
+    const urls = formData.photos.map((photo) => URL.createObjectURL(photo));
+    setPhotoPreviewUrls(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [formData.photos]);
+
+  const getGeneratedPhotoName = (photo: File, index: number): string => {
+    const userToken = toSafeToken(emailPrefix, 'unknown');
+    const cityToken = toSafeToken(formData.city, 'unknowncity');
+    const stateToken = toSafeToken(formData.state, 'unknownstate');
+    const monthYear = getMonthYearToken();
+    const extension = photo.name.includes('.') ? `.${photo.name.split('.').pop()}` : '.jpg';
+    return `${userToken}_${cityToken}_${stateToken}_${monthYear}_${index + 1}${extension}`;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -302,11 +337,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       <p style="color: #666; font-size: 12px;">This email was sent from the Symphony Towers Infrastructure Intranet Lead Generation form.</p>
     `;
 
-    const attachments = await Promise.all(data.photos.map(async (photo) => {
+    const attachments = await Promise.all(data.photos.map(async (photo, index) => {
       const base64Content = await fileToBase64(photo);
       return {
         '@odata.type': '#microsoft.graph.fileAttachment',
-        name: photo.name,
+        name: getGeneratedPhotoName(photo, index),
         contentType: photo.type,
         contentBytes: base64Content,
       };
@@ -315,10 +350,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     const subjectLocation = data.city.trim() && data.state.trim()
       ? `${data.city.trim()}, ${data.state.trim()}`
       : `${data.latitude.trim() || 'N/A'}, ${data.longitude.trim() || 'N/A'}`;
+    const submitterName = (userInfo.name || userInfo.email || 'Unknown User').trim();
 
     const message: any = {
       message: {
-        subject: `TEST EMAIL - New Intranet Lead Submission - ${subjectLocation}`,
+        subject: `New Intranet Lead Submissions - ${submitterName} - ${subjectLocation}`,
         body: {
           contentType: 'HTML',
           content: emailBody,
@@ -326,8 +362,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         toRecipients: [
           {
             emailAddress: {
-              // address: 'symphony_tech@symphonyinfra.com',
-              address: 'mmelendez@symphonyinfra.com',
+              address: 'EmployeeLeadGeneration@symphonyinfra.com',
             },
           },
         ],
@@ -475,7 +510,16 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   <div className="lead-photo-list">
                     {formData.photos.map((photo, index) => (
                       <div key={`${photo.name}-${index}`} className="lead-photo-item">
-                        <span>{photo.name}</span>
+                        <div className="lead-photo-meta">
+                          {photoPreviewUrls[index] && (
+                            <img
+                              src={photoPreviewUrls[index]}
+                              alt={photo.name}
+                              className="lead-photo-preview"
+                            />
+                          )}
+                          <span>{getGeneratedPhotoName(photo, index)}</span>
+                        </div>
                         <button
                           type="button"
                           className="lead-photo-remove"

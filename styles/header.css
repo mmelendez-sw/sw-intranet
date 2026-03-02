@@ -18,6 +18,7 @@
 /* Logo */
 .logo-image {
     max-height: 40px; /* Limits logo height */
+    grid-column: 1;
 }
 
 /* Navigation Bar */
@@ -27,6 +28,7 @@
     flex-wrap: wrap;
     gap: 6px 0;
     justify-content: center;
+    grid-column: 2;
 }
 
 .nav-bar a {
@@ -49,6 +51,7 @@
     display: flex;
     align-items: center;
     margin-left: auto;
+    grid-column: 3;
 }
 
 /* User Photo */
@@ -139,31 +142,40 @@
 @media (max-width: 768px) {
     .header {
         position: static;
-        flex-direction: column;
-        align-items: flex-start;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "logo user"
+            "nav nav";
+        align-items: center;
         padding: 10px 12px;
     }
 
     .logo-image {
         max-height: 34px;
+        grid-area: logo;
     }
 
     .nav-bar {
+        grid-area: nav;
         width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: flex-start;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        margin-top: 6px;
     }
 
     .nav-bar a {
-        margin: 4px 12px 4px 4px; /* Spacing between links in small screens */
+        margin: 0 14px 0 4px; /* Spacing between links in small screens */
         font-size: 0.95rem;
     }
 
     .user {
-        width: 100%;
+        grid-area: user;
+        width: auto;
         flex-direction: row;
-        align-items: flex-start;
+        align-items: center;
+        justify-self: end;
         margin-left: 0;
     }
 
