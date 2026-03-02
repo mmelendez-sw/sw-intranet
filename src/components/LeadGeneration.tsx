@@ -404,7 +404,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         toRecipients: [
           {
             emailAddress: {
-              address: 'EmployeeLeadGeneration@symphonyinfra.com',
+              address: 'EmployeeLeads@symphonyinfra.com',
             },
           },
         ],
