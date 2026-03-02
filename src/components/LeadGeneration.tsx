@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
+import * as exifr from 'exifr';
 import { UserInfo } from '../types/user';
 import '../../styles/lead-generation.css';
 
@@ -149,6 +150,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [gpsFromAutoFill, setGpsFromAutoFill] = useState(false);
+  const [gpsAutoSource, setGpsAutoSource] = useState<'exif' | 'browser' | null>(null);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -223,6 +225,29 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         longitude: String(position.coords.longitude),
       }));
       setGpsFromAutoFill(true);
+      setGpsAutoSource('browser');
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const tryExtractGpsFromPhoto = async (file: File): Promise<boolean> => {
+    try {
+      const gps = await exifr.gps(file);
+      const latitude = typeof gps?.latitude === 'number' ? gps.latitude : null;
+      const longitude = typeof gps?.longitude === 'number' ? gps.longitude : null;
+      if (latitude === null || longitude === null) {
+        return false;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        latitude: String(latitude),
+        longitude: String(longitude),
+      }));
+      setGpsFromAutoFill(true);
+      setGpsAutoSource('exif');
       return true;
     } catch {
       return false;
@@ -249,9 +274,23 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       photos: [...prev.photos, ...selected],
     }));
 
-    const filled = await tryAutofillFromBrowserLocation();
-    if (!filled) {
-      setGpsFromAutoFill(false);
+    let filledFromExif = false;
+    for (const file of selected) {
+      // Stop at the first photo that contains valid GPS metadata.
+      // This mirrors mobile behavior where one good photo can seed coordinates.
+      const extracted = await tryExtractGpsFromPhoto(file);
+      if (extracted) {
+        filledFromExif = true;
+        break;
+      }
+    }
+
+    if (!filledFromExif) {
+      const filledFromBrowser = await tryAutofillFromBrowserLocation();
+      if (!filledFromBrowser) {
+        setGpsFromAutoFill(false);
+        setGpsAutoSource(null);
+      }
     }
 
     // Allow selecting the same file again after removal.
@@ -631,6 +670,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.latitude}
                   onChange={(e) => {
                     setGpsFromAutoFill(false);
+                    setGpsAutoSource(null);
                     handleChange(e);
                   }}
                   placeholder="e.g. 41.030976"
@@ -646,6 +686,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.longitude}
                   onChange={(e) => {
                     setGpsFromAutoFill(false);
+                    setGpsAutoSource(null);
                     handleChange(e);
                   }}
                   placeholder="e.g. -73.761618"
@@ -664,8 +705,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   </button>
                   <span className="lead-location-hint">
                     {gpsFromAutoFill
-                      ? 'Latitude/longitude auto-filled from browser location.'
-                      : 'Browser location helps prefill coordinates on mobile and web.'}
+                      ? (gpsAutoSource === 'exif'
+                        ? 'Latitude/longitude auto-filled from photo EXIF GPS.'
+                        : 'Latitude/longitude auto-filled from browser location.')
+                      : 'Coordinates can auto-fill from photo EXIF GPS, then browser location fallback.'}
                   </span>
                 </div>
               </div>
@@ -715,6 +758,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                 setSubmitStatus('idle');
                 setErrorMessage('');
                 setGpsFromAutoFill(false);
+                setGpsAutoSource(null);
                 const fileInput = document.getElementById('photos') as HTMLInputElement;
                 if (fileInput) fileInput.value = '';
               }}
