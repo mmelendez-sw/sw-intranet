@@ -2,7 +2,7 @@
 
 /* General Layout */
 .home-page {
-  --home-banner-top-gap: 4px;
+  --home-banner-top-gap: 12px;
   padding: 0 clamp(8px, 1.2vw, 16px);
   max-width: 1800px;
   margin: 0 auto;
