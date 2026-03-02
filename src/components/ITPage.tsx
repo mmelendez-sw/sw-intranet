@@ -42,7 +42,7 @@ const ITPage: React.FC = () => {
           {/* Technology Resources and FAQ - Two Smaller Cards */}
           <div className="tech-resources-faq-container">
             {/* Technology Resources Card */}
-            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+            <div className="card even-card blue-column tech-small-card">
               <div className="card-text">
                 <h2>Technology Resources</h2>
                 <ul>
@@ -54,7 +54,7 @@ const ITPage: React.FC = () => {
             </div>
             
             {/* FAQ Card */}
-            <div className="card even-card blue-column" style={{ minHeight: 540 }}>
+            <div className="card even-card blue-column tech-small-card">
               <div className="card-text">
                 <h2>FAQ</h2>
                 <ul>
@@ -66,7 +66,7 @@ const ITPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <aside className="sidebar" style={{ width: '20%' }}>
+        <aside className="sidebar technology-sidebar">
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>

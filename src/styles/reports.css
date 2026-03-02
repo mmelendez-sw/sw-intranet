@@ -3,10 +3,11 @@
     display: flex; 
     flex-direction: row;
     padding-top: 1em;
-    padding-left: 10%;
-    padding-right: 1%;
+    padding-left: clamp(10px, 3vw, 24px);
+    padding-right: clamp(10px, 2vw, 24px);
     padding-bottom: 1em;
     justify-content: space-between;
+    gap: 20px;
 }
 
 .reports-content-container {
@@ -16,9 +17,10 @@
     gap: 20px;
     padding: 10px;
     margin-top: 1%;
-    padding-right: 10%;
+    padding-right: 0;
     max-width: 100%;
     align-items: center;
+    min-width: 0;
 }
 
 .reports-text-bar {
@@ -34,7 +36,22 @@
 }
 
 .reports-text-bar h2 { 
-    height: 0px;
+    margin: 0;
+}
+
+.elite-access-banner {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+.reports-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
 }
 
 /* Table Layout */
@@ -44,6 +61,7 @@
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    min-width: 620px;
 }
 
 .reports-table th, .reports-table td {
@@ -59,6 +77,10 @@
 
 .reports-table tr:nth-child(even) {
     background-color: #d9ecf9;
+}
+
+.report-description-cell {
+    min-height: 55px;
 }
 
 /* Buttons */
@@ -91,8 +113,9 @@
     padding: 10px 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 200px;
-    height: 60px;
+    width: min(200px, 100%);
+    min-height: 52px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -115,17 +138,37 @@
     font-size: 0.9em;
 }
 
+.reports-sidebar {
+    width: 100%;
+    max-width: 320px;
+    min-width: 250px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .outermost-container {
         flex-direction: column;
+        gap: 14px;
     }
 
-    .content-container {
-        grid-template-columns: 1fr;
+    .reports-content-container {
+        padding: 0;
     }
 
-    .sidebar {
+    .sidebar,
+    .reports-sidebar {
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
-} 
+
+    .reports-table {
+        min-width: 520px;
+    }
+}
+
+@media (max-width: 480px) {
+    .reports-table {
+        min-width: 440px;
+    }
+}

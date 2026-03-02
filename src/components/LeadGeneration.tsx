@@ -1,33 +1,31 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
 import { UserInfo } from '../types/user';
 import '../../styles/lead-generation.css';
 
 interface FormData {
-  name: string;
   address: string;
   city: string;
   state: string;
   zipCode: string;
   latitude: string;
   longitude: string;
-  photo: File | null;
   notes: string;
   siteType: string;
+  photos: File[];
 }
 
 const initialFormData: FormData = {
-  name: '',
-  address: '44 South Broadway',
-  city: 'White Plains',
-  state: 'NY',
-  zipCode: '10601',
-  latitude: '41.0282',
-  longitude: '-73.7646',
-  photo: null,
+  address: '',
+  city: '',
+  state: '',
+  zipCode: '',
+  latitude: '',
+  longitude: '',
   notes: '',
-  siteType: '',
+  siteType: 'Rooftop',
+  photos: [],
 };
 
 const US_STATES = [
@@ -87,6 +85,25 @@ const US_STATES_2 = [
 ];
 
 const ALL_STATES = [...US_STATES, ...US_STATES_2];
+const SITE_TYPES = [
+  'Billboard',
+  'DAS',
+  'Datacenter',
+  'Equipment Only',
+  'Flagpole',
+  'Guyed Tower',
+  'Monopole',
+  'Mountainside',
+  'Rooftop',
+  'Self Support / Lattice Tower',
+  'Silo',
+  'Small Cell Node',
+  'Smokestack',
+  'Stealth',
+  'Steeple',
+  'Water Tower',
+  'Tower Land',
+];
 
 const generateTag = (): string => {
   const now = new Date();
@@ -120,21 +137,90 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [gpsFromAutoFill, setGpsFromAutoFill] = useState(false);
+  const [stateSearchQuery, setStateSearchQuery] = useState('');
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
 
   if (!userInfo.isAuthenticated || userInfo.email?.toLowerCase() !== ALLOWED_EMAIL) {
     return <Navigate to="/" replace />;
   }
 
   const tag = useMemo(() => generateTag(), []);
+  const hasLatLong = Boolean(formData.latitude.trim() && formData.longitude.trim());
+  const filteredStates = useMemo(() => {
+    const query = stateSearchQuery.trim().toLowerCase();
+    if (!query) return ALL_STATES;
+    return ALL_STATES.filter((s) => (
+      s.abbr.toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
+    ));
+  }, [stateSearchQuery]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({ ...prev, photo: file }));
+  const tryAutofillFromBrowserLocation = async (): Promise<boolean> => {
+    if (!('geolocation' in navigator)) {
+      return false;
+    }
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        latitude: String(position.coords.latitude),
+        longitude: String(position.coords.longitude),
+      }));
+      setGpsFromAutoFill(true);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    const filled = await tryAutofillFromBrowserLocation();
+    if (!filled) {
+      setErrorMessage('Could not access location. Please allow location access or enter coordinates manually.');
+      setSubmitStatus('error');
+    } else if (submitStatus === 'error') {
+      setErrorMessage('');
+      setSubmitStatus('idle');
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    if (selected.length === 0) return;
+
+    setFormData(prev => ({
+      ...prev,
+      photos: [...prev.photos, ...selected],
+    }));
+
+    const filled = await tryAutofillFromBrowserLocation();
+    if (!filled) {
+      setGpsFromAutoFill(false);
+    }
+
+    // Allow selecting the same file again after removal.
+    e.target.value = '';
+  };
+
+  const removePhoto = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index),
+    }));
   };
 
   const sendEmailViaGraph = async (data: FormData) => {
@@ -169,10 +255,6 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       <h2>New Lead Generation Submission</h2>
       <p style="font-family: Arial, sans-serif; color: #555; font-size: 13px;">Tag: <strong>${tag}</strong></p>
       <table style="border-collapse: collapse; width: 100%; max-width: 600px; font-family: Arial, sans-serif;">
-        <tr style="background-color: #f8f9fa;">
-          <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold; width: 180px;">Name</td>
-          <td style="padding: 12px; border: 1px solid #dee2e6;">${data.name}</td>
-        </tr>
         <tr>
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Address</td>
           <td style="padding: 12px; border: 1px solid #dee2e6;">${data.address}</td>
@@ -202,8 +284,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           <td style="padding: 12px; border: 1px solid #dee2e6;">${data.siteType || 'N/A'}</td>
         </tr>
         <tr>
-          <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Photo</td>
-          <td style="padding: 12px; border: 1px solid #dee2e6;">${data.photo ? data.photo.name : 'No photo attached'}</td>
+          <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Photos</td>
+          <td style="padding: 12px; border: 1px solid #dee2e6;">${
+            data.photos.length > 0 ? data.photos.map((p) => p.name).join(', ') : 'No photos attached'
+          }</td>
         </tr>
         <tr style="background-color: #f8f9fa;">
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Notes</td>
@@ -218,20 +302,23 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       <p style="color: #666; font-size: 12px;">This email was sent from the Symphony Towers Infrastructure Intranet Lead Generation form.</p>
     `;
 
-    const attachments: any[] = [];
-    if (data.photo) {
-      const base64Content = await fileToBase64(data.photo);
-      attachments.push({
+    const attachments = await Promise.all(data.photos.map(async (photo) => {
+      const base64Content = await fileToBase64(photo);
+      return {
         '@odata.type': '#microsoft.graph.fileAttachment',
-        name: data.photo.name,
-        contentType: data.photo.type,
+        name: photo.name,
+        contentType: photo.type,
         contentBytes: base64Content,
-      });
-    }
+      };
+    }));
+
+    const subjectLocation = data.city.trim() && data.state.trim()
+      ? `${data.city.trim()}, ${data.state.trim()}`
+      : `${data.latitude.trim() || 'N/A'}, ${data.longitude.trim() || 'N/A'}`;
 
     const message: any = {
       message: {
-        subject: `TEST EMAIL - New Intranet Lead Submission - ${data.name} - ${data.city}, ${data.state}`,
+        subject: `TEST EMAIL - New Intranet Lead Submission - ${subjectLocation}`,
         body: {
           contentType: 'HTML',
           content: emailBody,
@@ -270,6 +357,32 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.notes.trim()) {
+      setSubmitStatus('error');
+      setErrorMessage('Please add notes about this lead before submitting.');
+      return;
+    }
+
+    if (formData.photos.length === 0) {
+      setSubmitStatus('error');
+      setErrorMessage('Please attach at least one photo before submitting.');
+      return;
+    }
+
+    if (!hasLatLong) {
+      setSubmitStatus('error');
+      setErrorMessage('Latitude and longitude are required. Use current location or enter them manually.');
+      return;
+    }
+
+    if (!gpsFromAutoFill) {
+      if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.zipCode.trim()) {
+        setSubmitStatus('error');
+        setErrorMessage('Address, city, state, and zip code are required when GPS is entered manually.');
+        return;
+      }
+    }
+
     setSubmitStatus('sending');
     setErrorMessage('');
 
@@ -277,6 +390,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       await sendEmailViaGraph(formData);
       setSubmitStatus('success');
       setFormData(initialFormData);
+      setGpsFromAutoFill(false);
     } catch (err: any) {
       setSubmitStatus('error');
       setErrorMessage(err.message || 'An unexpected error occurred.');
@@ -287,8 +401,9 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     <div className="lead-generation-page">
       <div className="lead-generation-container">
         <div className="lead-generation-header">
-          <h1>Symphony Towers Infrastructure — Lead Generation</h1>
-          <p>Submit a new lead by filling out the form below. An email will be sent to the team for follow-up.</p>
+          <h1>Submit Your Lead</h1>
+          <p>Enter at least two leads per month for a chance to win our lead gen contest.</p>
+          <p className="lead-signed-in">Signed in as {userInfo.email}</p>
         </div>
 
         {submitStatus === 'success' && (
@@ -296,7 +411,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
             <i className="fa-solid fa-circle-check"></i>
             <div>
               <strong>Lead submitted successfully!</strong>
-              <p>An email has been sent to the team. They will follow up shortly.</p>
+              <p>We are one step closer to our team goal, and you are one step closer to winning the contest.</p>
             </div>
           </div>
         )}
@@ -316,48 +431,75 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           <input type="hidden" name="tag" value={tag} />
 
           <div className="lead-form-section">
-            <h2>Site Information</h2>
-            <div className="lead-form-grid">
-              <div className="lead-form-group">
-                <label htmlFor="name">Name <span className="required">*</span></label>
+            <h2>Photos &amp; Notes</h2>
+            <div className="lead-form-grid one-col">
+              <div className="lead-form-group full-width">
+                <label htmlFor="photos">Photos <span className="required">*</span></label>
+                <div className="lead-photo-actions">
+                  <button
+                    type="button"
+                    className="lead-reset-btn"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={submitStatus === 'sending'}
+                  >
+                    <i className="fa-solid fa-camera"></i> Take Photo
+                  </button>
+                  <button
+                    type="button"
+                    className="lead-reset-btn"
+                    onClick={() => libraryInputRef.current?.click()}
+                    disabled={submitStatus === 'sending'}
+                  >
+                    <i className="fa-solid fa-images"></i> Choose from Library
+                  </button>
+                </div>
                 <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileChange}
+                  className="lead-file-input-hidden"
+                />
+                <input
+                  ref={libraryInputRef}
+                  type="file"
+                  id="photos"
+                  name="photos"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="lead-file-input-hidden"
+                />
+                {formData.photos.length > 0 && (
+                  <div className="lead-photo-list">
+                    {formData.photos.map((photo, index) => (
+                      <div key={`${photo.name}-${index}`} className="lead-photo-item">
+                        <span>{photo.name}</span>
+                        <button
+                          type="button"
+                          className="lead-photo-remove"
+                          onClick={() => removePhoto(index)}
+                          disabled={submitStatus === 'sending'}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="lead-form-group full-width">
+                <label htmlFor="notes">Notes <span className="required">*</span></label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
                   onChange={handleChange}
-                  placeholder="Site or contact name"
+                  placeholder="Describe the lead, location, contact info, etc."
+                  rows={5}
                   required
                 />
-              </div>
-              <div className="lead-form-group">
-                <label htmlFor="siteType">Site Type <span className="required">*</span></label>
-                <select
-                  id="siteType"
-                  name="siteType"
-                  value={formData.siteType}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select a type...</option>
-                  <option value="Billboard">Billboard</option>
-                  <option value="DAS">DAS</option>
-                  <option value="Datacenter">Datacenter</option>
-                  <option value="Equipment Only">Equipment Only</option>
-                  <option value="Flagpole">Flagpole</option>
-                  <option value="Guyed Tower">Guyed Tower</option>
-                  <option value="Monopole">Monopole</option>
-                  <option value="Mountainside">Mountainside</option>
-                  <option value="Rooftop">Rooftop</option>
-                  <option value="Self Support / Lattice Tower">Self Support / Lattice Tower</option>
-                  <option value="Silo">Silo</option>
-                  <option value="Small Cell Node">Small Cell Node</option>
-                  <option value="Smokestack">Smokestack</option>
-                  <option value="Stealth">Stealth</option>
-                  <option value="Steeple">Steeple</option>
-                  <option value="Water Tower">Water Tower</option>
-                  <option value="Tower Land">Tower Land</option>
-                </select>
               </div>
             </div>
           </div>
@@ -374,11 +516,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Street address"
-                  required
+                  required={!gpsFromAutoFill}
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="city">City <span className="required">*</span></label>
+                <label htmlFor="city">City {!gpsFromAutoFill && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   id="city"
@@ -386,26 +528,33 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="City"
-                  required
+                  required={!gpsFromAutoFill}
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="state">State <span className="required">*</span></label>
+                <label htmlFor="state">State {!gpsFromAutoFill && <span className="required">*</span>}</label>
+                <input
+                  type="text"
+                  className="lead-state-search"
+                  placeholder="Search state by name or abbreviation..."
+                  value={stateSearchQuery}
+                  onChange={(e) => setStateSearchQuery(e.target.value)}
+                />
                 <select
                   id="state"
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  required
+                  required={!gpsFromAutoFill}
                 >
                   <option value="">Select a state...</option>
-                  {ALL_STATES.map(s => (
+                  {filteredStates.map(s => (
                     <option key={s.abbr} value={s.abbr}>{s.name}</option>
                   ))}
                 </select>
               </div>
               <div className="lead-form-group">
-                <label htmlFor="zipCode">Zip Code <span className="required">*</span></label>
+                <label htmlFor="zipCode">Zip Code {!gpsFromAutoFill && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   id="zipCode"
@@ -413,64 +562,74 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.zipCode}
                   onChange={handleChange}
                   placeholder="e.g. 10601"
-                  required
+                  required={!gpsFromAutoFill}
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="latitude">Latitude</label>
+                <label htmlFor="latitude">Latitude <span className="required">*</span></label>
                 <input
                   type="text"
                   id="latitude"
                   name="latitude"
                   value={formData.latitude}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    setGpsFromAutoFill(false);
+                    handleChange(e);
+                  }}
                   placeholder="e.g. 41.030976"
+                  required
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="longitude">Longitude</label>
+                <label htmlFor="longitude">Longitude <span className="required">*</span></label>
                 <input
                   type="text"
                   id="longitude"
                   name="longitude"
                   value={formData.longitude}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    setGpsFromAutoFill(false);
+                    handleChange(e);
+                  }}
                   placeholder="e.g. -73.761618"
+                  required
                 />
+              </div>
+              <div className="lead-form-group full-width">
+                <div className="lead-location-row">
+                  <button
+                    type="button"
+                    className="lead-reset-btn"
+                    onClick={handleUseCurrentLocation}
+                    disabled={submitStatus === 'sending'}
+                  >
+                    <i className="fa-solid fa-location-crosshairs"></i> Use Current Location
+                  </button>
+                  <span className="lead-location-hint">
+                    {gpsFromAutoFill
+                      ? 'Latitude/longitude auto-filled from browser location.'
+                      : 'Browser location helps prefill coordinates on mobile and web.'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <div className="lead-form-section">
-            <h2>Photo &amp; Notes</h2>
+            <h2>Site Information</h2>
             <div className="lead-form-grid">
-              <div className="lead-form-group full-width">
-                <label htmlFor="photo">Photo <span className="required">*</span></label>
-                <input
-                  type="file"
-                  id="photo"
-                  name="photo"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="lead-file-input"
-                  required
-                />
-                {formData.photo && (
-                  <span className="lead-file-name">
-                    <i className="fa-solid fa-image"></i> {formData.photo.name}
-                  </span>
-                )}
-              </div>
-              <div className="lead-form-group full-width">
-                <label htmlFor="notes">Notes</label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
+              <div className="lead-form-group">
+                <label htmlFor="siteType">Site Type</label>
+                <select
+                  id="siteType"
+                  name="siteType"
+                  value={formData.siteType}
                   onChange={handleChange}
-                  placeholder="Any additional information about this lead..."
-                  rows={5}
-                />
+                >
+                  {SITE_TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -498,7 +657,8 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                 setFormData(initialFormData);
                 setSubmitStatus('idle');
                 setErrorMessage('');
-                const fileInput = document.getElementById('photo') as HTMLInputElement;
+                setGpsFromAutoFill(false);
+                const fileInput = document.getElementById('photos') as HTMLInputElement;
                 if (fileInput) fileInput.value = '';
               }}
             >

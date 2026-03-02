@@ -50,7 +50,7 @@ body {
   width: 100%; /* Extend to full width */
   margin: 0;
   padding: 0;
-  padding-top: 30px; /* Reduced padding to minimize white space */
+  padding-top: 56px; /* Account for fixed desktop header */
 }
 
 .quick-links-section {
@@ -139,5 +139,11 @@ body {
   }
   100% {
       transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 10px; /* Header becomes static on mobile */
   }
 }

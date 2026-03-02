@@ -134,52 +134,46 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
           <div className="reports-text-bar">
              <h2>{pageTitle}</h2>
              {userInfo.isEliteGroup && (
-               <div style={{ 
-                 backgroundColor: '#f0f0f0', 
-                 color: '#333', 
-                 padding: '8px', 
-                 borderRadius: '4px', 
-                 marginTop: '10px',
-                 fontSize: '0.9em',
-                 fontStyle: 'italic'
-               }}>
+               <div className="elite-access-banner">
                  Elite Access - Additional reports available
                </div>
              )}
           </div>
-          <table className="reports-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-            {displayReports.map((report, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                <td>
-                  {report.title ? (
-                    report.link ? (
-                      <button 
-                        className="report-button" 
-                        onClick={() => window.open(report.link, '_blank')}
-                      >
-                        {report.title}
-                      </button>
-                    ) : (
-                      <button className="report-button">
-                        {report.title}
-                      </button>
-                    )
-                  ) : null}
-                </td>
-                <td style={{ height: '55px' }}>{report.description || ''}</td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
+          <div className="reports-table-wrapper">
+            <table className="reports-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+              {displayReports.map((report, index) => (
+                <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                  <td>
+                    {report.title ? (
+                      report.link ? (
+                        <button 
+                          className="report-button" 
+                          onClick={() => window.open(report.link, '_blank')}
+                        >
+                          {report.title}
+                        </button>
+                      ) : (
+                        <button className="report-button">
+                          {report.title}
+                        </button>
+                      )
+                    ) : null}
+                  </td>
+                  <td className="report-description-cell">{report.description || ''}</td>
+                </tr>
+              ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <aside className="sidebar" style={{ width: '20%' }}>
+        <aside className="sidebar reports-sidebar">
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>

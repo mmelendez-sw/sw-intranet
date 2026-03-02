@@ -28,6 +28,11 @@
   margin: 0 0 10px 0;
 }
 
+.lead-signed-in {
+  font-size: 13px !important;
+  color: #6b7280 !important;
+}
+
 .lead-tag-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -120,6 +125,10 @@
   gap: 16px;
 }
 
+.lead-form-grid.one-col {
+  grid-template-columns: 1fr;
+}
+
 .lead-form-grid.three-col {
   grid-template-columns: 1fr 1fr 1fr;
 }
@@ -193,6 +202,20 @@
   cursor: pointer;
 }
 
+.lead-file-input-hidden {
+  display: none;
+}
+
+.lead-photo-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lead-state-search {
+  margin-bottom: 8px;
+}
+
 .lead-file-input:hover {
   border-color: #3b82f6 !important;
   background: #eef2ff !important;
@@ -209,6 +232,64 @@
 
 .lead-file-name i {
   color: #3b82f6;
+}
+
+.lead-photo-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.lead-photo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #dbe2ea;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+}
+
+.lead-photo-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lead-photo-remove {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #334155;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lead-photo-remove:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.lead-photo-remove:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.lead-location-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lead-location-hint {
+  font-size: 12px;
+  color: #64748b;
 }
 
 /* Form Actions */
@@ -270,6 +351,10 @@
 
 /* Responsive */
 @media (max-width: 640px) {
+  .lead-generation-page {
+    padding: 16px 10px;
+  }
+
   .lead-form-grid,
   .lead-form-grid.three-col {
     grid-template-columns: 1fr;
@@ -288,5 +373,18 @@
   .lead-reset-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .lead-photo-actions .lead-reset-btn {
+    width: 100%;
+  }
+
+  .lead-photo-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lead-photo-remove {
+    width: 100%;
   }
 }

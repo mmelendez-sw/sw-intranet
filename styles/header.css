@@ -11,6 +11,8 @@
     top: 0;
     left: 0;
     z-index: 5000; /* Ensures header is above most elements */
+    gap: 12px;
+    flex-wrap: nowrap;
 }
 
 /* Logo */
@@ -22,6 +24,8 @@
 .nav-bar {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 0;
 }
 
 .nav-bar a {
@@ -43,6 +47,7 @@
 .user {
     display: flex;
     align-items: center;
+    margin-left: auto;
 }
 
 /* User Photo */
@@ -131,23 +136,39 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .nav-bar {
+    .header {
+        position: static;
         flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 12px;
+    }
+
+    .logo-image {
+        max-height: 34px;
+    }
+
+    .nav-bar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
         align-items: flex-start;
     }
 
     .nav-bar a {
-        margin: 5px 0; /* Spacing between links in small screens */
+        margin: 4px 12px 4px 4px; /* Spacing between links in small screens */
+        font-size: 0.95rem;
     }
 
     .user {
-        flex-direction: column;
+        width: 100%;
+        flex-direction: row;
         align-items: flex-start;
+        margin-left: 0;
     }
 
     .login-button,
     .logout-button {
-        margin: 5px 0; /* Spacing between buttons */
+        margin: 6px 0; /* Spacing between buttons */
     }
 }
 
