@@ -63,29 +63,37 @@
   line-height: 1.5;
 }
 
+.lead-alert-spotlight {
+  border-width: 2px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  animation: leadAlertPop 260ms ease-out;
+}
+
 .lead-alert i {
-  font-size: 20px;
+  font-size: 26px;
   margin-top: 2px;
 }
 
 .lead-alert strong {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
 }
 
 .lead-alert p {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.93rem;
 }
 
 .lead-alert-success {
-  background: #e6f9ed;
-  border: 1px solid #a3e4b8;
-  color: #1a7a3a;
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #14532d;
 }
 
 .lead-alert-success i {
-  color: #22a84f;
+  color: #16a34a;
 }
 
 .lead-alert-sending {
@@ -107,6 +115,17 @@
 
 .lead-alert-error i {
   color: #dc2626;
+}
+
+@keyframes leadAlertPop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Form */

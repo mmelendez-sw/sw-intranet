@@ -153,6 +153,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [stateSearchQuery, setStateSearchQuery] = useState('');
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
+  const alertRef = useRef<HTMLDivElement>(null);
 
   if (!userInfo.isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -179,6 +180,14 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [formData.photos]);
+
+  useEffect(() => {
+    if (submitStatus === 'success' || submitStatus === 'error' || submitStatus === 'sending') {
+      requestAnimationFrame(() => {
+        alertRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [submitStatus]);
 
   const getGeneratedPhotoName = (photo: File, index: number): string => {
     const userToken = toSafeToken(emailPrefix, 'unknown');
@@ -436,7 +445,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         </div>
 
         {submitStatus === 'success' && (
-          <div className="lead-alert lead-alert-success">
+          <div ref={alertRef} className="lead-alert lead-alert-success lead-alert-spotlight">
             <i className="fa-solid fa-circle-check"></i>
             <div>
               <strong>Lead submitted successfully!</strong>
@@ -446,7 +455,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         )}
 
         {submitStatus === 'sending' && (
-          <div className="lead-alert lead-alert-sending">
+          <div ref={alertRef} className="lead-alert lead-alert-sending lead-alert-spotlight">
             <i className="fa-solid fa-spinner fa-spin"></i>
             <div>
               <strong>Submitting your lead...</strong>
@@ -456,7 +465,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         )}
 
         {submitStatus === 'error' && (
-          <div className="lead-alert lead-alert-error">
+          <div ref={alertRef} className="lead-alert lead-alert-error lead-alert-spotlight">
             <i className="fa-solid fa-circle-exclamation"></i>
             <div>
               <strong>Failed to submit lead.</strong>
