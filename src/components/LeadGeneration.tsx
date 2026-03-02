@@ -143,8 +143,6 @@ interface LeadGenerationProps {
   userInfo: UserInfo;
 }
 
-const ALLOWED_EMAIL = 'mmelendez@symphonyinfra.com';
-
 const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -156,7 +154,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
 
-  if (!userInfo.isAuthenticated || userInfo.email?.toLowerCase() !== ALLOWED_EMAIL) {
+  if (!userInfo.isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
-        {userInfo.email?.toLowerCase() === 'mmelendez@symphonyinfra.com' && (
+        {userInfo.isAuthenticated && (
           <><i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link></>
         )}
         {/* <i className="fa-solid fa-tech"></i><Link to="/technology">Technology</Link>
