@@ -8,7 +8,7 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
 import img5 from '../../images/team.jpg';
 import img6 from '../../images/site_4.jpg';
-import img7 from '../../images/brad.jpg';
+import img7 from '../../images/brad.png';
 import img8 from '../../images/earth_flyer.jpg';
 import img9 from '../../images/site_2.jpg';
 import img10 from '../../images/alida.jpg';
