@@ -8,6 +8,12 @@
   width: 100%;
 }
 
+.home-page.authenticated {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .homepage-hero {
   position: relative;
   width: 100%;
@@ -75,6 +81,7 @@
   width: 100%;
   max-width: none;
   margin: 0;
+  flex: 1 0 auto;
 }
 
 .home-content-container {
@@ -130,6 +137,9 @@
 
 .home-footer {
   margin-top: 10px;
+  width: 100%;
+  clear: both;
+  flex-shrink: 0;
 }
 
 .content-container {
