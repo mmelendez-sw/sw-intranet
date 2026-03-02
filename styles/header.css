@@ -185,6 +185,37 @@
     }
 }
 
+/* Touch devices: avoid fixed header scroll jank */
+@media (hover: none) and (pointer: coarse) {
+    .header {
+        position: static;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "logo user"
+            "nav nav";
+        align-items: center;
+    }
+
+    .logo-image {
+        grid-area: logo;
+    }
+
+    .user {
+        grid-area: user;
+        justify-self: end;
+        margin-left: 0;
+    }
+
+    .nav-bar {
+        grid-area: nav;
+        width: 100%;
+        justify-content: center;
+        margin-top: 6px;
+        flex-wrap: nowrap;
+    }
+}
+
 .test-popup-button {
     background-color: #004E7C;
     color: white;

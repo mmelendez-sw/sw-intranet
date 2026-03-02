@@ -1,18 +1,26 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 // import { PowerbiService } from '../services/powerbiService';
 
-import img1 from '../../images/site_1.jpg';
 import img3 from '../../images/site_3.jpg';
+import img3Md from '../../images/site_3_md.jpg';
+import img3Sm from '../../images/site_3_sm.jpg';
 import img4 from '../../images/coat.jpg';
-import img5 from '../../images/team.jpg';
-import img6 from '../../images/site_4.jpg';
+import img4Md from '../../images/coat_md.jpg';
+import img4Sm from '../../images/coat_sm.jpg';
 import img7 from '../../images/brad.png';
-import img8 from '../../images/earth_flyer.jpg';
+import img7Md from '../../images/brad_md.png';
+import img7Sm from '../../images/brad_sm.png';
 import img9 from '../../images/site_2.jpg';
+import img9Md from '../../images/site_2_md.jpg';
+import img9Sm from '../../images/site_2_sm.jpg';
 import img10 from '../../images/alida.jpg';
+import img10Md from '../../images/alida_md.jpg';
+import img10Sm from '../../images/alida_sm.jpg';
 import img11 from '../../images/sip.jpeg';
+import img11Md from '../../images/sip_md.jpeg';
+import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
 
 interface HomePageProps {
@@ -21,8 +29,6 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
-  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
-  const chartOverlayRef = useRef<HTMLDivElement>(null);
   // const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
   // const [powerbiError, setPowerbiError] = useState<string | null>(null);
 
@@ -43,24 +49,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   //     container.removeEventListener('gesturechange', preventZoom as EventListener);
   //   };
   // }, []);
-
-  useEffect(() => {
-    const overlay = chartOverlayRef.current;
-    if (!overlay) return;
-    const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    overlay.addEventListener('wheel', preventZoom, { passive: false });
-    overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      overlay.removeEventListener('wheel', preventZoom);
-      overlay.removeEventListener('gesturestart', preventZoom as EventListener);
-      overlay.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, []);
 
   // Load PowerBI configuration
   // useEffect(() => {
@@ -159,7 +147,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <div className="grid-layout home-grid-layout">
                 {/* Card 1 */}
                 <div className="card odd-card">
-                  <img src={img9} alt="Team Accomplishments" className="card-image" />
+                  <img
+                    src={img9}
+                    srcSet={`${img9Sm} 480w, ${img9Md} 900w, ${img9} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="Team Accomplishments"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>Important Dates</h2>
                     <ul>
@@ -171,7 +165,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 2 */}
                 <div className="card even-card">
-                  <img src={img11} alt="Bowling 2025" className="card-image" />
+                  <img
+                    src={img11}
+                    srcSet={`${img11Sm} 480w, ${img11Md} 900w, ${img11} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="Bowling 2025"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>Hidden Talents</h2>
                     <ul>
@@ -186,7 +186,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 3 */}
                 <div className="card odd-card">
-                  <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
+                  <img
+                    src={img7}
+                    srcSet={`${img7Sm} 480w, ${img7Md} 900w, ${img7} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="City Harvest Volunteer Event"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>Brad's Promotion</h2>
                     <ul>
@@ -196,7 +202,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div> 
                 {/* Card 4 */}
                 <div className="card even-card">
-                  <img src={img4} alt="Food Drive" className="card-image" />
+                  <img
+                    src={img4}
+                    srcSet={`${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="Food Drive"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>Person to Person Coat Drive</h2>
                     <ul>
@@ -206,7 +218,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 5 */}
                 <div className="card odd-card">
-                  <img src={img3} alt="Marketing Updates" className="card-image" />
+                  <img
+                    src={img3}
+                    srcSet={`${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="Marketing Updates"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>Marketing Updates</h2>
                     <ul>
@@ -229,7 +247,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div> 
                 {/* Card 6 */}
                 <div className="card even-card">
-                  <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
+                  <img
+                    src={img10}
+                    srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    alt="City Harvest Mesh Bag Project"
+                    className="card-image"
+                  />
                   <div className="card-text">
                     <h2>InspirASIAN SoCal Topgolf Tournament</h2>
                     <ul>

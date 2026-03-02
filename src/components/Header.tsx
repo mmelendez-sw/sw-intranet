@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
-import white_logo from '../../images/symph_white_t.png';
-import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'

@@ -284,11 +284,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     }
 
     const emailBody = `
-      <div style="background-color: #fef2f2; border: 2px solid #dc2626; padding: 12px 20px; border-radius: 6px; margin-bottom: 16px; text-align: center;">
-        <strong style="color: #dc2626; font-size: 18px; font-family: Arial, sans-serif;">⚠ TEST EMAIL — Do Not Action ⚠</strong>
-      </div>
       <h2>New Lead Generation Submission</h2>
-      <p style="font-family: Arial, sans-serif; color: #555; font-size: 13px;">Tag: <strong>${tag}</strong></p>
       <table style="border-collapse: collapse; width: 100%; max-width: 600px; font-family: Arial, sans-serif;">
         <tr>
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Address</td>
@@ -354,7 +350,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
     const message: any = {
       message: {
-        subject: `New Intranet Lead Submissions - ${submitterName} - ${subjectLocation}`,
+        subject: `New Lead Submission - ${submitterName} - ${subjectLocation}`,
         body: {
           contentType: 'HTML',
           content: emailBody,
