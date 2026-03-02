@@ -57,7 +57,7 @@
   flex-direction: column;
 }
 
-.main-content h1 {
+.home-page.technology-page .main-content h1 {
   text-align: center;
   margin-top: -50px !important;
   margin-bottom: 20px !important;
