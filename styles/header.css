@@ -4,8 +4,8 @@
     background-color: #004E7C; /* Header background color */
     color: #ffffff; /* Text color */
     padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     position: fixed; /* Fixes header at the top */
     top: 0;
@@ -26,6 +26,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 6px 0;
+    justify-content: center;
 }
 
 .nav-bar a {
