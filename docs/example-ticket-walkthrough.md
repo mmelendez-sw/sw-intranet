@@ -33,7 +33,7 @@ async findByUserId(userId: string, options?: { days?: number }): Promise<Order[]
 }
 ```
 
-### Things to mention to CTO
+### Things to mention
 
 - "I'll validate that the user exists before querying orders."
 - "We could add pagination if the list grows large."

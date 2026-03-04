@@ -6,4 +6,5 @@ Reference materials for development and onboarding.
 |----------|-------------|
 | [Backend Reference Guide](./backend-reference-guide.md) | TypeScript, API design, services, error handling |
 | [Example Ticket Walkthroughs](./example-ticket-walkthrough.md) | Practice scenarios for backend work |
-| [CTO Conversation Points](./points.md) | Talking points for live discussions |
+| [Conversation Points](./points.md) | Talking points for live discussions |
+| [Healthcare AI Tickets](./tickets/README.md) | 5 ticket walkthroughs + implementation |

@@ -1,4 +1,4 @@
-# CTO Conversation Points
+# Conversation Points
 
 > Phrases and considerations that demonstrate senior-level thinking during live work.
 

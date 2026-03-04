@@ -461,7 +461,7 @@ describe('GET /users/:id', () => {
 4. **Make minimal changes** – Don't refactor unless asked
 5. **Test your change** – Run existing tests, manual smoke test
 
-### Explaining Your Approach (CTO-Friendly)
+### Explaining Your Approach
 
 - **"I'll start by finding where similar functionality exists"** – Shows you read the codebase
 - **"I'm following the existing pattern in X"** – Consistency matters
