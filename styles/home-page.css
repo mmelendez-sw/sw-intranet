@@ -88,7 +88,7 @@
 
 .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
   position: relative;
-  left: -0.045em;
+  left: -0.065em;
   transform: scaleX(0.7);
   transform-origin: center center;
 }
@@ -452,7 +452,7 @@
   }
 
   .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
-    left: -0.04em;
+    left: -0.056em;
     transform: scaleX(0.62);
   }
 
@@ -486,7 +486,7 @@
   }
 
   .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
-    left: -0.034em;
+    left: -0.048em;
     transform: scaleX(0.56);
   }
 }
