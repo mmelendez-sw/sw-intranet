@@ -68,8 +68,8 @@
 
 .homepage-hero-line {
   display: grid;
-  grid-template-columns: clamp(0.58em, 0.62em, 0.68em) auto;
-  column-gap: clamp(4px, 0.45vw, 10px);
+  grid-template-columns: clamp(0.9em, 0.95em, 1em) auto;
+  column-gap: clamp(8px, 0.9vw, 16px);
   align-items: baseline;
   margin: 0;
   padding: 0;
