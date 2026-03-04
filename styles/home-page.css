@@ -87,7 +87,7 @@
 }
 
 .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
-  transform: translateX(0.04em) scaleX(0.7);
+  transform: translateX(-0.02em) scaleX(0.7);
   transform-origin: center center;
 }
 
@@ -450,7 +450,7 @@
   }
 
   .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
-    transform: translateX(0.035em) scaleX(0.62);
+    transform: translateX(-0.015em) scaleX(0.62);
   }
 
   .home-sidebar {
@@ -483,6 +483,6 @@
   }
 
   .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
-    transform: translateX(0.03em) scaleX(0.56);
+    transform: translateX(-0.01em) scaleX(0.56);
   }
 }
