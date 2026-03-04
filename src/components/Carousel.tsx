@@ -6,8 +6,6 @@ import image2 from '../../images/cr_2.png';
 import image3 from '../../images/ts_1.png';
 import image4 from '../../images/ts_2.png';
 
-import test_image from '../images/cr_1.png'
-
 const images = [image1, image2, image3, image4];
 
 const Carousel: React.FC = () => {

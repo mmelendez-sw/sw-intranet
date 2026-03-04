@@ -4,24 +4,31 @@
     background-color: #004E7C; /* Header background color */
     color: #ffffff; /* Text color */
     padding: 5px 10px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     position: fixed; /* Fixes header at the top */
     top: 0;
     left: 0;
     z-index: 5000; /* Ensures header is above most elements */
+    gap: 12px;
+    flex-wrap: nowrap;
 }
 
 /* Logo */
 .logo-image {
     max-height: 40px; /* Limits logo height */
+    grid-column: 1;
 }
 
 /* Navigation Bar */
 .nav-bar {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 0;
+    justify-content: center;
+    grid-column: 2;
 }
 
 .nav-bar a {
@@ -43,6 +50,8 @@
 .user {
     display: flex;
     align-items: center;
+    margin-left: auto;
+    grid-column: 3;
 }
 
 /* User Photo */
@@ -131,23 +140,79 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .header {
+        position: static;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "logo user"
+            "nav nav";
+        align-items: center;
+        padding: 10px 12px;
+    }
+
+    .logo-image {
+        max-height: 34px;
+        grid-area: logo;
+    }
+
     .nav-bar {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-area: nav;
+        width: 100%;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        margin-top: 6px;
     }
 
     .nav-bar a {
-        margin: 5px 0; /* Spacing between links in small screens */
+        margin: 0 14px 0 4px; /* Spacing between links in small screens */
+        font-size: 0.95rem;
     }
 
     .user {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-area: user;
+        width: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-self: end;
+        margin-left: 0;
     }
 
     .login-button,
     .logout-button {
-        margin: 5px 0; /* Spacing between buttons */
+        margin: 6px 0; /* Spacing between buttons */
+    }
+}
+
+/* Touch devices: avoid fixed header scroll jank */
+@media (hover: none) and (pointer: coarse) {
+    .header {
+        position: static;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "logo user"
+            "nav nav";
+        align-items: center;
+    }
+
+    .logo-image {
+        grid-area: logo;
+    }
+
+    .user {
+        grid-area: user;
+        justify-self: end;
+        margin-left: 0;
+    }
+
+    .nav-bar {
+        grid-area: nav;
+        width: 100%;
+        justify-content: center;
+        margin-top: 6px;
+        flex-wrap: nowrap;
     }
 }
 

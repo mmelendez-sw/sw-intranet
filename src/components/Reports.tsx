@@ -8,6 +8,11 @@ interface TechnologyReportsProps {
 
 const reports = [
   {
+    title: 'Company Progress',
+    description: 'A comprehensive view of company performance metrics and progress indicators.',
+    link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false',
+  },
+  {
     title: 'All Acquisitions Summary',
     description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.',
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
@@ -37,8 +42,9 @@ const reports = [
     link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'WIP - Daily Acquisitions Summary',
-    description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    title: 'Daily Acquisitions Summary',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
+    link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
     title: 'WIP - In-Month Conversion Tracker',
@@ -48,16 +54,16 @@ const reports = [
     title: 'WIP - TS and CR Trends Report',
     description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
   },
-  {
-    title: 'Site Tracker - Easement and Towers Report',
-    description: 'A comprehensive look at Easements and Towers combined.',
-    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
-  {
-    title: 'Site Tracker - Sales Pipeline Activity',
-    description: 'A comprehensive look at current sales pipeline activity.',
-    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },
+  // {
+  //   title: 'Site Tracker - Easement and Towers Report',
+  //   description: 'A comprehensive look at Easements and Towers combined.',
+  //   link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  // },
+  // {
+  //   title: 'Site Tracker - Sales Pipeline Activity',
+  //   description: 'A comprehensive look at current sales pipeline activity.',
+  //   link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  // },
   {
     title: 'TK Salesforce Sites',
     description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
@@ -66,16 +72,57 @@ const reports = [
 ];
 
 // Elite reports - additional reports for elite group members
+// Reports can have an optional excludedEmails array to exclude specific users by email
 const eliteReports = [
   {
     title: 'Elite - Origination Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
     link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['arivera@symphonyinfra.com']
   },
+  {
+    title: 'Elite - Company Progress',
+    description: 'A complete view of current GCF and Capital Acquisition activity.',
+    link: 'https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/2695a41c69787864795c?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&experience=power-bi',
+    excludedEmails: ['arivera@symphonyinfra.com']
+  },
+  {
+    title: 'Elite - Scorecard Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.',
+    link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['arivera@symphonyinfra.com']
+  }, 
+  {
+    title: 'Elite - Acquisition Team Commision Report',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Acquisition Team Commision Breakdown.',
+    link: 'https://app.powerbi.com/links/yGE8PseRVw?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    excludedEmails: ['jcymbalista@symphonyinfra.com','cdolgon@symphonyinfra.com'], // Add emails to exclude (case-insensitive)
+  }
+  // Example: To exclude specific users from a new report, add excludedEmails array:
+  // {
+  //   title: 'Elite - New Report Name',
+  //   description: 'Description of the new report.',
+  //   link: 'https://app.powerbi.com/links/...',
+  //   excludedEmails: ['user1@example.com', 'user2@example.com'], // Add emails to exclude (case-insensitive)
+  // }
 ];
 
+// Helper function to check if a user should see a report
+const shouldShowReport = (report: any, userEmail?: string): boolean => {
+  // If report has excludedEmails and user email is in the list, don't show it
+  if (report.excludedEmails && userEmail) {
+    return !report.excludedEmails.includes(userEmail.toLowerCase());
+  }
+  return true;
+};
+
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
-  const displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
+  // Filter reports based on elite group status and excluded emails
+  let displayReports = userInfo.isEliteGroup ? [...eliteReports, ...reports] : reports;
+  
+  // Filter out reports that the user should not see based on their email
+  displayReports = displayReports.filter(report => shouldShowReport(report, userInfo.email));
+  
   const pageTitle = userInfo.isEliteGroup 
     ? 'Symphony Towers Infrastructure Elite Status Reports' 
     : 'Symphony Towers Infrastructure Status Reports';
@@ -87,52 +134,46 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
           <div className="reports-text-bar">
              <h2>{pageTitle}</h2>
              {userInfo.isEliteGroup && (
-               <div style={{ 
-                 backgroundColor: '#f0f0f0', 
-                 color: '#333', 
-                 padding: '8px', 
-                 borderRadius: '4px', 
-                 marginTop: '10px',
-                 fontSize: '0.9em',
-                 fontStyle: 'italic'
-               }}>
+               <div className="elite-access-banner">
                  Elite Access - Additional reports available
                </div>
              )}
           </div>
-          <table className="reports-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-            {displayReports.map((report, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
-                <td>
-                  {report.title ? (
-                    report.link ? (
-                      <button 
-                        className="report-button" 
-                        onClick={() => window.open(report.link, '_blank')}
-                      >
-                        {report.title}
-                      </button>
-                    ) : (
-                      <button className="report-button">
-                        {report.title}
-                      </button>
-                    )
-                  ) : null}
-                </td>
-                <td style={{ height: '55px' }}>{report.description || ''}</td>
-              </tr>
-            ))}
-            </tbody>
-          </table>
+          <div className="reports-table-wrapper">
+            <table className="reports-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+              {displayReports.map((report, index) => (
+                <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                  <td>
+                    {report.title ? (
+                      report.link ? (
+                        <button 
+                          className="report-button" 
+                          onClick={() => window.open(report.link, '_blank')}
+                        >
+                          {report.title}
+                        </button>
+                      ) : (
+                        <button className="report-button">
+                          {report.title}
+                        </button>
+                      )
+                    ) : null}
+                  </td>
+                  <td className="report-description-cell">{report.description || ''}</td>
+                </tr>
+              ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <aside className="sidebar" style={{ width: '20%' }}>
+        <aside className="sidebar reports-sidebar">
           <section className="quick-links">
             <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
           </section>

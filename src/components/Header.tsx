@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
-import white_logo from '../../images/symph_white_t.png';
-import sti_logo from '../../images/STI.png'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
@@ -17,17 +15,18 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // const [showPopup, setShowPopup] = useState(false);
 
   const handleLogin = () => {
-    instance.loginPopup(loginRequest).catch((e) => {
+    instance.loginPopup(loginRequest).catch((e: any) => {
       console.error(e);
     });
   };
 
   const handleLogout = () => {
-    instance.logoutPopup().catch((e) => {
+    instance.logoutPopup().catch((e: any) => {
       console.error(e);
     });
     setIsDropdownOpen(false)
@@ -78,12 +77,16 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
+        {userInfo.isAuthenticated && (
+          <><i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link></>
+        )}
+        {/* <i className="fa-solid fa-tech"></i><Link to="/technology">Technology</Link>
         <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
         <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
         <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
         <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
         <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
-        <i className="fa-solid fa-laptop"></i><Link to="/technology">Technology</Link>
+        <i className="fa-solid fa-laptop"></i><Link to="/reports">Reports</Link> */}
         {/* <button 
           className="test-popup-button"
           onClick={() => setShowPopup(true)}
