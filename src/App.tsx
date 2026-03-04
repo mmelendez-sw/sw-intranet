@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
@@ -14,6 +14,7 @@ import { getGroupIds } from './utils/getGroupId';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
+  const hasSignedInAccount = instance.getAllAccounts().length > 0;
   const [userInfo, setUserInfo] = useState<UserInfo>({
     isAuthenticated: false,
     isEliteGroup: false,
@@ -387,7 +388,10 @@ const App: React.FC = () => {
             path="/"
             element={<HomePage userInfo={userInfo} />}
           />
-          <Route path="/lead-generation" element={<LeadGeneration userInfo={userInfo} />} />
+          <Route
+            path="/lead-generation"
+            element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
+          />
           {userInfo.isAuthenticated && (
             <>
               <Route path="/technology" element={<ITPage />} />

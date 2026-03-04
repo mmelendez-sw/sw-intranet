@@ -146,6 +146,7 @@ interface LeadGenerationProps {
 
 const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const { instance } = useMsal();
+  const hasSignedInAccount = instance.getAllAccounts().length > 0;
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -157,7 +158,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const libraryInputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
 
-  if (!userInfo.isAuthenticated) {
+  if (!userInfo.isAuthenticated && !hasSignedInAccount) {
     return <Navigate to="/" replace />;
   }
 
