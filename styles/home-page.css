@@ -78,12 +78,23 @@
 .homepage-hero-line strong {
   font-weight: 700;
   color: #ffffff;
+  display: inline-block;
+  width: 0.78em;
+  margin-right: clamp(4px, 0.45vw, 10px);
+  text-align: left;
+  vertical-align: baseline;
 }
 
 .homepage-hero-rest {
   font-size: clamp(0.82em, 0.74em + 0.55vw, 1em);
   font-weight: 400;
   color: rgba(255, 255, 255, 0.76);
+}
+
+/* Optical correction: uppercase W renders visually wider/heavier */
+.homepage-hero-line:nth-child(3) strong {
+  font-size: 0.9em;
+  width: 0.74em;
 }
 
 .home-layout {
