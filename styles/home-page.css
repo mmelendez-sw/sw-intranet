@@ -69,7 +69,7 @@
 .homepage-hero-line {
   display: grid;
   grid-template-columns: clamp(0.9em, 0.95em, 1em) auto;
-  column-gap: clamp(8px, 0.9vw, 16px);
+  column-gap: clamp(3px, 0.45vw, 8px);
   align-items: baseline;
   margin: 0;
   padding: 0;
@@ -449,6 +449,10 @@
     top: 4px;
   }
 
+  .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+    transform: scaleX(0.62);
+  }
+
   .home-sidebar {
     padding: 14px;
   }
@@ -476,5 +480,9 @@
     font-size: clamp(1rem, 6vw, 1.6rem);
     left: -1vw;
     top: 2px;
+  }
+
+  .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+    transform: scaleX(0.56);
   }
 }
