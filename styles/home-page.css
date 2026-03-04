@@ -86,6 +86,11 @@
   line-height: 1;
 }
 
+.homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+  transform: scaleX(0.7);
+  transform-origin: left center;
+}
+
 .homepage-hero-rest {
   font-size: 1em;
   font-weight: 400;
