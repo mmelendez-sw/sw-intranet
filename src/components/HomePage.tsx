@@ -137,9 +137,18 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <img src={howBanner} alt="Homepage banner" className="homepage-hero-image" />
                 <div className="homepage-hero-overlay">
                   <h1 className="homepage-hero-title">
-                    <span className="homepage-hero-line"><strong>H</strong><span className="homepage-hero-rest">ighest standards</span></span>
-                    <span className="homepage-hero-line"><strong>O</strong><span className="homepage-hero-rest">ne team</span></span>
-                    <span className="homepage-hero-line"><strong>W</strong><span className="homepage-hero-rest">in!</span></span>
+                    <span className="homepage-hero-line">
+                      <span className="homepage-hero-acronym">H</span>
+                      <span className="homepage-hero-rest">ighest standards</span>
+                    </span>
+                    <span className="homepage-hero-line">
+                      <span className="homepage-hero-acronym">O</span>
+                      <span className="homepage-hero-rest">ne team</span>
+                    </span>
+                    <span className="homepage-hero-line">
+                      <span className="homepage-hero-acronym">W</span>
+                      <span className="homepage-hero-rest">in!</span>
+                    </span>
                   </h1>
                 </div>
               </section>

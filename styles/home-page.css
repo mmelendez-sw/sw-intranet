@@ -67,7 +67,10 @@
 }
 
 .homepage-hero-line {
-  display: block;
+  display: grid;
+  grid-template-columns: clamp(0.58em, 0.62em, 0.68em) auto;
+  column-gap: clamp(4px, 0.45vw, 10px);
+  align-items: baseline;
   margin: 0;
   padding: 0;
   text-indent: 0;
@@ -75,20 +78,20 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
-.homepage-hero-line strong {
+.homepage-hero-acronym {
   font-weight: 700;
   color: #ffffff;
-  display: inline-block;
-  width: auto;
-  margin-right: clamp(3px, 0.35vw, 8px);
-  text-align: left;
-  vertical-align: baseline;
+  display: block;
+  text-align: center;
+  line-height: 1;
 }
 
 .homepage-hero-rest {
   font-size: 1em;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.76);
+  line-height: 1;
+  min-width: 0;
 }
 
 .home-layout {
