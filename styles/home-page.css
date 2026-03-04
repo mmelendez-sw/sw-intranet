@@ -62,16 +62,28 @@
   align-self: center;
   position: relative;
   left: -6vw;
-  top: 18px;
+  top: 2px;
   transform: none;
 }
 
 .homepage-hero-line {
   display: block;
+  margin: 0;
+  padding: 0;
+  text-indent: 0;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .homepage-hero-line strong {
   font-weight: 700;
+  color: #ffffff;
+}
+
+.homepage-hero-rest {
+  font-size: clamp(0.82em, 0.74em + 0.55vw, 1em);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.76);
 }
 
 .home-layout {
@@ -400,7 +412,7 @@
     font-size: clamp(1.8rem, 4.5vw, 3.2rem);
     max-width: 95%;
     left: -4.5vw;
-    top: 12px;
+    top: 6px;
   }
 }
 
@@ -418,10 +430,10 @@
   }
 
   .homepage-hero-title {
-    font-size: clamp(1.4rem, 7vw, 2.2rem);
+    font-size: clamp(1.18rem, 6.4vw, 2rem);
     line-height: 1.08;
-    left: -3vw;
-    top: 10px;
+    left: -2vw;
+    top: 4px;
   }
 
   .home-sidebar {
@@ -445,5 +457,11 @@
 @media (max-width: 480px) {
   .homepage-hero {
     height: clamp(135px, 38vw, 170px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1rem, 6vw, 1.6rem);
+    left: -1vw;
+    top: 2px;
   }
 }
