@@ -40,6 +40,10 @@
   margin: 0; /* Removes any extra spacing */
 }
 
+.employee-appreciation-image {
+  object-position: center 70%;
+}
+
 .card-text h2 {
   font-size: 1.5em;
   color: #003366;
