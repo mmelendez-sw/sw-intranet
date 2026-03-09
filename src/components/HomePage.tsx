@@ -166,6 +166,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div className="card-text">
                     <h2>Important Dates</h2>
                     <ul>
+                      <li>3/9-3/20: Meals on Main Street Food Drive</li>
+                      <li>3/25: Volunteer Day - Meals on Main St</li>
                       <li>4/3: Good Friday</li>
                       <li>5/25: Memorial Day</li>
                       <li>6/19: Juneteenth</li>
