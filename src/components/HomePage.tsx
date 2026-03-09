@@ -6,7 +6,9 @@ import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
 import img7 from '../../images/brad.png'
 import img9 from '../../images/site_2.jpg'
-import img10 from '../../images/alida.jpg'
+import img10 from '../../images/emp.jpg'
+import img10Md from '../../images/emp_md.jpg'
+import img10Sm from '../../images/emp_sm.jpg'
 import img11 from '../../images/sip.jpeg'
 
 interface HomePageProps {
@@ -95,11 +97,17 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>  
               {/* Card 6 */}
               <div className="card even-card">
-                <img src={img10} alt="City Harvest Mesh Bag Project" className="card-image" />
+                <img
+                  src={img10}
+                  srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  alt="Employee Appreciation Day Celebration"
+                  className="card-image"
+                />
                 <div className="card-text">
-                  <h2>InspirASIAN SoCal Topgolf Tournament</h2>
+                  <h2>Employee Appreciation Day Celebration</h2>
                   <ul>
-                    <li>Great day connecting for a cause! Alida Montiel represented at the InspirASIAN SoCal Topgolf Tournament, an event organized with AT&T. This tournament serves as a key gathering for AT&T executives, vendors, and partners committed to supporting Asian & Pacific Islander communities. All proceeds go toward InspirASIAN's scholarship fund for deserving high school students.</li>
+                    <li>Thank you to every team member for your dedication, positive energy, and hard work - your contributions are the reason our Employee Appreciation Day was such a success.</li>
                   </ul>
                 </div>
               </div>
