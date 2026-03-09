@@ -261,7 +261,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     alt="City Harvest Mesh Bag Project"
-                    className="card-image"
+                    className="card-image employee-appreciation-image"
                   />
                   <div className="card-text">
                     <h2>Employee Appreciation Day Celebration</h2>
