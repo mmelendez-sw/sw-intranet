@@ -196,12 +196,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img7}
                     alt="March Madness"
                     className="card-image"
-                    style={{ objectPosition: '30% center' }}
+                    style={{ objectPosition: '15% center' }}
                   />
                   <div className="card-text">
                     <h2>March Madness</h2>
                     <ul>
-                      <li>It's that time of year again! Wear your favorite sports apparel and join us for March Madness at Buffalo Wild Wings on March 23rd at 4:30pm! RSVP by March 19th to secure your spot.</li>
+                      <li>Get ready for a fun time with colleagues at Buffalo Wild Wings. Whether you're a big sports fan or just looking to enjoy some time with our team, this event is for everyone.</li>
+                      <li>Spots are limited, so please RSVP by Monday, March 19 to secure your place—and feel free to rep your team (any sport)!</li>
                     </ul>
                   </div>
                 </div> 
