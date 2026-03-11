@@ -9,7 +9,7 @@ import img3Sm from '../../images/site_3_sm.jpg';
 import img4 from '../../images/coat.jpg';
 import img4Md from '../../images/coat_md.jpg';
 import img4Sm from '../../images/coat_sm.jpg';
-import img7 from '../../images/mm.png';
+import img7 from '../../images/new_mm.png';
 import img9 from '../../images/meals.png';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
