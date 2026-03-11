@@ -56,7 +56,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 3 */}
               <div className="card odd-card">
-                <img src={img7} alt="March Madness" className="card-image" />
+                <img src={img7} alt="March Madness" className="card-image" style={{ objectPosition: '30% center' }} />
                 <div className="card-text">
                   <h2>March Madness</h2>
                   <ul>
