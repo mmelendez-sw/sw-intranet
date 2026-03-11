@@ -60,7 +60,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>March Madness</h2>
                   <ul>
-                    <li>It's that time of year again! Fill out your bracket and join in on the fun.</li>
+                    <li>Get ready for a fun time with colleagues at Buffalo Wild Wings. Whether you're a big sports fan or just looking to enjoy some time with our team, this event is for everyone.</li>
+                    <li>Spots are limited, so please RSVP by Monday, March 19 to secure your place—and feel free to rep your team (any sport)!</li>
                   </ul>
                 </div>
               </div>
