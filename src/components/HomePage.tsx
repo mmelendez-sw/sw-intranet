@@ -26,7 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
-                <img src={img9} alt="Meals on Main Street" className="card-image" />
+                <img src={img9} alt="Meals on Main Street" className="card-image" style={{ objectFit: 'contain' }} />
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
