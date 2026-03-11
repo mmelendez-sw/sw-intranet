@@ -156,6 +156,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img9}
                     alt="Meals on Main Street"
                     className="card-image"
+                    style={{ objectFit: 'contain' }}
                   />
                   <div className="card-text">
                     <h2>Important Dates</h2>
@@ -195,6 +196,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img7}
                     alt="March Madness"
                     className="card-image"
+                    style={{ objectPosition: '30% center' }}
                   />
                   <div className="card-text">
                     <h2>March Madness</h2>
