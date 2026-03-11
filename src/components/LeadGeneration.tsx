@@ -194,11 +194,13 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
   const getGeneratedPhotoName = (photo: File, index: number): string => {
     const userToken = toSafeToken(emailPrefix, 'unknown');
-    const cityToken = toSafeToken(formData.city, 'unknowncity');
-    const stateToken = toSafeToken(formData.state, 'unknownstate');
+    const cityToken = toSafeToken(formData.city, '');
+    const stateToken = toSafeToken(formData.state, '');
     const monthYear = getMonthYearToken();
     const extension = photo.name.includes('.') ? `.${photo.name.split('.').pop()}` : '.jpg';
-    return `${userToken}_${cityToken}_${stateToken}_${monthYear}_${index + 1}${extension}`;
+    const locationPart = [cityToken, stateToken].filter(Boolean).join('_');
+    const parts = [userToken, locationPart, monthYear, String(index + 1)].filter(Boolean);
+    return `${parts.join('_')}${extension}`;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -320,10 +322,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         account: activeAccount,
       });
     } catch {
-      tokenResponse = await instance.acquireTokenPopup({
+      await instance.acquireTokenRedirect({
         scopes: ['Mail.Send'],
         account: activeAccount,
       });
+      return;
     }
 
     if (!tokenResponse?.accessToken) {
@@ -453,10 +456,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       return;
     }
 
-    if (!gpsFromAutoFill) {
+    if (!hasLatLong) {
       if (!formData.address.trim() || !formData.city.trim() || !formData.state.trim() || !formData.zipCode.trim()) {
         setSubmitStatus('error');
-        setErrorMessage('Address, city, state, and zip code are required when GPS is entered manually.');
+        setErrorMessage('Please provide either coordinates or a full address (street, city, state, zip).');
         return;
       }
     }
@@ -605,7 +608,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
             <h2>Location</h2>
             <div className="lead-form-grid">
               <div className="lead-form-group full-width">
-                <label htmlFor="address">Address <span className="required">*</span></label>
+                <label htmlFor="address">Address {!hasLatLong && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   id="address"
@@ -613,11 +616,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Street address"
-                  required={!gpsFromAutoFill}
+                  required={!hasLatLong}
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="city">City {!gpsFromAutoFill && <span className="required">*</span>}</label>
+                <label htmlFor="city">City {!hasLatLong && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   id="city"
@@ -625,11 +628,11 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.city}
                   onChange={handleChange}
                   placeholder="City"
-                  required={!gpsFromAutoFill}
+                  required={!hasLatLong}
                 />
               </div>
               <div className="lead-form-group">
-                <label htmlFor="state">State {!gpsFromAutoFill && <span className="required">*</span>}</label>
+                <label htmlFor="state">State {!hasLatLong && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   className="lead-state-search"
@@ -642,7 +645,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  required={!gpsFromAutoFill}
+                  required={!hasLatLong}
                 >
                   <option value="">Select a state...</option>
                   {filteredStates.map(s => (
@@ -651,7 +654,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                 </select>
               </div>
               <div className="lead-form-group">
-                <label htmlFor="zipCode">Zip Code {!gpsFromAutoFill && <span className="required">*</span>}</label>
+                <label htmlFor="zipCode">Zip Code {!hasLatLong && <span className="required">*</span>}</label>
                 <input
                   type="text"
                   id="zipCode"
@@ -659,7 +662,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                   value={formData.zipCode}
                   onChange={handleChange}
                   placeholder="e.g. 10601"
-                  required={!gpsFromAutoFill}
+                  required={!hasLatLong}
                 />
               </div>
               <div className="lead-form-group">
