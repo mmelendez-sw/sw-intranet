@@ -197,7 +197,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img7}
                     alt="March Madness"
                     className="card-image"
-                    style={{ objectPosition: '15% 35%' }}
+                    style={{ objectPosition: '15% 50%' }}
                   />
                   <div className="card-text">
                     <h2>March Madness</h2>
