@@ -274,6 +274,7 @@
   height: auto;
   position: static;
   top: auto;
+  margin-top: 40px;
 }
 
 .home-sidebar section {
