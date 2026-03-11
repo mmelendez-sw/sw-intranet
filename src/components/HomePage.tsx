@@ -9,12 +9,8 @@ import img3Sm from '../../images/site_3_sm.jpg';
 import img4 from '../../images/coat.jpg';
 import img4Md from '../../images/coat_md.jpg';
 import img4Sm from '../../images/coat_sm.jpg';
-import img7 from '../../images/brad.png';
-import img7Md from '../../images/brad_md.png';
-import img7Sm from '../../images/brad_sm.png';
-import img9 from '../../images/site_2.jpg';
-import img9Md from '../../images/site_2_md.jpg';
-import img9Sm from '../../images/site_2_sm.jpg';
+import img7 from '../../images/mm.png';
+import img9 from '../../images/meals.png';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
@@ -158,9 +154,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img
                     src={img9}
-                    srcSet={`${img9Sm} 480w, ${img9Md} 900w, ${img9} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Team Accomplishments"
+                    alt="Meals on Main Street"
                     className="card-image"
                   />
                   <div className="card-text">
@@ -199,15 +193,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img
                     src={img7}
-                    srcSet={`${img7Sm} 480w, ${img7Md} 900w, ${img7} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="City Harvest Volunteer Event"
+                    alt="March Madness"
                     className="card-image"
                   />
                   <div className="card-text">
-                    <h2>Brad's Promotion</h2>
+                    <h2>March Madness</h2>
                     <ul>
-                      <li>Please join us in congratulating Brad on this well-earned promotion. We look forward to his continued contributions!</li>
+                      <li>It's that time of year again! Wear your favorite sports apparel and join us for March Madness at Buffalo Wild Wings on March 23rd at 4:30pm! RSVP by March 19th to secure your spot.</li>
                     </ul>
                   </div>
                 </div> 
