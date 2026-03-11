@@ -4,8 +4,8 @@ import '../../styles/home-page.css';
 
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
-import img7 from '../../images/brad.png'
-import img9 from '../../images/site_2.jpg'
+import img7 from '../../images/mm.png'
+import img9 from '../../images/meals.png'
 import img10 from '../../images/emp.jpg'
 import img10Md from '../../images/emp_md.jpg'
 import img10Sm from '../../images/emp_sm.jpg'
@@ -26,7 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
-                <img src={img9} alt="Team Accomplishments" className="card-image" />
+                <img src={img9} alt="Meals on Main Street" className="card-image" />
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
@@ -56,11 +56,11 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               {/* Card 3 */}
               <div className="card odd-card">
-                <img src={img7} alt="City Harvest Volunteer Event" className="card-image" />
+                <img src={img7} alt="March Madness" className="card-image" />
                 <div className="card-text">
-                  <h2>Brad's Promotion</h2>
+                  <h2>March Madness</h2>
                   <ul>
-                    <li>Please join us in congratulating Brad on this well-earned promotion. We look forward to his continued contributions!</li>
+                    <li>It's that time of year again! Fill out your bracket and join in on the fun.</li>
                   </ul>
                 </div>
               </div>
