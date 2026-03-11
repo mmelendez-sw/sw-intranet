@@ -4,7 +4,7 @@ import '../../styles/home-page.css';
 
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
-import img7 from '../../images/mm.png'
+import img7 from '../../images/new_mm.png'
 import img9 from '../../images/meals.png'
 import img10 from '../../images/emp.jpg'
 import img10Md from '../../images/emp_md.jpg'
