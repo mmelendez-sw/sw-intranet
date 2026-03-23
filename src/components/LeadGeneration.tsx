@@ -360,6 +360,15 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Longitude</td>
           <td style="padding: 12px; border: 1px solid #dee2e6;">${data.longitude || 'N/A'}</td>
         </tr>
+        ${data.latitude && data.longitude ? `
+        <tr style="background-color: #f8f9fa;">
+          <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Map</td>
+          <td style="padding: 12px; border: 1px solid #dee2e6;">
+            <a href="https://www.google.com/maps?q=${data.latitude},${data.longitude}" target="_blank" style="color: #1a73e8;">
+              View on Google Maps
+            </a>
+          </td>
+        </tr>` : ''}
         <tr style="background-color: #f8f9fa;">
           <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Site Type</td>
           <td style="padding: 12px; border: 1px solid #dee2e6;">${data.siteType || 'N/A'}</td>
