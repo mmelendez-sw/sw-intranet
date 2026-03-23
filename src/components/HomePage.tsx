@@ -4,8 +4,8 @@ import '../../styles/home-page.css';
 
 import img3 from '../../images/site_3.jpg';
 import img4 from '../../images/coat.jpg';
-import img7 from '../../images/new_mm.png'
-import img9 from '../../images/meals.png'
+import img7 from '../../images/mm2.jpg'
+import img9 from '../../images/food2.jpg'
 import img10 from '../../images/emp.jpg'
 import img10Md from '../../images/emp_md.jpg'
 import img10Sm from '../../images/emp_sm.jpg'
@@ -30,13 +30,13 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                      {/* <li>2/16: President's Day</li> */}
-                      <li>3/9-3/20: Meals on Main Street Food Drive</li>
-                      <li>3/19: March Madness</li>
                       <li>3/25: Volunteer Day - Meals on Main St</li>
+                      <li>April - Q1 Performance Reviews</li>
                       <li>4/3: Good Friday</li>
                       <li>5/25: Memorial Day</li>
                       <li>6/19: Juneteenth</li>
+                      <li>July - Q2 Performance Reviews</li>
+                      <li>7/3: Independence Day Observed</li>
                   </ul>
                 </div>
               </div>
@@ -61,8 +61,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>March Madness</h2>
                   <ul>
-                    <li>Get ready for a fun time with colleagues at Buffalo Wild Wings. Whether you're a big sports fan or just looking to enjoy some time with our team, this event is for everyone.</li>
-                    <li>Spots are limited, so please RSVP by Monday, March 16 to secure your place—and feel free to rep your team (any sport)!</li>
+                    <li>Thank you to everyone who came out to Buffalo Wild Wings for our March Madness event! It was a great time cheering on our brackets together.</li>
+                    <li>We hope everyone enjoyed the food, fun, and team spirit. Looking forward to more events like this!</li>
                   </ul>
                 </div>
               </div>
