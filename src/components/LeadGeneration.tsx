@@ -322,11 +322,27 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         account: activeAccount,
       });
     } catch {
-      await instance.acquireTokenRedirect({
-        scopes: ['Mail.Send'],
-        account: activeAccount,
-      });
-      return;
+      // acquireTokenRedirect would navigate the mobile browser away from the
+      // form entirely. Use acquireTokenPopup instead so the user stays on the
+      // page and their form data is preserved. The popup is triggered from a
+      // form-submit user gesture, which mobile browsers allow.
+      try {
+        tokenResponse = await instance.acquireTokenPopup({
+          scopes: ['Mail.Send'],
+          account: activeAccount,
+        });
+      } catch (popupError: any) {
+        if (
+          popupError.errorCode === 'popup_window_error' ||
+          popupError.errorCode === 'empty_window_error'
+        ) {
+          throw new Error(
+            'Your session has expired and a sign-in popup was blocked by the browser. ' +
+            'Please tap the Login button in the header to re-authenticate, then try submitting again.'
+          );
+        }
+        throw popupError;
+      }
     }
 
     if (!tokenResponse?.accessToken) {

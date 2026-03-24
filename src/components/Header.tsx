@@ -19,17 +19,32 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // const [showPopup, setShowPopup] = useState(false);
 
-  const handleLogin = () => {
-    instance.loginPopup(loginRequest).catch((e: any) => {
-      console.error(e);
-    });
+  const handleLogin = async () => {
+    try {
+      await instance.loginPopup(loginRequest);
+    } catch (e: any) {
+      // On mobile browsers (iOS Safari, in-app browsers) popups are often
+      // blocked or get stuck when Authenticator is involved. Fall back to a
+      // full-page redirect so the user can still authenticate.
+      if (e.errorCode === 'popup_window_error' || e.errorCode === 'empty_window_error') {
+        instance.loginRedirect(loginRequest).catch(console.error);
+      } else {
+        console.error(e);
+      }
+    }
   };
 
-  const handleLogout = () => {
-    instance.logoutPopup().catch((e: any) => {
-      console.error(e);
-    });
-    setIsDropdownOpen(false)
+  const handleLogout = async () => {
+    setIsDropdownOpen(false);
+    try {
+      await instance.logoutPopup();
+    } catch (e: any) {
+      if (e.errorCode === 'popup_window_error' || e.errorCode === 'empty_window_error') {
+        instance.logoutRedirect().catch(console.error);
+      } else {
+        console.error(e);
+      }
+    }
   };
 
   const toggleDropdown = () => {
