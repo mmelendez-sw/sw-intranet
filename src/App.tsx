@@ -5,11 +5,11 @@ import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import AlertBanner from './components/AlertBanner';
 import HomePage from './components/HomePage';
-import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
+import TvDisplay from './components/TvDisplay';
 import { loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
@@ -385,32 +385,37 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Header userInfo={userInfo} />
-      <AlertBanner userInfo={userInfo} />
-      <div className="main-content">
-        <Routes>
-          <Route
-            path="/"
-            element={<HomePage userInfo={userInfo} />}
-          />
-          <Route
-            path="/lead-generation"
-            element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
-          />
-          {userInfo.isAuthenticated && (
+      <Routes>
+        {/* ── Standalone TV / kiosk display — no header, no nav ── */}
+        <Route path="/tv" element={<TvDisplay />} />
+
+        {/* ── All standard routes — wrapped with header + alert banner ── */}
+        <Route
+          path="/*"
+          element={
             <>
-              <Route path="/directory" element={<EmployeeDirectory />} />
-              <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-              <Route path="/technology" element={<ITPage />} />
-              <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
-              <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
-              <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />
-              <Route path="/marketing" element={<div>Marketing Page - Coming Soon</div>} />
-              <Route path="/hr" element={<div>Human Resources Page - Coming Soon</div>} />
+              <Header userInfo={userInfo} />
+              <AlertBanner userInfo={userInfo} />
+              <div className="main-content">
+                <Routes>
+                  <Route path="/" element={<HomePage userInfo={userInfo} />} />
+                  <Route
+                    path="/lead-generation"
+                    element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
+                  />
+                  {userInfo.isAuthenticated && (
+                    <>
+                      <Route path="/directory" element={<EmployeeDirectory />} />
+                      <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+                      <Route path="/technology" element={<ITPage />} />
+                    </>
+                  )}
+                </Routes>
+              </div>
             </>
-          )}
-        </Routes>
-      </div>
+          }
+        />
+      </Routes>
     </Router>
   );
 };
