@@ -48,6 +48,34 @@ export interface ReportItemContent {
   excludedEmails: string[];
 }
 
+export interface SiteAlert {
+  message: string;
+  isActive: boolean;
+  /** Visual style of the banner */
+  type: 'info' | 'warning' | 'success' | 'error';
+  /** Optional CTA link label */
+  linkLabel?: string;
+  /** Optional CTA link URL */
+  linkUrl?: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  /** ISO date string */
+  date: string;
+  isActive: boolean;
+}
+
+export const DEFAULT_ALERT: SiteAlert = {
+  message: '',
+  isActive: false,
+  type: 'info',
+};
+
+export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
+
 // ─── Default content (mirrors current hard-coded values) ─────────────────────
 
 export const DEFAULT_CARDS: CardContent[] = [

@@ -17,7 +17,14 @@ export const loginRequest = {
   // content from SharePoint and so editors can save changes back.
   // An Azure AD admin must grant tenant-wide admin consent for this scope in the
   // Azure portal → App registrations → API permissions → Grant admin consent.
-  scopes: ["User.Read", "GroupMember.Read.All", "Mail.Send", "Sites.ReadWrite.All"],
+  scopes: [
+    "User.Read",
+    "GroupMember.Read.All",
+    "Mail.Send",
+    "Sites.ReadWrite.All",    // SharePoint content read/write (requires admin consent)
+    "User.ReadBasic.All",     // Employee Directory — read all users' basic profiles (requires admin consent)
+    "Calendars.Read",         // Calendar — read the signed-in user's Outlook events (user consent only)
+  ],
 };
 
 // IntranetExecs security group ID

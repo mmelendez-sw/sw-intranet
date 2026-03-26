@@ -1,0 +1,114 @@
+/* ─── Site-wide Alert Banner ─────────────────────────────────────────────── */
+
+.site-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  border-bottom: 1px solid transparent;
+  position: relative;
+  z-index: 4000;
+}
+
+/* ── Type variants ── */
+.site-alert-banner.alert-info {
+  background: #e8f4fd;
+  border-color: #90c8ff;
+  color: #0a4d8b;
+}
+
+.site-alert-banner.alert-warning {
+  background: #fff8e1;
+  border-color: #ffc107;
+  color: #5c3d00;
+}
+
+.site-alert-banner.alert-success {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+  color: #1b5e20;
+}
+
+.site-alert-banner.alert-error {
+  background: #fdecea;
+  border-color: #ef9a9a;
+  color: #7f1616;
+}
+
+.site-alert-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.site-alert-message {
+  flex: 1;
+  font-weight: 500;
+}
+
+.site-alert-link {
+  font-weight: 700;
+  margin-left: 8px;
+  text-decoration: underline;
+  color: inherit;
+}
+
+.site-alert-link:hover {
+  opacity: 0.8;
+}
+
+.site-alert-dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.site-alert-dismiss:hover {
+  opacity: 1;
+}
+
+/* ── Editor controls ── */
+.site-alert-edit-btn {
+  background: rgba(0,0,0,0.12);
+  border: none;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.site-alert-edit-btn:hover {
+  background: rgba(0,0,0,0.22);
+}
+
+/* When no alert is active, editors see a subtle "Set Alert" button in the header */
+.site-alert-set-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.site-alert-set-btn:hover {
+  background: rgba(255,255,255,0.25);
+}

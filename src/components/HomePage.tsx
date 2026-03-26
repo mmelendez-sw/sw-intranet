@@ -9,8 +9,10 @@ import {
   uploadImage,
   DEFAULT_CARDS,
   DEFAULT_SIDEBAR,
+  DEFAULT_ANNOUNCEMENTS,
   CardContent,
   SidebarSection,
+  Announcement,
 } from '../services/contentService';
 
 import img3 from '../../images/site_3.jpg';
@@ -95,8 +97,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(DEFAULT_CARDS);
   const [sidebar, setSidebar] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
   const [contentLoaded, setContentLoaded] = useState(false);
+
+  // ── Announcement edit state ──
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [editAnnouncementDraft, setEditAnnouncementDraft] = useState<Announcement | null>(null);
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false);
+  const [announcementsExpanded, setAnnouncementsExpanded] = useState(false);
 
   // ── Card edit state ──
   const [editingCard, setEditingCard] = useState<CardContent | null>(null);
@@ -117,18 +126,24 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [heroDraft, setHeroDraft] = useState('');
   const [savingHero, setSavingHero] = useState(false);
 
+  // ── Card drag-and-drop reorder state ──
+  const [draggingCardIdx, setDraggingCardIdx] = useState<number | null>(null);
+  const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
+
   // ── Load content from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
     (async () => {
-      const [remoteCards, remoteSidebar, remoteHero] = await Promise.all([
+      const [remoteCards, remoteSidebar, remoteHero, remoteAnnouncements] = await Promise.all([
         getContent<CardContent[]>(instance, 'homepage-cards'),
         getContent<SidebarSection[]>(instance, 'homepage-sidebar'),
         getContent<string>(instance, 'homepage-hero'),
+        getContent<Announcement[]>(instance, 'announcements'),
       ]);
       if (remoteCards) setCards(remoteCards);
       if (remoteSidebar) setSidebar(remoteSidebar);
       if (remoteHero) setHeroImageUrl(remoteHero);
+      if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
       setContentLoaded(true);
     })();
   }, [userInfo.isAuthenticated, instance]);
@@ -199,7 +214,94 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (ok) { setCards(updated); openCardEdit(newCard); }
   };
 
+  // ── Card reordering ──
+  const moveCard = async (currentIdx: number, direction: 'up' | 'down') => {
+    const sorted = [...cards].sort((a, b) => a.order - b.order);
+    const targetIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+    if (targetIdx < 0 || targetIdx >= sorted.length) return;
+    const reordered = [...sorted];
+    [reordered[currentIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[currentIdx]];
+    const withNewOrders = reordered.map((c, i) => ({ ...c, order: i + 1 }));
+    setCards(withNewOrders);
+    await setContent(instance, 'homepage-cards', withNewOrders);
+  };
+
+  const onCardDrop = async (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    if (draggingCardIdx === null || draggingCardIdx === targetIdx) {
+      setDraggingCardIdx(null);
+      setDragOverCardIdx(null);
+      return;
+    }
+    const sorted = [...cards].sort((a, b) => a.order - b.order);
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(draggingCardIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    const withNewOrders = reordered.map((c, i) => ({ ...c, order: i + 1 }));
+    setCards(withNewOrders);
+    setDraggingCardIdx(null);
+    setDragOverCardIdx(null);
+    await setContent(instance, 'homepage-cards', withNewOrders);
+  };
+
+  // ── Sidebar section reordering ──
+  const moveSidebarSection = async (key: string, direction: 'up' | 'down') => {
+    const sorted = [...sidebar].sort((a, b) => a.order - b.order);
+    const idx = sorted.findIndex(s => s.key === key);
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= sorted.length) return;
+    const reordered = [...sorted];
+    [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
+    const withNewOrders = reordered.map((s, i) => ({ ...s, order: i + 1 }));
+    setSidebar(withNewOrders);
+    await setContent(instance, 'homepage-sidebar', withNewOrders);
+  };
+
   const savingLabel = uploadingImage ? 'Uploading image…' : savingCard ? 'Saving…' : undefined;
+
+  // ── Announcement editing ──
+  const openAnnouncementEdit = useCallback((ann: Announcement) => {
+    setEditingAnnouncement(ann);
+    setEditAnnouncementDraft({ ...ann });
+  }, []);
+
+  const saveAnnouncement = async () => {
+    if (!editAnnouncementDraft) return;
+    setSavingAnnouncement(true);
+    const updated = announcements.some(a => a.id === editAnnouncementDraft.id)
+      ? announcements.map(a => a.id === editAnnouncementDraft.id ? editAnnouncementDraft : a)
+      : [...announcements, editAnnouncementDraft];
+    const ok = await setContent(instance, 'announcements', updated);
+    if (ok) setAnnouncements(updated);
+    setSavingAnnouncement(false);
+    setEditingAnnouncement(null);
+  };
+
+  const deleteAnnouncement = async () => {
+    if (!editAnnouncementDraft) return;
+    setSavingAnnouncement(true);
+    const updated = announcements.filter(a => a.id !== editAnnouncementDraft.id);
+    const ok = await setContent(instance, 'announcements', updated);
+    if (ok) setAnnouncements(updated);
+    setSavingAnnouncement(false);
+    setEditingAnnouncement(null);
+  };
+
+  const addAnnouncement = () => {
+    const newAnn: Announcement = {
+      id: `ann-${Date.now()}`,
+      title: 'New Announcement',
+      content: 'Announcement details go here.',
+      date: new Date().toISOString().slice(0, 10),
+      isActive: true,
+    };
+    openAnnouncementEdit(newAnn);
+  };
+
+  const activeAnnouncements = announcements
+    .filter(a => a.isActive)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
 
   // ── Sidebar editing ──
   const openSectionEdit = useCallback((section: SidebarSection) => {
@@ -281,10 +383,75 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 )}
               </section>
 
+              {/* ── Announcements ── */}
+              {(activeAnnouncements.length > 0 || isEditor) && (
+                <div style={{ margin: '16px 0 8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
+                      📢 Announcements
+                    </h2>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {isEditor && (
+                        <button className="edit-add-btn" style={{ margin: 0, padding: '5px 14px', fontSize: 12 }} onClick={addAnnouncement}>
+                          + Add
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {visibleAnnouncements.map(ann => (
+                    <div key={ann.id} className="editable-wrapper" style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderLeft: '4px solid #f59e0b', borderRadius: 8, padding: '12px 14px', marginBottom: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, color: '#92400e', marginBottom: 3 }}>{ann.title}</div>
+                          <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>{ann.content}</div>
+                          <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
+                            {new Date(ann.date).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </div>
+                      </div>
+                      {isEditor && (
+                        <button className="edit-pencil-btn" onClick={() => openAnnouncementEdit(ann)}>✏ Edit</button>
+                      )}
+                    </div>
+                  ))}
+
+                  {activeAnnouncements.length > 2 && (
+                    <button
+                      onClick={() => setAnnouncementsExpanded(e => !e)}
+                      style={{ background: 'none', border: 'none', color: '#0d6efd', cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: 0 }}
+                    >
+                      {announcementsExpanded ? '▲ Show fewer' : `▼ Show all ${activeAnnouncements.length} announcements`}
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* ── Cards Grid ── */}
               <div className="grid-layout home-grid-layout">
-                {[...cards].sort((a, b) => a.order - b.order).map((card, index) => (
-                  <div key={card.order} className={`${cardClass(index)} editable-wrapper`}>
+                {[...cards].sort((a, b) => a.order - b.order).map((card, index, sortedArr) => (
+                  <div
+                    key={card.order}
+                    className={[
+                      cardClass(index),
+                      'editable-wrapper',
+                      isEditor ? 'card-reorderable' : '',
+                      draggingCardIdx === index ? 'card-dragging' : '',
+                      dragOverCardIdx === index && draggingCardIdx !== index ? 'card-drag-over' : '',
+                    ].filter(Boolean).join(' ')}
+                    draggable={isEditor}
+                    onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDraggingCardIdx(index); }}
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverCardIdx(index); }}
+                    onDrop={(e) => onCardDrop(e, index)}
+                    onDragEnd={() => { setDraggingCardIdx(null); setDragOverCardIdx(null); }}
+                  >
+                    {isEditor && (
+                      <div className="card-drag-handle" title="Drag to reorder">
+                        <div className="drag-dots">
+                          <span /><span /><span /><span /><span /><span />
+                        </div>
+                      </div>
+                    )}
                     {renderCardImage(card, index)}
                     <div className="card-text">
                       <h2>{card.title}</h2>
@@ -295,9 +462,23 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </ul>
                     </div>
                     {isEditor && (
-                      <button className="edit-pencil-btn" onClick={() => openCardEdit(card)} title="Edit card">
-                        ✏ Edit
-                      </button>
+                      <div className="card-reorder-row">
+                        <button
+                          className="card-reorder-btn"
+                          onClick={(e) => { e.stopPropagation(); moveCard(index, 'up'); }}
+                          disabled={index === 0}
+                          title="Move card up"
+                        >↑</button>
+                        <button
+                          className="card-reorder-btn"
+                          onClick={(e) => { e.stopPropagation(); moveCard(index, 'down'); }}
+                          disabled={index === sortedArr.length - 1}
+                          title="Move card down"
+                        >↓</button>
+                        <button className="edit-pencil-btn" style={{ position: 'static', opacity: 1, marginLeft: 4 }} onClick={() => openCardEdit(card)} title="Edit card">
+                          ✏ Edit
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -320,7 +501,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </button>
             </section>
 
-            {[...sidebar].sort((a, b) => a.order - b.order).map(section => (
+            {[...sidebar].sort((a, b) => a.order - b.order).map((section, sIdx, sortedArr) => (
               <section
                 key={section.key}
                 className={section.key === 'holiday-photos' ? 'updates home-sidebar-fill editable-wrapper' : 'updates editable-wrapper'}
@@ -336,9 +517,25 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">{section.linkLabel}</a>
                 )}
                 {isEditor && (
-                  <button className="edit-pencil-btn" onClick={() => openSectionEdit(section)} title="Edit section">
-                    ✏ Edit
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                    <div className="sidebar-reorder-btns">
+                      <button
+                        className="sidebar-reorder-btn"
+                        onClick={() => moveSidebarSection(section.key, 'up')}
+                        disabled={sIdx === 0}
+                        title="Move section up"
+                      >↑</button>
+                      <button
+                        className="sidebar-reorder-btn"
+                        onClick={() => moveSidebarSection(section.key, 'down')}
+                        disabled={sIdx === sortedArr.length - 1}
+                        title="Move section down"
+                      >↓</button>
+                    </div>
+                    <button className="edit-pencil-btn" style={{ position: 'static', opacity: 1 }} onClick={() => openSectionEdit(section)} title="Edit section">
+                      ✏ Edit
+                    </button>
+                  </div>
                 )}
               </section>
             ))}
@@ -536,6 +733,38 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               value={editSectionDraft.linkUrl || ''}
               onChange={e => setEditSectionDraft({ ...editSectionDraft, linkUrl: e.target.value })}
             />
+          </div>
+        </EditModal>
+      )}
+
+      {/* Announcement edit modal */}
+      {editingAnnouncement && editAnnouncementDraft && (
+        <EditModal
+          title={editingAnnouncement.id.startsWith('ann-') && !announcements.some(a => a.id === editingAnnouncement.id) ? 'New Announcement' : `Edit: ${editAnnouncementDraft.title}`}
+          onClose={() => setEditingAnnouncement(null)}
+          onSave={saveAnnouncement}
+          isSaving={savingAnnouncement}
+          onDelete={announcements.some(a => a.id === editAnnouncementDraft.id) ? deleteAnnouncement : undefined}
+        >
+          <div className="edit-field-group">
+            <label>Title</label>
+            <input type="text" value={editAnnouncementDraft.title}
+              onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, title: e.target.value })} />
+          </div>
+          <div className="edit-field-group">
+            <label>Message</label>
+            <textarea rows={4} value={editAnnouncementDraft.content}
+              onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, content: e.target.value })} />
+          </div>
+          <div className="edit-field-group">
+            <label>Date</label>
+            <input type="date" value={editAnnouncementDraft.date}
+              onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, date: e.target.value })} />
+          </div>
+          <div className="edit-checkbox-row">
+            <input type="checkbox" id="ann-active" checked={editAnnouncementDraft.isActive}
+              onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, isActive: e.target.checked })} />
+            <label htmlFor="ann-active">Active (visible to all users)</label>
           </div>
         </EditModal>
       )}

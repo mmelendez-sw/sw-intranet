@@ -286,6 +286,132 @@
   background: #0b5ed7;
 }
 
+/* ── Drag-and-drop card reordering ── */
+
+/* Cursor changes when a card is draggable */
+.card-reorderable {
+  cursor: default;
+}
+
+/* Drag grip handle — shown top-left in editor mode */
+.card-drag-handle {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 6px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.card-reorderable:hover .card-drag-handle {
+  opacity: 1;
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-dots {
+  display: grid;
+  grid-template-columns: repeat(2, 5px);
+  gap: 3px;
+}
+
+.drag-dots span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: #666;
+  border-radius: 50%;
+}
+
+/* Card being dragged */
+.card-dragging {
+  opacity: 0.45;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18) !important;
+}
+
+/* Card being hovered over as a drop target */
+.card-drag-over {
+  outline: 2px dashed #0d6efd;
+  outline-offset: 3px;
+}
+
+/* ── Card ↑/↓ reorder buttons (shown at bottom of each card in edit mode) ── */
+.card-reorder-row {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  padding: 4px 8px 8px;
+}
+
+.card-reorder-btn {
+  width: 28px;
+  height: 28px;
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(13, 110, 253, 0.3);
+  border-radius: 6px;
+  color: #0d6efd;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  line-height: 1;
+}
+
+.card-reorder-btn:hover:not(:disabled) {
+  background: rgba(13, 110, 253, 0.2);
+}
+
+.card-reorder-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Sidebar section ↑/↓ reorder buttons ── */
+.sidebar-reorder-btns {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.sidebar-reorder-btn {
+  width: 26px;
+  height: 26px;
+  background: rgba(13, 110, 253, 0.1);
+  border: 1px solid rgba(13, 110, 253, 0.3);
+  border-radius: 5px;
+  color: #0d6efd;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  line-height: 1;
+}
+
+.sidebar-reorder-btn:hover:not(:disabled) {
+  background: rgba(13, 110, 253, 0.2);
+}
+
+.sidebar-reorder-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
 /* ── Image upload area ── */
 .edit-upload-area {
   border: 2px dashed #ccc;

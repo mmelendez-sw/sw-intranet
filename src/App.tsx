@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
+import AlertBanner from './components/AlertBanner';
 import HomePage from './components/HomePage';
 import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
+import EmployeeDirectory from './components/EmployeeDirectory';
 import { loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
@@ -384,6 +386,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <Header userInfo={userInfo} />
+      <AlertBanner userInfo={userInfo} />
       <div className="main-content">
         <Routes>
           <Route
@@ -396,8 +399,9 @@ const App: React.FC = () => {
           />
           {userInfo.isAuthenticated && (
             <>
-              <Route path="/technology" element={<ITPage />} />
+              <Route path="/directory" element={<EmployeeDirectory />} />
               <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+              <Route path="/technology" element={<ITPage />} />
               <Route path="/acquisitions" element={<div>Acquisitions Page - Coming Soon</div>} />
               <Route path="/origination" element={<div>Origination Page - Coming Soon</div>} />
               <Route path="/legal" element={<div>Legal Page - Coming Soon</div>} />
