@@ -286,6 +286,87 @@
   background: #0b5ed7;
 }
 
+/* ── Image upload area ── */
+.edit-upload-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  background: #fafafa;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.edit-upload-area:hover,
+.edit-upload-area.dragover {
+  border-color: #0d6efd;
+  background: #f0f5ff;
+}
+
+.edit-upload-area input[type="file"] {
+  display: none;
+}
+
+.edit-upload-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.edit-upload-trigger:hover {
+  background: #0b5ed7;
+}
+
+.edit-upload-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
+}
+
+.edit-upload-filename {
+  font-size: 12px;
+  color: #0d6efd;
+  margin-top: 6px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.edit-upload-progress {
+  font-size: 13px;
+  color: #0d6efd;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+/* ── Divider between upload and URL input ── */
+.edit-image-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #aaa;
+  font-size: 12px;
+  margin: 2px 0;
+}
+
+.edit-image-divider::before,
+.edit-image-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
 /* ── Checkbox inside modal ── */
 .edit-checkbox-row {
   display: flex;

@@ -232,6 +232,55 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
   return _listId;
 }
 
+// ─── Image upload ─────────────────────────────────────────────────────────────
+
+/**
+ * Upload an image file to the IntranetImages folder in the site's default
+ * Documents drive.  Returns the permanent SharePoint webUrl on success, or
+ * null on failure.
+ *
+ * The webUrl is accessible to any user who is authenticated with the tenant
+ * (via SharePoint SSO, which is established when users sign in through MSAL).
+ * Files land at:
+ *   Documents/IntranetImages/<timestamp>-<originalFilename>
+ */
+export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) throw new Error('Could not acquire token for image upload');
+
+    const siteId = await getSiteId(token);
+
+    // Unique filename to avoid collisions
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filename = `${Date.now()}-${safeName}`;
+
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${filename}:/content`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      }
+    );
+
+    if (!res.ok) {
+      console.error(`[contentService] uploadImage failed: ${res.status} ${res.statusText}`);
+      return null;
+    }
+
+    const item = await res.json();
+    // webUrl is permanent; @microsoft.graph.downloadUrl expires in ~1 hour
+    return (item.webUrl as string) ?? null;
+  } catch (err) {
+    console.error('[contentService] uploadImage error:', err);
+    return null;
+  }
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**

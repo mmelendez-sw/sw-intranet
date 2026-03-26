@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
 import { useMsal } from '@azure/msal-react';
@@ -6,6 +6,7 @@ import { UserInfo } from '../types/user';
 import {
   getContent,
   setContent,
+  uploadImage,
   DEFAULT_CARDS,
   DEFAULT_SIDEBAR,
   CardContent,
@@ -101,6 +102,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [editingCard, setEditingCard] = useState<CardContent | null>(null);
   const [editCardDraft, setEditCardDraft] = useState<CardContent | null>(null);
   const [savingCard, setSavingCard] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Sidebar edit state ──
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
@@ -132,14 +137,42 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const openCardEdit = useCallback((card: CardContent) => {
     setEditingCard(card);
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
+    setPendingImageFile(null);
+    setImagePreviewUrl(card.imageUrl || '');
   }, []);
+
+  const closeCardEdit = useCallback(() => {
+    setEditingCard(null);
+    setPendingImageFile(null);
+    setImagePreviewUrl('');
+  }, []);
+
+  const handleImageFileChange = (file: File) => {
+    setPendingImageFile(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  };
 
   const saveCard = async () => {
     if (!editCardDraft) return;
     setSavingCard(true);
-    const updated = cards.map(c => c.order === editCardDraft.order ? editCardDraft : c);
+
+    let finalDraft = { ...editCardDraft };
+
+    if (pendingImageFile) {
+      setUploadingImage(true);
+      const uploadedUrl = await uploadImage(instance, pendingImageFile);
+      setUploadingImage(false);
+      if (uploadedUrl) {
+        finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
+      } else {
+        console.warn('[HomePage] Image upload failed — keeping existing imageUrl');
+      }
+      setPendingImageFile(null);
+    }
+
+    const updated = cards.map(c => c.order === finalDraft.order ? finalDraft : c);
     const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) setCards(updated);
+    if (ok) { setCards(updated); setEditCardDraft(finalDraft); }
     setSavingCard(false);
     setEditingCard(null);
   };
@@ -151,7 +184,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const ok = await setContent(instance, 'homepage-cards', updated);
     if (ok) setCards(updated);
     setSavingCard(false);
-    setEditingCard(null);
+    closeCardEdit();
   };
 
   const addCard = async () => {
@@ -165,6 +198,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const ok = await setContent(instance, 'homepage-cards', updated);
     if (ok) { setCards(updated); openCardEdit(newCard); }
   };
+
+  const savingLabel = uploadingImage ? 'Uploading image…' : savingCard ? 'Saving…' : undefined;
 
   // ── Sidebar editing ──
   const openSectionEdit = useCallback((section: SidebarSection) => {
@@ -342,9 +377,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {editingCard && editCardDraft && (
         <EditModal
           title={`Edit Card: ${editCardDraft.title}`}
-          onClose={() => setEditingCard(null)}
+          onClose={closeCardEdit}
           onSave={saveCard}
-          isSaving={savingCard}
+          isSaving={savingCard || uploadingImage}
           onDelete={deleteCard}
         >
           <div className="edit-field-group">
@@ -364,19 +399,84 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             />
             <span className="edit-field-hint">One bullet per line. HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
           </div>
+
+          {/* ── Image section ── */}
           <div className="edit-field-group">
-            <label>Image URL</label>
+            <label>Card Image</label>
+
+            {/* Live preview */}
+            {imagePreviewUrl && (
+              <img src={imagePreviewUrl} alt="Preview" className="edit-image-preview" />
+            )}
+
+            {/* Upload from device */}
+            <div
+              className="edit-upload-area"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('dragover'); }}
+              onDragLeave={e => e.currentTarget.classList.remove('dragover')}
+              onDrop={e => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('dragover');
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) handleImageFileChange(file);
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageFileChange(file);
+                }}
+              />
+              <button type="button" className="edit-upload-trigger">
+                📁 Choose Image
+              </button>
+              {pendingImageFile ? (
+                <div className="edit-upload-filename">Selected: {pendingImageFile.name}</div>
+              ) : (
+                <div className="edit-upload-label">or drag &amp; drop an image here</div>
+              )}
+              {uploadingImage && (
+                <div className="edit-upload-progress">⏳ Uploading to SharePoint…</div>
+              )}
+            </div>
+            <span className="edit-field-hint">
+              Uploads directly to SharePoint (Documents/IntranetImages/).
+              Visible to all signed-in users via Microsoft SSO.
+            </span>
+
+            {/* Divider */}
+            <div className="edit-image-divider">or paste a URL</div>
+
+            {/* Manual URL fallback */}
             <input
               type="url"
-              placeholder="https://… (leave blank to use the default image)"
-              value={editCardDraft.imageUrl}
-              onChange={e => setEditCardDraft({ ...editCardDraft, imageUrl: e.target.value })}
+              placeholder="https://… (leave blank to use the default bundled image)"
+              value={pendingImageFile ? '' : editCardDraft.imageUrl}
+              disabled={!!pendingImageFile}
+              onChange={e => {
+                setEditCardDraft({ ...editCardDraft, imageUrl: e.target.value });
+                setImagePreviewUrl(e.target.value);
+              }}
             />
-            {editCardDraft.imageUrl && (
-              <img src={editCardDraft.imageUrl} alt="Preview" className="edit-image-preview" />
+            {pendingImageFile && (
+              <span className="edit-field-hint" style={{ color: '#0d6efd' }}>
+                URL field disabled — a new file is queued for upload.{' '}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', padding: 0, fontSize: 12 }}
+                  onClick={() => { setPendingImageFile(null); setImagePreviewUrl(editCardDraft.imageUrl); }}
+                >
+                  Remove file
+                </button>
+              </span>
             )}
-            <span className="edit-field-hint">Paste any public image URL, or a SharePoint CDN link.</span>
           </div>
+
+          {savingLabel && <div className="edit-saving-indicator">{savingLabel}</div>}
         </EditModal>
       )}
 
