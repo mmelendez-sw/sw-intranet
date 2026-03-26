@@ -1,0 +1,301 @@
+/* ─── Edit-mode styles ───────────────────────────────────────────────────────
+   Pencil icons, modal overlay, and editable-element highlights.
+   These styles are only visible when the user is a member of IntranetEditors.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Editable wrapper – applied to cards and sidebar sections ── */
+.editable-wrapper {
+  position: relative;
+}
+
+.editable-wrapper:hover .edit-pencil-btn {
+  opacity: 1;
+}
+
+/* ── Pencil button that appears in the top-right corner of each element ── */
+.edit-pencil-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: rgba(13, 110, 253, 0.88);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.15s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.edit-pencil-btn:hover {
+  background: rgba(10, 88, 202, 0.95);
+}
+
+/* Always show pencil on touch devices (no hover) */
+@media (hover: none) {
+  .edit-pencil-btn {
+    opacity: 1;
+  }
+}
+
+/* ── "Add" button row (below cards / report table) ── */
+.edit-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  margin: 12px 0;
+  background: #198754;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.edit-add-btn:hover {
+  background: #146c43;
+}
+
+/* ── Delete button inside the edit modal ── */
+.edit-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.edit-delete-btn:hover {
+  background: #b02a37;
+}
+
+/* ─── Modal overlay ─────────────────────────────────────────────────────────── */
+.edit-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 16px;
+}
+
+.edit-modal {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.edit-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  padding: 0 4px;
+}
+
+.edit-modal-close:hover {
+  color: #222;
+}
+
+.edit-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.edit-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.edit-field-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+
+.edit-field-group input[type="text"],
+.edit-field-group input[type="url"],
+.edit-field-group textarea,
+.edit-field-group select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.edit-field-group input:focus,
+.edit-field-group textarea:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+.edit-field-hint {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.edit-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid #e0e0e0;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+}
+
+.edit-modal-footer-right {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.edit-btn-cancel {
+  padding: 8px 18px;
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.edit-btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.edit-btn-save {
+  padding: 8px 22px;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.edit-btn-save:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+
+.edit-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Saving spinner ── */
+.edit-saving-indicator {
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Image preview inside modal ── */
+.edit-image-preview {
+  width: 100%;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-top: 6px;
+}
+
+/* ── Report table row in edit mode ── */
+.edit-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.edit-row-btn {
+  padding: 4px 10px;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.edit-row-btn:hover {
+  background: #0b5ed7;
+}
+
+/* ── Checkbox inside modal ── */
+.edit-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.edit-checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

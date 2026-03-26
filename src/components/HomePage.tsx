@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import '../../styles/home-page.css';
+import '../../styles/edit-mode.css';
+import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
-// import { PowerbiService } from '../services/powerbiService';
+import {
+  getContent,
+  setContent,
+  DEFAULT_CARDS,
+  DEFAULT_SIDEBAR,
+  CardContent,
+  SidebarSection,
+} from '../services/contentService';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -19,297 +28,302 @@ import img11Md from '../../images/sip_md.jpeg';
 import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
 
+// Fallback local images indexed by card order (1-based)
+const LOCAL_IMAGES: Record<number, { src: string; srcSet?: string; sizes?: string }> = {
+  1: { src: img9 },
+  2: { src: img11, srcSet: `${img11Sm} 480w, ${img11Md} 900w, ${img11} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
+  3: { src: img7 },
+  4: { src: img4, srcSet: `${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
+  5: { src: img3, srcSet: `${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
+  6: { src: img10, srcSet: `${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
+};
+
 interface HomePageProps {
   userInfo: UserInfo;
 }
 
+// ─── Tiny Edit Modal component ─────────────────────────────────────────────
+
+interface EditModalProps {
+  title: string;
+  onClose: () => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
+  onDelete?: () => Promise<void>;
+  children: React.ReactNode;
+}
+
+const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, onDelete, children }) => {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <div className="edit-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="edit-modal-header">
+          <h3>{title}</h3>
+          <button className="edit-modal-close" onClick={onClose} aria-label="Close">&times;</button>
+        </div>
+        <div className="edit-modal-body">{children}</div>
+        <div className="edit-modal-footer">
+          {onDelete && (
+            <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>
+              🗑 Delete
+            </button>
+          )}
+          <div className="edit-modal-footer-right">
+            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
+            <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── HomePage ──────────────────────────────────────────────────────────────
+
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
-  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
-  // const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
-  // const [powerbiError, setPowerbiError] = useState<string | null>(null);
+  const { instance } = useMsal();
+  const isEditor = userInfo.isEditor;
 
-  // useEffect(() => {
-  //   const container = powerbiContainerRef.current;
-  //   if (!container) return;
-  //   const preventZoom: EventListener = (e) => {
-  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-  //       e.preventDefault();
-  //     }
-  //   };
-  //   container.addEventListener('wheel', preventZoom, { passive: false });
-  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-  //   return () => {
-  //     container.removeEventListener('wheel', preventZoom);
-  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
-  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
-  //   };
-  // }, []);
+  // ── Content state ──
+  const [cards, setCards] = useState<CardContent[]>(DEFAULT_CARDS);
+  const [sidebar, setSidebar] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
+  const [heroImageUrl, setHeroImageUrl] = useState<string>('');
+  const [contentLoaded, setContentLoaded] = useState(false);
 
-  // Load PowerBI configuration
-  // useEffect(() => {
-  //   const loadPowerbiConfig = async () => {
-  //     try {
-  //       const powerbiService = PowerbiService.getInstance();
-        
-  //       // Validate configuration first
-  //       if (!powerbiService.validateConfiguration()) {
-  //         setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
-  //         return;
-  //       }
+  // ── Card edit state ──
+  const [editingCard, setEditingCard] = useState<CardContent | null>(null);
+  const [editCardDraft, setEditCardDraft] = useState<CardContent | null>(null);
+  const [savingCard, setSavingCard] = useState(false);
 
-  //       // Generate embed token for the report
-  //       const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
-  //       setPowerbiConfig(embedToken);
-  //       setPowerbiError(null);
-  //     } catch (error) {
-  //       console.error('Failed to load PowerBI configuration:', error);
-  //       setPowerbiError('Failed to load PowerBI report. Please check configuration.');
-  //     }
-  //   };
+  // ── Sidebar edit state ──
+  const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
+  const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
+  const [savingSection, setSavingSection] = useState(false);
 
-  //   if (userInfo.isAuthenticated) {
-  //     loadPowerbiConfig();
-  //   }
-  // }, [userInfo.isAuthenticated]);
+  // ── Hero edit state ──
+  const [editingHero, setEditingHero] = useState(false);
+  const [heroDraft, setHeroDraft] = useState('');
+  const [savingHero, setSavingHero] = useState(false);
+
+  // ── Load content from SharePoint on mount ──
+  useEffect(() => {
+    if (!userInfo.isAuthenticated) return;
+    (async () => {
+      const [remoteCards, remoteSidebar, remoteHero] = await Promise.all([
+        getContent<CardContent[]>(instance, 'homepage-cards'),
+        getContent<SidebarSection[]>(instance, 'homepage-sidebar'),
+        getContent<string>(instance, 'homepage-hero'),
+      ]);
+      if (remoteCards) setCards(remoteCards);
+      if (remoteSidebar) setSidebar(remoteSidebar);
+      if (remoteHero) setHeroImageUrl(remoteHero);
+      setContentLoaded(true);
+    })();
+  }, [userInfo.isAuthenticated, instance]);
+
+  // ── Card editing ──
+  const openCardEdit = useCallback((card: CardContent) => {
+    setEditingCard(card);
+    setEditCardDraft({ ...card, bullets: [...card.bullets] });
+  }, []);
+
+  const saveCard = async () => {
+    if (!editCardDraft) return;
+    setSavingCard(true);
+    const updated = cards.map(c => c.order === editCardDraft.order ? editCardDraft : c);
+    const ok = await setContent(instance, 'homepage-cards', updated);
+    if (ok) setCards(updated);
+    setSavingCard(false);
+    setEditingCard(null);
+  };
+
+  const deleteCard = async () => {
+    if (!editCardDraft) return;
+    setSavingCard(true);
+    const updated = cards.filter(c => c.order !== editCardDraft.order);
+    const ok = await setContent(instance, 'homepage-cards', updated);
+    if (ok) setCards(updated);
+    setSavingCard(false);
+    setEditingCard(null);
+  };
+
+  const addCard = async () => {
+    const newCard: CardContent = {
+      order: cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1,
+      title: 'New Card',
+      bullets: ['Add your content here.'],
+      imageUrl: '',
+    };
+    const updated = [...cards, newCard];
+    const ok = await setContent(instance, 'homepage-cards', updated);
+    if (ok) { setCards(updated); openCardEdit(newCard); }
+  };
+
+  // ── Sidebar editing ──
+  const openSectionEdit = useCallback((section: SidebarSection) => {
+    setEditingSection(section);
+    setEditSectionDraft({ ...section });
+  }, []);
+
+  const saveSection = async () => {
+    if (!editSectionDraft) return;
+    setSavingSection(true);
+    const updated = sidebar.map(s => s.key === editSectionDraft.key ? editSectionDraft : s);
+    const ok = await setContent(instance, 'homepage-sidebar', updated);
+    if (ok) setSidebar(updated);
+    setSavingSection(false);
+    setEditingSection(null);
+  };
+
+  // ── Hero editing ──
+  const openHeroEdit = () => { setHeroDraft(heroImageUrl); setEditingHero(true); };
+
+  const saveHero = async () => {
+    setSavingHero(true);
+    const ok = await setContent(instance, 'homepage-hero', heroDraft);
+    if (ok) setHeroImageUrl(heroDraft);
+    setSavingHero(false);
+    setEditingHero(false);
+  };
+
+  // ── Bullet helpers ──
+  const bulletsToText = (bullets: string[]) => bullets.join('\n');
+  const textToBullets = (text: string) => text.split('\n').filter(l => l.trim() !== '');
+
+  // ── Render helpers ──
+  const cardClass = (index: number) => index % 2 === 0 ? 'card odd-card' : 'card even-card';
+
+  const renderCardImage = (card: CardContent, index: number) => {
+    if (card.imageUrl) {
+      return <img src={card.imageUrl} alt={card.title} className="card-image" />;
+    }
+    const local = LOCAL_IMAGES[card.order];
+    if (!local) return null;
+    return (
+      <img
+        src={local.src}
+        srcSet={local.srcSet}
+        sizes={local.sizes}
+        alt={card.title}
+        className="card-image"
+      />
+    );
+  };
 
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {userInfo.isAuthenticated ? (
         <div className="home-layout">
-          {/* Main Content White Box */}
+          {/* ── Main Content ── */}
           <div className="home-content-container">
             <div className="main-content home-main-content">
-              {/* Power BI Report Embed - TEMPORARILY COMMENTED OUT */}
-              {/* <div
-                ref={powerbiContainerRef}
-                className="powerbi-embed-container"
-                style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
-              >
-                {powerbiError ? (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#d32f2f',
-                    textAlign: 'center',
-                    padding: '20px'
-                  }}>
-                    <div>
-                      <h3>⚠️ PowerBI Configuration Error</h3>
-                      <p>{powerbiError}</p>
-                      <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                        Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
-                      </p>
-                    </div>
-                  </div>
-                ) : powerbiConfig ? (
-                  <iframe
-                    title="Company Progress"
-                    width="100%"
-                    height="425"
-                    src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
-                    frameBorder="0"
-                    allowFullScreen={false}
-                    style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                  />
-                ) : (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#666'
-                  }}>
-                    <div>Loading PowerBI report...</div>
-                  </div>
-                )}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
-              </div> */}
-              
-              <section className="homepage-hero" aria-label="Homepage banner">
-                <img src={howBanner} alt="Homepage banner" className="homepage-hero-image" />
+
+              {/* ── Hero Banner ── */}
+              <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
+                <img
+                  src={heroImageUrl || howBanner}
+                  alt="Homepage banner"
+                  className="homepage-hero-image"
+                />
                 <div className="homepage-hero-overlay">
                   <h1 className="homepage-hero-title">
-                    <span className="homepage-hero-line">
-                      <span className="homepage-hero-acronym">H</span>
-                      <span className="homepage-hero-rest">ighest standards</span>
-                    </span>
-                    <span className="homepage-hero-line">
-                      <span className="homepage-hero-acronym">O</span>
-                      <span className="homepage-hero-rest">ne team</span>
-                    </span>
-                    <span className="homepage-hero-line">
-                      <span className="homepage-hero-acronym">W</span>
-                      <span className="homepage-hero-rest">in!</span>
-                    </span>
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
                   </h1>
                 </div>
+                {isEditor && (
+                  <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
+                    ✏ Edit Banner
+                  </button>
+                )}
               </section>
 
+              {/* ── Cards Grid ── */}
               <div className="grid-layout home-grid-layout">
-                {/* Card 1 */}
-                <div className="card odd-card">
-                  <img
-                    src={img9}
-                    alt="Meals on Main Street"
-                    className="card-image"
-                    style={{ objectFit: 'contain' }}
-                  />
-                  <div className="card-text">
-                    <h2>Important Dates</h2>
-                    <ul>
-                      <li>April - Q1 Performance Reviews</li>
-                      <li>4/3: Good Friday</li>
-                      <li>5/25: Memorial Day</li>
-                      <li>6/19: Juneteenth</li>
-                      <li>July - Q2 Performance Reviews</li>
-                      <li>7/3: Independence Day Observed</li>
-                    </ul>
+                {[...cards].sort((a, b) => a.order - b.order).map((card, index) => (
+                  <div key={card.order} className={`${cardClass(index)} editable-wrapper`}>
+                    {renderCardImage(card, index)}
+                    <div className="card-text">
+                      <h2>{card.title}</h2>
+                      <ul>
+                        {card.bullets.map((bullet, bi) => (
+                          <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
+                        ))}
+                      </ul>
+                    </div>
+                    {isEditor && (
+                      <button className="edit-pencil-btn" onClick={() => openCardEdit(card)} title="Edit card">
+                        ✏ Edit
+                      </button>
+                    )}
                   </div>
-                </div>
-                {/* Card 2 */}
-                <div className="card even-card">
-                  <img
-                    src={img11}
-                    srcSet={`${img11Sm} 480w, ${img11Md} 900w, ${img11} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Bowling 2025"
-                    className="card-image"
-                  />
-                  <div className="card-text">
-                    <h2>Hidden Talents</h2>
-                    <ul>
-                      <li>
-                        A fun-filled Paint & Sip that brought the team together.
-                      </li>
-                      {/* <li>
-                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
-                      </li> */}
-                    </ul>
+                ))}
+
+                {/* Add Card button — editors only */}
+                {isEditor && contentLoaded && (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4px 0 8px' }}>
+                    <button className="edit-add-btn" onClick={addCard}>+ Add Card</button>
                   </div>
-                </div>
-                {/* Card 3 */}
-                <div className="card odd-card">
-                  <img
-                    src={img7}
-                    alt="March Madness"
-                    className="card-image"
-                    style={{ objectPosition: '15% 20%' }}
-                  />
-                  <div className="card-text">
-                    <h2>March Madness</h2>
-                    <ul>
-                      <li>Thank you to everyone who came out to Buffalo Wild Wings for our March Madness event! It was a great time cheering on our brackets together.</li>
-                      <li>We hope everyone enjoyed the food, fun, and team spirit. Looking forward to more events like this!</li>
-                    </ul>
-                  </div>
-                </div> 
-                {/* Card 4 */}
-                <div className="card even-card">
-                  <img
-                    src={img4}
-                    srcSet={`${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Food Drive"
-                    className="card-image"
-                  />
-                  <div className="card-text">
-                    <h2>Person to Person Coat Drive</h2>
-                    <ul>
-                      <li>Thank you to our volunteers who joined us for the Person to Person coat drive in Darien, CT! Your kindness keeps our community warm.</li>
-                    </ul>
-                  </div>
-                </div>
-                {/* Card 5 */}
-                <div className="card odd-card">
-                  <img
-                    src={img3}
-                    srcSet={`${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Marketing Updates"
-                    className="card-image"
-                  />
-                  <div className="card-text">
-                    <h2>Marketing Updates</h2>
-                    <ul>
-                      <li>We're excited to share that our company logo has been updated as part of our ongoing brand refresh.
-                        To support this update, we've created a shared folder with updated logo files, templates, and brand collateral for your use. This folder will continue to be updated as additional materials become available.
-                        If you have any questions or need assistance, please feel free to reach out to Justin or Arwa.
-                        Thank you for helping us maintain a consistent and professional brand presence.</li>
-                      <li>
-                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
-                      </li>
-                      <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
-                      <li>
-                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
-                      </li>
-                      <li>
-                        <a href="https://www.youtube.com/watch?v=eg2OMjNgtHg" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
-                      </li>  
-                    </ul>       
-                  </div>
-                </div> 
-                {/* Card 6 */}
-                <div className="card even-card">
-                  <img
-                    src={img10}
-                    srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="City Harvest Mesh Bag Project"
-                    className="card-image employee-appreciation-image"
-                  />
-                  <div className="card-text">
-                    <h2>Employee Appreciation Day Celebration</h2>
-                    <ul>
-                      <li>Thank you to every team member for your dedication, positive energy, and hard work - your contributions are the reason our Employee Appreciation Day was such a success.</li>
-                    </ul>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
-          {/* Sidebar White Box */}
+
+          {/* ── Sidebar ── */}
           <aside className="sidebar sidebar-narrow home-sidebar">
-              <section className="quick-links">
-                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
-              </section>
-              <section className="quick-links">
-                <h2>HR Updates</h2>
-                <p>Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.</p>
-                <button className="home-button" onClick={() => window.open('https://www.surveymonkey.com/r/NKSLSRW', '_self')}>Volunteer Organization Survey</button>
-              </section>
-              <section className="updates">
-                <h2>IT Updates</h2>
-                <p>Do not click any phishing links</p>
-              </section>
-              <section className="quick-links">
-                <h2>Quick Links</h2>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-                <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-                {userInfo.isEliteGroup ? (
-                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
-                ) : (
-                  <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
+            <section className="quick-links">
+              <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>
+                Report Technology Issue
+              </button>
+            </section>
+
+            {[...sidebar].sort((a, b) => a.order - b.order).map(section => (
+              <section
+                key={section.key}
+                className={section.key === 'holiday-photos' ? 'updates home-sidebar-fill editable-wrapper' : 'updates editable-wrapper'}
+              >
+                {section.title && <h2>{section.title}</h2>}
+                <p dangerouslySetInnerHTML={{ __html: section.content }} />
+                {section.buttonLabel && section.buttonUrl && (
+                  <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
+                    {section.buttonLabel}
+                  </button>
                 )}
-                <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-                <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-                <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+                {section.linkLabel && section.linkUrl && (
+                  <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">{section.linkLabel}</a>
+                )}
+                {isEditor && (
+                  <button className="edit-pencil-btn" onClick={() => openSectionEdit(section)} title="Edit section">
+                    ✏ Edit
+                  </button>
+                )}
               </section>
-              <section className="updates">
-                <h2>Exciting News</h2>
-                <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
-              </section>
-              <section className="updates home-sidebar-fill">
-                <h2>2025 Holiday Party Photos</h2>
-                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-                <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
-              </section>
-            </aside>
+            ))}
+
+            <section className="quick-links">
+              <h2>Quick Links</h2>
+              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
+              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
+              <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
+              {userInfo.isEliteGroup ? (
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
+              ) : (
+                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
+              )}
+              <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
+              <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
+              <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
+              <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
+            </section>
+          </aside>
         </div>
       ) : (
         <div className="unauthenticated-message">
@@ -317,9 +331,136 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           <p>Please log in to access more features and content!</p>
         </div>
       )}
+
       <footer className="footer home-footer">
         <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
       </footer>
+
+      {/* ──────────── Edit Modals ──────────── */}
+
+      {/* Card edit modal */}
+      {editingCard && editCardDraft && (
+        <EditModal
+          title={`Edit Card: ${editCardDraft.title}`}
+          onClose={() => setEditingCard(null)}
+          onSave={saveCard}
+          isSaving={savingCard}
+          onDelete={deleteCard}
+        >
+          <div className="edit-field-group">
+            <label>Card Title</label>
+            <input
+              type="text"
+              value={editCardDraft.title}
+              onChange={e => setEditCardDraft({ ...editCardDraft, title: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Bullet Points</label>
+            <textarea
+              rows={8}
+              value={bulletsToText(editCardDraft.bullets)}
+              onChange={e => setEditCardDraft({ ...editCardDraft, bullets: textToBullets(e.target.value) })}
+            />
+            <span className="edit-field-hint">One bullet per line. HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
+          </div>
+          <div className="edit-field-group">
+            <label>Image URL</label>
+            <input
+              type="url"
+              placeholder="https://… (leave blank to use the default image)"
+              value={editCardDraft.imageUrl}
+              onChange={e => setEditCardDraft({ ...editCardDraft, imageUrl: e.target.value })}
+            />
+            {editCardDraft.imageUrl && (
+              <img src={editCardDraft.imageUrl} alt="Preview" className="edit-image-preview" />
+            )}
+            <span className="edit-field-hint">Paste any public image URL, or a SharePoint CDN link.</span>
+          </div>
+        </EditModal>
+      )}
+
+      {/* Sidebar section edit modal */}
+      {editingSection && editSectionDraft && (
+        <EditModal
+          title={`Edit Section: ${editSectionDraft.title || editSectionDraft.key}`}
+          onClose={() => setEditingSection(null)}
+          onSave={saveSection}
+          isSaving={savingSection}
+        >
+          <div className="edit-field-group">
+            <label>Section Title</label>
+            <input
+              type="text"
+              value={editSectionDraft.title}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, title: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Content</label>
+            <textarea
+              rows={5}
+              value={editSectionDraft.content}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, content: e.target.value })}
+            />
+            <span className="edit-field-hint">HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
+          </div>
+          <div className="edit-field-group">
+            <label>Button Label (optional)</label>
+            <input
+              type="text"
+              value={editSectionDraft.buttonLabel || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonLabel: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Button URL (optional)</label>
+            <input
+              type="url"
+              value={editSectionDraft.buttonUrl || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonUrl: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Link Label (optional)</label>
+            <input
+              type="text"
+              value={editSectionDraft.linkLabel || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, linkLabel: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Link URL (optional)</label>
+            <input
+              type="url"
+              value={editSectionDraft.linkUrl || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, linkUrl: e.target.value })}
+            />
+          </div>
+        </EditModal>
+      )}
+
+      {/* Hero edit modal */}
+      {editingHero && (
+        <EditModal
+          title="Edit Banner Image"
+          onClose={() => setEditingHero(false)}
+          onSave={saveHero}
+          isSaving={savingHero}
+        >
+          <div className="edit-field-group">
+            <label>Banner Image URL</label>
+            <input
+              type="url"
+              placeholder="https://… (leave blank to use the default H.O.W. banner)"
+              value={heroDraft}
+              onChange={e => setHeroDraft(e.target.value)}
+            />
+            {heroDraft && <img src={heroDraft} alt="Banner preview" className="edit-image-preview" />}
+            <span className="edit-field-hint">Paste a public image URL or SharePoint CDN link. Recommended size: 1400×400 px.</span>
+          </div>
+        </EditModal>
+      )}
     </div>
   );
 };

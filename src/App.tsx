@@ -8,7 +8,7 @@ import HRPage from './components/HRPage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
-import { loginRequest, isEliteGroupMember } from './authConfig';
+import { loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 
@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo>({
     isAuthenticated: false,
     isEliteGroup: false,
+    isEditor: false,
   });
 
   const checkAuthentication = async () => {
@@ -44,85 +45,81 @@ const App: React.FC = () => {
         cacheAge: cachedTimestamp ? Date.now() - parseInt(cachedTimestamp) : 'N/A'
       });
       
+      // Check cached editor status
+      const cachedEditorStatus = localStorage.getItem(`editor_status_${email}`);
+      const cachedEditorTimestamp = localStorage.getItem(`editor_status_timestamp_${email}`);
+      const editorCacheValid = cachedEditorTimestamp && (Date.now() - parseInt(cachedEditorTimestamp)) < (24 * 60 * 60 * 1000);
+      let isEditor = cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false;
+
       if (cachedEliteStatus && cacheValid) {
         isElite = cachedEliteStatus === 'true';
         console.log('🔍 Using cached elite status:', isElite);
-        
-        // Set user info immediately with cached elite status
+
         setUserInfo({
           isAuthenticated: true,
           isEliteGroup: isElite,
+          isEditor,
           email: email,
           name: account.name,
         });
       } else {
         console.log('🔍 Cache invalid or missing, checking group membership...');
-        
-        // Set user as authenticated immediately but with elite status pending
+
         setUserInfo({
           isAuthenticated: true,
-          isEliteGroup: false, // Will be updated once we get the real status
+          isEliteGroup: false,
+          isEditor,
           email: email,
           name: account.name,
         });
-        
-        // Wait a bit to ensure MSAL is fully initialized
+
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check group membership asynchronously with improved retry logic
+
         let retryCount = 0;
-        const maxRetries = 5; // Increased retries
-        const retryDelays = [1000, 2000, 3000, 5000, 8000]; // Progressive delays
-        
+        const maxRetries = 5;
+        const retryDelays = [1000, 2000, 3000, 5000, 8000];
+
         while (retryCount < maxRetries) {
           try {
             console.log('🔍 Checking elite group membership (attempt', retryCount + 1, ')...');
-            isElite = await isEliteGroupMember(instance);
-            console.log('🔍 Elite group membership result:', isElite);
-            
-            // Cache the result with timestamp
+            // Run elite and editor checks in parallel
+            const [eliteResult, editorResult] = await Promise.all([
+              isEliteGroupMember(instance),
+              isEditorGroupMember(instance),
+            ]);
+            isElite = eliteResult;
+            isEditor = editorResult;
+            console.log('🔍 Elite:', isElite, '| Editor:', isEditor);
+
             localStorage.setItem(`elite_status_${email}`, isElite.toString());
             localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-            console.log('🔍 Cached elite status:', isElite);
-            
-            // Update user info with the correct elite status
-            setUserInfo(prev => ({
-              ...prev,
-              isEliteGroup: isElite
-            }));
-            
-            break; // Success, exit retry loop
+            localStorage.setItem(`editor_status_${email}`, isEditor.toString());
+            localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
+
+            setUserInfo(prev => ({ ...prev, isEliteGroup: isElite, isEditor }));
+            break;
           } catch (error) {
-            console.error('❌ Error checking elite group membership (attempt', retryCount + 1, '):', error);
+            console.error('❌ Error checking group membership (attempt', retryCount + 1, '):', error);
             retryCount++;
             if (retryCount < maxRetries) {
               const delay = retryDelays[retryCount - 1] || 8000;
-              console.log(`🔍 Retrying in ${delay}ms...`);
               await new Promise(resolve => setTimeout(resolve, delay));
             } else {
-              console.log('🔍 Max retries reached, defaulting to non-elite');
-              isElite = false;
-              // Cache the fallback result
               localStorage.setItem(`elite_status_${email}`, 'false');
               localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-              
-              // Update user info with fallback elite status
-              setUserInfo(prev => ({
-                ...prev,
-                isEliteGroup: false
-              }));
+              localStorage.setItem(`editor_status_${email}`, 'false');
+              localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
+              setUserInfo(prev => ({ ...prev, isEliteGroup: false, isEditor: false }));
             }
           }
         }
-        
-        console.log('🔍 Final elite status:', isElite);
-        console.log('🔍 Setting user info:', { isAuthenticated: true, isEliteGroup: isElite, email, name: account.name });
       }
     } else {
       console.log('🔍 No accounts found, setting unauthenticated state');
       setUserInfo({
         isAuthenticated: false,
         isEliteGroup: false,
+        isEditor: false,
       });
     }
   };
@@ -170,15 +167,20 @@ const App: React.FC = () => {
         const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
         const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
         
+        const cachedEditorStatus2 = localStorage.getItem(`editor_status_${email}`);
+        const cachedEditorTimestamp2 = localStorage.getItem(`editor_status_timestamp_${email}`);
+        const editorCacheValid2 = cachedEditorTimestamp2 && (Date.now() - parseInt(cachedEditorTimestamp2)) < (24 * 60 * 60 * 1000);
+        const cachedIsEditor = cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false;
+
         if (cachedEliteStatus && cacheValid) {
           const isElite = cachedEliteStatus === 'true';
           console.log('🔍 Initial elite check from cache:', isElite);
-          
-          // Update user info immediately if we have valid cached elite status
+
           setUserInfo(prev => ({
             ...prev,
             isAuthenticated: true,
             isEliteGroup: isElite,
+            isEditor: cachedIsEditor,
             email: email,
             name: account.name,
           }));
