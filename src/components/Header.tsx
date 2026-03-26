@@ -42,6 +42,28 @@ const isMobileSafari = (): boolean =>
   /safari/i.test(navigator.userAgent) &&
   !/chrome|crios|fxios|edgios/i.test(navigator.userAgent);
 
+// Brave does not include "Brave" in its user-agent string (it looks identical to
+// Chrome), but it does expose navigator.brave. We check this to:
+//   1. Guarantee Brave on Android always takes the redirect path even if a future
+//      Brave build adds an Edge-like token to its UA.
+//   2. Catch Brave on tablet or non-standard Android builds that don't include
+//      "android" in the UA but still run without Edge's native identity broker.
+const isBrave = (): boolean => !!(navigator as any).brave;
+
+// True for any Android browser that lacks Microsoft Edge's native auth broker
+// integration, including Chrome, Brave, Samsung Internet, Firefox for Android, etc.
+// On these browsers, Chrome Custom Tabs intercept the post-Authenticator redirect
+// and open it in a new session instead of returning to the original tab, so we
+// skip the popup entirely and use a full-page redirect instead.
+const isAndroidNonEdge = (): boolean => {
+  const ua = navigator.userAgent;
+  const onAndroid = /android/i.test(ua);
+  // Treat a browser as Edge only if the UA actually says so AND it is not Brave
+  // (Brave is Chromium-based and could theoretically carry an Edge-style token).
+  const isEdge = /edg(e|a)\//i.test(ua) && !isBrave();
+  return (onAndroid || isBrave()) && !isEdge;
+};
+
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -64,6 +86,20 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
 
   const handleLogin = async () => {
     setAuthBlockError(false);
+
+    // On Android (non-Edge), Chrome popups do not reliably return from the
+    // Microsoft Authenticator app — the MFA handoff opens a Chrome Custom Tab
+    // that is a separate session from the popup, so the user never gets redirected
+    // back. Skip the popup entirely and go straight to a full-page redirect,
+    // which keeps everything in the same browser tab.
+    if (isAndroidNonEdge()) {
+      instance.loginRedirect(loginRequest).catch((e: any) => {
+        if (isConditionalAccessError(e)) setAuthBlockError(true);
+        else console.error(e);
+      });
+      return;
+    }
+
     try {
       await instance.loginPopup(loginRequest);
     } catch (e: any) {
@@ -253,8 +289,29 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         </div>
       )}
 
-      {/* Proactive hint shown to mobile Safari users before they attempt login */}
+      {/* Proactive hint shown to iOS Safari users before they attempt login */}
       {!authBlockError && !isAuthenticated && isMobileSafari() && (
+        <div
+          style={{
+            ...bannerStyle,
+            backgroundColor: '#e8f4fd',
+            borderTop: '1px solid #90c8ff',
+            color: '#0a4d8b',
+          }}
+        >
+          <i className="fa-solid fa-circle-info" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <span>
+            Having trouble signing in? Your organization may require{' '}
+            <a href={getEdgeDeepLink()} style={{ color: '#0d6efd', fontWeight: 600 }}>
+              Microsoft Edge
+            </a>
+            {' '}on mobile devices.
+          </span>
+        </div>
+      )}
+
+      {/* Proactive hint shown to Android non-Edge users before they attempt login */}
+      {!authBlockError && !isAuthenticated && isAndroidNonEdge() && (
         <div
           style={{
             ...bannerStyle,
