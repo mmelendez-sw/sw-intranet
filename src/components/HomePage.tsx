@@ -9,7 +9,7 @@ import img9 from '../../images/vol.jpg'
 import img10 from '../../images/emp.jpg'
 import img10Md from '../../images/emp_md.jpg'
 import img10Sm from '../../images/emp_sm.jpg'
-import img11 from '../../images/app.png'
+import img11 from '../../images/750_app.png'
 
 interface HomePageProps {
   isAuthenticated: boolean;
