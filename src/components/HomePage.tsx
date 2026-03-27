@@ -49,7 +49,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                       Our goal is to collect 2 leads per month per employee. 
                     </li>
                     <li>
-                      This initiative is a part of company-wide goals for the year. 
+                      This initiative is a part of our company-wide goals for the year. 
                     </li>
                     <li>
                       <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 lead initiative.
