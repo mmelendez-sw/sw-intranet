@@ -7,8 +7,11 @@ import {
   getContent,
   setContent,
   DEFAULT_REPORTS,
+  DEFAULT_SITE_CONFIG,
   ReportItemContent,
+  SiteConfig,
 } from '../services/contentService';
+import IntranetSidebar from './IntranetSidebar';
 
 interface TechnologyReportsProps {
   userInfo: UserInfo;
@@ -65,13 +68,18 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
 
   // ── Load from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
     (async () => {
-      const remote = await getContent<ReportItemContent[]>(instance, 'reports');
+      const [remote, remoteConfig] = await Promise.all([
+        getContent<ReportItemContent[]>(instance, 'reports'),
+        getContent<SiteConfig>(instance, 'site-config'),
+      ]);
       if (remote) setAllReports(remote);
+      if (remoteConfig) setSiteConfig(remoteConfig);
     })();
   }, [userInfo.isAuthenticated, instance]);
 
@@ -87,8 +95,8 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
     .sort((a, b) => a.order - b.order);
 
   const pageTitle = userInfo.isEliteGroup
-    ? 'Symphony Towers Infrastructure Elite Status Reports'
-    : 'Symphony Towers Infrastructure Status Reports';
+    ? `${siteConfig.companyName} Elite Status Reports`
+    : `${siteConfig.companyName} Status Reports`;
 
   // ── Editing ──
   const openEdit = useCallback((report: ReportItemContent) => {
@@ -183,49 +191,11 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <aside className="sidebar reports-sidebar">
-          <section className="quick-links">
-            <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>
-              Report Technology Issue
-            </button>
-          </section>
-          <section className="updates">
-            <h2>IT Updates</h2>
-            <p>Do not click any phishing links</p>
-          </section>
-          <section className="quick-links">
-            <h2>Quick Links</h2>
-            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-            <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-            <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-            {userInfo.isEliteGroup ? (
-              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
-            ) : (
-              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
-            )}
-            <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-            <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-            <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-            <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-          </section>
-          <section className="updates">
-            <h2>Exciting News</h2>
-            <p>
-              Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the{' '}
-              <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.
-            </p>
-          </section>
-          <section className="updates">
-            <h2>Holiday Party Photos</h2>
-            <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-            <a href="https://symphonywireless.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202024" target="_blank" rel="noopener noreferrer">Holiday Party 2024</a>
-          </section>
-        </aside>
+        <IntranetSidebar userInfo={userInfo} className="reports-sidebar" />
       </div>
 
       <footer className="footer">
-        <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
       </footer>
 
       {/* ── Edit Modal ── */}

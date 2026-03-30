@@ -8,12 +8,11 @@ import {
   setContent,
   uploadImage,
   DEFAULT_CARDS,
-  DEFAULT_SIDEBAR,
   DEFAULT_ANNOUNCEMENTS,
   CardContent,
-  SidebarSection,
   Announcement,
 } from '../services/contentService';
+import IntranetSidebar from './IntranetSidebar';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -96,7 +95,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(DEFAULT_CARDS);
-  const [sidebar, setSidebar] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
   const [announcements, setAnnouncements] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
   const [contentLoaded, setContentLoaded] = useState(false);
@@ -116,11 +114,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ── Sidebar edit state ──
-  const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
-  const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
-  const [savingSection, setSavingSection] = useState(false);
-
   // ── Hero edit state ──
   const [editingHero, setEditingHero] = useState(false);
   const [heroDraft, setHeroDraft] = useState('');
@@ -134,14 +127,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
     (async () => {
-      const [remoteCards, remoteSidebar, remoteHero, remoteAnnouncements] = await Promise.all([
+      const [remoteCards, remoteHero, remoteAnnouncements] = await Promise.all([
         getContent<CardContent[]>(instance, 'homepage-cards'),
-        getContent<SidebarSection[]>(instance, 'homepage-sidebar'),
         getContent<string>(instance, 'homepage-hero'),
         getContent<Announcement[]>(instance, 'announcements'),
       ]);
       if (remoteCards) setCards(remoteCards);
-      if (remoteSidebar) setSidebar(remoteSidebar);
       if (remoteHero) setHeroImageUrl(remoteHero);
       if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
       setContentLoaded(true);
@@ -244,19 +235,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     await setContent(instance, 'homepage-cards', withNewOrders);
   };
 
-  // ── Sidebar section reordering ──
-  const moveSidebarSection = async (key: string, direction: 'up' | 'down') => {
-    const sorted = [...sidebar].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex(s => s.key === key);
-    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= sorted.length) return;
-    const reordered = [...sorted];
-    [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
-    const withNewOrders = reordered.map((s, i) => ({ ...s, order: i + 1 }));
-    setSidebar(withNewOrders);
-    await setContent(instance, 'homepage-sidebar', withNewOrders);
-  };
-
   const savingLabel = uploadingImage ? 'Uploading image…' : savingCard ? 'Saving…' : undefined;
 
   // ── Announcement editing ──
@@ -302,22 +280,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     .filter(a => a.isActive)
     .sort((a, b) => b.date.localeCompare(a.date));
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
-
-  // ── Sidebar editing ──
-  const openSectionEdit = useCallback((section: SidebarSection) => {
-    setEditingSection(section);
-    setEditSectionDraft({ ...section });
-  }, []);
-
-  const saveSection = async () => {
-    if (!editSectionDraft) return;
-    setSavingSection(true);
-    const updated = sidebar.map(s => s.key === editSectionDraft.key ? editSectionDraft : s);
-    const ok = await setContent(instance, 'homepage-sidebar', updated);
-    if (ok) setSidebar(updated);
-    setSavingSection(false);
-    setEditingSection(null);
-  };
 
   // ── Hero editing ──
   const openHeroEdit = () => { setHeroDraft(heroImageUrl); setEditingHero(true); };
@@ -494,78 +456,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="sidebar sidebar-narrow home-sidebar">
-            <section className="quick-links">
-              <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>
-                Report Technology Issue
-              </button>
-            </section>
-
-            {[...sidebar].sort((a, b) => a.order - b.order).map((section, sIdx, sortedArr) => (
-              <section
-                key={section.key}
-                className={section.key === 'holiday-photos' ? 'updates home-sidebar-fill editable-wrapper' : 'updates editable-wrapper'}
-              >
-                {section.title && <h2>{section.title}</h2>}
-                <p dangerouslySetInnerHTML={{ __html: section.content }} />
-                {section.buttonLabel && section.buttonUrl && (
-                  <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
-                    {section.buttonLabel}
-                  </button>
-                )}
-                {section.linkLabel && section.linkUrl && (
-                  <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">{section.linkLabel}</a>
-                )}
-                {isEditor && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                    <div className="sidebar-reorder-btns">
-                      <button
-                        className="sidebar-reorder-btn"
-                        onClick={() => moveSidebarSection(section.key, 'up')}
-                        disabled={sIdx === 0}
-                        title="Move section up"
-                      >↑</button>
-                      <button
-                        className="sidebar-reorder-btn"
-                        onClick={() => moveSidebarSection(section.key, 'down')}
-                        disabled={sIdx === sortedArr.length - 1}
-                        title="Move section down"
-                      >↓</button>
-                    </div>
-                    <button className="edit-pencil-btn" style={{ position: 'static', opacity: 1 }} onClick={() => openSectionEdit(section)} title="Edit section">
-                      ✏ Edit
-                    </button>
-                  </div>
-                )}
-              </section>
-            ))}
-
-            <section className="quick-links">
-              <h2>Quick Links</h2>
-              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-              <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-              <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-              {userInfo.isEliteGroup ? (
-                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
-              ) : (
-                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
-              )}
-              <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-              <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-              <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-              <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-            </section>
-          </aside>
+          <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
         </div>
       ) : (
         <div className="unauthenticated-message">
-          <h2>Welcome to the Symphony Towers Infrastructure Intranet!</h2>
+          <h2>Welcome to the Company Intranet!</h2>
           <p>Please log in to access more features and content!</p>
         </div>
       )}
 
       <footer className="footer home-footer">
-        <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
       </footer>
 
       {/* ──────────── Edit Modals ──────────── */}
@@ -674,66 +575,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           </div>
 
           {savingLabel && <div className="edit-saving-indicator">{savingLabel}</div>}
-        </EditModal>
-      )}
-
-      {/* Sidebar section edit modal */}
-      {editingSection && editSectionDraft && (
-        <EditModal
-          title={`Edit Section: ${editSectionDraft.title || editSectionDraft.key}`}
-          onClose={() => setEditingSection(null)}
-          onSave={saveSection}
-          isSaving={savingSection}
-        >
-          <div className="edit-field-group">
-            <label>Section Title</label>
-            <input
-              type="text"
-              value={editSectionDraft.title}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, title: e.target.value })}
-            />
-          </div>
-          <div className="edit-field-group">
-            <label>Content</label>
-            <textarea
-              rows={5}
-              value={editSectionDraft.content}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, content: e.target.value })}
-            />
-            <span className="edit-field-hint">HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
-          </div>
-          <div className="edit-field-group">
-            <label>Button Label (optional)</label>
-            <input
-              type="text"
-              value={editSectionDraft.buttonLabel || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonLabel: e.target.value })}
-            />
-          </div>
-          <div className="edit-field-group">
-            <label>Button URL (optional)</label>
-            <input
-              type="url"
-              value={editSectionDraft.buttonUrl || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonUrl: e.target.value })}
-            />
-          </div>
-          <div className="edit-field-group">
-            <label>Link Label (optional)</label>
-            <input
-              type="text"
-              value={editSectionDraft.linkLabel || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, linkLabel: e.target.value })}
-            />
-          </div>
-          <div className="edit-field-group">
-            <label>Link URL (optional)</label>
-            <input
-              type="url"
-              value={editSectionDraft.linkUrl || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, linkUrl: e.target.value })}
-            />
-          </div>
         </EditModal>
       )}
 

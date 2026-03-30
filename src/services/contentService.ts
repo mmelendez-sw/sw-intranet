@@ -68,6 +68,25 @@ export interface Announcement {
   isActive: boolean;
 }
 
+export interface TickerItem {
+  id: string;
+  text: string;
+  order: number;
+}
+
+export interface QuickLink {
+  id: string;
+  label: string;
+  url: string;
+  order: number;
+}
+
+export interface SiteConfig {
+  supportEmail: string;
+  leadGenEmail: string;
+  companyName: string;
+}
+
 export const DEFAULT_ALERT: SiteAlert = {
   message: '',
   isActive: false,
@@ -75,6 +94,24 @@ export const DEFAULT_ALERT: SiteAlert = {
 };
 
 export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
+
+export const DEFAULT_TICKER_ITEMS: TickerItem[] = [];
+
+export const DEFAULT_QUICK_LINKS: QuickLink[] = [
+  { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },
+  { id: '2', label: 'SiteTracker', url: 'https://sitetracker-symphonyinfra.my.salesforce.com/', order: 2 },
+  { id: '3', label: 'Synaptek AI Search', url: 'https://symphonysitesearch.app/', order: 3 },
+  { id: '4', label: 'Trinet', url: 'https://identity.trinet.com/', order: 4 },
+  { id: '5', label: 'Concur', url: 'https://www.concursolutions.com/', order: 5 },
+  { id: '6', label: 'Netsuite', url: 'https://system.netsuite.com/app/center/card.nl?c=8089687', order: 6 },
+  { id: '7', label: 'Outlook', url: 'https://outlook.office.com/', order: 7 },
+];
+
+export const DEFAULT_SITE_CONFIG: SiteConfig = {
+  supportEmail: '',
+  leadGenEmail: '',
+  companyName: 'Company Intranet',
+};
 
 // ─── Default content (mirrors current hard-coded values) ─────────────────────
 
