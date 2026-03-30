@@ -4,6 +4,7 @@ import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import AlertBanner from './components/AlertBanner';
+import Ticker from './components/Ticker';
 import HomePage from './components/HomePage';
 import ITPage from './components/ITPage';
 import Reports from './components/Reports';
@@ -396,6 +397,7 @@ const App: React.FC = () => {
             <>
               <Header userInfo={userInfo} />
               <AlertBanner userInfo={userInfo} />
+              <Ticker userInfo={userInfo} />
               <div className="main-content">
                 <Routes>
                   <Route path="/" element={<HomePage userInfo={userInfo} />} />
@@ -407,7 +409,7 @@ const App: React.FC = () => {
                     <>
                       <Route path="/directory" element={<EmployeeDirectory />} />
                       <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-                      <Route path="/technology" element={<ITPage />} />
+                      <Route path="/technology" element={<ITPage userInfo={userInfo} />} />
                     </>
                   )}
                 </Routes>
