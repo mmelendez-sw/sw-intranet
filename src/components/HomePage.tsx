@@ -9,8 +9,8 @@ import img9 from '../../images/vol.jpg'
 import img10 from '../../images/emp.jpg'
 import img10Md from '../../images/emp_md.jpg'
 import img10Sm from '../../images/emp_sm.jpg'
-// import img11 from '../../images/750_app.png'
-import img11 from '../../images/sip.jpeg'
+import img11 from '../../images/wider_app.png'
+// import img11 from '../../images/sip.jpeg'
 
 interface HomePageProps {
   isAuthenticated: boolean;
@@ -41,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 </div>
               </div>
               {/* Card 2 */}
-              <div className="card even-card">
+              {/* <div className="card even-card">
                 <img src={img11} alt="Bowling 2025" className="card-image" />
                 <div className="card-text">
                   <h2>Hidden Talents</h2>
@@ -51,8 +51,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     </li>
                   </ul>
                 </div>
-              </div>
-              {/* <div className="card even-card">
+              </div> */}
+              <div className="card even-card">
                 <img src={img11} alt="Bowling 2025" className="card-image" />
                 <div className="card-text">
                   <h2>New Employee Leads App</h2>
@@ -64,14 +64,14 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                       This initiative is a part of our company-wide goals for the year. 
                     </li>
                     <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.
+                      Please refer to the intranet to learn more about our 2 leads initiative.
                     </li>
                     <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app. 
+                      Pleae refer to the intranet to learn how to download the app. 
                     </li>
                   </ul>
                 </div>
-              </div> */}
+              </div>
               {/* Card 3 */}
               <div className="card odd-card">
                 <img src={img7} alt="March Madness" className="card-image" style={{ objectPosition: '30% center' }} />
