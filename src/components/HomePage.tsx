@@ -67,7 +67,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                       Please refer to the intranet to learn more about our 2 leads initiative.
                     </li>
                     <li>
-                      Pleae refer to the intranet to learn how to download the app. 
+                      Please refer to the intranet to learn how to download the app. 
                     </li>
                   </ul>
                 </div>
