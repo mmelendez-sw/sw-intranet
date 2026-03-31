@@ -1,4 +1,8 @@
 /* General Layout */
+.home-page {
+  margin-top: -50px; /* Cancel out the main-content padding-top added for the fixed header */
+}
+
 .content-container {
   display: grid;
   gap: 20px;
