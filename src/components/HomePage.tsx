@@ -14,7 +14,7 @@ import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
-import img11 from '../../images/sip.jpeg';
+import img11 from '../../images/wide_app.png';
 import img11Md from '../../images/sip_md.jpeg';
 import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -172,25 +172,25 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 2 */}
                 <div className="card even-card">
-                  <img
-                    src={img11}
-                    srcSet={`${img11Sm} 480w, ${img11Md} 900w, ${img11} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Bowling 2025"
-                    className="card-image"
-                  />
-                  <div className="card-text">
-                    <h2>Hidden Talents</h2>
-                    <ul>
-                      <li>
-                        A fun-filled Paint & Sip that brought the team together.
-                      </li>
-                      {/* <li>
-                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
-                      </li> */}
-                    </ul>
-                  </div>
+                <img src={img11} alt="Bowling 2025" className="card-image" />
+                <div className="card-text">
+                  <h2>New Employee Leads App</h2>
+                  <ul>
+                    <li>
+                      Our goal is to collect 2 leads per month per employee. 
+                    </li>
+                    <li>
+                      This initiative is a part of our company-wide goals for the year. 
+                    </li>
+                    <li>
+                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.
+                    </li>
+                    <li>
+                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app. 
+                    </li>
+                  </ul>
                 </div>
+              </div>
                 {/* Card 3 */}
                 <div className="card odd-card">
                   <img
