@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
@@ -50,7 +50,18 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Header />
+      <AppContent isAuthenticated={isAuthenticated} />
+    </Router>
+  );
+};
+
+const AppContent: React.FC<{ isAuthenticated: boolean }> = ({ isAuthenticated }) => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/' || location.pathname === '';
+
+  return (
+    <>
+      {!isHomePage && <Header />}
       <div className="main-content">
         <Routes>
           <Route
@@ -71,7 +82,7 @@ const App: React.FC = () => {
           />
         </Routes>
       </div>
-    </Router>
+    </>
   );
 };
 
