@@ -14,7 +14,7 @@ import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
-import img11 from '../../images/wider_app.png';
+import img11 from '../../images/leads_app.png';
 import img11Md from '../../images/sip_md.jpeg';
 import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
