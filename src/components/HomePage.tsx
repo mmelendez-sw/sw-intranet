@@ -1,7 +1,6 @@
 import React from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
-// import { PowerbiService } from '../services/powerbiService';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -15,8 +14,6 @@ import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
 import img11 from '../../images/wider_app.png';
-import img11Md from '../../images/sip_md.jpeg';
-import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
 
 interface HomePageProps {
@@ -24,55 +21,6 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
-  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup);
-  // const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
-  // const [powerbiError, setPowerbiError] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   const container = powerbiContainerRef.current;
-  //   if (!container) return;
-  //   const preventZoom: EventListener = (e) => {
-  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-  //       e.preventDefault();
-  //     }
-  //   };
-  //   container.addEventListener('wheel', preventZoom, { passive: false });
-  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-  //   return () => {
-  //     container.removeEventListener('wheel', preventZoom);
-  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
-  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
-  //   };
-  // }, []);
-
-  // Load PowerBI configuration
-  // useEffect(() => {
-  //   const loadPowerbiConfig = async () => {
-  //     try {
-  //       const powerbiService = PowerbiService.getInstance();
-        
-  //       // Validate configuration first
-  //       if (!powerbiService.validateConfiguration()) {
-  //         setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
-  //         return;
-  //       }
-
-  //       // Generate embed token for the report
-  //       const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
-  //       setPowerbiConfig(embedToken);
-  //       setPowerbiError(null);
-  //     } catch (error) {
-  //       console.error('Failed to load PowerBI configuration:', error);
-  //       setPowerbiError('Failed to load PowerBI report. Please check configuration.');
-  //     }
-  //   };
-
-  //   if (userInfo.isAuthenticated) {
-  //     loadPowerbiConfig();
-  //   }
-  // }, [userInfo.isAuthenticated]);
-
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {userInfo.isAuthenticated ? (
@@ -80,55 +28,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           {/* Main Content White Box */}
           <div className="home-content-container">
             <div className="main-content home-main-content">
-              {/* Power BI Report Embed - TEMPORARILY COMMENTED OUT */}
-              {/* <div
-                ref={powerbiContainerRef}
-                className="powerbi-embed-container"
-                style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
-              >
-                {powerbiError ? (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#d32f2f',
-                    textAlign: 'center',
-                    padding: '20px'
-                  }}>
-                    <div>
-                      <h3>⚠️ PowerBI Configuration Error</h3>
-                      <p>{powerbiError}</p>
-                      <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                        Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
-                      </p>
-                    </div>
-                  </div>
-                ) : powerbiConfig ? (
-                  <iframe
-                    title="Company Progress"
-                    width="100%"
-                    height="425"
-                    src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
-                    frameBorder="0"
-                    allowFullScreen={false}
-                    style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                  />
-                ) : (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    height: '100%', 
-                    color: '#666'
-                  }}>
-                    <div>Loading PowerBI report...</div>
-                  </div>
-                )}
-                <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
-              </div> */}
-              
               <section className="homepage-hero" aria-label="Homepage banner">
                 <img src={howBanner} alt="H.O.W. — Highest Standards, One Team, Win banner" className="homepage-hero-image" />
                 <div className="homepage-hero-overlay">

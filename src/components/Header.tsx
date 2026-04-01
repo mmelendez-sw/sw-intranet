@@ -7,7 +7,6 @@ import { EventType } from '@azure/msal-browser';
 import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
-// import ImagePopup from './ImagePopup';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -70,7 +69,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
-  // const [showPopup, setShowPopup] = useState(false);
 
   // Listen for redirect-based auth failures (e.g. CA block on the redirect flow).
   useEffect(() => {
@@ -190,19 +188,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         {userInfo.isAuthenticated && (
           <><i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link></>
         )}
-        {/* <i className="fa-solid fa-tech"></i><Link to="/technology">Technology</Link>
-        <i className="fa-solid fa-tower-cell"></i><Link to="/acquisitions">Acquisitions</Link>
-        <i className="fa-solid fa-wallet"></i><Link to="/origination">Origination</Link>
-        <i className="fa-brands fa-readme"></i><Link to="/legal">Legal</Link>
-        <i className="fa-solid fa-icons"></i><Link to="/marketing">Marketing</Link>
-        <i className="fa-solid fa-user"></i><Link to="/hr">Human Resources</Link>
-        <i className="fa-solid fa-laptop"></i><Link to="/reports">Reports</Link> */}
-        {/* <button 
-          className="test-popup-button"
-          onClick={() => setShowPopup(true)}
-        >
-          Test Popup
-        </button> */}
       </nav>
       <div className="user">
         {isAuthenticated && accounts[0] ? (
@@ -242,10 +227,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           </button>
         )}
       </div>
-      {/* {showPopup && (
-        <ImagePopup onClose={() => setShowPopup(false)} />
-      )} */}
-
       {/* Shown after a Conditional Access policy explicitly blocks sign-in */}
       {authBlockError && (
         <div
