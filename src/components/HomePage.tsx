@@ -130,7 +130,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </div> */}
               
               <section className="homepage-hero" aria-label="Homepage banner">
-                <img src={howBanner} alt="Homepage banner" className="homepage-hero-image" />
+                <img src={howBanner} alt="H.O.W. — Highest Standards, One Team, Win banner" className="homepage-hero-image" />
                 <div className="homepage-hero-overlay">
                   <h1 className="homepage-hero-title">
                     <span className="homepage-hero-line">
@@ -154,7 +154,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img
                     src={img9}
-                    alt="Meals on Main Street"
+                    alt="2025 company important dates and holidays"
                     className="card-image"
                     style={{ objectFit: 'contain' }}
                   />
@@ -172,7 +172,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 2 */}
                 <div className="card even-card">
-                <img src={img11} alt="Bowling 2025" className="card-image" style={{ objectFit: 'contain', height: 'auto', width: '100%' }} />
+                <img src={img11} alt="Symphony Towers employee leads mobile app screenshot" className="card-image" style={{ objectFit: 'contain', height: 'auto', width: '100%' }} />
                 <div className="card-text">
                   <h2>New Employee Leads App</h2>
                   <ul>
@@ -195,7 +195,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <div className="card odd-card">
                   <img
                     src={img7}
-                    alt="March Madness"
+                    alt="Team members at Buffalo Wild Wings for March Madness 2025"
                     className="card-image"
                     style={{ objectPosition: '15% 20%' }}
                   />
@@ -213,7 +213,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img4}
                     srcSet={`${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Food Drive"
+                    alt="Volunteers at the Person to Person Coat Drive in Darien, CT"
                     className="card-image"
                   />
                   <div className="card-text">
@@ -229,7 +229,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img3}
                     srcSet={`${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Marketing Updates"
+                    alt="Symphony Towers Infrastructure office building exterior"
                     className="card-image"
                   />
                   <div className="card-text">
@@ -258,7 +258,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     src={img10}
                     srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="City Harvest Mesh Bag Project"
+                    alt="Team gathered for Employee Appreciation Day celebration"
                     className="card-image employee-appreciation-image"
                   />
                   <div className="card-text">
