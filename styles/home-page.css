@@ -263,20 +263,6 @@
   margin: 0;
 }
 
-/* Home sidebar styling */
-.home-sidebar {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  height: auto;
-  position: static;
-  top: auto;
-  margin-top: 40px;
-}
-
 .home-sidebar section {
   margin-bottom: 20px;
 }

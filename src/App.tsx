@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
@@ -173,12 +173,9 @@ const App: React.FC = () => {
 };
 
 const AppContent: React.FC<{ userInfo: UserInfo; hasSignedInAccount: boolean }> = ({ userInfo, hasSignedInAccount }) => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-
   return (
     <>
-      {!isHomePage && <Header userInfo={userInfo} />}
+      <Header userInfo={userInfo} />
       <div className="main-content">
         <Routes>
           <Route path="/" element={<HomePage userInfo={userInfo} />} />
