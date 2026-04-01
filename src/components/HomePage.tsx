@@ -14,7 +14,7 @@ import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
-import img11 from '../../images/leads_app.png';
+import img11 from '../../images/wider_app.png';
 import img11Md from '../../images/sip_md.jpeg';
 import img11Sm from '../../images/sip_sm.jpeg';
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -172,7 +172,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 2 */}
                 <div className="card even-card">
-                <img src={img11} alt="Bowling 2025" className="card-image" />
+                <img src={img11} alt="Bowling 2025" className="card-image" style={{ objectFit: 'contain', height: 'auto', width: '100%' }} />
                 <div className="card-text">
                   <h2>New Employee Leads App</h2>
                   <ul>
