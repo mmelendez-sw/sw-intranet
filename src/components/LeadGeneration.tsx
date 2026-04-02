@@ -512,6 +512,21 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           <p className="lead-signed-in">Signed in as {userInfo.email}</p>
         </div>
 
+        {/* PENDING LEGAL APPROVAL — uncomment once final disclaimer messaging is received
+        <div className="lead-safety-disclaimer">
+          <i className="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            <strong>Safety Disclaimer</strong>
+            <p>
+              Please do not take any photos, trespass, or perform any action that could put you in harm's way while
+              participating in this activity. Your safety is the top priority — never put yourself at risk for a lead
+              submission. Do not enter private property without permission, and always follow traffic laws and safe
+              driving practices when scouting locations.
+            </p>
+          </div>
+        </div>
+        */}
+
         {submitStatus === 'success' && (
           <div ref={alertRef} className="lead-alert lead-alert-success lead-alert-spotlight">
             <i className="fa-solid fa-circle-check"></i>
