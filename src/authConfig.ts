@@ -11,7 +11,9 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-  scopes: ["User.Read", "GroupMember.Read.All", "Mail.Send"],
+  // Files.ReadWrite.All is required to append rows to the shared SharePoint
+  // Excel workbook that logs lead submissions. Admin consent is needed once.
+  scopes: ["User.Read", "GroupMember.Read.All", "Mail.Send", "Files.ReadWrite.All"],
 };
 
 // IntranetExecs security group ID

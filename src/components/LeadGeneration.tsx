@@ -116,6 +116,23 @@ const isIOS = (): boolean => /iphone|ipad|ipod/i.test(navigator.userAgent);
 // redirect so the user does not lose their work on iOS Edge.
 const LEADGEN_RESTORE_KEY = 'leadgen_pending_restore';
 
+// ---------------------------------------------------------------------------
+// Excel workbook config — fill these in to activate the live log feature.
+//
+// HOW TO FIND YOUR IDs (use Microsoft Graph Explorer at aka.ms/ge):
+//   Drive ID  → GET https://graph.microsoft.com/v1.0/sites/{site-id}/drive
+//               Copy the "id" field from the response.
+//   Item ID   → GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root/children
+//               Find your .xlsx file and copy its "id" field.
+//
+// The workbook must contain a Table (Insert → Table) named exactly as below.
+// Columns (in order): Timestamp | Name | Email | Address | City | State |
+//   Zip | Latitude | Longitude | Maps Link | Site Type | Notes | Photos | Tag
+// ---------------------------------------------------------------------------
+const EXCEL_DRIVE_ID   = ''; // e.g. "b!Abc123XyzDriveIdHere"
+const EXCEL_ITEM_ID    = ''; // e.g. "01ABCDEF1234567890GHIJ"
+const EXCEL_TABLE_NAME = 'LeadSubmissions'; // must match the Table name in the workbook
+
 const generateTag = (): string => {
   const now = new Date();
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -509,6 +526,69 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     }
   };
 
+  const appendToExcel = async (data: FormData, submittedTag: string): Promise<void> => {
+    if (!EXCEL_DRIVE_ID || !EXCEL_ITEM_ID) return; // Feature not configured yet
+
+    const accounts = instance.getAllAccounts();
+    if (accounts.length === 0) return;
+
+    // Silent-only — this is best-effort and must never trigger a popup or
+    // redirect that would interrupt the user after a successful submission.
+    let tokenResponse;
+    try {
+      tokenResponse = await instance.acquireTokenSilent({
+        scopes: ['Files.ReadWrite.All'],
+        account: accounts[0],
+      });
+    } catch {
+      console.warn('LeadGen Excel append: could not acquire token silently — skipping.');
+      return;
+    }
+
+    if (!tokenResponse?.accessToken) return;
+
+    const timestamp = new Date().toISOString();
+    const photoNames = data.photos.map((p, i) => getGeneratedPhotoName(p, i)).join(', ') || 'None';
+    const mapsLink = data.latitude && data.longitude
+      ? `https://www.google.com/maps?q=${data.latitude},${data.longitude}`
+      : '';
+
+    const row = [
+      timestamp,
+      userInfo.name  || '',
+      userInfo.email || '',
+      data.address,
+      data.city,
+      data.state,
+      data.zipCode,
+      data.latitude  || '',
+      data.longitude || '',
+      mapsLink,
+      data.siteType,
+      data.notes,
+      photoNames,
+      submittedTag,
+    ];
+
+    const endpoint =
+      `https://graph.microsoft.com/v1.0/drives/${EXCEL_DRIVE_ID}` +
+      `/items/${EXCEL_ITEM_ID}/workbook/tables/${EXCEL_TABLE_NAME}/rows/add`;
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ values: [row] }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null);
+      console.warn('LeadGen Excel append failed:', detail?.error?.message || res.statusText);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.notes.trim()) {
@@ -542,6 +622,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
     try {
       await sendEmailViaGraph(formData);
+      // TODO: configure EXCEL_DRIVE_ID + EXCEL_ITEM_ID then uncomment to activate
+      // await appendToExcel(formData, tag).catch(err =>
+      //   console.warn('LeadGen Excel append error:', err)
+      // );
       setSubmitStatus('success');
       setFormData(initialFormData);
       setGpsFromAutoFill(false);
