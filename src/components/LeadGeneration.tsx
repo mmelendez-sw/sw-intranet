@@ -106,6 +106,16 @@ const SITE_TYPES = [
   'Tower Land',
 ];
 
+// Apple mandates WKWebView for every iOS browser (Safari, Edge, Chrome, etc.).
+// WKWebView navigates popup windows to about:blank after a cross-origin
+// redirect, causing acquireTokenPopup to fail. Detect any iOS browser so we
+// can fall back to a redirect-based token flow instead.
+const isIOS = (): boolean => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+// sessionStorage key used to persist form text fields across a token-refresh
+// redirect so the user does not lose their work on iOS Edge.
+const LEADGEN_RESTORE_KEY = 'leadgen_pending_restore';
+
 const generateTag = (): string => {
   const now = new Date();
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -154,6 +164,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [gpsAutoSource, setGpsAutoSource] = useState<'exif' | 'browser' | null>(null);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
+  const [sessionRestored, setSessionRestored] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
@@ -191,6 +202,22 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       });
     }
   }, [submitStatus]);
+
+  // On iOS Edge, a failed acquireTokenPopup triggers a full-page redirect to
+  // refresh the token. When the page reloads, restore whatever text fields were
+  // saved before the redirect so the user does not lose their work.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(LEADGEN_RESTORE_KEY);
+    if (!saved) return;
+    sessionStorage.removeItem(LEADGEN_RESTORE_KEY);
+    try {
+      const parsed = JSON.parse(saved);
+      setFormData(prev => ({ ...prev, ...parsed, photos: [] }));
+      setSessionRestored(true);
+    } catch {
+      // Corrupted storage — silently ignore and let the user start fresh.
+    }
+  }, []);
 
   const getGeneratedPhotoName = (photo: File, index: number): string => {
     const userToken = toSafeToken(emailPrefix, 'unknown');
@@ -336,6 +363,27 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           popupError.errorCode === 'popup_window_error' ||
           popupError.errorCode === 'empty_window_error'
         ) {
+          // On any iOS browser (WKWebView), popups land on about:blank and can
+          // never complete. Save the serializable form fields to sessionStorage
+          // so the user's work is restored after the redirect, then kick off a
+          // full-page token refresh redirect.
+          if (isIOS()) {
+            sessionStorage.setItem(LEADGEN_RESTORE_KEY, JSON.stringify({
+              address: data.address,
+              city: data.city,
+              state: data.state,
+              zipCode: data.zipCode,
+              latitude: data.latitude,
+              longitude: data.longitude,
+              notes: data.notes,
+              siteType: data.siteType,
+            }));
+            await instance.acquireTokenRedirect({
+              scopes: ['Mail.Send'],
+              account: activeAccount,
+            });
+            return; // Page navigates away — execution stops here.
+          }
           throw new Error(
             'Your session has expired and a sign-in popup was blocked by the browser. ' +
             'Please tap the Login button in the header to re-authenticate, then try submitting again.'
@@ -553,6 +601,16 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
             <div>
               <strong>Failed to submit lead.</strong>
               <p>{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {sessionRestored && (
+          <div className="lead-alert lead-alert-sending lead-alert-spotlight">
+            <i className="fa-solid fa-rotate"></i>
+            <div>
+              <strong>Session refreshed — your details have been restored.</strong>
+              <p>Your text fields are pre-filled. Please re-attach your photos and submit again.</p>
             </div>
           </div>
         )}

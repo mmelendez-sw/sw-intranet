@@ -63,6 +63,11 @@ const isAndroidNonEdge = (): boolean => {
   return (onAndroid || isBrave()) && !isEdge;
 };
 
+// Edge on iOS (EdgiOS) runs on WKWebView. WKWebView navigates popup windows to
+// about:blank after a cross-origin redirect, so MSAL never receives the auth
+// response from a loginPopup call. Skip popup entirely and use loginRedirect.
+const isIOSEdge = (): boolean => /edgios/i.test(navigator.userAgent);
+
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
@@ -85,12 +90,13 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const handleLogin = async () => {
     setAuthBlockError(false);
 
-    // On Android (non-Edge), Chrome popups do not reliably return from the
-    // Microsoft Authenticator app — the MFA handoff opens a Chrome Custom Tab
-    // that is a separate session from the popup, so the user never gets redirected
-    // back. Skip the popup entirely and go straight to a full-page redirect,
-    // which keeps everything in the same browser tab.
-    if (isAndroidNonEdge()) {
+    // On Android non-Edge: Chrome Custom Tabs intercept the Authenticator
+    // redirect in a separate session, so the popup never returns.
+    // On ALL iOS browsers (Safari, Edge, Chrome, etc.): Apple mandates WKWebView
+    // for every third-party browser. WKWebView navigates popup windows to
+    // about:blank after the cross-origin Microsoft redirect, so MSAL never
+    // receives the auth response. Skip popup entirely for any iOS browser.
+    if (isAndroidNonEdge() || isIOSEdge() || isMobileSafari()) {
       instance.loginRedirect(loginRequest).catch((e: any) => {
         if (isConditionalAccessError(e)) setAuthBlockError(true);
         else console.error(e);
