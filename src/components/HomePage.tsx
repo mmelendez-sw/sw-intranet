@@ -61,7 +61,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <h2>Important Dates</h2>
                     <ul>
                       <li>April - Q1 Performance Reviews</li>
-                      <li>4/3: Good Friday</li>
                       <li>5/25: Memorial Day</li>
                       <li>6/19: Juneteenth</li>
                       <li>July - Q2 Performance Reviews</li>
