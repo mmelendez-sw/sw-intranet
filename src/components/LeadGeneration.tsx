@@ -112,6 +112,31 @@ const SITE_TYPES = [
 // can fall back to a redirect-based token flow instead.
 const isIOS = (): boolean => /iphone|ipad|ipod/i.test(navigator.userAgent);
 
+const isMsalInteractionInProgress = (e: unknown): boolean => {
+  const o = e as { errorCode?: string; message?: string; errorMessage?: string };
+  const text = `${o?.message ?? ''} ${o?.errorMessage ?? ''}`;
+  return o?.errorCode === 'interaction_in_progress' || text.includes('interaction_in_progress');
+};
+
+/** MSAL allows only one interactive flow at a time; wait out overlapping work. */
+const msalWithInteractionRetry = async <T,>(fn: () => Promise<T>): Promise<T> => {
+  const waitsMs = [200, 400, 800, 1200, 2000, 3000];
+  let lastErr: unknown;
+  for (let i = 0; i <= waitsMs.length; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (isMsalInteractionInProgress(e) && i < waitsMs.length) {
+        await new Promise((r) => setTimeout(r, waitsMs[i]));
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr;
+};
+
 // sessionStorage key used to persist form text fields across a token-refresh
 // redirect so the user does not lose their work on iOS Edge.
 const LEADGEN_RESTORE_KEY = 'leadgen_pending_restore';
@@ -361,20 +386,24 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
     let tokenResponse;
     try {
-      tokenResponse = await instance.acquireTokenSilent({
-        scopes: ['Mail.Send'],
-        account: activeAccount,
-      });
+      tokenResponse = await msalWithInteractionRetry(() =>
+        instance.acquireTokenSilent({
+          scopes: ['Mail.Send'],
+          account: activeAccount,
+        })
+      );
     } catch {
       // acquireTokenRedirect would navigate the mobile browser away from the
       // form entirely. Use acquireTokenPopup instead so the user stays on the
       // page and their form data is preserved. The popup is triggered from a
       // form-submit user gesture, which mobile browsers allow.
       try {
-        tokenResponse = await instance.acquireTokenPopup({
-          scopes: ['Mail.Send'],
-          account: activeAccount,
-        });
+        tokenResponse = await msalWithInteractionRetry(() =>
+          instance.acquireTokenPopup({
+            scopes: ['Mail.Send'],
+            account: activeAccount,
+          })
+        );
       } catch (popupError: any) {
         if (
           popupError.errorCode === 'popup_window_error' ||

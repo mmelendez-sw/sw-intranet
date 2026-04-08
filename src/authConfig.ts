@@ -27,6 +27,11 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
     const activeAccount = accounts[0];
     const graphScopes = ["User.Read", "GroupMember.Read.All"];
 
+    // Silent only: do not open acquireTokenPopup here. App.tsx calls this from
+    // several effects in parallel; a popup for group lookup races with Lead
+    // Generation's Mail.Send popup and surfaces MSAL interaction_in_progress.
+    // loginRequest already includes these Graph scopes so silent should succeed
+    // after sign-in; if not, we fail closed on Elite rather than break submits.
     let accessToken;
     try {
       accessToken = await msalInstance.acquireTokenSilent({
@@ -34,10 +39,7 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
         account: activeAccount,
       });
     } catch {
-      accessToken = await msalInstance.acquireTokenPopup({
-        scopes: graphScopes,
-        account: activeAccount,
-      });
+      return false;
     }
 
     if (!accessToken?.accessToken) return false;
