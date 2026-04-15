@@ -48,7 +48,7 @@ const reports = [
   },
   {
     title: 'Underwriting Reports',
-    description: 'Ad-hoc reports for Underwriting team i.e. Broker Pipeline',
+    description: 'Ad-hoc reports for Underwriting Team i.e. Broker Pipeline',
     link: 'https://app.powerbi.com/links/1fRk37tWhP?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
