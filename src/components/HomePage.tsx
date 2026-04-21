@@ -5,14 +5,8 @@ import { UserInfo } from '../types/user';
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
 import img3Sm from '../../images/site_3_sm.jpg';
-import img4 from '../../images/coat.jpg';
-import img4Md from '../../images/coat_md.jpg';
-import img4Sm from '../../images/coat_sm.jpg';
 import earthdayImg from '../../images/earthday.png';
 import img9 from '../../images/vol.jpg';
-import img10 from '../../images/emp.jpg';
-import img10Md from '../../images/emp_md.jpg';
-import img10Sm from '../../images/emp_sm.jpg';
 import img11 from '../../images/wider_app.png';
 import howBanner from '../../images/H.O.W.-banner.png';
 
@@ -70,27 +64,32 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
                 {/* Card 2 */}
                 <div className="card even-card">
-                <img src={img11} alt="Symphony Towers employee leads mobile app screenshot" className="card-image" style={{ objectFit: 'contain', height: 'auto', width: '100%' }} />
-                <div className="card-text">
-                  <h2>New Employee Leads App</h2>
-                  <ul>
-                    <li>
-                      Our goal is to collect 2 leads per month per employee. 
-                    </li>
-                    <li>
-                      This initiative is a part of our company-wide goals for the year. 
-                    </li>
-                    <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.
-                    </li>
-                    <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app. 
-                    </li>
-                  </ul>
+                  <img
+                    src={img11}
+                    alt="Symphony Towers employee leads mobile app screenshot"
+                    className="card-image"
+                    style={{ objectFit: 'contain', height: 'auto', width: '100%' }}
+                  />
+                  <div className="card-text">
+                    <h2>New Employee Leads App</h2>
+                    <ul>
+                      <li>
+                        Our goal is to collect 2 leads per month per employee.
+                      </li>
+                      <li>
+                        This initiative is a part of our company-wide goals for the year.
+                      </li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.
+                      </li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app.
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
-                {/* Card 3 */}
-                <div className="card odd-card">
+                {/* Card 3 — even-card: checkerboard with card 4 in 2×2 grid */}
+                <div className="card even-card">
                   <img
                     src={earthdayImg}
                     alt="Earth Day"
@@ -114,24 +113,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </li>
                     </ul>
                   </div>
-                </div> 
-                {/* Card 4 */}
-                <div className="card even-card">
-                  <img
-                    src={img4}
-                    srcSet={`${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Volunteers at the Person to Person Coat Drive in Darien, CT"
-                    className="card-image"
-                  />
-                  <div className="card-text">
-                    <h2>Person to Person Coat Drive</h2>
-                    <ul>
-                      <li>Thank you to our volunteers who joined us for the Person to Person coat drive in Darien, CT! Your kindness keeps our community warm.</li>
-                    </ul>
-                  </div>
                 </div>
-                {/* Card 5 */}
+                {/* Card 4 */}
                 <div className="card odd-card">
                   <img
                     src={img3}
@@ -157,22 +140,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <li>
                         <a href="https://www.youtube.com/watch?v=eg2OMjNgtHg" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
                       </li>  
-                    </ul>       
-                  </div>
-                </div> 
-                {/* Card 6 */}
-                <div className="card even-card">
-                  <img
-                    src={img10}
-                    srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    alt="Team gathered for Employee Appreciation Day celebration"
-                    className="card-image employee-appreciation-image"
-                  />
-                  <div className="card-text">
-                    <h2>Employee Appreciation Day Celebration</h2>
-                    <ul>
-                      <li>Thank you to every team member for your dedication, positive energy, and hard work - your contributions are the reason our Employee Appreciation Day was such a success.</li>
                     </ul>
                   </div>
                 </div>
