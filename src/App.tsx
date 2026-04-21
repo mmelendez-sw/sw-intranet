@@ -10,6 +10,10 @@ import LeadGeneration from './components/LeadGeneration';
 import { isEliteGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 
+/** Bumped when elite detection logic changes so clients re-fetch instead of using stale false. */
+const eliteStatusKey = (email: string) => `elite_status_v2_${email}`;
+const eliteStatusTsKey = (email: string) => `elite_status_timestamp_v2_${email}`;
+
 const App: React.FC = () => {
   const { instance } = useMsal();
   const hasSignedInAccount = instance.getAllAccounts().length > 0;
@@ -24,8 +28,8 @@ const App: React.FC = () => {
       const account = accounts[0];
       const email = account.username || account.homeAccountId;
 
-      const cachedEliteStatus = localStorage.getItem(`elite_status_${email}`);
-      const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
+      const cachedEliteStatus = localStorage.getItem(eliteStatusKey(email));
+      const cachedTimestamp = localStorage.getItem(eliteStatusTsKey(email));
       let isElite = false;
 
       const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
@@ -48,31 +52,26 @@ const App: React.FC = () => {
 
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        let retryCount = 0;
+        // isEliteGroupMember returns false on transient errors (no throw), so retry
+        // on false until success or attempts exhausted—otherwise elite users often
+        // cache false on the first token/Graph timing failure.
         const maxRetries = 5;
         const retryDelays = [1000, 2000, 3000, 5000, 8000];
-
-        while (retryCount < maxRetries) {
-          try {
-            isElite = await isEliteGroupMember(instance);
-
-            localStorage.setItem(`elite_status_${email}`, isElite.toString());
-            localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-
-            setUserInfo(prev => ({ ...prev, isEliteGroup: isElite }));
-            break;
-          } catch (error) {
-            retryCount++;
-            if (retryCount < maxRetries) {
-              const delay = retryDelays[retryCount - 1] || 8000;
-              await new Promise(resolve => setTimeout(resolve, delay));
-            } else {
-              localStorage.setItem(`elite_status_${email}`, 'false');
-              localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-              setUserInfo(prev => ({ ...prev, isEliteGroup: false }));
-            }
+        let attempt = 0;
+        while (attempt < maxRetries) {
+          isElite = await isEliteGroupMember(instance);
+          if (isElite) break;
+          attempt++;
+          if (attempt < maxRetries) {
+            await new Promise(resolve =>
+              setTimeout(resolve, retryDelays[attempt - 1] ?? 8000)
+            );
           }
         }
+
+        localStorage.setItem(eliteStatusKey(email), isElite.toString());
+        localStorage.setItem(eliteStatusTsKey(email), Date.now().toString());
+        setUserInfo(prev => ({ ...prev, isEliteGroup: isElite }));
       }
     } else {
       setUserInfo({ isAuthenticated: false, isEliteGroup: false });
@@ -99,41 +98,6 @@ const App: React.FC = () => {
   }, [instance]);
 
   useEffect(() => {
-    const initializeEliteCheck = async () => {
-      const accounts = instance.getAllAccounts();
-      if (accounts.length === 0) return;
-
-      const account = accounts[0];
-      const email = account.username || account.homeAccountId;
-
-      const cachedEliteStatus = localStorage.getItem(`elite_status_${email}`);
-      const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
-      const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
-
-      if (cachedEliteStatus && cacheValid) {
-        setUserInfo(prev => ({
-          ...prev,
-          isAuthenticated: true,
-          isEliteGroup: cachedEliteStatus === 'true',
-          email,
-          name: account.name,
-        }));
-      } else {
-        try {
-          const isElite = await isEliteGroupMember(instance);
-          localStorage.setItem(`elite_status_${email}`, isElite.toString());
-          localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-          setUserInfo(prev => ({ ...prev, isAuthenticated: true, isEliteGroup: isElite, email, name: account.name }));
-        } catch {
-          // Falls through to main checkAuthentication retry flow
-        }
-      }
-    };
-
-    initializeEliteCheck();
-  }, [instance]);
-
-  useEffect(() => {
     if (!userInfo.isAuthenticated || userInfo.isEliteGroup) return;
 
     const persistentCheck = async () => {
@@ -148,8 +112,8 @@ const App: React.FC = () => {
             const accounts = instance.getAllAccounts();
             if (accounts.length > 0) {
               const email = accounts[0].username || accounts[0].homeAccountId;
-              localStorage.setItem(`elite_status_${email}`, 'true');
-              localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
+              localStorage.setItem(eliteStatusKey(email), 'true');
+              localStorage.setItem(eliteStatusTsKey(email), Date.now().toString());
               setUserInfo(prev => ({ ...prev, isEliteGroup: true }));
               break;
             }

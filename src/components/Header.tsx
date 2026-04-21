@@ -209,12 +209,16 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             >
               Welcome, {accounts[0]?.name?.split(' ')[0]}!
               {userInfo.isEliteGroup && (
-                <span style={{ 
-                  fontSize: '0.8em', 
-                  color: '#666', 
-                  marginLeft: '5px',
-                  fontStyle: 'italic'
-                }}>
+                <span
+                  style={{
+                    fontSize: '0.8em',
+                    color: '#e6f4ff',
+                    marginLeft: '8px',
+                    fontStyle: 'italic',
+                    fontWeight: 600,
+                    textShadow: '0 0 1px rgba(0,0,0,0.35)',
+                  }}
+                >
                   (Elite)
                 </span>
               )}

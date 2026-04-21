@@ -46,22 +46,51 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const graphHeaders = {
+      Authorization: `Bearer ${accessToken.accessToken}`,
+      'Content-Type': 'application/json',
+    };
 
     try {
-      const res = await fetch("https://graph.microsoft.com/v1.0/me/memberOf", {
-        headers: {
-          Authorization: `Bearer ${accessToken.accessToken}`,
-          'Content-Type': 'application/json',
-        },
+      // Prefer checkMemberGroups: one round-trip and no pagination gap (memberOf
+      // only returns one page; users in 100+ groups can miss the exec group).
+      const checkRes = await fetch('https://graph.microsoft.com/v1.0/me/checkMemberGroups', {
+        method: 'POST',
+        headers: graphHeaders,
+        body: JSON.stringify({ groupIds: [INTRANET_EXECS_GROUP_ID] }),
         signal: controller.signal,
       });
 
+      if (checkRes.ok) {
+        const body = await checkRes.json();
+        clearTimeout(timeoutId);
+        return Array.isArray(body.value) && body.value.includes(INTRANET_EXECS_GROUP_ID);
+      }
+
+      // Fallback if checkMemberGroups is unavailable: walk all memberOf pages.
+      type MemberOfPage = {
+        value?: Array<{ id?: string }>;
+        ['@odata.nextLink']?: string;
+      };
+      let memberOfUrl: string | null = 'https://graph.microsoft.com/v1.0/me/memberOf';
+      while (memberOfUrl) {
+        const memberRes: Response = await fetch(memberOfUrl, {
+          headers: graphHeaders,
+          signal: controller.signal,
+        });
+        if (!memberRes.ok) {
+          clearTimeout(timeoutId);
+          return false;
+        }
+        const memberPage: MemberOfPage = await memberRes.json();
+        if (memberPage.value?.some((group) => group.id === INTRANET_EXECS_GROUP_ID)) {
+          clearTimeout(timeoutId);
+          return true;
+        }
+        memberOfUrl = memberPage['@odata.nextLink'] ?? null;
+      }
       clearTimeout(timeoutId);
-
-      if (!res.ok) return false;
-
-      const groups = await res.json();
-      return groups.value.some((group: any) => group.id === INTRANET_EXECS_GROUP_ID);
+      return false;
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       if (fetchError.name !== 'AbortError') console.error('Graph API fetch error:', fetchError);

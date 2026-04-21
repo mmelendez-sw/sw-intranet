@@ -192,6 +192,35 @@ const getMonthYearToken = (): string => {
   return `${month}${year}`;
 };
 
+/** Max file size (bytes) for a single non-chunked read — avoids flaky Blob.slice chunking on some mobile WebKit builds. */
+const EXIF_WHOLE_FILE_READ_MAX = 25 * 1024 * 1024;
+
+const coerceFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const n = Number(value.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** Pull latitude/longitude from exifr merged output or nested `gps` block (incl. XMP-only cases). */
+const pickGpsCoordsFromExifrOutput = (data: unknown): { lat: number; lon: number } | null => {
+  if (!data || typeof data !== 'object') return null;
+  const o = data as Record<string, unknown>;
+  const lat = coerceFiniteNumber(o.latitude);
+  const lon = coerceFiniteNumber(o.longitude);
+  if (lat !== null && lon !== null) return { lat, lon };
+  const gps = o.gps;
+  if (gps && typeof gps === 'object') {
+    const g = gps as Record<string, unknown>;
+    const glat = coerceFiniteNumber(g.latitude);
+    const glon = coerceFiniteNumber(g.longitude);
+    if (glat !== null && glon !== null) return { lat: glat, lon: glon };
+  }
+  return null;
+};
+
 interface LeadGenerationProps {
   userInfo: UserInfo;
 }
@@ -305,14 +334,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   };
 
   const tryExtractGpsFromPhoto = async (file: File): Promise<boolean> => {
-    try {
-      const gps = await exifr.gps(file);
-      const latitude = typeof gps?.latitude === 'number' ? gps.latitude : null;
-      const longitude = typeof gps?.longitude === 'number' ? gps.longitude : null;
-      if (latitude === null || longitude === null) {
-        return false;
-      }
-
+    const applyExifGps = (latitude: number, longitude: number) => {
       setFormData(prev => ({
         ...prev,
         latitude: String(latitude),
@@ -321,9 +343,33 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       setGpsFromAutoFill(true);
       setGpsAutoSource('exif');
       return true;
+    };
+
+    try {
+      const gpsQuick = await exifr.gps(file);
+      const qLat = coerceFiniteNumber(gpsQuick?.latitude);
+      const qLon = coerceFiniteNumber(gpsQuick?.longitude);
+      if (qLat !== null && qLon !== null) {
+        return applyExifGps(qLat, qLon);
+      }
+
+      // Fallback: `exifr.gps` uses a small first read and chunked Blob slices. Some mobile
+      // Chrome/WebKit builds mishandle that; a merged parse also picks up XMP-based coords.
+      const useWholeFile = file.size <= EXIF_WHOLE_FILE_READ_MAX;
+      const parsed = await exifr.parse(file, {
+        mergeOutput: true,
+        gps: true,
+        xmp: true,
+        ...(useWholeFile ? { chunked: false } : {}),
+      });
+      const picked = pickGpsCoordsFromExifrOutput(parsed);
+      if (picked) {
+        return applyExifGps(picked.lat, picked.lon);
+      }
     } catch {
       return false;
     }
+    return false;
   };
 
   const handleUseCurrentLocation = async () => {
@@ -923,7 +969,9 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                       ? (gpsAutoSource === 'exif'
                         ? 'Latitude/longitude auto-filled from photo EXIF GPS.'
                         : 'Latitude/longitude auto-filled from browser location.')
-                      : 'Coordinates can auto-fill from photo EXIF GPS, then browser location fallback.'}
+                      : (/iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        ? 'Coordinates can auto-fill from photo metadata or browser location. On iPhone and iPad, library photos often reach the browser without GPS; use Take Photo or Use Current Location if coordinates stay empty.'
+                        : 'Coordinates can auto-fill from photo EXIF or XMP GPS, then browser location fallback.')}
                   </span>
                 </div>
               </div>

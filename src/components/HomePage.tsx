@@ -8,7 +8,7 @@ import img3Sm from '../../images/site_3_sm.jpg';
 import img4 from '../../images/coat.jpg';
 import img4Md from '../../images/coat_md.jpg';
 import img4Sm from '../../images/coat_sm.jpg';
-import img7 from '../../images/mm2.jpg';
+import earthdayImg from '../../images/earthday.png';
 import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
@@ -92,16 +92,26 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 {/* Card 3 */}
                 <div className="card odd-card">
                   <img
-                    src={img7}
-                    alt="Team members at Buffalo Wild Wings for March Madness 2025"
+                    src={earthdayImg}
+                    alt="Earth Day"
                     className="card-image"
-                    style={{ objectPosition: '15% 20%' }}
+                    style={{ objectFit: 'contain' }}
                   />
                   <div className="card-text">
-                    <h2>March Madness</h2>
+                    <h2>What Can You Do This Earth Day</h2>
                     <ul>
-                      <li>Thank you to everyone who came out to Buffalo Wild Wings for our March Madness event! It was a great time cheering on our brackets together.</li>
-                      <li>We hope everyone enjoyed the food, fun, and team spirit. Looking forward to more events like this!</li>
+                      <li>Bring a reusable water bottle or coffee mug</li>
+                      <li>Take a walk, bike ride, or spend time outdoors</li>
+                      <li>Pick up litter during a walk or commute</li>
+                      <li>Try a meat-free meal or shop locally for the day.</li>
+                      <li>
+                        Planting flowers and trees helps clean the air, support pollinators, and create healthier, greener spaces for everyone.
+                      </li>
+                      <li>If in the office, feel free to grab a packet of flower seeds and grow something meaningful!</li>
+                      <li>
+                        Show us how you&apos;re celebrating Earth Day this year—share your photos with us at{' '}
+                        <a href="mailto:symphonycommunityalliance@symphonyinfra.com">symphonycommunityalliance@symphonyinfra.com</a>.
+                      </li>
                     </ul>
                   </div>
                 </div> 
