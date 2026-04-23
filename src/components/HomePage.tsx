@@ -31,7 +31,6 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <div className="card-text">
                   <h2>Important Dates</h2>
                   <ul>
-                      <li>April - Q1 Performance Reviews</li>
                       <li>5/25: Memorial Day</li>
                       <li>6/19: Juneteenth</li>
                       <li>July - Q2 Performance Reviews</li>
