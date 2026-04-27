@@ -15,6 +15,12 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
+  // Manual override for specific users when group membership checks are wrong/upstream is stale.
+  const eliteReportsEmailAllowlist = new Set(['vasmar@symphonyinfra.com']);
+  const normalizedEmail = userInfo.email?.trim().toLowerCase();
+  const isElite =
+    userInfo.isEliteGroup || (normalizedEmail ? eliteReportsEmailAllowlist.has(normalizedEmail) : false);
+
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {userInfo.isAuthenticated ? (
@@ -164,7 +170,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
                 <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-                {userInfo.isEliteGroup ? (
+                {isElite ? (
                   <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Elite Reports</button>
                 ) : (
                   <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/reports', '_blank')}>Reports</button>
