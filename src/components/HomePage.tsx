@@ -166,6 +166,20 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <p>Do not click any phishing links</p>
               </section>
               <section className="quick-links">
+                <h2>Notice of H1B Filing</h2>
+                <button
+                  className="home-button"
+                  onClick={() =>
+                    window.open(
+                      'https://symphonyinfrastructure.sharepoint.com/:b:/r/sites/SymphonyWirelessTeam/Shared%20Documents/General/Administrative/H1B/H1B-Notice-Of-Filing.pdf?csf=1&web=1&e=BNs0Ee',
+                      '_blank',
+                    )
+                  }
+                >
+                  View PDF
+                </button>
+              </section>
+              <section className="quick-links">
                 <h2>Quick Links</h2>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
