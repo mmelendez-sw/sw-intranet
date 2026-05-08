@@ -15,11 +15,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
-  // Manual override for specific users when group membership checks are wrong/upstream is stale.
-  const eliteReportsEmailAllowlist = new Set(['vasmar@symphonyinfra.com']);
-  const normalizedEmail = userInfo.email?.trim().toLowerCase();
-  const isElite =
-    userInfo.isEliteGroup || (normalizedEmail ? eliteReportsEmailAllowlist.has(normalizedEmail) : false);
+  const isElite = userInfo.isEliteGroup;
 
   return (
     <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
