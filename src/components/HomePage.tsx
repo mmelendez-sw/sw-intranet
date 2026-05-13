@@ -67,6 +67,9 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                     <li>
                       Please refer to the intranet to learn how to download the app. 
                     </li>
+                    <li>
+                      Please refer to the intranet to learn how to submit the leads from desktop browser. 
+                    </li>
                   </ul>
                 </div>
               </div>
