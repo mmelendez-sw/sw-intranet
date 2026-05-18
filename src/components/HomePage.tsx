@@ -164,7 +164,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 <h2>IT Updates</h2>
                 <p>Do not click any phishing links</p>
               </section>
-              <section className="quick-links">
+              {/* <section className="quick-links">
                 <h2>Notice of H1B Filing</h2>
                 <button
                   className="home-button"
@@ -177,7 +177,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 >
                   View PDF
                 </button>
-              </section>
+              </section> */}
               <section className="quick-links">
                 <h2>Quick Links</h2>
                 <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
