@@ -52,6 +52,11 @@ const reports = [
     link: 'https://app.powerbi.com/links/1fRk37tWhP?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
+    title: 'Site Analysis',
+    description: 'Analysis of the site data',
+    link: 'https://app.powerbi.com/links/isIvWaCuac?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
     title: 'WIP - In-Month Conversion Tracker',
     description: 'Work In Progress - A tracker to view opportunity conversions by month.',
   },  
