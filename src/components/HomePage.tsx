@@ -5,8 +5,8 @@ import { UserInfo } from '../types/user';
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
 import img3Sm from '../../images/site_3_sm.jpg';
-import earthdayImg from '../../images/earthday.png';
 import img9 from '../../images/vol.jpg';
+// import earthdayImg from '../../images/earthday.png';
 import img11 from '../../images/wider_app.png';
 import howBanner from '../../images/H.O.W.-banner.png';
 
@@ -56,9 +56,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div className="card-text">
                     <h2>Important Dates</h2>
                     <ul>
-                      <li>6/19: Juneteenth</li>
                       <li>July - Q2 Performance Reviews</li>
                       <li>7/3: Independence Day Observed</li>
+                      <li>9/7: Labor Day</li>
+                      <li>11/26: Thanksgiving Day</li>
+                      <li>11/27: Day After Thanksgiving</li>
+                      <li>12/25: Christmas Day</li>
                     </ul>
                   </div>
                 </div>
@@ -91,34 +94,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     </ul>
                   </div>
                 </div>
-                {/* Card 3 — even-card: checkerboard with card 4 in 2×2 grid */}
+                {/* Card 3 — even-card: checkerboard bottom-left */}
                 <div className="card even-card">
-                  <img
-                    src={earthdayImg}
-                    alt="Earth Day"
-                    className="card-image"
-                    style={{ objectFit: 'contain' }}
-                  />
-                  <div className="card-text">
-                    <h2>What Can You Do This Earth Day</h2>
-                    <ul>
-                      <li>Bring a reusable water bottle or coffee mug</li>
-                      <li>Take a walk, bike ride, or spend time outdoors</li>
-                      <li>Pick up litter during a walk or commute</li>
-                      <li>Try a meat-free meal or shop locally for the day.</li>
-                      <li>
-                        Planting flowers and trees helps clean the air, support pollinators, and create healthier, greener spaces for everyone.
-                      </li>
-                      <li>If in the office, feel free to grab a packet of flower seeds and grow something meaningful!</li>
-                      <li>
-                        Show us how you&apos;re celebrating Earth Day this year—share your photos with us at{' '}
-                        <a href="mailto:symphonycommunityalliance@symphonyinfra.com">symphonycommunityalliance@symphonyinfra.com</a>.
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                {/* Card 4 */}
-                <div className="card odd-card">
                   <img
                     src={img3}
                     srcSet={`${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`}
@@ -146,6 +123,34 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     </ul>
                   </div>
                 </div>
+                {/*
+                Card 4 — odd-card: checkerboard bottom-right (uncomment when ready)
+                <div className="card odd-card">
+                  <img
+                    src={earthdayImg}
+                    alt="Earth Day"
+                    className="card-image"
+                    style={{ objectFit: 'contain' }}
+                  />
+                  <div className="card-text">
+                    <h2>What Can You Do This Earth Day</h2>
+                    <ul>
+                      <li>Bring a reusable water bottle or coffee mug</li>
+                      <li>Take a walk, bike ride, or spend time outdoors</li>
+                      <li>Pick up litter during a walk or commute</li>
+                      <li>Try a meat-free meal or shop locally for the day.</li>
+                      <li>
+                        Planting flowers and trees helps clean the air, support pollinators, and create healthier, greener spaces for everyone.
+                      </li>
+                      <li>If in the office, feel free to grab a packet of flower seeds and grow something meaningful!</li>
+                      <li>
+                        Show us how you&apos;re celebrating Earth Day this year—share your photos with us at{' '}
+                        <a href="mailto:symphonycommunityalliance@symphonyinfra.com">symphonycommunityalliance@symphonyinfra.com</a>.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                */}
               </div>
             </div>
           </div>
