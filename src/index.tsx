@@ -14,6 +14,16 @@ const msalInstance = new PublicClientApplication(msalConfig);
 // hash, causing the user to appear unauthenticated after successful login.
 const renderApp = async () => {
   await msalInstance.initialize();
+  // Ensure any redirect-based auth response is processed before rendering.
+  // This is especially important on mobile Safari where the redirect flow is
+  // the primary path and timing can otherwise make the user look logged out.
+  try {
+    await msalInstance.handleRedirectPromise();
+  } catch (e) {
+    // Don't block app render on redirect handling failures; MSAL will surface
+    // auth errors via its event callbacks in-app.
+    console.error(e);
+  }
   ReactDOM.render(
     <React.StrictMode>
       <MsalProvider instance={msalInstance}>

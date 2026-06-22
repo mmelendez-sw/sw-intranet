@@ -107,6 +107,58 @@ const SITE_TYPES = [
   'Tower Land',
 ];
 
+// Apple mandates WKWebView for every iOS browser (Safari, Edge, Chrome, etc.).
+// WKWebView navigates popup windows to about:blank after a cross-origin
+// redirect, causing acquireTokenPopup to fail. Detect any iOS browser so we
+// can fall back to a redirect-based token flow instead.
+const isIOS = (): boolean => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+const isMsalInteractionInProgress = (e: unknown): boolean => {
+  const o = e as { errorCode?: string; message?: string; errorMessage?: string };
+  const text = `${o?.message ?? ''} ${o?.errorMessage ?? ''}`;
+  return o?.errorCode === 'interaction_in_progress' || text.includes('interaction_in_progress');
+};
+
+/** MSAL allows only one interactive flow at a time; wait out overlapping work. */
+const msalWithInteractionRetry = async <T,>(fn: () => Promise<T>): Promise<T> => {
+  const waitsMs = [200, 400, 800, 1200, 2000, 3000];
+  let lastErr: unknown;
+  for (let i = 0; i <= waitsMs.length; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (isMsalInteractionInProgress(e) && i < waitsMs.length) {
+        await new Promise((r) => setTimeout(r, waitsMs[i]));
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr;
+};
+
+// sessionStorage key used to persist form text fields across a token-refresh
+// redirect so the user does not lose their work on iOS Edge.
+const LEADGEN_RESTORE_KEY = 'leadgen_pending_restore';
+
+// ---------------------------------------------------------------------------
+// Excel workbook config — fill these in to activate the live log feature.
+//
+// HOW TO FIND YOUR IDs (use Microsoft Graph Explorer at aka.ms/ge):
+//   Drive ID  → GET https://graph.microsoft.com/v1.0/sites/{site-id}/drive
+//               Copy the "id" field from the response.
+//   Item ID   → GET https://graph.microsoft.com/v1.0/drives/{drive-id}/root/children
+//               Find your .xlsx file and copy its "id" field.
+//
+// The workbook must contain a Table (Insert → Table) named exactly as below.
+// Columns (in order): Timestamp | Name | Email | Address | City | State |
+//   Zip | Latitude | Longitude | Maps Link | Site Type | Notes | Photos | Tag
+// ---------------------------------------------------------------------------
+const EXCEL_DRIVE_ID   = ''; // e.g. "b!Abc123XyzDriveIdHere"
+const EXCEL_ITEM_ID    = ''; // e.g. "01ABCDEF1234567890GHIJ"
+const EXCEL_TABLE_NAME = 'LeadSubmissions'; // must match the Table name in the workbook
+
 const generateTag = (): string => {
   const now = new Date();
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -141,6 +193,35 @@ const getMonthYearToken = (): string => {
   return `${month}${year}`;
 };
 
+/** Max file size (bytes) for a single non-chunked read — avoids flaky Blob.slice chunking on some mobile WebKit builds. */
+const EXIF_WHOLE_FILE_READ_MAX = 25 * 1024 * 1024;
+
+const coerceFiniteNumber = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const n = Number(value.trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+/** Pull latitude/longitude from exifr merged output or nested `gps` block (incl. XMP-only cases). */
+const pickGpsCoordsFromExifrOutput = (data: unknown): { lat: number; lon: number } | null => {
+  if (!data || typeof data !== 'object') return null;
+  const o = data as Record<string, unknown>;
+  const lat = coerceFiniteNumber(o.latitude);
+  const lon = coerceFiniteNumber(o.longitude);
+  if (lat !== null && lon !== null) return { lat, lon };
+  const gps = o.gps;
+  if (gps && typeof gps === 'object') {
+    const g = gps as Record<string, unknown>;
+    const glat = coerceFiniteNumber(g.latitude);
+    const glon = coerceFiniteNumber(g.longitude);
+    if (glat !== null && glon !== null) return { lat: glat, lon: glon };
+  }
+  return null;
+};
+
 interface LeadGenerationProps {
   userInfo: UserInfo;
 }
@@ -156,6 +237,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const [gpsAutoSource, setGpsAutoSource] = useState<'exif' | 'browser' | null>(null);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [stateSearchQuery, setStateSearchQuery] = useState('');
+  const [sessionRestored, setSessionRestored] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const libraryInputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
@@ -202,6 +284,22 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     }
   }, [submitStatus]);
 
+  // On iOS Edge, a failed acquireTokenPopup triggers a full-page redirect to
+  // refresh the token. When the page reloads, restore whatever text fields were
+  // saved before the redirect so the user does not lose their work.
+  useEffect(() => {
+    const saved = sessionStorage.getItem(LEADGEN_RESTORE_KEY);
+    if (!saved) return;
+    sessionStorage.removeItem(LEADGEN_RESTORE_KEY);
+    try {
+      const parsed = JSON.parse(saved);
+      setFormData(prev => ({ ...prev, ...parsed, photos: [] }));
+      setSessionRestored(true);
+    } catch {
+      // Corrupted storage — silently ignore and let the user start fresh.
+    }
+  }, []);
+
   const getGeneratedPhotoName = (photo: File, index: number): string => {
     const userToken = toSafeToken(emailPrefix, 'unknown');
     const cityToken = toSafeToken(formData.city, '');
@@ -246,14 +344,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   };
 
   const tryExtractGpsFromPhoto = async (file: File): Promise<boolean> => {
-    try {
-      const gps = await exifr.gps(file);
-      const latitude = typeof gps?.latitude === 'number' ? gps.latitude : null;
-      const longitude = typeof gps?.longitude === 'number' ? gps.longitude : null;
-      if (latitude === null || longitude === null) {
-        return false;
-      }
-
+    const applyExifGps = (latitude: number, longitude: number) => {
       setFormData(prev => ({
         ...prev,
         latitude: String(latitude),
@@ -262,9 +353,33 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
       setGpsFromAutoFill(true);
       setGpsAutoSource('exif');
       return true;
+    };
+
+    try {
+      const gpsQuick = await exifr.gps(file);
+      const qLat = coerceFiniteNumber(gpsQuick?.latitude);
+      const qLon = coerceFiniteNumber(gpsQuick?.longitude);
+      if (qLat !== null && qLon !== null) {
+        return applyExifGps(qLat, qLon);
+      }
+
+      // Fallback: `exifr.gps` uses a small first read and chunked Blob slices. Some mobile
+      // Chrome/WebKit builds mishandle that; a merged parse also picks up XMP-based coords.
+      const useWholeFile = file.size <= EXIF_WHOLE_FILE_READ_MAX;
+      const parsed = await exifr.parse(file, {
+        mergeOutput: true,
+        gps: true,
+        xmp: true,
+        ...(useWholeFile ? { chunked: false } : {}),
+      });
+      const picked = pickGpsCoordsFromExifrOutput(parsed);
+      if (picked) {
+        return applyExifGps(picked.lat, picked.lon);
+      }
     } catch {
       return false;
     }
+    return false;
   };
 
   const handleUseCurrentLocation = async () => {
@@ -327,25 +442,50 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
     let tokenResponse;
     try {
-      tokenResponse = await instance.acquireTokenSilent({
-        scopes: ['Mail.Send'],
-        account: activeAccount,
-      });
+      tokenResponse = await msalWithInteractionRetry(() =>
+        instance.acquireTokenSilent({
+          scopes: ['Mail.Send'],
+          account: activeAccount,
+        })
+      );
     } catch {
       // acquireTokenRedirect would navigate the mobile browser away from the
       // form entirely. Use acquireTokenPopup instead so the user stays on the
       // page and their form data is preserved. The popup is triggered from a
       // form-submit user gesture, which mobile browsers allow.
       try {
-        tokenResponse = await instance.acquireTokenPopup({
-          scopes: ['Mail.Send'],
-          account: activeAccount,
-        });
+        tokenResponse = await msalWithInteractionRetry(() =>
+          instance.acquireTokenPopup({
+            scopes: ['Mail.Send'],
+            account: activeAccount,
+          })
+        );
       } catch (popupError: any) {
         if (
           popupError.errorCode === 'popup_window_error' ||
           popupError.errorCode === 'empty_window_error'
         ) {
+          // On any iOS browser (WKWebView), popups land on about:blank and can
+          // never complete. Save the serializable form fields to sessionStorage
+          // so the user's work is restored after the redirect, then kick off a
+          // full-page token refresh redirect.
+          if (isIOS()) {
+            sessionStorage.setItem(LEADGEN_RESTORE_KEY, JSON.stringify({
+              address: data.address,
+              city: data.city,
+              state: data.state,
+              zipCode: data.zipCode,
+              latitude: data.latitude,
+              longitude: data.longitude,
+              notes: data.notes,
+              siteType: data.siteType,
+            }));
+            await instance.acquireTokenRedirect({
+              scopes: ['Mail.Send'],
+              account: activeAccount,
+            });
+            return; // Page navigates away — execution stops here.
+          }
           throw new Error(
             'Your session has expired and a sign-in popup was blocked by the browser. ' +
             'Please tap the Login button in the header to re-authenticate, then try submitting again.'
@@ -471,6 +611,69 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     }
   };
 
+  const appendToExcel = async (data: FormData, submittedTag: string): Promise<void> => {
+    if (!EXCEL_DRIVE_ID || !EXCEL_ITEM_ID) return; // Feature not configured yet
+
+    const accounts = instance.getAllAccounts();
+    if (accounts.length === 0) return;
+
+    // Silent-only — this is best-effort and must never trigger a popup or
+    // redirect that would interrupt the user after a successful submission.
+    let tokenResponse;
+    try {
+      tokenResponse = await instance.acquireTokenSilent({
+        scopes: ['Files.ReadWrite.All'],
+        account: accounts[0],
+      });
+    } catch {
+      console.warn('LeadGen Excel append: could not acquire token silently — skipping.');
+      return;
+    }
+
+    if (!tokenResponse?.accessToken) return;
+
+    const timestamp = new Date().toISOString();
+    const photoNames = data.photos.map((p, i) => getGeneratedPhotoName(p, i)).join(', ') || 'None';
+    const mapsLink = data.latitude && data.longitude
+      ? `https://www.google.com/maps?q=${data.latitude},${data.longitude}`
+      : '';
+
+    const row = [
+      timestamp,
+      userInfo.name  || '',
+      userInfo.email || '',
+      data.address,
+      data.city,
+      data.state,
+      data.zipCode,
+      data.latitude  || '',
+      data.longitude || '',
+      mapsLink,
+      data.siteType,
+      data.notes,
+      photoNames,
+      submittedTag,
+    ];
+
+    const endpoint =
+      `https://graph.microsoft.com/v1.0/drives/${EXCEL_DRIVE_ID}` +
+      `/items/${EXCEL_ITEM_ID}/workbook/tables/${EXCEL_TABLE_NAME}/rows/add`;
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${tokenResponse.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ values: [row] }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null);
+      console.warn('LeadGen Excel append failed:', detail?.error?.message || res.statusText);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.notes.trim()) {
@@ -504,6 +707,10 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
 
     try {
       await sendEmailViaGraph(formData);
+      // TODO: configure EXCEL_DRIVE_ID + EXCEL_ITEM_ID then uncomment to activate
+      // await appendToExcel(formData, tag).catch(err =>
+      //   console.warn('LeadGen Excel append error:', err)
+      // );
       setSubmitStatus('success');
       setFormData(initialFormData);
       setGpsFromAutoFill(false);
@@ -521,6 +728,21 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           <p>Enter at least two leads per month for a chance to win our lead gen contest.</p>
           <p className="lead-signed-in">Signed in as {userInfo.email}</p>
         </div>
+
+        {/* PENDING LEGAL APPROVAL — uncomment once final disclaimer messaging is received
+        <div className="lead-safety-disclaimer">
+          <i className="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            <strong>Safety Disclaimer</strong>
+            <p>
+              Please do not take any photos, trespass, or perform any action that could put you in harm's way while
+              participating in this activity. Your safety is the top priority — never put yourself at risk for a lead
+              submission. Do not enter private property without permission, and always follow traffic laws and safe
+              driving practices when scouting locations.
+            </p>
+          </div>
+        </div>
+        */}
 
         {submitStatus === 'success' && (
           <div ref={alertRef} className="lead-alert lead-alert-success lead-alert-spotlight">
@@ -548,6 +770,16 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
             <div>
               <strong>Failed to submit lead.</strong>
               <p>{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {sessionRestored && (
+          <div className="lead-alert lead-alert-sending lead-alert-spotlight">
+            <i className="fa-solid fa-rotate"></i>
+            <div>
+              <strong>Session refreshed — your details have been restored.</strong>
+              <p>Your text fields are pre-filled. Please re-attach your photos and submit again.</p>
             </div>
           </div>
         )}
@@ -747,7 +979,9 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
                       ? (gpsAutoSource === 'exif'
                         ? 'Latitude/longitude auto-filled from photo EXIF GPS.'
                         : 'Latitude/longitude auto-filled from browser location.')
-                      : 'Coordinates can auto-fill from photo EXIF GPS, then browser location fallback.'}
+                      : (/iPhone|iPad|iPod/i.test(navigator.userAgent)
+                        ? 'Coordinates can auto-fill from photo metadata or browser location. On iPhone and iPad, library photos often reach the browser without GPS; use Take Photo or Use Current Location if coordinates stay empty.'
+                        : 'Coordinates can auto-fill from photo EXIF or XMP GPS, then browser location fallback.')}
                   </span>
                 </div>
               </div>

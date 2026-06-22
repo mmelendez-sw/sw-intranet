@@ -7,7 +7,6 @@ import { EventType } from '@azure/msal-browser';
 import { loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
-// import ImagePopup from './ImagePopup';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -64,13 +63,17 @@ const isAndroidNonEdge = (): boolean => {
   return (onAndroid || isBrave()) && !isEdge;
 };
 
+// Edge on iOS (EdgiOS) runs on WKWebView. WKWebView navigates popup windows to
+// about:blank after a cross-origin redirect, so MSAL never receives the auth
+// response from a loginPopup call. Skip popup entirely and use loginRedirect.
+const isIOSEdge = (): boolean => /edgios/i.test(navigator.userAgent);
+
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
-  // const [showPopup, setShowPopup] = useState(false);
 
   // Listen for redirect-based auth failures (e.g. CA block on the redirect flow).
   useEffect(() => {
@@ -87,12 +90,13 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const handleLogin = async () => {
     setAuthBlockError(false);
 
-    // On Android (non-Edge), Chrome popups do not reliably return from the
-    // Microsoft Authenticator app — the MFA handoff opens a Chrome Custom Tab
-    // that is a separate session from the popup, so the user never gets redirected
-    // back. Skip the popup entirely and go straight to a full-page redirect,
-    // which keeps everything in the same browser tab.
-    if (isAndroidNonEdge()) {
+    // On Android non-Edge: Chrome Custom Tabs intercept the Authenticator
+    // redirect in a separate session, so the popup never returns.
+    // On ALL iOS browsers (Safari, Edge, Chrome, etc.): Apple mandates WKWebView
+    // for every third-party browser. WKWebView navigates popup windows to
+    // about:blank after the cross-origin Microsoft redirect, so MSAL never
+    // receives the auth response. Skip popup entirely for any iOS browser.
+    if (isAndroidNonEdge() || isIOSEdge() || isMobileSafari()) {
       instance.loginRedirect(loginRequest).catch((e: any) => {
         if (isConditionalAccessError(e)) setAuthBlockError(true);
         else console.error(e);
@@ -209,12 +213,16 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             >
               Welcome, {accounts[0]?.name?.split(' ')[0]}!
               {userInfo.isEliteGroup && (
-                <span style={{ 
-                  fontSize: '0.8em', 
-                  color: '#666', 
-                  marginLeft: '5px',
-                  fontStyle: 'italic'
-                }}>
+                <span
+                  style={{
+                    fontSize: '0.8em',
+                    color: '#e6f4ff',
+                    marginLeft: '8px',
+                    fontStyle: 'italic',
+                    fontWeight: 600,
+                    textShadow: '0 0 1px rgba(0,0,0,0.35)',
+                  }}
+                >
                   (Elite)
                 </span>
               )}
@@ -233,10 +241,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           </button>
         )}
       </div>
-      {/* {showPopup && (
-        <ImagePopup onClose={() => setShowPopup(false)} />
-      )} */}
-
       {/* Shown after a Conditional Access policy explicitly blocks sign-in */}
       {authBlockError && (
         <div

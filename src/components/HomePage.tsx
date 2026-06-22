@@ -25,15 +25,13 @@ import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
 import img10Md from '../../images/emp_md.jpg';
 import img10Sm from '../../images/emp_sm.jpg';
-import img11 from '../../images/sip.jpeg';
-import img11Md from '../../images/sip_md.jpeg';
-import img11Sm from '../../images/sip_sm.jpeg';
+import img11 from '../../images/wider_app.png';
 import howBanner from '../../images/H.O.W.-banner.png';
 
 // Fallback local images indexed by card order (1-based)
 const LOCAL_IMAGES: Record<number, { src: string; srcSet?: string; sizes?: string }> = {
   1: { src: img9 },
-  2: { src: img11, srcSet: `${img11Sm} 480w, ${img11Md} 900w, ${img11} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
+  2: { src: img11 },
   3: { src: img7 },
   4: { src: img4, srcSet: `${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
   5: { src: img3, srcSet: `${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },

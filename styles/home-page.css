@@ -136,7 +136,7 @@
 .home-grid-layout {
   margin: 10px auto;
   width: 100%;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   padding: 0;
 }
@@ -151,7 +151,7 @@
   border: none;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  margin: var(--home-banner-top-gap) 0 0;
+  margin: 40px 0 0 !important;
   display: flex;
   flex-direction: column;
   align-self: start;
@@ -189,6 +189,11 @@
   gap: 20px; /* Space between cards */
 }
 
+/* Homepage: four cards in a 2×2 grid (overrides .grid-layout column count) */
+.grid-layout.home-grid-layout {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .card {
   display: flex;
   flex-direction: column; /* Keep vertical stacking of elements */
@@ -213,10 +218,6 @@
   height: 300px; /* Standardize the image height */
   object-fit: cover; /* Ensures the image scales and crops proportionally */
   margin: 0; /* Removes any extra spacing */
-}
-
-.employee-appreciation-image {
-  object-position: center 18%;
 }
 
 .card-text h2 {
@@ -245,9 +246,13 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
 }
 
-/* Alternate styles for even cards */
+/* Alternate card backgrounds (2×2: odd=white top-left & bottom-right, even=blue top-right & bottom-left) */
+.odd-card {
+  background-color: #ffffff;
+}
+
 .even-card {
-  background-color: #d9ecf9; /* Light blue background for even cards */
+  background-color: #d9ecf9; /* Light blue */
 }
 
 .text-bar {
@@ -261,20 +266,6 @@
   padding: 0; /* Reduce vertical padding */
   line-height: 1.2; /* Adjust line height */
   margin: 0;
-}
-
-/* Home sidebar styling */
-.home-sidebar {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  height: auto;
-  position: static;
-  top: auto;
-  margin-top: 40px;
 }
 
 .home-sidebar section {
@@ -467,6 +458,10 @@
 
   .grid-layout {
     grid-template-columns: 1fr; /* Cards stack vertically on small screens */
+  }
+
+  .grid-layout.home-grid-layout {
+    grid-template-columns: 1fr;
   }
 
   .card {
