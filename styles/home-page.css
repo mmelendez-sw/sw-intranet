@@ -3,6 +3,24 @@
   margin-top: -50px; /* Cancel out the main-content padding-top added for the fixed header */
 }
 
+/* TV display (fully-vertical-cards): cards only, sidebar pushed off-screen */
+.home-page.authenticated {
+  margin-top: 2.5rem;
+  overflow: hidden;
+  max-height: 100vh;
+  box-sizing: border-box;
+}
+
+.home-page.authenticated .content-container {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+
+.home-page.authenticated .sidebar {
+  margin-top: 100vh;
+  margin-bottom: 150vh;
+}
+
 .content-container {
   display: grid;
   gap: 20px;
@@ -176,6 +194,10 @@
   height: 100vh;
   background:  url('../images/site_1.jpg') no-repeat center center;
   background-size: cover;
+}
+
+.home-page.authenticated .footer {
+  margin-top: 100vh;
 }
 
 .home-page.unauthenticated .footer {
