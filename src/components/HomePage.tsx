@@ -3,12 +3,12 @@ import '../../styles/home-page.css';
 
 
 import img3 from '../../images/site_3.jpg';
-import img4 from '../../images/coat.jpg';
-import earthdayImg from '../../images/earthday.png';
+// import img4 from '../../images/coat.jpg';
+// import earthdayImg from '../../images/earthday.png';
 import img9 from '../../images/vol.jpg'
-import img10 from '../../images/emp.jpg'
-import img10Md from '../../images/emp_md.jpg'
-import img10Sm from '../../images/emp_sm.jpg'
+// import img10 from '../../images/emp.jpg'
+// import img10Md from '../../images/emp_md.jpg'
+// import img10Sm from '../../images/emp_sm.jpg'
 import img11 from '../../images/wider_app.png'
 // import img11 from '../../images/sip.jpeg'
 
@@ -30,11 +30,14 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                 <img src={img9} alt="Meals on Main Street" className="card-image" style={{ objectFit: 'contain' }} />
                 <div className="card-text">
                   <h2>Important Dates</h2>
-                  <ul>
-                      <li>6/19: Juneteenth</li>
+                    <ul>
                       <li>July - Q2 Performance Reviews</li>
                       <li>7/3: Independence Day Observed</li>
-                  </ul>
+                      <li>9/7: Labor Day</li>
+                      <li>11/26: Thanksgiving Day</li>
+                      <li>11/27: Day After Thanksgiving</li>
+                      <li>12/25: Christmas Day</li>
+                    </ul>
                 </div>
               </div>
               {/* Card 2 */}
@@ -72,7 +75,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>
                 </div>
               </div>
-              {/* Card 3 */}
+              {/* Card 3 — Earth Day (uncomment when ready)
               <div className="card odd-card">
                 <img
                   src={earthdayImg}
@@ -98,7 +101,8 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>
                 </div>
               </div>
-              {/* Card 4 */}
+              */}
+              {/* Card 4 — Person to Person Coat Drive (uncomment when ready)
               <div className="card even-card">
                 <img src={img4} alt="Food Drive" className="card-image" />
                 <div className="card-text">
@@ -108,6 +112,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>
                 </div>
               </div>
+              */}
               {/* Card 5 */}
               <div className="card odd-card">
                 <img src={img3} alt="Marketing Updates" className="card-image" />
@@ -131,7 +136,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>       
                 </div>
               </div>  
-              {/* Card 6 */}
+              {/* Card 6 — Employee Appreciation Day (uncomment when ready)
               <div className="card even-card">
                 <img
                   src={img10}
@@ -147,6 +152,7 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
                   </ul>
                 </div>
               </div>
+              */}
             </div>
 
             <aside className="sidebar">
