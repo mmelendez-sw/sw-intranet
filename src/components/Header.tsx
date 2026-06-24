@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { loginRequest } from '../authConfig';
+import { BYPASS_AUTH, loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 
@@ -200,7 +200,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         )}
       </nav>
       <div className="user">
-        {isAuthenticated && accounts[0] ? (
+        {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
           <div className="user-dropdown" style={{ position: 'relative' }}>
             <span
               onClick={toggleDropdown}
@@ -211,7 +211,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 alignItems: 'center',
               }}
             >
-              Welcome, {accounts[0]?.name?.split(' ')[0]}!
+              Welcome, {(BYPASS_AUTH ? userInfo.name : accounts[0]?.name)?.split(' ')[0]}!
               {userInfo.isEliteGroup && (
                 <span
                   style={{

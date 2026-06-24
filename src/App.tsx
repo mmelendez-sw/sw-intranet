@@ -11,20 +11,29 @@ import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import TvDisplay from './components/TvDisplay';
-import { loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
+import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
   const hasSignedInAccount = instance.getAllAccounts().length > 0;
-  const [userInfo, setUserInfo] = useState<UserInfo>({
-    isAuthenticated: false,
-    isEliteGroup: false,
-    isEditor: false,
-  });
+  const [userInfo, setUserInfo] = useState<UserInfo>(
+    BYPASS_AUTH
+      ? DEV_USER_INFO
+      : {
+          isAuthenticated: false,
+          isEliteGroup: false,
+          isEditor: false,
+        }
+  );
 
   const checkAuthentication = async () => {
+    if (BYPASS_AUTH) {
+      setUserInfo(DEV_USER_INFO);
+      return;
+    }
+
     const accounts = instance.getAllAccounts();
     if (accounts.length > 0) {
       const account = accounts[0];
@@ -159,6 +168,8 @@ const App: React.FC = () => {
 
   // Immediate elite check on app initialization
   useEffect(() => {
+    if (BYPASS_AUTH) return;
+
     const initializeEliteCheck = async () => {
       const accounts = instance.getAllAccounts();
       if (accounts.length > 0) {
@@ -219,6 +230,8 @@ const App: React.FC = () => {
 
   // Additional effect to ensure group membership is checked after initial render
   useEffect(() => {
+    if (BYPASS_AUTH) return;
+
     if (userInfo.isAuthenticated && !userInfo.isEliteGroup) {
       console.log('🔍 User authenticated but elite status not set, checking group membership...');
       

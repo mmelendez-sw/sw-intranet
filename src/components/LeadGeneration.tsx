@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
 import * as exifr from 'exifr';
+import { BYPASS_AUTH } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { getContent, SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';
 import '../../styles/lead-generation.css';
@@ -250,7 +251,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     })();
   }, [userInfo.isAuthenticated, instance]);
 
-  if (!userInfo.isAuthenticated && !hasSignedInAccount) {
+  if (!BYPASS_AUTH && !userInfo.isAuthenticated && !hasSignedInAccount) {
     return <Navigate to="/" replace />;
   }
 
