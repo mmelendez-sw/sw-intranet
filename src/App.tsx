@@ -11,7 +11,7 @@ import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
+import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
@@ -62,7 +62,10 @@ const App: React.FC = () => {
       const cachedEditorStatus = localStorage.getItem(`editor_status_${email}`);
       const cachedEditorTimestamp = localStorage.getItem(`editor_status_timestamp_${email}`);
       const editorCacheValid = cachedEditorTimestamp && (Date.now() - parseInt(cachedEditorTimestamp)) < (24 * 60 * 60 * 1000);
-      let isEditor = cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false;
+      let isEditor = resolveIsEditor(
+        cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false,
+        email
+      );
 
       if (cachedEliteStatus && cacheValid) {
         isElite = cachedEliteStatus === 'true';
@@ -101,7 +104,7 @@ const App: React.FC = () => {
               isEditorGroupMember(instance),
             ]);
             isElite = eliteResult;
-            isEditor = editorResult;
+            isEditor = resolveIsEditor(editorResult, email);
             console.log('🔍 Elite:', isElite, '| Editor:', isEditor);
 
             localStorage.setItem(`elite_status_${email}`, isElite.toString());
@@ -122,7 +125,11 @@ const App: React.FC = () => {
               localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
               localStorage.setItem(`editor_status_${email}`, 'false');
               localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
-              setUserInfo(prev => ({ ...prev, isEliteGroup: false, isEditor: false }));
+              setUserInfo(prev => ({
+                ...prev,
+                isEliteGroup: false,
+                isEditor: resolveIsEditor(false, email),
+              }));
             }
           }
         }
@@ -185,7 +192,10 @@ const App: React.FC = () => {
         const cachedEditorStatus2 = localStorage.getItem(`editor_status_${email}`);
         const cachedEditorTimestamp2 = localStorage.getItem(`editor_status_timestamp_${email}`);
         const editorCacheValid2 = cachedEditorTimestamp2 && (Date.now() - parseInt(cachedEditorTimestamp2)) < (24 * 60 * 60 * 1000);
-        const cachedIsEditor = cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false;
+        const cachedIsEditor = resolveIsEditor(
+          cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false,
+          email
+        );
 
         if (cachedEliteStatus && cacheValid) {
           const isElite = cachedEliteStatus === 'true';

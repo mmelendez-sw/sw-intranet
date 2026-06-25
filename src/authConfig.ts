@@ -50,6 +50,24 @@ export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 // IntranetEditors security group ID
 export const INTRANET_EDITORS_GROUP_ID = 'cbf6d5aa-f6ca-435d-a707-af1d1fac87a2';
 
+// Emails granted editor UI access without IntranetEditors group membership
+export const EDIT_ALLOWLIST = new Set([
+  'mmelendez@symphonyinfra.com',
+  'shuang@symphonyinfra.com',
+  'sraffington@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+  'jpeterson@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+]);
+
+export const isEditAllowlisted = (email?: string): boolean => {
+  if (!email) return false;
+  return EDIT_ALLOWLIST.has(email.toLowerCase());
+};
+
+export const resolveIsEditor = (isGroupMember: boolean, email?: string): boolean =>
+  isGroupMember || isEditAllowlisted(email);
+
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
