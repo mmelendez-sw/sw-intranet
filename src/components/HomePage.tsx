@@ -178,33 +178,47 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!editCardDraft) return;
     setSavingCard(true);
 
-    let finalDraft = { ...editCardDraft };
+    try {
+      let finalDraft = { ...editCardDraft };
 
-    if (pendingImageFile) {
-      setUploadingImage(true);
-      const uploadedUrl = await uploadImage(instance, pendingImageFile);
-      setUploadingImage(false);
-      if (uploadedUrl) {
-        finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
-      } else {
-        console.warn('[HomePage] Image upload failed — keeping existing imageUrl');
+      if (pendingImageFile) {
+        setUploadingImage(true);
+        const uploadedUrl = await uploadImage(instance, pendingImageFile);
+        setUploadingImage(false);
+
+        if (uploadedUrl) {
+          finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
+        } else {
+          window.alert('Image upload failed. Saving card without a custom image.');
+          finalDraft = { ...finalDraft, imageUrl: editCardDraft.imageUrl || '' };
+        }
+
+        setPendingImageFile(null);
       }
-      setPendingImageFile(null);
-    }
 
-    const updated = isNewCard
-      ? [...cards, finalDraft]
-      : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
+      const updated = isNewCard
+        ? [...cards, finalDraft]
+        : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
 
-    setCards(updated);
-    const ok = await setContent(instance, 'homepage-cards', updated);
-    if (!ok && !isNewCard) {
-      console.warn('[HomePage] Failed to save card, preserving editor state');
-    }
-    if (ok || isNewCard) {
+      const ok = await setContent(instance, 'homepage-cards', updated);
+      setCards(updated);
+
+      if (!ok) {
+        console.warn('[HomePage] Failed to save card to SharePoint. Card is visible locally but not persisted.');
+        window.alert('Card was saved locally, but SharePoint persistence failed. Please try again when signed in.');
+      }
+
       closeCardEdit();
+    } catch (err) {
+      console.error('[HomePage] saveCard failed:', err);
+      window.alert(
+        'Unable to save the card. Please try again. ' +
+        (err instanceof Error ? err.message : '')
+      );
+    } finally {
+      setSavingCard(false);
+      setUploadingImage(false);
     }
-    setSavingCard(false);
   };
 
   const deleteCardByOrder = async (order: number) => {
@@ -323,14 +337,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const textToBullets = (text: string) => text.split('\n').filter(l => l.trim() !== '');
 
   // ── Render helpers ──
-  const cardClass = (index: number) => index % 2 === 0 ? 'card odd-card' : 'card even-card';
+  const cardClass = (index: number) => {
+    if (index === 0) return 'card odd-card';
+    const block = Math.floor((index - 1) / 2);
+    return block % 2 === 0 ? 'card even-card' : 'card odd-card';
+  };
 
   const renderCardImage = (card: CardContent, index: number) => {
     if (card.imageUrl) {
       return <img src={card.imageUrl} alt={card.title} className="card-image" />;
     }
-    const local = LOCAL_IMAGES[card.order];
-    if (!local) return null;
+
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const fallbackIndex = ((card.order - 1) % totalFallbacks) + 1;
+    const local = LOCAL_IMAGES[fallbackIndex];
+
     return (
       <img
         src={local.src}

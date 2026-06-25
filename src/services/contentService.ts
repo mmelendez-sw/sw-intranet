@@ -15,7 +15,29 @@
  * Content keys:   "homepage-cards" | "homepage-sidebar" | "reports"
  */
 
-import { SHAREPOINT_HOST, SHAREPOINT_SITE_PATH } from '../authConfig';
+import { BYPASS_AUTH, SHAREPOINT_HOST, SHAREPOINT_SITE_PATH } from '../authConfig';
+
+const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
+
+function readLocalContent<T>(key: string): T | null {
+  try {
+    const raw = window.localStorage.getItem(`${LOCAL_CONTENT_PREFIX}${key}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch (err) {
+    console.warn('[contentService] readLocalContent failed:', err);
+    return null;
+  }
+}
+
+function writeLocalContent<T>(key: string, data: T): boolean {
+  try {
+    window.localStorage.setItem(`${LOCAL_CONTENT_PREFIX}${key}`, JSON.stringify(data));
+    return true;
+  } catch (err) {
+    console.warn('[contentService] writeLocalContent failed:', err);
+    return false;
+  }
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -221,12 +243,30 @@ async function getToken(msalInstance: any): Promise<string | null> {
   try {
     const accounts = msalInstance.getAllAccounts();
     if (!accounts.length) return null;
-    const result = await msalInstance.acquireTokenSilent({
+
+    const tokenRequest = {
       scopes: ['Sites.ReadWrite.All'],
       account: accounts[0],
-    });
-    return result.accessToken;
-  } catch {
+    };
+
+    try {
+      const result = await msalInstance.acquireTokenSilent(tokenRequest);
+      return result.accessToken;
+    } catch (silentError) {
+      console.warn('[contentService] acquireTokenSilent failed, trying popup fallback', silentError);
+      if (typeof msalInstance.acquireTokenPopup === 'function') {
+        try {
+          const result = await msalInstance.acquireTokenPopup(tokenRequest);
+          return result.accessToken;
+        } catch (popupError) {
+          console.error('[contentService] acquireTokenPopup failed:', popupError);
+          return null;
+        }
+      }
+      return null;
+    }
+  } catch (err) {
+    console.error('[contentService] getToken failed:', err);
     return null;
   }
 }
@@ -282,6 +322,36 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
 
 // ─── Image upload ─────────────────────────────────────────────────────────────
 
+async function ensureDriveFolder(siteId: string, token: string, folderName: string): Promise<void> {
+  const folderRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent(folderName)}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (folderRes.ok) return;
+  if (folderRes.status !== 404) {
+    throw new Error(`Could not verify drive folder: ${folderRes.status}`);
+  }
+
+  const createRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root/children`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: folderName,
+        folder: {},
+        '@microsoft.graph.conflictBehavior': 'replace',
+      }),
+    }
+  );
+  if (!createRes.ok) {
+    throw new Error(`Could not create drive folder: ${createRes.status}`);
+  }
+}
+
 /**
  * Upload an image file to the IntranetImages folder in the site's default
  * Documents drive.  Returns the permanent SharePoint webUrl on success, or
@@ -298,13 +368,14 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     if (!token) throw new Error('Could not acquire token for image upload');
 
     const siteId = await getSiteId(token);
+    await ensureDriveFolder(siteId, token, 'IntranetImages');
 
     // Unique filename to avoid collisions
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${safeName}`;
 
     const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${filename}:/content`,
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${encodeURIComponent(filename)}:/content`,
       {
         method: 'PUT',
         headers: {
@@ -316,7 +387,8 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     );
 
     if (!res.ok) {
-      console.error(`[contentService] uploadImage failed: ${res.status} ${res.statusText}`);
+      const errorText = await res.text().catch(() => 'Unable to read error body');
+      console.error(`[contentService] uploadImage failed: ${res.status} ${res.statusText} - ${errorText}`);
       return null;
     }
 
@@ -336,6 +408,10 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
  * has not been saved yet (callers should fall back to their DEFAULT_* constant).
  */
 export async function getContent<T>(msalInstance: any, key: string): Promise<T | null> {
+  if (BYPASS_AUTH) {
+    return readLocalContent<T>(key);
+  }
+
   try {
     const token = await getToken(msalInstance);
     if (!token) return null;
@@ -364,6 +440,10 @@ export async function getContent<T>(msalInstance: any, key: string): Promise<T |
  * Write a content block back to SharePoint.  Returns true on success.
  */
 export async function setContent<T>(msalInstance: any, key: string, data: T): Promise<boolean> {
+  if (BYPASS_AUTH) {
+    return writeLocalContent(key, data);
+  }
+
   try {
     const token = await getToken(msalInstance);
     if (!token) throw new Error('Could not acquire SharePoint token. Ensure Sites.ReadWrite.All has been admin-consented.');
