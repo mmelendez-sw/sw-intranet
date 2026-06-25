@@ -124,18 +124,22 @@ const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
 
+const sortCardsByOrder = (cardList: CardContent[]): CardContent[] =>
+  [...cardList].sort((a, b) => a.order - b.order);
+
+/** Assign sequential order values; preserves the array's current display order. */
+const renumberCards = (cardList: CardContent[]): CardContent[] =>
+  cardList.map((c, i) => ({ ...c, order: i + 1 }));
+
 const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
   const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-  return remoteCards.map((card, idx) => ({
+  return renumberCards(sortCardsByOrder(remoteCards)).map((card, idx) => ({
     ...card,
     imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as CardContent['imageIndex']),
   }));
 };
 
 const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
-
-const renumberCards = (cardList: CardContent[]): CardContent[] =>
-  [...cardList].sort((a, b) => a.order - b.order).map((c, i) => ({ ...c, order: i + 1 }));
 
 const getInitialCards = (): CardContent[] => {
   const cached = getCachedContent<CardContent[]>(CARDS_CONTENT_KEY);
@@ -202,6 +206,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const originalCardImageUrlRef = useRef('');
   const lastLocalCardSaveRef = useRef(0);
   const skipNextAutosaveRef = useRef(false);
+  const draggingCardIdxRef = useRef<number | null>(null);
+  const userModifiedCardsRef = useRef(false);
+  const hasFetchedCardsRef = useRef(false);
 
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
@@ -209,9 +216,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
     if (result.ok) {
       setCards(sanitized);
-      if (result.storage === 'local') {
-        lastLocalCardSaveRef.current = Date.now();
-      }
+      lastLocalCardSaveRef.current = Date.now();
+      userModifiedCardsRef.current = true;
       setCardSaveStatus(result.storage === 'sharepoint' ? 'saved' : 'saved-local');
       return true;
     }
@@ -219,22 +225,48 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     return false;
   }, [instance]);
 
+  const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
+    userModifiedCardsRef.current = true;
+    lastLocalCardSaveRef.current = Date.now();
+    setCards(withNewOrders);
+    return persistCardsToSharePoint(withNewOrders);
+  }, [persistCardsToSharePoint]);
+
   // ── Load content from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const [remoteCards, remoteHero, remoteAnnouncements] = await Promise.all([
-        getContent<CardContent[]>(instance, CARDS_CONTENT_KEY),
-        getContent<string>(instance, 'homepage-hero'),
-        getContent<Announcement[]>(instance, 'announcements'),
-      ]);
-      if (remoteCards) {
-        setCards(normalizeCards(remoteCards));
-      }
-      if (remoteHero) setHeroImageUrl(remoteHero);
-      if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+    if (hasFetchedCardsRef.current) {
       setContentLoaded(true);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [remoteCards, remoteHero, remoteAnnouncements] = await Promise.all([
+          getContent<CardContent[]>(instance, CARDS_CONTENT_KEY),
+          getContent<string>(instance, 'homepage-hero'),
+          getContent<Announcement[]>(instance, 'announcements'),
+        ]);
+        if (cancelled) return;
+
+        hasFetchedCardsRef.current = true;
+        if (remoteCards && !userModifiedCardsRef.current) {
+          setCards(normalizeCards(remoteCards));
+        }
+        if (remoteHero) setHeroImageUrl(remoteHero);
+        if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+      } catch (err) {
+        console.error('[HomePage] failed to load content:', err);
+        hasFetchedCardsRef.current = true;
+      } finally {
+        if (!cancelled) setContentLoaded(true);
+      }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [userInfo.isAuthenticated, instance]);
 
   // ── Poll SharePoint so all devices stay in sync ──
@@ -243,11 +275,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
     const syncCardsFromSharePoint = async () => {
       if (editCardDraftRef.current) return;
-      if (Date.now() - lastLocalCardSaveRef.current < 120_000) return;
+      if (userModifiedCardsRef.current && Date.now() - lastLocalCardSaveRef.current < 120_000) return;
       const remote = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (!remote) return;
       const normalized = normalizeCards(remote);
       if (!cardsMatch(normalized, cardsRef.current)) {
+        userModifiedCardsRef.current = false;
         setCards(normalized);
       }
     };
@@ -416,7 +449,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const deleteCardByOrder = async (order: number) => {
     if (!window.confirm('Delete this card?')) return;
     setSavingCard(true);
-    const updated = renumberCards(cards.filter((c) => c.order !== order));
+    const updated = renumberCards(cardsRef.current.filter((c) => c.order !== order));
     const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
       const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
@@ -437,32 +470,44 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Card reordering ──
   const moveCard = async (currentIdx: number, direction: 'up' | 'down') => {
-    const sorted = [...cards].sort((a, b) => a.order - b.order);
+    const displayOrder = [...cardsRef.current];
     const targetIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
-    if (targetIdx < 0 || targetIdx >= sorted.length) return;
-    const reordered = [...sorted];
+    if (targetIdx < 0 || targetIdx >= displayOrder.length) return;
+    const reordered = [...displayOrder];
     [reordered[currentIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[currentIdx]];
-    const withNewOrders = renumberCards(reordered);
-    setCards(withNewOrders);
-    await persistCardsToSharePoint(withNewOrders);
+    await applyCardOrderChange(renumberCards(reordered));
   };
 
   const onCardDrop = async (e: React.DragEvent, targetIdx: number) => {
     e.preventDefault();
-    if (draggingCardIdx === null || draggingCardIdx === targetIdx) {
+    e.stopPropagation();
+    const fromIdx = draggingCardIdxRef.current;
+    if (fromIdx === null || fromIdx === targetIdx) {
+      draggingCardIdxRef.current = null;
       setDraggingCardIdx(null);
       setDragOverCardIdx(null);
       return;
     }
-    const sorted = [...cards].sort((a, b) => a.order - b.order);
-    const reordered = [...sorted];
-    const [moved] = reordered.splice(draggingCardIdx, 1);
+    const reordered = [...cardsRef.current];
+    const [moved] = reordered.splice(fromIdx, 1);
     reordered.splice(targetIdx, 0, moved);
-    const withNewOrders = renumberCards(reordered);
-    setCards(withNewOrders);
+    draggingCardIdxRef.current = null;
     setDraggingCardIdx(null);
     setDragOverCardIdx(null);
-    await persistCardsToSharePoint(withNewOrders);
+    await applyCardOrderChange(renumberCards(reordered));
+  };
+
+  const onCardDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('text/plain', String(index));
+    e.dataTransfer.effectAllowed = 'move';
+    draggingCardIdxRef.current = index;
+    setDraggingCardIdx(index);
+  };
+
+  const onCardDragEnd = () => {
+    draggingCardIdxRef.current = null;
+    setDraggingCardIdx(null);
+    setDragOverCardIdx(null);
   };
 
   // ── Announcement editing ──
@@ -528,8 +573,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   };
 
   const renderCardImage = (card: CardContent, index: number) => {
+    const blockImageDrag = canEdit
+      ? { draggable: false, onDragStart: (e: React.DragEvent) => e.preventDefault() }
+      : {};
+
     if (card.imageUrl) {
-      return <img src={card.imageUrl} alt={card.title} className="card-image" />;
+      return <img src={card.imageUrl} alt={card.title} className="card-image" {...blockImageDrag} />;
     }
 
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
@@ -543,6 +592,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         sizes={local.sizes}
         alt={card.title}
         className="card-image"
+        {...blockImageDrag}
       />
     );
   };
@@ -622,9 +672,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Cards Grid ── */}
               <div className="grid-layout home-grid-layout">
-                {[...cards].sort((a, b) => a.order - b.order).map((card, index, sortedArr) => (
+                {cards.map((card, index) => (
                   <div
-                    key={`card-${card.title}-${card.order}`}
+                    key={`card-${card.order}-${card.title}`}
                     className={[
                       cardClass(index),
                       'editable-wrapper',
@@ -632,14 +682,26 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       draggingCardIdx === index ? 'card-dragging' : '',
                       dragOverCardIdx === index && draggingCardIdx !== index ? 'card-drag-over' : '',
                     ].filter(Boolean).join(' ')}
-                    draggable={canEdit}
-                    onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDraggingCardIdx(index); }}
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverCardIdx(index); }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      setDragOverCardIdx(index);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setDragOverCardIdx((current) => (current === index ? null : current));
+                      }
+                    }}
                     onDrop={(e) => onCardDrop(e, index)}
-                    onDragEnd={() => { setDraggingCardIdx(null); setDragOverCardIdx(null); }}
                   >
-                    {canEdit && (
-                      <div className="card-drag-handle" title="Drag to reorder">
+                    {canEdit && contentLoaded && (
+                      <div
+                        className="card-drag-handle"
+                        title="Drag to reorder"
+                        draggable
+                        onDragStart={(e) => onCardDragStart(e, index)}
+                        onDragEnd={onCardDragEnd}
+                      >
                         <div className="drag-dots">
                           <span /><span /><span /><span /><span /><span />
                         </div>
@@ -654,21 +716,23 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                         ))}
                       </ul>
                     </div>
-                    {canEdit && (
+                    {canEdit && contentLoaded && (
                       <div className="card-reorder-row">
                         <button
+                          type="button"
                           className="card-reorder-btn"
-                          onClick={(e) => { e.stopPropagation(); moveCard(index, 'up'); }}
+                          onClick={(e) => { e.stopPropagation(); void moveCard(index, 'up'); }}
                           disabled={index === 0}
                           title="Move card up"
                         >↑</button>
                         <button
+                          type="button"
                           className="card-reorder-btn"
-                          onClick={(e) => { e.stopPropagation(); moveCard(index, 'down'); }}
-                          disabled={index === sortedArr.length - 1}
+                          onClick={(e) => { e.stopPropagation(); void moveCard(index, 'down'); }}
+                          disabled={index === cards.length - 1}
                           title="Move card down"
                         >↓</button>
-                        <button className="edit-pencil-btn" style={{ position: 'static', opacity: 1, marginLeft: 4 }} onClick={() => openCardEdit(card)} title="Edit card">
+                        <button type="button" className="edit-pencil-btn" style={{ position: 'static', opacity: 1, marginLeft: 4 }} onClick={() => openCardEdit(card)} title="Edit card">
                           ✏ Edit
                         </button>
                       </div>
@@ -743,10 +807,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             <div
               className="edit-upload-area"
               onClick={() => fileInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('dragover'); }}
-              onDragLeave={e => e.currentTarget.classList.remove('dragover')}
+              onDragEnter={e => { e.preventDefault(); e.stopPropagation(); }}
+              onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.classList.add('dragover'); }}
+              onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('dragover'); }}
               onDrop={e => {
                 e.preventDefault();
+                e.stopPropagation();
                 e.currentTarget.classList.remove('dragover');
                 const file = e.dataTransfer.files?.[0];
                 if (file && file.type.startsWith('image/')) handleImageFileChange(file);

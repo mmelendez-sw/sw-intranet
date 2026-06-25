@@ -293,6 +293,15 @@
   cursor: default;
 }
 
+.card-reorderable .card-image,
+.card-reorderable .card-text {
+  -webkit-user-drag: none;
+}
+
+.card-reorderable a {
+  pointer-events: none;
+}
+
 /* Drag grip handle — shown top-left in editor mode */
 .card-drag-handle {
   position: absolute;
@@ -306,9 +315,10 @@
   background: rgba(255,255,255,0.85);
   border-radius: 6px;
   cursor: grab;
-  opacity: 0;
+  opacity: 0.85;
   transition: opacity 0.2s;
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  touch-action: none;
 }
 
 .card-reorderable:hover .card-drag-handle {
@@ -351,6 +361,8 @@
   gap: 4px;
   justify-content: flex-end;
   padding: 4px 8px 8px;
+  position: relative;
+  z-index: 12;
 }
 
 .card-reorder-btn {
