@@ -132,7 +132,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         getContent<string>(instance, 'homepage-hero'),
         getContent<Announcement[]>(instance, 'announcements'),
       ]);
-      if (remoteCards) setCards(remoteCards);
+      if (remoteCards) {
+        // Ensure all cards have imageIndex; assign if missing
+        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+        const withImageIndex = remoteCards.map((card, idx) => ({
+          ...card,
+          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
+        }));
+        setCards(withImageIndex);
+      }
       if (remoteHero) setHeroImageUrl(remoteHero);
       if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
       setContentLoaded(true);
@@ -150,12 +158,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const openNewCardEdit = useCallback(() => {
     const nextOrder = cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1;
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const nextImageIndex = ((cards.length % totalFallbacks) + 1);
     setEditingCard(null);
     setEditCardDraft({
       order: nextOrder,
       title: 'New Card',
       bullets: ['Add your content here.'],
       imageUrl: '',
+      imageIndex: nextImageIndex,
     });
     setPendingImageFile(null);
     setImagePreviewUrl('');
@@ -237,7 +248,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!ok) {
       console.warn('[HomePage] Failed to delete card, restoring local state');
       const remoteCards = await getContent<CardContent[]>(instance, 'homepage-cards');
-      if (remoteCards) setCards(remoteCards);
+      if (remoteCards) {
+        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+        const withImageIndex = remoteCards.map((card, idx) => ({
+          ...card,
+          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
+        }));
+        setCards(withImageIndex);
+      }
     }
     setSavingCard(false);
     closeCardEdit();
@@ -356,7 +374,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
 
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-    const fallbackIndex = ((card.order - 1) % totalFallbacks) + 1;
+    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
     const local = LOCAL_IMAGES[fallbackIndex];
 
     return (
@@ -447,7 +465,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <div className="grid-layout home-grid-layout">
                 {[...cards].sort((a, b) => a.order - b.order).map((card, index, sortedArr) => (
                   <div
-                    key={card.order}
+                    key={`card-${card.title}-${card.order}`}
                     className={[
                       cardClass(index),
                       'editable-wrapper',

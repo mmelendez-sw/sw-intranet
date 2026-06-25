@@ -48,6 +48,8 @@ export interface CardContent {
   bullets: string[];
   /** Public image URL.  Empty string → component falls back to its bundled default. */
   imageUrl: string;
+  /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
+  imageIndex?: number;
 }
 
 export interface SidebarSection {
@@ -150,6 +152,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '12/25: Christmas Day',
     ],
     imageUrl: '',
+    imageIndex: 1,
   },
   {
     order: 2,
@@ -162,6 +165,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '<a href="https://symphonyinfrastructure.sharepoint.com/:w:/r/sites/SymphonyWirelessTeam/Shared%20Documents/Marketing/Mobile%20Application/Lead%20Generation%20on%20Desktop.docx?d=w8c75eaf79afe4fbd80c32c0f5b2ada4f&csf=1&web=1&e=0mifAu" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to submit the leads from desktop browser.',
     ],
     imageUrl: '',
+    imageIndex: 2,
   },
   {
     order: 3,
@@ -174,6 +178,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '<a href="https://www.youtube.com/watch?v=eg2OMjNgtHg" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>',
     ],
     imageUrl: '',
+    imageIndex: 3,
   },
 ];
 
