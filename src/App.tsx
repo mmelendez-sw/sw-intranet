@@ -410,8 +410,10 @@ const App: React.FC = () => {
           element={
             <EditMenuProvider>
               <Header userInfo={userInfo} />
-              <AlertBanner userInfo={userInfo} />
-              <Ticker userInfo={userInfo} />
+              <div className="below-header">
+                <AlertBanner userInfo={userInfo} />
+                <Ticker userInfo={userInfo} />
+              </div>
               <div className="main-content">
                 <Routes>
                   <Route path="/" element={<HomePage userInfo={userInfo} />} />

@@ -133,15 +133,17 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
     <>
       {sortedItems.length > 0 && (
         <div className="ticker-wrap">
-          <div className="ticker">
-            {sortedItems.map(item => (
-              <div key={item.id} className="ticker__item">- {item.text}</div>
-            ))}
+          <div className="ticker-track">
+            <div className="ticker">
+              {sortedItems.map(item => (
+                <div key={item.id} className="ticker__item">- {item.text}</div>
+              ))}
+            </div>
           </div>
           {canEdit && (
             <button
-              className="edit-pencil-btn"
-              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', opacity: 1, zIndex: 10 }}
+              type="button"
+              className="ticker-edit-btn"
               onClick={() => setManagingTicker(true)}
               title="Manage ticker items"
             >
