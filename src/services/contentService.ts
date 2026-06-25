@@ -352,6 +352,21 @@ async function ensureDriveFolder(siteId: string, token: string, folderName: stri
   }
 }
 
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('FileReader result was not a string'));
+      }
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
 /**
  * Upload an image file to the IntranetImages folder in the site's default
  * Documents drive.  Returns the permanent SharePoint webUrl on success, or
@@ -363,9 +378,21 @@ async function ensureDriveFolder(siteId: string, token: string, folderName: stri
  *   Documents/IntranetImages/<timestamp>-<originalFilename>
  */
 export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
+  if (BYPASS_AUTH) {
+    try {
+      return await fileToDataUrl(file);
+    } catch (err) {
+      console.error('[contentService] uploadImage bypass fallback failed:', err);
+      return null;
+    }
+  }
+
   try {
     const token = await getToken(msalInstance);
-    if (!token) throw new Error('Could not acquire token for image upload');
+    if (!token) {
+      console.error('[contentService] uploadImage: no token acquired');
+      return null;
+    }
 
     const siteId = await getSiteId(token);
     await ensureDriveFolder(siteId, token, 'IntranetImages');
@@ -374,17 +401,16 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${safeName}`;
 
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${encodeURIComponent(filename)}:/content`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': file.type || 'application/octet-stream',
-        },
-        body: file,
-      }
-    );
+    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${encodeURIComponent(filename)}:/content`;
+
+    const res = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: file,
+    });
 
     if (!res.ok) {
       const errorText = await res.text().catch(() => 'Unable to read error body');
@@ -393,8 +419,12 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     }
 
     const item = await res.json();
-    // webUrl is permanent; @microsoft.graph.downloadUrl expires in ~1 hour
-    return (item.webUrl as string) ?? null;
+    if (!item?.webUrl) {
+      console.error('[contentService] uploadImage did not return webUrl', item);
+      return null;
+    }
+
+    return item.webUrl as string;
   } catch (err) {
     console.error('[contentService] uploadImage error:', err);
     return null;
