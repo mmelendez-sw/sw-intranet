@@ -9,6 +9,7 @@ import {
   DEFAULT_TICKER_ITEMS,
 } from '../services/contentService';
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 
 interface TickerProps {
   userInfo: UserInfo;
@@ -55,7 +56,9 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
 
 const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
   const { instance } = useMsal();
+  const { isEditMode } = useEditMode();
   const isEditor = userInfo.isEditor;
+  const canEdit = isEditor && isEditMode;
 
   const [items, setItems] = useState<TickerItem[]>(DEFAULT_TICKER_ITEMS);
   const [editingItem, setEditingItem] = useState<TickerItem | null>(null);
@@ -130,15 +133,17 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
     <>
       {sortedItems.length > 0 && (
         <div className="ticker-wrap">
-          <div className="ticker">
-            {sortedItems.map(item => (
-              <div key={item.id} className="ticker__item">- {item.text}</div>
-            ))}
+          <div className="ticker-track">
+            <div className="ticker">
+              {sortedItems.map(item => (
+                <div key={item.id} className="ticker__item">- {item.text}</div>
+              ))}
+            </div>
           </div>
-          {isEditor && (
+          {canEdit && (
             <button
-              className="edit-pencil-btn"
-              style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', opacity: 1, zIndex: 10 }}
+              type="button"
+              className="ticker-edit-btn"
               onClick={() => setManagingTicker(true)}
               title="Manage ticker items"
             >
@@ -149,7 +154,7 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
       )}
 
       {/* Editors with no items see a prompt to add some */}
-      {sortedItems.length === 0 && isEditor && (
+      {sortedItems.length === 0 && canEdit && (
         <div style={{ background: '#f0f0f0', borderBottom: '1px solid #ddd', padding: '4px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 12, color: '#888' }}>No ticker items</span>
           <button className="site-alert-edit-btn" style={{ background: '#0d6efd', color: '#fff' }} onClick={() => setManagingTicker(true)}>

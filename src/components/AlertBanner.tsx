@@ -4,6 +4,7 @@ import '../../styles/alert-banner.css';
 import '../../styles/edit-mode.css';
 import { getContent, setContent, SiteAlert, DEFAULT_ALERT } from '../services/contentService';
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 
 interface AlertBannerProps {
   userInfo: UserInfo;
@@ -89,6 +90,8 @@ const AlertEditModal: React.FC<EditModalProps> = ({ draft, onChange, onSave, onC
 
 const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
   const { instance } = useMsal();
+  const { isEditMode } = useEditMode();
+  const canEdit = userInfo.isEditor && isEditMode;
   const [alert, setAlert] = useState<SiteAlert>(DEFAULT_ALERT);
   const [dismissed, setDismissed] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -144,7 +147,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
               </a>
             )}
           </span>
-          {userInfo.isEditor && (
+          {canEdit && (
             <button className="site-alert-edit-btn" onClick={openEdit}>✏ Edit</button>
           )}
           <button className="site-alert-dismiss" onClick={dismiss} aria-label="Dismiss alert">&times;</button>
@@ -152,7 +155,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
       )}
 
       {/* When no banner is active, editors see a small "Set Alert" button */}
-      {!showBanner && userInfo.isEditor && (
+      {!showBanner && canEdit && (
         <div style={{ background: '#f0f0f0', borderBottom: '1px solid #ddd', padding: '4px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 12, color: '#888' }}>No active alert</span>
           <button className="site-alert-edit-btn" style={{ background: '#0d6efd', color: '#fff' }} onClick={openEdit}>

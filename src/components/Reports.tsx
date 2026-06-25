@@ -3,6 +3,7 @@ import '../styles/reports.css';
 import '../../styles/edit-mode.css';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
@@ -63,6 +64,8 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
+  const { isEditMode } = useEditMode();
+  const canEdit = isEditor && isEditMode;
 
   const [allReports, setAllReports] = useState<ReportItemContent[]>(DEFAULT_REPORTS);
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
@@ -155,7 +158,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                 <tr>
                   <th>Title</th>
                   <th>Description</th>
-                  {isEditor && <th style={{ width: 80 }}>Edit</th>}
+                  {canEdit && <th style={{ width: 80 }}>Edit</th>}
                 </tr>
               </thead>
               <tbody>
@@ -171,7 +174,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                       )}
                     </td>
                     <td className="report-description-cell">{report.description}</td>
-                    {isEditor && (
+                    {canEdit && (
                       <td>
                         <div className="edit-row-actions">
                           <button className="edit-row-btn" onClick={() => openEdit(report)}>✏</button>
@@ -183,7 +186,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
               </tbody>
             </table>
 
-            {isEditor && (
+            {canEdit && (
               <div style={{ padding: '10px 0' }}>
                 <button className="edit-add-btn" onClick={addReport}>+ Add Report</button>
               </div>

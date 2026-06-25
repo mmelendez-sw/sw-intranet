@@ -14,6 +14,7 @@ import TvDisplay from './components/TvDisplay';
 import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
+import { EditMenuProvider } from './context/EditMenuContext';
 
 const App: React.FC = () => {
   const { instance } = useMsal();
@@ -407,10 +408,12 @@ const App: React.FC = () => {
         <Route
           path="/*"
           element={
-            <>
+            <EditMenuProvider>
               <Header userInfo={userInfo} />
-              <AlertBanner userInfo={userInfo} />
-              <Ticker userInfo={userInfo} />
+              <div className="below-header">
+                <AlertBanner userInfo={userInfo} />
+                <Ticker userInfo={userInfo} />
+              </div>
               <div className="main-content">
                 <Routes>
                   <Route path="/" element={<HomePage userInfo={userInfo} />} />
@@ -427,7 +430,7 @@ const App: React.FC = () => {
                   )}
                 </Routes>
               </div>
-            </>
+            </EditMenuProvider>
           }
         />
       </Routes>

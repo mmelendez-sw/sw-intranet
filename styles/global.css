@@ -101,44 +101,15 @@ body {
   left: 0;
 }
 
-/* Ticker Styles */
-.ticker-wrap {
-  margin-top: 10px;
-  position: fixed;
-  top: 3.7rem; /* Positioned below the header */
-  width: 100%;
-  overflow: hidden;
-  height: 3rem;
-  background-color: white;
-  padding-left: 100%;
-  box-sizing: content-box;
-  z-index: 1000; /* Ensure it stays on top */
+/* Ticker styles live in ticker.css */
+
+.below-header {
+  margin-top: 3.7rem; /* clear fixed header */
 }
 
-.ticker {
-  display: inline-block;
-  height: 3rem;
-  line-height: 3rem;
-  white-space: nowrap;
-  padding-right: 100%;
-  box-sizing: content-box;
-  animation: ticker 30s linear infinite;
-}
-
-.ticker__item {
-  display: inline-block;
-  padding: 0 2rem;
-  font-size: 1.5rem;
-  color: var(--symphony-blue);
-}
-
-@keyframes ticker {
-  0% {
-      transform: translate3d(0, 0, 0);
-      visibility: visible;
-  }
-  100% {
-      transform: translate3d(-100%, 0, 0);
+@media (max-width: 768px) {
+  .below-header {
+    margin-top: 0;
   }
 }
 
