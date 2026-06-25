@@ -10,6 +10,9 @@
  * Homepage cards (text + metadata) are stored as homepage-cards.json in:
  *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
+ * Card images are stored in:
+ *   Shared Documents/General/intranet/images
+ *
  * Other content blocks use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
@@ -21,6 +24,7 @@ import {
   SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_FOLDER_PATH,
+  INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
 } from '../authConfig';
 
@@ -558,7 +562,7 @@ export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): P
 }
 
 /**
- * Upload an image file to Shared Documents/General/intranet on the
+ * Upload an image file to Shared Documents/General/intranet/images on the
  * SymphonyWirelessTeam site. Returns the permanent SharePoint webUrl on success.
  */
 export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
@@ -646,7 +650,7 @@ async function readContentFromSharePointDrive<T>(
   token: string,
   fileName: string
 ): Promise<T | null> {
-  const filePath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${fileName}`;
+  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
   const res = await fetch(
     `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -698,8 +702,8 @@ async function writeContentToSharePointDrive<T>(
   fileName: string,
   data: T
 ): Promise<boolean> {
-  await ensureDriveFolderPath(siteId, token, IMAGE_SHAREPOINT_FOLDER_PATH);
-  const filePath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${fileName}`;
+  await ensureDriveFolderPath(siteId, token, INTRANET_CONTENT_FOLDER_PATH);
+  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
   const jsonBody = JSON.stringify(data, null, 2);
 
   const existing = await getDriveItemByPath(siteId, token, filePath);

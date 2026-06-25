@@ -775,7 +775,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             </div>
             <span className="edit-field-hint">
               Card text saves to Shared Documents/General/intranet/homepage-cards.json.
-              Images upload to the same folder.
+              Images upload to Shared Documents/General/intranet/images.
             </span>
 
             {/* Divider */}
