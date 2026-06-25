@@ -195,12 +195,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
     try {
       let finalDraft = { ...editCardDraft };
+      let uploadedUrl: string | null = null;
+      let attemptedFileUpload = false;
 
       if (pendingImageFile || editCardDraft.imageUrl) {
         setUploadingImage(true);
-        let uploadedUrl: string | null = null;
 
         if (pendingImageFile) {
+          attemptedFileUpload = true;
           uploadedUrl = await uploadImage(instance, pendingImageFile);
           setPendingImageFile(null);
         } else if (editCardDraft.imageUrl && !editCardDraft.imageUrl.startsWith('data:')) {
@@ -211,7 +213,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
         if (uploadedUrl) {
           finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
-        } else if (pendingImageFile) {
+        } else if (attemptedFileUpload) {
           window.alert('Image upload failed. Saving card without a custom image.');
           finalDraft = { ...finalDraft, imageUrl: editCardDraft.imageUrl || '' };
         }
@@ -222,14 +224,16 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
 
       const ok = await setContent(instance, 'homepage-cards', updated);
-      setCards(updated);
-
-      if (!ok) {
-        console.warn('[HomePage] Failed to save card to SharePoint. Card is visible locally but not persisted.');
-        window.alert('Card was saved locally, but SharePoint persistence failed. Please try again when signed in.');
+      if (ok) {
+        setCards(updated);
+        closeCardEdit();
+      } else {
+        window.alert(
+          uploadedUrl
+            ? 'Image uploaded, but the card could not be saved. Please try saving again.'
+            : 'Unable to save the card. Please try again when signed in.'
+        );
       }
-
-      closeCardEdit();
     } catch (err) {
       console.error('[HomePage] saveCard failed:', err);
       window.alert(

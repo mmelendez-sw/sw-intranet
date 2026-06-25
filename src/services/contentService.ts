@@ -325,6 +325,92 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
   return _listId;
 }
 
+async function findListItemId(
+  siteId: string,
+  listId: string,
+  token: string,
+  key: string
+): Promise<string | null> {
+  const escapedKey = key.replace(/'/g, "''");
+  const filterRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$filter=fields/Title eq '${escapedKey}'&$select=id`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (filterRes.ok) {
+    const filterData = await filterRes.json();
+    if (filterData.value?.length > 0) {
+      return filterData.value[0].id as string;
+    }
+  } else {
+    const filterErr = await filterRes.text().catch(() => '');
+    console.warn(`[contentService] list filter failed for "${key}": ${filterRes.status} ${filterErr}`);
+  }
+
+  // Fallback when indexed $filter is unavailable or returns no rows
+  type ListItemPage = {
+    value?: Array<{ id?: string; fields?: { Title?: string } }>;
+    ['@odata.nextLink']?: string;
+  };
+
+  let nextUrl: string | null =
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$expand=fields($select=Title)&$select=id,fields&$top=100`;
+
+  while (nextUrl) {
+    const res: Response = await fetch(nextUrl, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.warn(`[contentService] list scan failed for "${key}": ${res.status} ${errText}`);
+      break;
+    }
+    const page: ListItemPage = await res.json();
+    const match = page.value?.find((item: { fields?: { Title?: string } }) => item.fields?.Title === key);
+    if (match?.id) return match.id as string;
+    nextUrl = page['@odata.nextLink'] ?? null;
+  }
+
+  return null;
+}
+
+async function persistContentToSharePoint<T>(
+  siteId: string,
+  listId: string,
+  token: string,
+  key: string,
+  data: T
+): Promise<boolean> {
+  const contentJson = JSON.stringify(data);
+  const itemId = await findListItemId(siteId, listId, token, key);
+
+  if (itemId) {
+    const patchRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${itemId}/fields`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ContentJson: contentJson }),
+      }
+    );
+    if (patchRes.ok) return true;
+    const patchErr = await patchRes.text().catch(() => '');
+    console.error(`[contentService] PATCH "${key}" failed: ${patchRes.status} ${patchErr}`);
+    return false;
+  }
+
+  const createRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { Title: key, ContentJson: contentJson } }),
+    }
+  );
+  if (createRes.ok) return true;
+  const createErr = await createRes.text().catch(() => '');
+  console.error(`[contentService] CREATE "${key}" failed: ${createRes.status} ${createErr}`);
+  return false;
+}
+
 // ─── Image upload ─────────────────────────────────────────────────────────────
 
 async function ensureDriveFolder(siteId: string, token: string, folderName: string): Promise<void> {
@@ -466,11 +552,11 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
       );
       if (infoRes.ok) {
         const info = await infoRes.json();
-        if (info?.['@microsoft.graph.downloadUrl']) {
-          return info['@microsoft.graph.downloadUrl'] as string;
-        }
         if (info?.webUrl) {
           return info.webUrl as string;
+        }
+        if (info?.['@microsoft.graph.downloadUrl']) {
+          return info['@microsoft.graph.downloadUrl'] as string;
         }
       } else {
         console.warn('[contentService] uploadImage metadata fetch failed', infoRes.status, infoRes.statusText);
@@ -509,21 +595,28 @@ export async function getContent<T>(msalInstance: any, key: string): Promise<T |
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
 
+    const escapedKey = key.replace(/'/g, "''");
     const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$filter=fields/Title eq '${key}'&$expand=fields&$select=id,fields`,
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$filter=fields/Title eq '${escapedKey}'&$expand=fields&$select=id,fields`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!res.ok) return null;
+    if (!res.ok) return readLocalContent<T>(key);
 
     const data = await res.json();
-    if (!data.value?.length) return null;
+    if (!data.value?.length) return readLocalContent<T>(key);
 
     const json = data.value[0].fields?.ContentJson;
-    return json ? (JSON.parse(json) as T) : null;
+    if (json) {
+      const parsed = JSON.parse(json) as T;
+      writeLocalContent(key, parsed);
+      return parsed;
+    }
+    return null;
   } catch (err) {
     console.error(`[contentService] getContent("${key}") failed:`, err);
-    return null;
   }
+
+  return readLocalContent<T>(key);
 }
 
 /**
@@ -540,39 +633,19 @@ export async function setContent<T>(msalInstance: any, key: string, data: T): Pr
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
-    const contentJson = JSON.stringify(data);
+    const sharePointOk = await persistContentToSharePoint(siteId, listId, token, key, data);
 
-    // Check if item already exists
-    const findRes = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$filter=fields/Title eq '${key}'&$expand=fields&$select=id`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const findData = await findRes.json();
-
-    if (findData.value?.length > 0) {
-      const itemId = findData.value[0].id;
-      const patchRes = await fetch(
-        `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${itemId}/fields`,
-        {
-          method: 'PATCH',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ContentJson: contentJson }),
-        }
-      );
-      return patchRes.ok;
-    } else {
-      const createRes = await fetch(
-        `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fields: { Title: key, ContentJson: contentJson } }),
-        }
-      );
-      return createRes.ok;
+    if (sharePointOk) {
+      writeLocalContent(key, data);
+      return true;
     }
   } catch (err) {
     console.error(`[contentService] setContent("${key}") failed:`, err);
-    return false;
   }
+
+  const localOk = writeLocalContent(key, data);
+  if (localOk) {
+    console.warn(`[contentService] setContent("${key}") saved to browser storage (SharePoint write failed)`);
+  }
+  return localOk;
 }

@@ -192,10 +192,7 @@ const App: React.FC = () => {
         const cachedEditorStatus2 = localStorage.getItem(`editor_status_${email}`);
         const cachedEditorTimestamp2 = localStorage.getItem(`editor_status_timestamp_${email}`);
         const editorCacheValid2 = cachedEditorTimestamp2 && (Date.now() - parseInt(cachedEditorTimestamp2)) < (24 * 60 * 60 * 1000);
-        const cachedIsEditor = resolveIsEditor(
-          cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false,
-          email
-        );
+        const cachedIsEditor = cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false;
 
         if (cachedEliteStatus && cacheValid) {
           const isElite = cachedEliteStatus === 'true';
