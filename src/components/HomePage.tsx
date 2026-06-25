@@ -106,6 +106,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   // ── Card edit state ──
   const [editingCard, setEditingCard] = useState<CardContent | null>(null);
   const [editCardDraft, setEditCardDraft] = useState<CardContent | null>(null);
+  const [isNewCard, setIsNewCard] = useState(false);
   const [savingCard, setSavingCard] = useState(false);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
@@ -143,10 +144,27 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
     setPendingImageFile(null);
     setImagePreviewUrl(card.imageUrl || '');
+    setIsNewCard(false);
   }, []);
+
+  const openNewCardEdit = useCallback(() => {
+    const nextOrder = cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1;
+    setEditingCard(null);
+    setEditCardDraft({
+      order: nextOrder,
+      title: 'New Card',
+      bullets: ['Add your content here.'],
+      imageUrl: '',
+    });
+    setPendingImageFile(null);
+    setImagePreviewUrl('');
+    setIsNewCard(true);
+  }, [cards]);
 
   const closeCardEdit = useCallback(() => {
     setEditingCard(null);
+    setEditCardDraft(null);
+    setIsNewCard(false);
     setPendingImageFile(null);
     setImagePreviewUrl('');
   }, []);
@@ -174,33 +192,43 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setPendingImageFile(null);
     }
 
-    const updated = cards.map(c => c.order === finalDraft.order ? finalDraft : c);
+    const updated = isNewCard
+      ? [...cards, finalDraft]
+      : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
+
+    setCards(updated);
     const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) { setCards(updated); setEditCardDraft(finalDraft); }
+    if (!ok && !isNewCard) {
+      console.warn('[HomePage] Failed to save card, preserving editor state');
+    }
+    if (ok || isNewCard) {
+      closeCardEdit();
+    }
     setSavingCard(false);
-    setEditingCard(null);
   };
 
-  const deleteCard = async () => {
-    if (!editCardDraft) return;
+  const deleteCardByOrder = async (order: number) => {
+    if (!window.confirm('Delete this card?')) return;
     setSavingCard(true);
-    const updated = cards.filter(c => c.order !== editCardDraft.order);
+    const updated = cards.filter(c => c.order !== order);
+    setCards(updated);
     const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) setCards(updated);
+    if (!ok) {
+      console.warn('[HomePage] Failed to delete card, restoring local state');
+      const remoteCards = await getContent<CardContent[]>(instance, 'homepage-cards');
+      if (remoteCards) setCards(remoteCards);
+    }
     setSavingCard(false);
     closeCardEdit();
   };
 
-  const addCard = async () => {
-    const newCard: CardContent = {
-      order: cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1,
-      title: 'New Card',
-      bullets: ['Add your content here.'],
-      imageUrl: '',
-    };
-    const updated = [...cards, newCard];
-    const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) { setCards(updated); openCardEdit(newCard); }
+  const deleteCard = async () => {
+    if (!editCardDraft) return;
+    await deleteCardByOrder(editCardDraft.order);
+  };
+
+  const addCard = () => {
+    openNewCardEdit();
   };
 
   // ── Card reordering ──
@@ -470,13 +498,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {/* ──────────── Edit Modals ──────────── */}
 
       {/* Card edit modal */}
-      {editingCard && editCardDraft && (
+      {editCardDraft && (
         <EditModal
-          title={`Edit Card: ${editCardDraft.title}`}
+          title={isNewCard ? 'New Card' : `Edit Card: ${editCardDraft.title}`}
           onClose={closeCardEdit}
           onSave={saveCard}
           isSaving={savingCard || uploadingImage}
-          onDelete={deleteCard}
+          onDelete={isNewCard ? undefined : deleteCard}
         >
           <div className="edit-field-group">
             <label>Card Title</label>
