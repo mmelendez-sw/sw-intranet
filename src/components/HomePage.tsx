@@ -7,6 +7,7 @@ import {
   getContent,
   setContent,
   uploadImage,
+  uploadImageFromUrl,
   DEFAULT_CARDS,
   DEFAULT_ANNOUNCEMENTS,
   CardContent,
@@ -181,19 +182,25 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     try {
       let finalDraft = { ...editCardDraft };
 
-      if (pendingImageFile) {
+      if (pendingImageFile || editCardDraft.imageUrl) {
         setUploadingImage(true);
-        const uploadedUrl = await uploadImage(instance, pendingImageFile);
+        let uploadedUrl: string | null = null;
+
+        if (pendingImageFile) {
+          uploadedUrl = await uploadImage(instance, pendingImageFile);
+          setPendingImageFile(null);
+        } else if (editCardDraft.imageUrl && !editCardDraft.imageUrl.startsWith('data:')) {
+          uploadedUrl = await uploadImageFromUrl(instance, editCardDraft.imageUrl);
+        }
+
         setUploadingImage(false);
 
         if (uploadedUrl) {
           finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
-        } else {
+        } else if (pendingImageFile) {
           window.alert('Image upload failed. Saving card without a custom image.');
           finalDraft = { ...finalDraft, imageUrl: editCardDraft.imageUrl || '' };
         }
-
-        setPendingImageFile(null);
       }
 
       const updated = isNewCard
@@ -589,7 +596,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               )}
             </div>
             <span className="edit-field-hint">
-              Uploads directly to SharePoint (Documents/IntranetImages/).
+              Uploads directly to SharePoint (Documents/intranet images/).
               Visible to all signed-in users via Microsoft SSO.
             </span>
 

@@ -15,7 +15,7 @@
  * Content keys:   "homepage-cards" | "homepage-sidebar" | "reports"
  */
 
-import { BYPASS_AUTH, SHAREPOINT_HOST, SHAREPOINT_SITE_PATH } from '../authConfig';
+import { BYPASS_AUTH, SHAREPOINT_HOST, SHAREPOINT_SITE_PATH, IMAGE_SHAREPOINT_SITE_PATH } from '../authConfig';
 
 const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
 
@@ -236,7 +236,7 @@ export const DEFAULT_REPORTS: ReportItemContent[] = [
 
 const CONTENT_LIST_NAME = 'IntranetContent';
 
-let _siteId: string | null = null;
+const _siteIds: Record<string, string | null> = {};
 let _listId: string | null = null;
 
 async function getToken(msalInstance: any): Promise<string | null> {
@@ -271,16 +271,16 @@ async function getToken(msalInstance: any): Promise<string | null> {
   }
 }
 
-async function getSiteId(token: string): Promise<string> {
-  if (_siteId) return _siteId;
+async function getSiteId(token: string, sitePath: string): Promise<string> {
+  if (_siteIds[sitePath]) return _siteIds[sitePath] as string;
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${SHAREPOINT_SITE_PATH}`,
+    `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${sitePath}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) throw new Error(`getSiteId failed: ${res.status}`);
   const data = await res.json();
-  _siteId = data.id as string;
-  return _siteId;
+  _siteIds[sitePath] = data.id as string;
+  return _siteIds[sitePath] as string;
 }
 
 async function getOrCreateList(siteId: string, token: string): Promise<string> {
@@ -367,15 +367,45 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+async function fetchImageAsFile(imageUrl: string): Promise<File | null> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error(`[contentService] fetchImageAsFile failed: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    const blob = await response.blob();
+    let filename = new URL(imageUrl).pathname.split('/').pop() || `image-${Date.now()}`;
+    if (!filename.includes('.')) {
+      const extension = contentType.split('/')[1]?.split(';')[0] || 'jpg';
+      filename = `${filename}.${extension}`;
+    }
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    return new File([blob], filename, { type: contentType });
+  } catch (err) {
+    console.error('[contentService] fetchImageAsFile failed:', err);
+    return null;
+  }
+}
+
+export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): Promise<string | null> {
+  if (!imageUrl || imageUrl.startsWith('data:')) return null;
+  const file = await fetchImageAsFile(imageUrl);
+  if (!file) return null;
+  return uploadImage(msalInstance, file);
+}
+
 /**
- * Upload an image file to the IntranetImages folder in the site's default
- * Documents drive.  Returns the permanent SharePoint webUrl on success, or
- * null on failure.
+ * Upload an image file to the intranet images folder in the TechnologyOrg
+ * site's default Documents drive. Returns the permanent SharePoint webUrl on
+ * success, or null on failure.
  *
  * The webUrl is accessible to any user who is authenticated with the tenant
  * (via SharePoint SSO, which is established when users sign in through MSAL).
  * Files land at:
- *   Documents/IntranetImages/<timestamp>-<originalFilename>
+ *   Documents/intranet images/<timestamp>-<originalFilename>
  */
 export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
   if (BYPASS_AUTH) {
@@ -394,14 +424,14 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
       return null;
     }
 
-    const siteId = await getSiteId(token);
-    await ensureDriveFolder(siteId, token, 'IntranetImages');
+    const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    await ensureDriveFolder(siteId, token, 'intranet images');
 
     // Unique filename to avoid collisions
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${safeName}`;
 
-    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${encodeURIComponent(filename)}:/content`;
+    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent('intranet images')}/${encodeURIComponent(filename)}:/content`;
 
     const res = await fetch(uploadUrl, {
       method: 'PUT',
@@ -419,6 +449,31 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     }
 
     const item = await res.json();
+    if (!item?.id) {
+      console.error('[contentService] uploadImage did not return item id', item);
+      return null;
+    }
+
+    try {
+      const infoRes = await fetch(
+        `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${item.id}?$select=@microsoft.graph.downloadUrl,webUrl`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (infoRes.ok) {
+        const info = await infoRes.json();
+        if (info?.['@microsoft.graph.downloadUrl']) {
+          return info['@microsoft.graph.downloadUrl'] as string;
+        }
+        if (info?.webUrl) {
+          return info.webUrl as string;
+        }
+      } else {
+        console.warn('[contentService] uploadImage metadata fetch failed', infoRes.status, infoRes.statusText);
+      }
+    } catch (infoErr) {
+      console.error('[contentService] uploadImage metadata fetch error:', infoErr);
+    }
+
     if (!item?.webUrl) {
       console.error('[contentService] uploadImage did not return webUrl', item);
       return null;
@@ -446,7 +501,7 @@ export async function getContent<T>(msalInstance: any, key: string): Promise<T |
     const token = await getToken(msalInstance);
     if (!token) return null;
 
-    const siteId = await getSiteId(token);
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
 
     const res = await fetch(
@@ -478,7 +533,7 @@ export async function setContent<T>(msalInstance: any, key: string, data: T): Pr
     const token = await getToken(msalInstance);
     if (!token) throw new Error('Could not acquire SharePoint token. Ensure Sites.ReadWrite.All has been admin-consented.');
 
-    const siteId = await getSiteId(token);
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
     const contentJson = JSON.stringify(data);
 

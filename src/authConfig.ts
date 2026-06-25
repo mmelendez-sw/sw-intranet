@@ -47,6 +47,7 @@ export const INTRANET_EDITORS_GROUP_ID = 'cbf6d5aa-f6ca-435d-a707-af1d1fac87a2';
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
+export const IMAGE_SHAREPOINT_SITE_PATH = '/sites/TechnologyOrg';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;
