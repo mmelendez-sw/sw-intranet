@@ -7,15 +7,24 @@
  *
  * Storage model
  * ─────────────
- * One SharePoint list called "IntranetContent" on the SymphonyWirelessTeam site.
- * Each list item stores one content block:
- *   Title       – content key  (e.g. "homepage-cards")
- *   ContentJson – JSON string of the actual data
+ * Homepage cards (text + metadata) are stored as homepage-cards.json in:
+ *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
- * Content keys:   "homepage-cards" | "homepage-sidebar" | "reports"
+ * Other content blocks use the IntranetContent SharePoint list:
+ *   Title       – content key  (e.g. "announcements")
+ *   ContentJson – JSON string of the actual data
  */
 
-import { BYPASS_AUTH, SHAREPOINT_HOST, SHAREPOINT_SITE_PATH, IMAGE_SHAREPOINT_SITE_PATH } from '../authConfig';
+import {
+  BYPASS_AUTH,
+  SHAREPOINT_HOST,
+  SHAREPOINT_SITE_PATH,
+  IMAGE_SHAREPOINT_SITE_PATH,
+  IMAGE_SHAREPOINT_FOLDER_PATH,
+  CARDS_DATA_FILENAME,
+} from '../authConfig';
+
+const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 
 const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
 
@@ -243,6 +252,47 @@ const CONTENT_LIST_NAME = 'IntranetContent';
 
 const _siteIds: Record<string, string | null> = {};
 let _listId: string | null = null;
+let _contentJsonFieldName: string | null = null;
+
+async function ensureContentJsonColumn(siteId: string, listId: string, token: string): Promise<void> {
+  const columnsRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/columns`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!columnsRes.ok) return;
+
+  const columnsData = await columnsRes.json();
+  const existing = columnsData.value?.find(
+    (col: { name?: string; displayName?: string }) =>
+      col.name === 'ContentJson' || col.displayName === 'ContentJson'
+  );
+  if (existing?.name) {
+    _contentJsonFieldName = existing.name;
+    return;
+  }
+
+  const createColRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/columns`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'ContentJson',
+        text: { allowMultipleLines: true, allowTextOverflow: true },
+      }),
+    }
+  );
+  if (createColRes.ok) {
+    const created = await createColRes.json();
+    _contentJsonFieldName = created.name || 'ContentJson';
+  }
+}
+
+async function resolveContentJsonFieldName(siteId: string, listId: string, token: string): Promise<string> {
+  if (_contentJsonFieldName) return _contentJsonFieldName;
+  await ensureContentJsonColumn(siteId, listId, token);
+  return _contentJsonFieldName || 'ContentJson';
+}
 
 async function getToken(msalInstance: any): Promise<string | null> {
   try {
@@ -313,7 +363,7 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
       body: JSON.stringify({
         displayName: CONTENT_LIST_NAME,
         columns: [
-          { name: 'ContentJson', text: { allowMultipleLines: true, linesForEditing: 30 } },
+          { name: 'ContentJson', text: { allowMultipleLines: true, allowTextOverflow: true } },
         ],
         list: { template: 'genericList' },
       }),
@@ -380,6 +430,7 @@ async function persistContentToSharePoint<T>(
   data: T
 ): Promise<boolean> {
   const contentJson = JSON.stringify(data);
+  const fieldName = await resolveContentJsonFieldName(siteId, listId, token);
   const itemId = await findListItemId(siteId, listId, token, key);
 
   if (itemId) {
@@ -388,7 +439,7 @@ async function persistContentToSharePoint<T>(
       {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ContentJson: contentJson }),
+        body: JSON.stringify({ [fieldName]: contentJson }),
       }
     );
     if (patchRes.ok) return true;
@@ -402,7 +453,7 @@ async function persistContentToSharePoint<T>(
     {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: { Title: key, ContentJson: contentJson } }),
+      body: JSON.stringify({ fields: { Title: key, [fieldName]: contentJson } }),
     }
   );
   if (createRes.ok) return true;
@@ -413,33 +464,46 @@ async function persistContentToSharePoint<T>(
 
 // ─── Image upload ─────────────────────────────────────────────────────────────
 
-async function ensureDriveFolder(siteId: string, token: string, folderName: string): Promise<void> {
-  const folderRes = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent(folderName)}`,
+async function ensureDriveFolderPath(siteId: string, token: string, folderPath: string): Promise<void> {
+  const checkRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${folderPath}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (folderRes.ok) return;
-  if (folderRes.status !== 404) {
-    throw new Error(`Could not verify drive folder: ${folderRes.status}`);
+  if (checkRes.ok) return;
+  if (checkRes.status !== 404) {
+    throw new Error(`Could not verify drive folder "${folderPath}": ${checkRes.status}`);
   }
 
-  const createRes = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root/children`,
-    {
+  const parts = folderPath.split('/').filter(Boolean);
+  let builtPath = '';
+  for (const part of parts) {
+    const parentPath = builtPath;
+    builtPath = builtPath ? `${builtPath}/${part}` : part;
+
+    const existsRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${builtPath}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (existsRes.ok) continue;
+
+    const createUrl = parentPath
+      ? `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${parentPath}:/children`
+      : `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root/children`;
+    const createRes = await fetch(createUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: folderName,
+        name: part,
         folder: {},
         '@microsoft.graph.conflictBehavior': 'replace',
       }),
+    });
+    if (!createRes.ok) {
+      throw new Error(`Could not create drive folder "${builtPath}": ${createRes.status}`);
     }
-  );
-  if (!createRes.ok) {
-    throw new Error(`Could not create drive folder: ${createRes.status}`);
   }
 }
 
@@ -489,14 +553,8 @@ export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): P
 }
 
 /**
- * Upload an image file to the intranet images folder in the TechnologyOrg
- * site's default Documents drive. Returns the permanent SharePoint webUrl on
- * success, or null on failure.
- *
- * The webUrl is accessible to any user who is authenticated with the tenant
- * (via SharePoint SSO, which is established when users sign in through MSAL).
- * Files land at:
- *   Documents/intranet images/<timestamp>-<originalFilename>
+ * Upload an image file to Shared Documents/General/intranet on the
+ * SymphonyWirelessTeam site. Returns the permanent SharePoint webUrl on success.
  */
 export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
   if (BYPASS_AUTH) {
@@ -516,13 +574,12 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
     }
 
     const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
-    await ensureDriveFolder(siteId, token, 'intranet images');
+    await ensureDriveFolderPath(siteId, token, IMAGE_SHAREPOINT_FOLDER_PATH);
 
-    // Unique filename to avoid collisions
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${safeName}`;
-
-    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent('intranet images')}/${encodeURIComponent(filename)}:/content`;
+    const uploadPath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${filename}`;
+    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${uploadPath}:/content`;
 
     const res = await fetch(uploadUrl, {
       method: 'PUT',
@@ -579,52 +636,161 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+async function readContentFromSharePointDrive<T>(
+  siteId: string,
+  token: string,
+  fileName: string
+): Promise<T | null> {
+  const filePath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${fileName}`;
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.warn(`[contentService] read drive file "${filePath}" failed: ${res.status} ${err}`);
+    return null;
+  }
+  const text = await res.text();
+  if (!text.trim()) return null;
+  return JSON.parse(text) as T;
+}
+
+async function writeContentToSharePointDrive<T>(
+  siteId: string,
+  token: string,
+  fileName: string,
+  data: T
+): Promise<boolean> {
+  await ensureDriveFolderPath(siteId, token, IMAGE_SHAREPOINT_FOLDER_PATH);
+  const filePath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${fileName}`;
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data, null, 2),
+    }
+  );
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.error(`[contentService] write drive file "${filePath}" failed: ${res.status} ${err}`);
+    return false;
+  }
+  return true;
+}
+
+export interface ContentSyncOptions {
+  /** Use SharePoint only — skip browser-local fallback (for cross-device sync). */
+  remoteOnly?: boolean;
+}
+
+async function readContentFromSharePoint<T>(
+  siteId: string,
+  listId: string,
+  token: string,
+  key: string
+): Promise<T | null> {
+  const itemId = await findListItemId(siteId, listId, token, key);
+  if (!itemId) return null;
+
+  const fieldName = await resolveContentJsonFieldName(siteId, listId, token);
+  const itemRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${itemId}?$expand=fields&$select=fields`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!itemRes.ok) return null;
+
+  const itemData = await itemRes.json();
+  const json = itemData.fields?.[fieldName] ?? itemData.fields?.ContentJson;
+  if (!json) return null;
+  return JSON.parse(json) as T;
+}
+
 /**
  * Read a content block.  Returns null if SharePoint is unreachable or the item
  * has not been saved yet (callers should fall back to their DEFAULT_* constant).
  */
-export async function getContent<T>(msalInstance: any, key: string): Promise<T | null> {
+export async function getContent<T>(
+  msalInstance: any,
+  key: string,
+  options?: ContentSyncOptions
+): Promise<T | null> {
   if (BYPASS_AUTH) {
     return readLocalContent<T>(key);
   }
 
   try {
     const token = await getToken(msalInstance);
-    if (!token) return null;
+    if (!token) return options?.remoteOnly ? null : readLocalContent<T>(key);
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
+
+    if (key === HOMEPAGE_CARDS_KEY) {
+      const driveParsed = await readContentFromSharePointDrive<T>(siteId, token, CARDS_DATA_FILENAME);
+      if (driveParsed) {
+        writeLocalContent(key, driveParsed);
+        return driveParsed;
+      }
+
+      // One-time migration: copy legacy IntranetContent list data into the drive folder
+      const listId = await getOrCreateList(siteId, token);
+      const listParsed = await readContentFromSharePoint<T>(siteId, listId, token, key);
+      if (listParsed) {
+        await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, listParsed);
+        writeLocalContent(key, listParsed);
+        return listParsed;
+      }
+
+      return options?.remoteOnly ? null : readLocalContent<T>(key);
+    }
+
     const listId = await getOrCreateList(siteId, token);
+    const parsed = await readContentFromSharePoint<T>(siteId, listId, token, key);
 
-    const escapedKey = key.replace(/'/g, "''");
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items?$filter=fields/Title eq '${escapedKey}'&$expand=fields&$select=id,fields`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    if (!res.ok) return readLocalContent<T>(key);
-
-    const data = await res.json();
-    if (!data.value?.length) return readLocalContent<T>(key);
-
-    const json = data.value[0].fields?.ContentJson;
-    if (json) {
-      const parsed = JSON.parse(json) as T;
+    if (parsed) {
       writeLocalContent(key, parsed);
       return parsed;
     }
-    return null;
+    return options?.remoteOnly ? null : readLocalContent<T>(key);
   } catch (err) {
     console.error(`[contentService] getContent("${key}") failed:`, err);
   }
 
-  return readLocalContent<T>(key);
+  return options?.remoteOnly ? null : readLocalContent<T>(key);
+}
+
+export interface SetContentResult {
+  ok: boolean;
+  storage: 'sharepoint' | 'local' | 'none';
 }
 
 /**
  * Write a content block back to SharePoint.  Returns true on success.
  */
-export async function setContent<T>(msalInstance: any, key: string, data: T): Promise<boolean> {
+export async function setContent<T>(
+  msalInstance: any,
+  key: string,
+  data: T,
+  options?: ContentSyncOptions
+): Promise<boolean> {
+  const result = await setContentDetailed(msalInstance, key, data, options);
+  return result.ok;
+}
+
+export async function setContentDetailed<T>(
+  msalInstance: any,
+  key: string,
+  data: T,
+  options?: ContentSyncOptions
+): Promise<SetContentResult> {
   if (BYPASS_AUTH) {
-    return writeLocalContent(key, data);
+    const ok = writeLocalContent(key, data);
+    return { ok, storage: ok ? 'local' : 'none' };
   }
 
   try {
@@ -632,20 +798,35 @@ export async function setContent<T>(msalInstance: any, key: string, data: T): Pr
     if (!token) throw new Error('Could not acquire SharePoint token. Ensure Sites.ReadWrite.All has been admin-consented.');
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
-    const listId = await getOrCreateList(siteId, token);
-    const sharePointOk = await persistContentToSharePoint(siteId, listId, token, key, data);
 
-    if (sharePointOk) {
-      writeLocalContent(key, data);
-      return true;
+    if (key === HOMEPAGE_CARDS_KEY) {
+      const driveOk = await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, data);
+      if (driveOk) {
+        writeLocalContent(key, data);
+        return { ok: true, storage: 'sharepoint' };
+      }
+    } else {
+      const listId = await getOrCreateList(siteId, token);
+      await ensureContentJsonColumn(siteId, listId, token);
+      const sharePointOk = await persistContentToSharePoint(siteId, listId, token, key, data);
+
+      if (sharePointOk) {
+        writeLocalContent(key, data);
+        return { ok: true, storage: 'sharepoint' };
+      }
     }
   } catch (err) {
     console.error(`[contentService] setContent("${key}") failed:`, err);
   }
 
+  if (options?.remoteOnly) {
+    return { ok: false, storage: 'none' };
+  }
+
   const localOk = writeLocalContent(key, data);
   if (localOk) {
     console.warn(`[contentService] setContent("${key}") saved to browser storage (SharePoint write failed)`);
+    return { ok: true, storage: 'local' };
   }
-  return localOk;
+  return { ok: false, storage: 'none' };
 }

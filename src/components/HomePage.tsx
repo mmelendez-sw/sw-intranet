@@ -7,6 +7,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
+  setContentDetailed,
   uploadImage,
   uploadImageFromUrl,
   DEFAULT_CARDS,
@@ -49,13 +50,24 @@ interface HomePageProps {
 interface EditModalProps {
   title: string;
   onClose: () => void;
-  onSave: () => Promise<void>;
+  onSave?: () => Promise<void>;
   isSaving: boolean;
   onDelete?: () => Promise<void>;
   children: React.ReactNode;
+  autoSave?: boolean;
+  saveStatus?: 'idle' | 'saving' | 'saved' | 'saved-local' | 'error';
 }
 
-const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, onDelete, children }) => {
+const EditModal: React.FC<EditModalProps> = ({
+  title,
+  onClose,
+  onSave,
+  isSaving,
+  onDelete,
+  children,
+  autoSave = false,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -77,15 +89,52 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
             </button>
           )}
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
-            <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
-            <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
+            {autoSave ? (
+              <>
+                {saveStatus === 'saving' ? (
+                  <span className="edit-saving-indicator">Saving…</span>
+                ) : saveStatus === 'saved' ? (
+                  <span className="edit-saving-indicator" style={{ color: '#198754' }}>Saved to SharePoint</span>
+                ) : saveStatus === 'saved-local' ? (
+                  <span className="edit-saving-indicator" style={{ color: '#b45309' }}>Saved on this device only</span>
+                ) : saveStatus === 'error' ? (
+                  <span className="edit-saving-indicator" style={{ color: '#dc3545' }}>Could not save — try again</span>
+                ) : (
+                  <span className="edit-saving-indicator" style={{ color: '#6c757d' }}>Edits save automatically</span>
+                )}
+                <button className="edit-btn-save" onClick={onClose} disabled={saveStatus === 'saving'}>Done</button>
+              </>
+            ) : (
+              <>
+                {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+                <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
+                <button className="edit-btn-save" onClick={onSave} disabled={isSaving || !onSave}>Save</button>
+              </>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const CARDS_CONTENT_KEY = 'homepage-cards';
+const CARD_POLL = { remoteOnly: true } as const;
+const CARD_AUTOSAVE_MS = 800;
+const CARD_POLL_MS = 20_000;
+
+const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
+  const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+  return remoteCards.map((card, idx) => ({
+    ...card,
+    imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as CardContent['imageIndex']),
+  }));
+};
+
+const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
+
+const isPersistedImageUrl = (url: string) =>
+  /sharepoint/i.test(url) || url.includes('graph.microsoft.com');
 
 // ─── HomePage ──────────────────────────────────────────────────────────────
 
@@ -125,24 +174,47 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   // ── Card drag-and-drop reorder state ──
   const [draggingCardIdx, setDraggingCardIdx] = useState<number | null>(null);
   const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
+  const [cardSaveStatus, setCardSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'saved-local' | 'error'>('idle');
+
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
+  const editCardDraftRef = useRef(editCardDraft);
+  editCardDraftRef.current = editCardDraft;
+  const pendingImageFileRef = useRef(pendingImageFile);
+  pendingImageFileRef.current = pendingImageFile;
+  const isNewCardRef = useRef(isNewCard);
+  isNewCardRef.current = isNewCard;
+  const cardAutosaveTimerRef = useRef<number | null>(null);
+  const originalCardImageUrlRef = useRef('');
+  const lastLocalCardSaveRef = useRef(0);
+  const skipNextAutosaveRef = useRef(false);
+
+  const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
+    setCardSaveStatus('saving');
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, updated);
+    if (result.ok) {
+      setCards(updated);
+      if (result.storage === 'local') {
+        lastLocalCardSaveRef.current = Date.now();
+      }
+      setCardSaveStatus(result.storage === 'sharepoint' ? 'saved' : 'saved-local');
+      return true;
+    }
+    setCardSaveStatus('error');
+    return false;
+  }, [instance]);
 
   // ── Load content from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
     (async () => {
       const [remoteCards, remoteHero, remoteAnnouncements] = await Promise.all([
-        getContent<CardContent[]>(instance, 'homepage-cards'),
+        getContent<CardContent[]>(instance, CARDS_CONTENT_KEY),
         getContent<string>(instance, 'homepage-hero'),
         getContent<Announcement[]>(instance, 'announcements'),
       ]);
       if (remoteCards) {
-        // Ensure all cards have imageIndex; assign if missing
-        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-        const withImageIndex = remoteCards.map((card, idx) => ({
-          ...card,
-          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
-        }));
-        setCards(withImageIndex);
+        setCards(normalizeCards(remoteCards));
       }
       if (remoteHero) setHeroImageUrl(remoteHero);
       if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
@@ -150,13 +222,37 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     })();
   }, [userInfo.isAuthenticated, instance]);
 
+  // ── Poll SharePoint so all devices stay in sync ──
+  useEffect(() => {
+    if (!userInfo.isAuthenticated || !contentLoaded) return;
+
+    const syncCardsFromSharePoint = async () => {
+      if (editCardDraftRef.current) return;
+      if (Date.now() - lastLocalCardSaveRef.current < 120_000) return;
+      const remote = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      if (!remote) return;
+      const normalized = normalizeCards(remote);
+      if (!cardsMatch(normalized, cardsRef.current)) {
+        setCards(normalized);
+      }
+    };
+
+    const intervalId = window.setInterval(() => {
+      void syncCardsFromSharePoint();
+    }, CARD_POLL_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [userInfo.isAuthenticated, contentLoaded, instance]);
+
   // ── Card editing ──
   const openCardEdit = useCallback((card: CardContent) => {
     setEditingCard(card);
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
     setPendingImageFile(null);
     setImagePreviewUrl(card.imageUrl || '');
+    originalCardImageUrlRef.current = card.imageUrl || '';
     setIsNewCard(false);
+    setCardSaveStatus('idle');
   }, []);
 
   const openNewCardEdit = useCallback(() => {
@@ -173,96 +269,143 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     });
     setPendingImageFile(null);
     setImagePreviewUrl('');
+    originalCardImageUrlRef.current = '';
     setIsNewCard(true);
+    setCardSaveStatus('idle');
   }, [cards]);
-
-  const closeCardEdit = useCallback(() => {
-    setEditingCard(null);
-    setEditCardDraft(null);
-    setIsNewCard(false);
-    setPendingImageFile(null);
-    setImagePreviewUrl('');
-  }, []);
 
   const handleImageFileChange = (file: File) => {
     setPendingImageFile(file);
     setImagePreviewUrl(URL.createObjectURL(file));
   };
 
-  const saveCard = async () => {
-    if (!editCardDraft) return;
-    setSavingCard(true);
+  const buildCardsWithDraft = useCallback(
+    (draft: CardContent, currentCards: CardContent[], isNew: boolean): CardContent[] => {
+      if (isNew && !currentCards.some((c) => c.order === draft.order)) {
+        return [...currentCards, draft];
+      }
+      return currentCards.map((c) => (c.order === draft.order ? draft : c));
+    },
+    []
+  );
 
-    try {
-      let finalDraft = { ...editCardDraft };
+  const flushCardDraftSave = useCallback(async () => {
+    const draft = editCardDraftRef.current;
+    if (!draft || !canEdit) return;
+
+    const pendingFile = pendingImageFileRef.current;
+    let finalDraft = { ...draft };
+
+    if (pendingFile || draft.imageUrl) {
+      setUploadingImage(true);
       let uploadedUrl: string | null = null;
-      let attemptedFileUpload = false;
 
-      if (pendingImageFile || editCardDraft.imageUrl) {
-        setUploadingImage(true);
-
-        if (pendingImageFile) {
-          attemptedFileUpload = true;
-          uploadedUrl = await uploadImage(instance, pendingImageFile);
-          setPendingImageFile(null);
-        } else if (editCardDraft.imageUrl && !editCardDraft.imageUrl.startsWith('data:')) {
-          uploadedUrl = await uploadImageFromUrl(instance, editCardDraft.imageUrl);
-        }
-
-        setUploadingImage(false);
-
+      if (pendingFile) {
+        uploadedUrl = await uploadImage(instance, pendingFile);
         if (uploadedUrl) {
-          finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
-        } else if (attemptedFileUpload) {
-          window.alert('Image upload failed. Saving card without a custom image.');
-          finalDraft = { ...finalDraft, imageUrl: editCardDraft.imageUrl || '' };
+          setPendingImageFile(null);
+          pendingImageFileRef.current = null;
+          originalCardImageUrlRef.current = uploadedUrl;
+        }
+      } else if (
+        draft.imageUrl &&
+        !draft.imageUrl.startsWith('data:') &&
+        !isPersistedImageUrl(draft.imageUrl) &&
+        draft.imageUrl !== originalCardImageUrlRef.current
+      ) {
+        uploadedUrl = await uploadImageFromUrl(instance, draft.imageUrl);
+        if (uploadedUrl) {
+          originalCardImageUrlRef.current = uploadedUrl;
         }
       }
 
-      const updated = isNewCard
-        ? [...cards, finalDraft]
-        : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
+      if (uploadedUrl) {
+        finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
+        setImagePreviewUrl(uploadedUrl);
+      }
+      setUploadingImage(false);
+    }
 
-      const ok = await setContent(instance, 'homepage-cards', updated);
+    const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
+    if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
+      return;
+    }
+
+    setSavingCard(true);
+    try {
+      const ok = await persistCardsToSharePoint(updated);
       if (ok) {
-        setCards(updated);
-        closeCardEdit();
-      } else {
-        window.alert(
-          uploadedUrl
-            ? 'Image uploaded, but the card could not be saved. Please try saving again.'
-            : 'Unable to save the card. Please try again when signed in.'
-        );
+        if (isNewCardRef.current) setIsNewCard(false);
+        const draftJson = JSON.stringify(finalDraft);
+        const currentJson = JSON.stringify(editCardDraftRef.current);
+        if (draftJson !== currentJson) {
+          skipNextAutosaveRef.current = true;
+          setEditCardDraft(finalDraft);
+          editCardDraftRef.current = finalDraft;
+        }
       }
     } catch (err) {
-      console.error('[HomePage] saveCard failed:', err);
-      window.alert(
-        'Unable to save the card. Please try again. ' +
-        (err instanceof Error ? err.message : '')
-      );
+      console.error('[HomePage] autosave card failed:', err);
+      setCardSaveStatus('error');
     } finally {
       setSavingCard(false);
       setUploadingImage(false);
     }
-  };
+  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint]);
+
+  const scheduleCardAutosave = useCallback(() => {
+    if (cardAutosaveTimerRef.current) {
+      window.clearTimeout(cardAutosaveTimerRef.current);
+    }
+    setCardSaveStatus((status) =>
+      status === 'saved' || status === 'saved-local' ? 'idle' : status
+    );
+    const delay = pendingImageFileRef.current ? 300 : CARD_AUTOSAVE_MS;
+    cardAutosaveTimerRef.current = window.setTimeout(() => {
+      void flushCardDraftSave();
+    }, delay);
+  }, [flushCardDraftSave]);
+
+  useEffect(() => {
+    if (!editCardDraft || !canEdit) return;
+    if (skipNextAutosaveRef.current) {
+      skipNextAutosaveRef.current = false;
+      return;
+    }
+    scheduleCardAutosave();
+    return () => {
+      if (cardAutosaveTimerRef.current) {
+        window.clearTimeout(cardAutosaveTimerRef.current);
+      }
+    };
+  }, [editCardDraft, pendingImageFile, canEdit, scheduleCardAutosave]);
+
+  const closeCardEdit = useCallback(async () => {
+    if (cardAutosaveTimerRef.current) {
+      window.clearTimeout(cardAutosaveTimerRef.current);
+      cardAutosaveTimerRef.current = null;
+    }
+    if (editCardDraftRef.current && canEdit) {
+      await flushCardDraftSave();
+    }
+    setEditingCard(null);
+    setEditCardDraft(null);
+    editCardDraftRef.current = null;
+    setIsNewCard(false);
+    setPendingImageFile(null);
+    pendingImageFileRef.current = null;
+    setImagePreviewUrl('');
+    setCardSaveStatus('idle');
+  }, [canEdit, flushCardDraftSave]);
 
   const deleteCardByOrder = async (order: number) => {
     if (!window.confirm('Delete this card?')) return;
     setSavingCard(true);
-    const updated = cards.filter(c => c.order !== order);
-    setCards(updated);
-    const ok = await setContent(instance, 'homepage-cards', updated);
+    const updated = cards.filter((c) => c.order !== order);
+    const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
-      console.warn('[HomePage] Failed to delete card, restoring local state');
-      const remoteCards = await getContent<CardContent[]>(instance, 'homepage-cards');
-      if (remoteCards) {
-        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-        const withImageIndex = remoteCards.map((card, idx) => ({
-          ...card,
-          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
-        }));
-        setCards(withImageIndex);
-      }
+      const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      if (remoteCards) setCards(normalizeCards(remoteCards));
     }
     setSavingCard(false);
     closeCardEdit();
@@ -286,7 +429,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     [reordered[currentIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[currentIdx]];
     const withNewOrders = reordered.map((c, i) => ({ ...c, order: i + 1 }));
     setCards(withNewOrders);
-    await setContent(instance, 'homepage-cards', withNewOrders);
+    await persistCardsToSharePoint(withNewOrders);
   };
 
   const onCardDrop = async (e: React.DragEvent, targetIdx: number) => {
@@ -304,10 +447,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setCards(withNewOrders);
     setDraggingCardIdx(null);
     setDragOverCardIdx(null);
-    await setContent(instance, 'homepage-cards', withNewOrders);
+    await persistCardsToSharePoint(withNewOrders);
   };
-
-  const savingLabel = uploadingImage ? 'Uploading image…' : savingCard ? 'Saving…' : undefined;
 
   // ── Announcement editing ──
   const openAnnouncementEdit = useCallback((ann: Announcement) => {
@@ -554,10 +695,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {editCardDraft && (
         <EditModal
           title={isNewCard ? 'New Card' : `Edit Card: ${editCardDraft.title}`}
-          onClose={closeCardEdit}
-          onSave={saveCard}
-          isSaving={savingCard || uploadingImage}
+          onClose={() => { void closeCardEdit(); }}
+          isSaving={cardSaveStatus === 'saving'}
           onDelete={isNewCard ? undefined : deleteCard}
+          autoSave
+          saveStatus={cardSaveStatus}
         >
           <div className="edit-field-group">
             <label>Card Title</label>
@@ -621,8 +763,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               )}
             </div>
             <span className="edit-field-hint">
-              Uploads directly to SharePoint (Documents/intranet images/).
-              Visible to all signed-in users via Microsoft SSO.
+              Card text saves to Shared Documents/General/intranet/homepage-cards.json.
+              Images upload to the same folder.
             </span>
 
             {/* Divider */}
@@ -652,8 +794,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </span>
             )}
           </div>
-
-          {savingLabel && <div className="edit-saving-indicator">{savingLabel}</div>}
         </EditModal>
       )}
 

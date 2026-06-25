@@ -71,7 +71,10 @@ export const resolveIsEditor = (isGroupMember: boolean, email?: string): boolean
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
-export const IMAGE_SHAREPOINT_SITE_PATH = '/sites/TechnologyOrg';
+/** Card/banner images + card text JSON: Shared Documents → General → intranet */
+export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
+export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet';
+export const CARDS_DATA_FILENAME = 'homepage-cards.json';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;
