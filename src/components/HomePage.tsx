@@ -12,6 +12,7 @@ import {
   uploadImageFromUrl,
   DEFAULT_CARDS,
   DEFAULT_ANNOUNCEMENTS,
+  getCachedContent,
   CardContent,
   Announcement,
 } from '../services/contentService';
@@ -133,8 +134,21 @@ const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
 
 const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
 
+const renumberCards = (cardList: CardContent[]): CardContent[] =>
+  [...cardList].sort((a, b) => a.order - b.order).map((c, i) => ({ ...c, order: i + 1 }));
+
+const getInitialCards = (): CardContent[] => {
+  const cached = getCachedContent<CardContent[]>(CARDS_CONTENT_KEY);
+  if (cached?.length) return normalizeCards(cached);
+  return DEFAULT_CARDS;
+};
+
 const isPersistedImageUrl = (url: string) =>
   /sharepoint/i.test(url) || url.includes('graph.microsoft.com');
+
+const bulletsToText = (bullets: string[]) => bullets.join('\n');
+const parseBulletLines = (text: string) => text.split('\n');
+const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
 // ─── HomePage ──────────────────────────────────────────────────────────────
 
@@ -145,7 +159,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const canEdit = isEditor && isEditMode;
 
   // ── Content state ──
-  const [cards, setCards] = useState<CardContent[]>(DEFAULT_CARDS);
+  const [cards, setCards] = useState<CardContent[]>(getInitialCards);
   const [announcements, setAnnouncements] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
   const [heroImageUrl, setHeroImageUrl] = useState<string>('');
   const [contentLoaded, setContentLoaded] = useState(false);
@@ -191,9 +205,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
-    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, updated);
+    const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
     if (result.ok) {
-      setCards(updated);
+      setCards(sanitized);
       if (result.storage === 'local') {
         lastLocalCardSaveRef.current = Date.now();
       }
@@ -256,7 +271,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   }, []);
 
   const openNewCardEdit = useCallback(() => {
-    const nextOrder = cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1;
+    const nextOrder = cards.length + 1;
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
     const nextImageIndex = ((cards.length % totalFallbacks) + 1);
     setEditingCard(null);
@@ -401,7 +416,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const deleteCardByOrder = async (order: number) => {
     if (!window.confirm('Delete this card?')) return;
     setSavingCard(true);
-    const updated = cards.filter((c) => c.order !== order);
+    const updated = renumberCards(cards.filter((c) => c.order !== order));
     const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
       const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
@@ -427,7 +442,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (targetIdx < 0 || targetIdx >= sorted.length) return;
     const reordered = [...sorted];
     [reordered[currentIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[currentIdx]];
-    const withNewOrders = reordered.map((c, i) => ({ ...c, order: i + 1 }));
+    const withNewOrders = renumberCards(reordered);
     setCards(withNewOrders);
     await persistCardsToSharePoint(withNewOrders);
   };
@@ -443,7 +458,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const reordered = [...sorted];
     const [moved] = reordered.splice(draggingCardIdx, 1);
     reordered.splice(targetIdx, 0, moved);
-    const withNewOrders = reordered.map((c, i) => ({ ...c, order: i + 1 }));
+    const withNewOrders = renumberCards(reordered);
     setCards(withNewOrders);
     setDraggingCardIdx(null);
     setDragOverCardIdx(null);
@@ -504,10 +519,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setSavingHero(false);
     setEditingHero(false);
   };
-
-  // ── Bullet helpers ──
-  const bulletsToText = (bullets: string[]) => bullets.join('\n');
-  const textToBullets = (text: string) => text.split('\n').filter(l => l.trim() !== '');
 
   // ── Render helpers ──
   const cardClass = (index: number) => {
@@ -638,7 +649,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <div className="card-text">
                       <h2>{card.title}</h2>
                       <ul>
-                        {card.bullets.map((bullet, bi) => (
+                        {sanitizeBullets(card.bullets).map((bullet, bi) => (
                           <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
                         ))}
                       </ul>
@@ -714,7 +725,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             <textarea
               rows={8}
               value={bulletsToText(editCardDraft.bullets)}
-              onChange={e => setEditCardDraft({ ...editCardDraft, bullets: textToBullets(e.target.value) })}
+              onChange={e => setEditCardDraft({ ...editCardDraft, bullets: parseBulletLines(e.target.value) })}
             />
             <span className="edit-field-hint">One bullet per line. HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
           </div>

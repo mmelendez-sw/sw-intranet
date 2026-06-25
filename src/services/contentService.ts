@@ -38,6 +38,11 @@ function readLocalContent<T>(key: string): T | null {
   }
 }
 
+/** Synchronous read of the last cached copy (written after each successful load/save). */
+export function getCachedContent<T>(key: string): T | null {
+  return readLocalContent<T>(key);
+}
+
 function writeLocalContent<T>(key: string, data: T): boolean {
   try {
     window.localStorage.setItem(`${LOCAL_CONTENT_PREFIX}${key}`, JSON.stringify(data));
@@ -300,7 +305,7 @@ async function getToken(msalInstance: any): Promise<string | null> {
     if (!accounts.length) return null;
 
     const tokenRequest = {
-      scopes: ['Sites.ReadWrite.All'],
+      scopes: ['Sites.ReadWrite.All', 'Files.ReadWrite.All'],
       account: accounts[0],
     };
 
@@ -657,6 +662,36 @@ async function readContentFromSharePointDrive<T>(
   return JSON.parse(text) as T;
 }
 
+async function getDriveItemByPath(
+  siteId: string,
+  token: string,
+  filePath: string
+): Promise<{ id: string } | null> {
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.id ? { id: data.id as string } : null;
+}
+
+async function putDriveFileContent(
+  siteId: string,
+  token: string,
+  uploadUrl: string,
+  body: string
+): Promise<Response> {
+  return fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/octet-stream',
+    },
+    body,
+  });
+}
+
 async function writeContentToSharePointDrive<T>(
   siteId: string,
   token: string,
@@ -665,20 +700,41 @@ async function writeContentToSharePointDrive<T>(
 ): Promise<boolean> {
   await ensureDriveFolderPath(siteId, token, IMAGE_SHAREPOINT_FOLDER_PATH);
   const filePath = `${IMAGE_SHAREPOINT_FOLDER_PATH}/${fileName}`;
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data, null, 2),
-    }
-  );
-  if (!res.ok) {
+  const jsonBody = JSON.stringify(data, null, 2);
+
+  const existing = await getDriveItemByPath(siteId, token, filePath);
+
+  if (existing) {
+    const itemContentUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${existing.id}/content`;
+    let res = await putDriveFileContent(siteId, token, itemContentUrl, jsonBody);
+
+    if (res.ok) return true;
+
     const err = await res.text().catch(() => '');
-    console.error(`[contentService] write drive file "${filePath}" failed: ${res.status} ${err}`);
+    console.warn(
+      `[contentService] drive item update failed (${res.status}), trying delete/recreate:`,
+      err
+    );
+
+    const deleteRes = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${existing.id}`,
+      { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!deleteRes.ok && deleteRes.status !== 404) {
+      console.error(
+        `[contentService] could not delete drive file "${filePath}" for recreate: ${deleteRes.status}`
+      );
+      return false;
+    }
+  }
+
+  const createUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`;
+  const createRes = await putDriveFileContent(siteId, token, createUrl, jsonBody);
+  if (!createRes.ok) {
+    const err = await createRes.text().catch(() => '');
+    console.error(
+      `[contentService] write drive file "${filePath}" failed: ${createRes.status} ${err}`
+    );
     return false;
   }
   return true;
@@ -803,6 +859,18 @@ export async function setContentDetailed<T>(
       const driveOk = await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, data);
       if (driveOk) {
         writeLocalContent(key, data);
+        return { ok: true, storage: 'sharepoint' };
+      }
+
+      // Fallback: legacy IntranetContent list (keeps cross-device sync if drive write is blocked)
+      const listId = await getOrCreateList(siteId, token);
+      await ensureContentJsonColumn(siteId, listId, token);
+      const listOk = await persistContentToSharePoint(siteId, listId, token, key, data);
+      if (listOk) {
+        writeLocalContent(key, data);
+        console.warn(
+          `[contentService] setContent("${key}") saved to IntranetContent list (drive file write failed)`
+        );
         return { ok: true, storage: 'sharepoint' };
       }
     } else {
