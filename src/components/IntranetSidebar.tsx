@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
@@ -65,6 +66,8 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
+  const { isEditMode } = useEditMode();
+  const canEdit = isEditor && isEditMode;
 
   // ── Data state ──
   const [sections, setSections] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
@@ -231,13 +234,13 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               Report Technology Issue
             </button>
           ) : (
-            isEditor && (
+            canEdit && (
               <span style={{ fontSize: 12, color: '#888', display: 'block', marginBottom: 6 }}>
                 No support email configured
               </span>
             )
           )}
-          {isEditor && (
+          {canEdit && (
             <button
               className="edit-pencil-btn"
               style={{ position: 'static', opacity: 1, marginTop: 6 }}
@@ -264,7 +267,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                 {section.linkLabel}
               </a>
             )}
-            {isEditor && (
+            {canEdit && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
                 <div className="sidebar-reorder-btns">
                   <button
@@ -293,7 +296,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           </section>
         ))}
 
-        {isEditor && (
+        {canEdit && (
           <div style={{ padding: '4px 0 8px' }}>
             <button className="edit-add-btn" onClick={addSection}>+ Add Section</button>
           </div>
@@ -303,7 +306,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
         <section className="quick-links">
           <h2>Quick Links</h2>
           {sortedLinks.map((link, lIdx) => (
-            <div key={link.id} className={isEditor ? 'editable-wrapper' : ''} style={{ marginBottom: isEditor ? 6 : 0 }}>
+            <div key={link.id} className={canEdit ? 'editable-wrapper' : ''} style={{ marginBottom: canEdit ? 6 : 0 }}>
               <button
                 className="home-button"
                 style={{ width: '100%' }}
@@ -311,7 +314,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               >
                 {link.label}
               </button>
-              {isEditor && (
+              {canEdit && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
                   <div className="sidebar-reorder-btns">
                     <button
@@ -337,7 +340,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               )}
             </div>
           ))}
-          {isEditor && (
+          {canEdit && (
             <button className="edit-add-btn" style={{ marginTop: 6 }} onClick={addLink}>
               + Add Link
             </button>

@@ -3,6 +3,7 @@ import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
@@ -91,6 +92,8 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
+  const { isEditMode } = useEditMode();
+  const canEdit = isEditor && isEditMode;
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(DEFAULT_CARDS);
@@ -410,7 +413,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
                   </h1>
                 </div>
-                {isEditor && (
+                {canEdit && (
                   <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
                     ✏ Edit Banner
                   </button>
@@ -418,14 +421,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </section>
 
               {/* ── Announcements ── */}
-              {(activeAnnouncements.length > 0 || isEditor) && (
+              {(activeAnnouncements.length > 0 || canEdit) && (
                 <div style={{ margin: '16px 0 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
                       📢 Announcements
                     </h2>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      {isEditor && (
+                      {canEdit && (
                         <button className="edit-add-btn" style={{ margin: 0, padding: '5px 14px', fontSize: 12 }} onClick={addAnnouncement}>
                           + Add
                         </button>
@@ -444,7 +447,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           </div>
                         </div>
                       </div>
-                      {isEditor && (
+                      {canEdit && (
                         <button className="edit-pencil-btn" onClick={() => openAnnouncementEdit(ann)}>✏ Edit</button>
                       )}
                     </div>
@@ -469,17 +472,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     className={[
                       cardClass(index),
                       'editable-wrapper',
-                      isEditor ? 'card-reorderable' : '',
+                      canEdit ? 'card-reorderable' : '',
                       draggingCardIdx === index ? 'card-dragging' : '',
                       dragOverCardIdx === index && draggingCardIdx !== index ? 'card-drag-over' : '',
                     ].filter(Boolean).join(' ')}
-                    draggable={isEditor}
+                    draggable={canEdit}
                     onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDraggingCardIdx(index); }}
                     onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverCardIdx(index); }}
                     onDrop={(e) => onCardDrop(e, index)}
                     onDragEnd={() => { setDraggingCardIdx(null); setDragOverCardIdx(null); }}
                   >
-                    {isEditor && (
+                    {canEdit && (
                       <div className="card-drag-handle" title="Drag to reorder">
                         <div className="drag-dots">
                           <span /><span /><span /><span /><span /><span />
@@ -495,7 +498,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                         ))}
                       </ul>
                     </div>
-                    {isEditor && (
+                    {canEdit && (
                       <div className="card-reorder-row">
                         <button
                           className="card-reorder-btn"
@@ -518,7 +521,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 ))}
 
                 {/* Add Card button — editors only */}
-                {isEditor && contentLoaded && (
+                {canEdit && contentLoaded && (
                   <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4px 0 8px' }}>
                     <button className="edit-add-btn" onClick={addCard}>+ Add Card</button>
                   </div>
