@@ -136,7 +136,10 @@
 .home-grid-layout {
   margin: 10px auto;
   width: 100%;
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
   gap: 10px;
   padding: 0;
 }
@@ -192,6 +195,7 @@
 /* Homepage: four cards in a 2×2 grid (overrides .grid-layout column count) */
 .grid-layout.home-grid-layout {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
 }
 
 .card {
@@ -203,7 +207,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   overflow: hidden; /* Ensures the image and content align perfectly */
   min-height: 450px; /* Minimum height for the card */
-  height: auto; /* Allow dynamic height based on content */
+  height: 100%; /* Stretch card to fill the grid row */
 }
 
 .card-text {
@@ -246,7 +250,7 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
 }
 
-/* Alternate card backgrounds (2×2: odd=white top-left & bottom-right, even=blue top-right & bottom-left) */
+/* Alternate card backgrounds every 2 cards */
 .odd-card {
   background-color: #ffffff;
 }
@@ -401,6 +405,8 @@
 
   .grid-layout {
     grid-template-columns: repeat(2, 1fr); /* Two cards per row on medium screens */
+    grid-auto-rows: 1fr;
+    align-items: stretch;
   }
 }
 

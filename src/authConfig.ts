@@ -1,8 +1,21 @@
+import { UserInfo } from './types/user';
+
+/** Dev-only: skip MSAL login and grant full access. Remove before merging to main. */
+export const BYPASS_AUTH = true;
+
+export const DEV_USER_INFO: UserInfo = {
+  isAuthenticated: true,
+  isEliteGroup: true,
+  isEditor: true,
+  email: 'dev@symphonywireless.com',
+  name: 'Dev User',
+};
+
 export const msalConfig = {
   auth: {
     clientId: "543ae09d-95e7-47bb-b679-e4428c20918e",
     authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
-    redirectUri: "https://intranet.symphonywireless.com",
+    // redirectUri: "https://intranet.symphonywireless.com",
   },
   cache: {
     cacheLocation: "localStorage",
@@ -34,8 +47,11 @@ export const INTRANET_EDITORS_GROUP_ID = 'cbf6d5aa-f6ca-435d-a707-af1d1fac87a2';
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
+export const IMAGE_SHAREPOINT_SITE_PATH = '/sites/TechnologyOrg';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
+  if (BYPASS_AUTH) return true;
+
   try {
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) return false;

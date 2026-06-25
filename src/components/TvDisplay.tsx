@@ -30,12 +30,10 @@ import img4  from '../../images/coat.jpg';
 import img7  from '../../images/mm2.jpg';
 import img9  from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
-import img11 from '../../images/sip.jpeg';
 import logo  from '../../images/sti-horizontal-white.png';
 
 const LOCAL_IMAGES: Record<number, string> = {
   1: img9,
-  2: img11,
   3: img7,
   4: img4,
   5: img3,

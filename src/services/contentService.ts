@@ -15,7 +15,29 @@
  * Content keys:   "homepage-cards" | "homepage-sidebar" | "reports"
  */
 
-import { SHAREPOINT_HOST, SHAREPOINT_SITE_PATH } from '../authConfig';
+import { BYPASS_AUTH, SHAREPOINT_HOST, SHAREPOINT_SITE_PATH, IMAGE_SHAREPOINT_SITE_PATH } from '../authConfig';
+
+const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
+
+function readLocalContent<T>(key: string): T | null {
+  try {
+    const raw = window.localStorage.getItem(`${LOCAL_CONTENT_PREFIX}${key}`);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch (err) {
+    console.warn('[contentService] readLocalContent failed:', err);
+    return null;
+  }
+}
+
+function writeLocalContent<T>(key: string, data: T): boolean {
+  try {
+    window.localStorage.setItem(`${LOCAL_CONTENT_PREFIX}${key}`, JSON.stringify(data));
+    return true;
+  } catch (err) {
+    console.warn('[contentService] writeLocalContent failed:', err);
+    return false;
+  }
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -26,6 +48,8 @@ export interface CardContent {
   bullets: string[];
   /** Public image URL.  Empty string → component falls back to its bundled default. */
   imageUrl: string;
+  /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
+  imageIndex?: number;
 }
 
 export interface SidebarSection {
@@ -128,6 +152,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '12/25: Christmas Day',
     ],
     imageUrl: '',
+    imageIndex: 1,
   },
   {
     order: 2,
@@ -140,6 +165,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '<a href="https://symphonyinfrastructure.sharepoint.com/:w:/r/sites/SymphonyWirelessTeam/Shared%20Documents/Marketing/Mobile%20Application/Lead%20Generation%20on%20Desktop.docx?d=w8c75eaf79afe4fbd80c32c0f5b2ada4f&csf=1&web=1&e=0mifAu" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to submit the leads from desktop browser.',
     ],
     imageUrl: '',
+    imageIndex: 2,
   },
   {
     order: 3,
@@ -152,6 +178,7 @@ export const DEFAULT_CARDS: CardContent[] = [
       '<a href="https://www.youtube.com/watch?v=eg2OMjNgtHg" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>',
     ],
     imageUrl: '',
+    imageIndex: 3,
   },
 ];
 
@@ -214,33 +241,51 @@ export const DEFAULT_REPORTS: ReportItemContent[] = [
 
 const CONTENT_LIST_NAME = 'IntranetContent';
 
-let _siteId: string | null = null;
+const _siteIds: Record<string, string | null> = {};
 let _listId: string | null = null;
 
 async function getToken(msalInstance: any): Promise<string | null> {
   try {
     const accounts = msalInstance.getAllAccounts();
     if (!accounts.length) return null;
-    const result = await msalInstance.acquireTokenSilent({
+
+    const tokenRequest = {
       scopes: ['Sites.ReadWrite.All'],
       account: accounts[0],
-    });
-    return result.accessToken;
-  } catch {
+    };
+
+    try {
+      const result = await msalInstance.acquireTokenSilent(tokenRequest);
+      return result.accessToken;
+    } catch (silentError) {
+      console.warn('[contentService] acquireTokenSilent failed, trying popup fallback', silentError);
+      if (typeof msalInstance.acquireTokenPopup === 'function') {
+        try {
+          const result = await msalInstance.acquireTokenPopup(tokenRequest);
+          return result.accessToken;
+        } catch (popupError) {
+          console.error('[contentService] acquireTokenPopup failed:', popupError);
+          return null;
+        }
+      }
+      return null;
+    }
+  } catch (err) {
+    console.error('[contentService] getToken failed:', err);
     return null;
   }
 }
 
-async function getSiteId(token: string): Promise<string> {
-  if (_siteId) return _siteId;
+async function getSiteId(token: string, sitePath: string): Promise<string> {
+  if (_siteIds[sitePath]) return _siteIds[sitePath] as string;
   const res = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${SHAREPOINT_SITE_PATH}`,
+    `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${sitePath}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) throw new Error(`getSiteId failed: ${res.status}`);
   const data = await res.json();
-  _siteId = data.id as string;
-  return _siteId;
+  _siteIds[sitePath] = data.id as string;
+  return _siteIds[sitePath] as string;
 }
 
 async function getOrCreateList(siteId: string, token: string): Promise<string> {
@@ -282,47 +327,164 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
 
 // ─── Image upload ─────────────────────────────────────────────────────────────
 
+async function ensureDriveFolder(siteId: string, token: string, folderName: string): Promise<void> {
+  const folderRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent(folderName)}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (folderRes.ok) return;
+  if (folderRes.status !== 404) {
+    throw new Error(`Could not verify drive folder: ${folderRes.status}`);
+  }
+
+  const createRes = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root/children`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: folderName,
+        folder: {},
+        '@microsoft.graph.conflictBehavior': 'replace',
+      }),
+    }
+  );
+  if (!createRes.ok) {
+    throw new Error(`Could not create drive folder: ${createRes.status}`);
+  }
+}
+
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('FileReader result was not a string'));
+      }
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function fetchImageAsFile(imageUrl: string): Promise<File | null> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error(`[contentService] fetchImageAsFile failed: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    const blob = await response.blob();
+    let filename = new URL(imageUrl).pathname.split('/').pop() || `image-${Date.now()}`;
+    if (!filename.includes('.')) {
+      const extension = contentType.split('/')[1]?.split(';')[0] || 'jpg';
+      filename = `${filename}.${extension}`;
+    }
+    filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    return new File([blob], filename, { type: contentType });
+  } catch (err) {
+    console.error('[contentService] fetchImageAsFile failed:', err);
+    return null;
+  }
+}
+
+export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): Promise<string | null> {
+  if (!imageUrl || imageUrl.startsWith('data:')) return null;
+  const file = await fetchImageAsFile(imageUrl);
+  if (!file) return null;
+  return uploadImage(msalInstance, file);
+}
+
 /**
- * Upload an image file to the IntranetImages folder in the site's default
- * Documents drive.  Returns the permanent SharePoint webUrl on success, or
- * null on failure.
+ * Upload an image file to the intranet images folder in the TechnologyOrg
+ * site's default Documents drive. Returns the permanent SharePoint webUrl on
+ * success, or null on failure.
  *
  * The webUrl is accessible to any user who is authenticated with the tenant
  * (via SharePoint SSO, which is established when users sign in through MSAL).
  * Files land at:
- *   Documents/IntranetImages/<timestamp>-<originalFilename>
+ *   Documents/intranet images/<timestamp>-<originalFilename>
  */
 export async function uploadImage(msalInstance: any, file: File): Promise<string | null> {
+  if (BYPASS_AUTH) {
+    try {
+      return await fileToDataUrl(file);
+    } catch (err) {
+      console.error('[contentService] uploadImage bypass fallback failed:', err);
+      return null;
+    }
+  }
+
   try {
     const token = await getToken(msalInstance);
-    if (!token) throw new Error('Could not acquire token for image upload');
+    if (!token) {
+      console.error('[contentService] uploadImage: no token acquired');
+      return null;
+    }
 
-    const siteId = await getSiteId(token);
+    const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    await ensureDriveFolder(siteId, token, 'intranet images');
 
     // Unique filename to avoid collisions
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${Date.now()}-${safeName}`;
 
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/IntranetImages/${filename}:/content`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': file.type || 'application/octet-stream',
-        },
-        body: file,
-      }
-    );
+    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeURIComponent('intranet images')}/${encodeURIComponent(filename)}:/content`;
+
+    const res = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: file,
+    });
 
     if (!res.ok) {
-      console.error(`[contentService] uploadImage failed: ${res.status} ${res.statusText}`);
+      const errorText = await res.text().catch(() => 'Unable to read error body');
+      console.error(`[contentService] uploadImage failed: ${res.status} ${res.statusText} - ${errorText}`);
       return null;
     }
 
     const item = await res.json();
-    // webUrl is permanent; @microsoft.graph.downloadUrl expires in ~1 hour
-    return (item.webUrl as string) ?? null;
+    if (!item?.id) {
+      console.error('[contentService] uploadImage did not return item id', item);
+      return null;
+    }
+
+    try {
+      const infoRes = await fetch(
+        `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${item.id}?$select=@microsoft.graph.downloadUrl,webUrl`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (infoRes.ok) {
+        const info = await infoRes.json();
+        if (info?.['@microsoft.graph.downloadUrl']) {
+          return info['@microsoft.graph.downloadUrl'] as string;
+        }
+        if (info?.webUrl) {
+          return info.webUrl as string;
+        }
+      } else {
+        console.warn('[contentService] uploadImage metadata fetch failed', infoRes.status, infoRes.statusText);
+      }
+    } catch (infoErr) {
+      console.error('[contentService] uploadImage metadata fetch error:', infoErr);
+    }
+
+    if (!item?.webUrl) {
+      console.error('[contentService] uploadImage did not return webUrl', item);
+      return null;
+    }
+
+    return item.webUrl as string;
   } catch (err) {
     console.error('[contentService] uploadImage error:', err);
     return null;
@@ -336,11 +498,15 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
  * has not been saved yet (callers should fall back to their DEFAULT_* constant).
  */
 export async function getContent<T>(msalInstance: any, key: string): Promise<T | null> {
+  if (BYPASS_AUTH) {
+    return readLocalContent<T>(key);
+  }
+
   try {
     const token = await getToken(msalInstance);
     if (!token) return null;
 
-    const siteId = await getSiteId(token);
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
 
     const res = await fetch(
@@ -364,11 +530,15 @@ export async function getContent<T>(msalInstance: any, key: string): Promise<T |
  * Write a content block back to SharePoint.  Returns true on success.
  */
 export async function setContent<T>(msalInstance: any, key: string, data: T): Promise<boolean> {
+  if (BYPASS_AUTH) {
+    return writeLocalContent(key, data);
+  }
+
   try {
     const token = await getToken(msalInstance);
     if (!token) throw new Error('Could not acquire SharePoint token. Ensure Sites.ReadWrite.All has been admin-consented.');
 
-    const siteId = await getSiteId(token);
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
     const listId = await getOrCreateList(siteId, token);
     const contentJson = JSON.stringify(data);
 

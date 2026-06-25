@@ -7,6 +7,7 @@ import {
   getContent,
   setContent,
   uploadImage,
+  uploadImageFromUrl,
   DEFAULT_CARDS,
   DEFAULT_ANNOUNCEMENTS,
   CardContent,
@@ -106,6 +107,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   // ── Card edit state ──
   const [editingCard, setEditingCard] = useState<CardContent | null>(null);
   const [editCardDraft, setEditCardDraft] = useState<CardContent | null>(null);
+  const [isNewCard, setIsNewCard] = useState(false);
   const [savingCard, setSavingCard] = useState(false);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
@@ -130,7 +132,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         getContent<string>(instance, 'homepage-hero'),
         getContent<Announcement[]>(instance, 'announcements'),
       ]);
-      if (remoteCards) setCards(remoteCards);
+      if (remoteCards) {
+        // Ensure all cards have imageIndex; assign if missing
+        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+        const withImageIndex = remoteCards.map((card, idx) => ({
+          ...card,
+          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
+        }));
+        setCards(withImageIndex);
+      }
       if (remoteHero) setHeroImageUrl(remoteHero);
       if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
       setContentLoaded(true);
@@ -143,10 +153,30 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
     setPendingImageFile(null);
     setImagePreviewUrl(card.imageUrl || '');
+    setIsNewCard(false);
   }, []);
+
+  const openNewCardEdit = useCallback(() => {
+    const nextOrder = cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1;
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const nextImageIndex = ((cards.length % totalFallbacks) + 1);
+    setEditingCard(null);
+    setEditCardDraft({
+      order: nextOrder,
+      title: 'New Card',
+      bullets: ['Add your content here.'],
+      imageUrl: '',
+      imageIndex: nextImageIndex,
+    });
+    setPendingImageFile(null);
+    setImagePreviewUrl('');
+    setIsNewCard(true);
+  }, [cards]);
 
   const closeCardEdit = useCallback(() => {
     setEditingCard(null);
+    setEditCardDraft(null);
+    setIsNewCard(false);
     setPendingImageFile(null);
     setImagePreviewUrl('');
   }, []);
@@ -160,47 +190,84 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!editCardDraft) return;
     setSavingCard(true);
 
-    let finalDraft = { ...editCardDraft };
+    try {
+      let finalDraft = { ...editCardDraft };
 
-    if (pendingImageFile) {
-      setUploadingImage(true);
-      const uploadedUrl = await uploadImage(instance, pendingImageFile);
-      setUploadingImage(false);
-      if (uploadedUrl) {
-        finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
-      } else {
-        console.warn('[HomePage] Image upload failed — keeping existing imageUrl');
+      if (pendingImageFile || editCardDraft.imageUrl) {
+        setUploadingImage(true);
+        let uploadedUrl: string | null = null;
+
+        if (pendingImageFile) {
+          uploadedUrl = await uploadImage(instance, pendingImageFile);
+          setPendingImageFile(null);
+        } else if (editCardDraft.imageUrl && !editCardDraft.imageUrl.startsWith('data:')) {
+          uploadedUrl = await uploadImageFromUrl(instance, editCardDraft.imageUrl);
+        }
+
+        setUploadingImage(false);
+
+        if (uploadedUrl) {
+          finalDraft = { ...finalDraft, imageUrl: uploadedUrl };
+        } else if (pendingImageFile) {
+          window.alert('Image upload failed. Saving card without a custom image.');
+          finalDraft = { ...finalDraft, imageUrl: editCardDraft.imageUrl || '' };
+        }
       }
-      setPendingImageFile(null);
-    }
 
-    const updated = cards.map(c => c.order === finalDraft.order ? finalDraft : c);
-    const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) { setCards(updated); setEditCardDraft(finalDraft); }
-    setSavingCard(false);
-    setEditingCard(null);
+      const updated = isNewCard
+        ? [...cards, finalDraft]
+        : cards.map(c => c.order === finalDraft.order ? finalDraft : c);
+
+      const ok = await setContent(instance, 'homepage-cards', updated);
+      setCards(updated);
+
+      if (!ok) {
+        console.warn('[HomePage] Failed to save card to SharePoint. Card is visible locally but not persisted.');
+        window.alert('Card was saved locally, but SharePoint persistence failed. Please try again when signed in.');
+      }
+
+      closeCardEdit();
+    } catch (err) {
+      console.error('[HomePage] saveCard failed:', err);
+      window.alert(
+        'Unable to save the card. Please try again. ' +
+        (err instanceof Error ? err.message : '')
+      );
+    } finally {
+      setSavingCard(false);
+      setUploadingImage(false);
+    }
   };
 
-  const deleteCard = async () => {
-    if (!editCardDraft) return;
+  const deleteCardByOrder = async (order: number) => {
+    if (!window.confirm('Delete this card?')) return;
     setSavingCard(true);
-    const updated = cards.filter(c => c.order !== editCardDraft.order);
+    const updated = cards.filter(c => c.order !== order);
+    setCards(updated);
     const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) setCards(updated);
+    if (!ok) {
+      console.warn('[HomePage] Failed to delete card, restoring local state');
+      const remoteCards = await getContent<CardContent[]>(instance, 'homepage-cards');
+      if (remoteCards) {
+        const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+        const withImageIndex = remoteCards.map((card, idx) => ({
+          ...card,
+          imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as any),
+        }));
+        setCards(withImageIndex);
+      }
+    }
     setSavingCard(false);
     closeCardEdit();
   };
 
-  const addCard = async () => {
-    const newCard: CardContent = {
-      order: cards.length > 0 ? Math.max(...cards.map(c => c.order)) + 1 : 1,
-      title: 'New Card',
-      bullets: ['Add your content here.'],
-      imageUrl: '',
-    };
-    const updated = [...cards, newCard];
-    const ok = await setContent(instance, 'homepage-cards', updated);
-    if (ok) { setCards(updated); openCardEdit(newCard); }
+  const deleteCard = async () => {
+    if (!editCardDraft) return;
+    await deleteCardByOrder(editCardDraft.order);
+  };
+
+  const addCard = () => {
+    openNewCardEdit();
   };
 
   // ── Card reordering ──
@@ -295,14 +362,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const textToBullets = (text: string) => text.split('\n').filter(l => l.trim() !== '');
 
   // ── Render helpers ──
-  const cardClass = (index: number) => index % 2 === 0 ? 'card odd-card' : 'card even-card';
+  const cardClass = (index: number) => {
+    if (index === 0) return 'card odd-card';
+    const block = Math.floor((index - 1) / 2);
+    return block % 2 === 0 ? 'card even-card' : 'card odd-card';
+  };
 
   const renderCardImage = (card: CardContent, index: number) => {
     if (card.imageUrl) {
       return <img src={card.imageUrl} alt={card.title} className="card-image" />;
     }
-    const local = LOCAL_IMAGES[card.order];
-    if (!local) return null;
+
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
+    const local = LOCAL_IMAGES[fallbackIndex];
+
     return (
       <img
         src={local.src}
@@ -391,7 +465,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <div className="grid-layout home-grid-layout">
                 {[...cards].sort((a, b) => a.order - b.order).map((card, index, sortedArr) => (
                   <div
-                    key={card.order}
+                    key={`card-${card.title}-${card.order}`}
                     className={[
                       cardClass(index),
                       'editable-wrapper',
@@ -470,13 +544,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {/* ──────────── Edit Modals ──────────── */}
 
       {/* Card edit modal */}
-      {editingCard && editCardDraft && (
+      {editCardDraft && (
         <EditModal
-          title={`Edit Card: ${editCardDraft.title}`}
+          title={isNewCard ? 'New Card' : `Edit Card: ${editCardDraft.title}`}
           onClose={closeCardEdit}
           onSave={saveCard}
           isSaving={savingCard || uploadingImage}
-          onDelete={deleteCard}
+          onDelete={isNewCard ? undefined : deleteCard}
         >
           <div className="edit-field-group">
             <label>Card Title</label>
@@ -540,7 +614,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               )}
             </div>
             <span className="edit-field-hint">
-              Uploads directly to SharePoint (Documents/IntranetImages/).
+              Uploads directly to SharePoint (Documents/intranet images/).
               Visible to all signed-in users via Microsoft SSO.
             </span>
 
