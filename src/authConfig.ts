@@ -1,7 +1,7 @@
 import { UserInfo } from './types/user';
 
-/** Dev-only: skip MSAL login and grant full access. Remove before merging to main. */
-export const BYPASS_AUTH = true;
+/** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
+export const BYPASS_AUTH = false;
 
 export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
@@ -11,11 +11,17 @@ export const DEV_USER_INFO: UserInfo = {
   name: 'Dev User',
 };
 
+const appOrigin =
+  typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://serena-dev.d2ryoyr4gox6p1.amplifyapp.com';
+
 export const msalConfig = {
   auth: {
     clientId: "543ae09d-95e7-47bb-b679-e4428c20918e",
     authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
-    // redirectUri: "https://intranet.symphonywireless.com",
+    redirectUri: appOrigin,
+    postLogoutRedirectUri: appOrigin,
   },
   cache: {
     cacheLocation: "localStorage",
