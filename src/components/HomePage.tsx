@@ -122,6 +122,8 @@ const EditModal: React.FC<EditModalProps> = ({
 };
 
 const CARDS_CONTENT_KEY = 'homepage-cards';
+const HERO_CONTENT_KEY = 'homepage-hero';
+const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
 const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
@@ -160,12 +162,20 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
+  const hasMsalAccount = instance.getAllAccounts().length > 0;
+  const showHomeContent = userInfo.isAuthenticated || hasMsalAccount;
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(DEFAULT_ANNOUNCEMENTS);
-  const [heroImageUrl, setHeroImageUrl] = useState<string>('');
-  const [contentLoaded, setContentLoaded] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(
+    () => getCachedContent<Announcement[]>(ANNOUNCEMENTS_CONTENT_KEY) ?? DEFAULT_ANNOUNCEMENTS
+  );
+  const [heroImageUrl, setHeroImageUrl] = useState(
+    () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
+  );
+  const [contentLoaded, setContentLoaded] = useState(
+    () => Boolean(getCachedContent<CardContent[]>(CARDS_CONTENT_KEY)?.length)
+  );
 
   // ── Announcement edit state ──
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -233,7 +243,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Load content from SharePoint on mount ──
   useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
+    if (!showHomeContent) return;
     if (hasFetchedCardsRef.current) {
       setContentLoaded(true);
       return;
@@ -242,35 +252,46 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [remoteCards, remoteHero, remoteAnnouncements] = await Promise.all([
-          getContent<CardContent[]>(instance, CARDS_CONTENT_KEY),
-          getContent<string>(instance, 'homepage-hero'),
-          getContent<Announcement[]>(instance, 'announcements'),
-        ]);
+        const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
         if (cancelled) return;
 
         hasFetchedCardsRef.current = true;
         if (remoteCards && !userModifiedCardsRef.current) {
-          setCards(normalizeCards(remoteCards));
+          const normalized = normalizeCards(remoteCards);
+          if (!cardsMatch(normalized, cardsRef.current)) {
+            setCards(normalized);
+          }
         }
-        if (remoteHero) setHeroImageUrl(remoteHero);
-        if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
       } catch (err) {
-        console.error('[HomePage] failed to load content:', err);
+        console.error('[HomePage] failed to load cards:', err);
         hasFetchedCardsRef.current = true;
       } finally {
         if (!cancelled) setContentLoaded(true);
+      }
+
+      if (cancelled) return;
+
+      try {
+        const [remoteHero, remoteAnnouncements] = await Promise.all([
+          getContent<string>(instance, HERO_CONTENT_KEY),
+          getContent<Announcement[]>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+        ]);
+        if (cancelled) return;
+        if (remoteHero) setHeroImageUrl(remoteHero);
+        if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+      } catch (err) {
+        console.error('[HomePage] failed to load hero/announcements:', err);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [userInfo.isAuthenticated, instance]);
+  }, [showHomeContent, instance]);
 
   // ── Poll SharePoint so all devices stay in sync ──
   useEffect(() => {
-    if (!userInfo.isAuthenticated || !contentLoaded) return;
+    if (!showHomeContent || !contentLoaded) return;
 
     const syncCardsFromSharePoint = async () => {
       if (editCardDraftRef.current) return;
@@ -289,7 +310,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }, CARD_POLL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [userInfo.isAuthenticated, contentLoaded, instance]);
+  }, [showHomeContent, contentLoaded, instance]);
 
   // ── Card editing ──
   const openCardEdit = useCallback((card: CardContent) => {
@@ -604,8 +625,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   };
 
   return (
-    <div className={`home-page ${userInfo.isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      {userInfo.isAuthenticated ? (
+    <div className={`home-page ${showHomeContent ? 'authenticated' : 'unauthenticated'}`}>
+      {showHomeContent ? (
         <div className="home-layout">
           {/* ── Main Content ── */}
           <div className="home-content-container">
