@@ -531,16 +531,28 @@ async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-async function fetchImageAsFile(imageUrl: string): Promise<File | null> {
+async function fetchImageAsFile(msalInstance: any, imageUrl: string): Promise<File | null> {
   try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
-      console.error(`[contentService] fetchImageAsFile failed: ${response.status} ${response.statusText}`);
-      return null;
+    let blob: Blob;
+    let contentType = 'application/octet-stream';
+
+    if (isSharePointImageUrl(imageUrl)) {
+      const blobUrl = await getSharePointImageBlobUrl(msalInstance, imageUrl);
+      if (!blobUrl) return null;
+      const response = await fetch(blobUrl);
+      if (!response.ok) return null;
+      contentType = response.headers.get('content-type') || contentType;
+      blob = await response.blob();
+    } else {
+      const response = await fetch(imageUrl);
+      if (!response.ok) {
+        console.error(`[contentService] fetchImageAsFile failed: ${response.status} ${response.statusText}`);
+        return null;
+      }
+      contentType = response.headers.get('content-type') || contentType;
+      blob = await response.blob();
     }
 
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    const blob = await response.blob();
     let filename = new URL(imageUrl).pathname.split('/').pop() || `image-${Date.now()}`;
     if (!filename.includes('.')) {
       const extension = contentType.split('/')[1]?.split(';')[0] || 'jpg';
@@ -554,9 +566,68 @@ async function fetchImageAsFile(imageUrl: string): Promise<File | null> {
   }
 }
 
+const sharePointImageBlobCache = new Map<string, Promise<string | null>>();
+
+export function isSharePointImageUrl(url: string): boolean {
+  if (!url || url.startsWith('data:')) return false;
+  return /sharepoint/i.test(url) || url.includes('graph.microsoft.com');
+}
+
+function webUrlToDrivePath(webUrl: string): string | null {
+  try {
+    const pathname = decodeURIComponent(new URL(webUrl).pathname);
+    const match = pathname.match(/\/Shared Documents\/(.+)$/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): Promise<string | null> {
+  const drivePath = webUrlToDrivePath(webUrl);
+  if (!drivePath) {
+    console.warn('[contentService] could not parse SharePoint path from image URL:', webUrl);
+    return null;
+  }
+
+  const token = await getToken(msalInstance);
+  if (!token) return null;
+
+  const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${drivePath}:/content`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.warn(`[contentService] SharePoint image fetch failed (${res.status}):`, drivePath, err);
+    return null;
+  }
+
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+/** Fetch a SharePoint-hosted image with the user's Graph token; returns a blob URL. */
+export async function getSharePointImageBlobUrl(
+  msalInstance: any,
+  webUrl: string
+): Promise<string | null> {
+  if (!webUrl) return null;
+  if (!isSharePointImageUrl(webUrl)) return webUrl;
+
+  const cached = sharePointImageBlobCache.get(webUrl);
+  if (cached) return cached;
+
+  const pending = fetchSharePointImageBlobUrl(msalInstance, webUrl);
+  sharePointImageBlobCache.set(webUrl, pending);
+  return pending;
+}
+
 export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): Promise<string | null> {
   if (!imageUrl || imageUrl.startsWith('data:')) return null;
-  const file = await fetchImageAsFile(imageUrl);
+  const file = await fetchImageAsFile(msalInstance, imageUrl);
   if (!file) return null;
   return uploadImage(msalInstance, file);
 }

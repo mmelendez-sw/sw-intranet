@@ -13,10 +13,12 @@ import {
   DEFAULT_CARDS,
   DEFAULT_ANNOUNCEMENTS,
   getCachedContent,
+  isSharePointImageUrl,
   CardContent,
   Announcement,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
+import SharePointImage from './SharePointImage';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -146,9 +148,6 @@ const getInitialCards = (): CardContent[] => {
   if (cached?.length) return normalizeCards(cached);
   return DEFAULT_CARDS;
 };
-
-const isPersistedImageUrl = (url: string) =>
-  /sharepoint/i.test(url) || url.includes('graph.microsoft.com');
 
 const bulletsToText = (bullets: string[]) => bullets.join('\n');
 const parseBulletLines = (text: string) => text.split('\n');
@@ -358,7 +357,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       } else if (
         draft.imageUrl &&
         !draft.imageUrl.startsWith('data:') &&
-        !isPersistedImageUrl(draft.imageUrl) &&
+        !isSharePointImageUrl(draft.imageUrl) &&
         draft.imageUrl !== originalCardImageUrlRef.current
       ) {
         uploadedUrl = await uploadImageFromUrl(instance, draft.imageUrl);
@@ -578,7 +577,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       : {};
 
     if (card.imageUrl) {
-      return <img src={card.imageUrl} alt={card.title} className="card-image" {...blockImageDrag} />;
+      return (
+        <SharePointImage
+          src={card.imageUrl}
+          alt={card.title}
+          className="card-image"
+          {...blockImageDrag}
+        />
+      );
     }
 
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
@@ -607,7 +613,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Hero Banner ── */}
               <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
-                <img
+                <SharePointImage
                   src={heroImageUrl || howBanner}
                   alt="Homepage banner"
                   className="homepage-hero-image"
@@ -800,7 +806,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
             {/* Live preview */}
             {imagePreviewUrl && (
-              <img src={imagePreviewUrl} alt="Preview" className="edit-image-preview" />
+              <SharePointImage src={imagePreviewUrl} alt="Preview" className="edit-image-preview" />
             )}
 
             {/* Upload from device */}
@@ -922,7 +928,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               value={heroDraft}
               onChange={e => setHeroDraft(e.target.value)}
             />
-            {heroDraft && <img src={heroDraft} alt="Banner preview" className="edit-image-preview" />}
+            {heroDraft && <SharePointImage src={heroDraft} alt="Banner preview" className="edit-image-preview" />}
             <span className="edit-field-hint">Paste a public image URL or SharePoint CDN link. Recommended size: 1400×400 px.</span>
           </div>
         </EditModal>
