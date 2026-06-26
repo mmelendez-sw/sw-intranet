@@ -27,6 +27,7 @@ import {
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
 } from '../authConfig';
+import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 
@@ -69,6 +70,9 @@ export interface CardContent {
   /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
   imageIndex?: number;
 }
+
+/** Bundled snapshot for instant first paint before SharePoint responds. Update src/data/homepage-cards.seed.json from SharePoint when cards change. */
+export const SEED_CARDS: CardContent[] = seedCards as CardContent[];
 
 export interface SidebarSection {
   key: string;
@@ -157,48 +161,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 
 // ─── Default content (mirrors current hard-coded values) ─────────────────────
 
-export const DEFAULT_CARDS: CardContent[] = [
-  // {
-  //   order: 1,
-  //   title: 'Important Dates',
-  //   bullets: [
-  //     'July - Q2 Performance Reviews',
-  //     '7/3: Independence Day Observed',
-  //     '9/7: Labor Day',
-  //     '11/26: Thanksgiving Day',
-  //     '11/27: Day After Thanksgiving',
-  //     '12/25: Christmas Day',
-  //   ],
-  //   imageUrl: '',
-  //   imageIndex: 1,
-  // },
-  // {
-  //   order: 2,
-  //   title: 'New Employee Leads App',
-  //   bullets: [
-  //     'Our goal is to collect 2 leads per month per employee.',
-  //     'This initiative is a part of our company-wide goals for the year.',
-  //     '<a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.',
-  //     '<a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app.',
-  //     '<a href="https://symphonyinfrastructure.sharepoint.com/:w:/r/sites/SymphonyWirelessTeam/Shared%20Documents/Marketing/Mobile%20Application/Lead%20Generation%20on%20Desktop.docx?d=w8c75eaf79afe4fbd80c32c0f5b2ada4f&csf=1&web=1&e=0mifAu" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to submit the leads from desktop browser.',
-  //   ],
-  //   imageUrl: '',
-  //   imageIndex: 2,
-  // },
-  // {
-  //   order: 3,
-  //   title: 'Marketing Updates',
-  //   bullets: [
-  //     "We're excited to share that our company logo has been updated as part of our ongoing brand refresh. To support this update, we've created a shared folder with updated logo files, templates, and brand collateral for your use. This folder will continue to be updated as additional materials become available. If you have any questions or need assistance, please feel free to reach out to Justin or Arwa. Thank you for helping us maintain a consistent and professional brand presence.",
-  //     '<a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>',
-  //     'Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.',
-  //     '<a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>',
-  //     '<a href="https://www.youtube.com/watch?v=eg2OMjNgtHg" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>',
-  //   ],
-  //   imageUrl: '',
-  //   imageIndex: 3,
-  // },
-];
+export const DEFAULT_CARDS: CardContent[] = SEED_CARDS;
 
 export const DEFAULT_SIDEBAR: SidebarSection[] = [
   {
@@ -842,22 +805,13 @@ async function readContentFromSharePoint<T>(
   return JSON.parse(json) as T;
 }
 
-/**
- * Read a content block.  Returns null if SharePoint is unreachable or the item
- * has not been saved yet (callers should fall back to their DEFAULT_* constant).
- */
-export async function getContent<T>(
+async function fetchContentFromRemote<T>(
   msalInstance: any,
-  key: string,
-  options?: ContentSyncOptions
+  key: string
 ): Promise<T | null> {
-  if (BYPASS_AUTH) {
-    return readLocalContent<T>(key);
-  }
-
   try {
     const token = await getToken(msalInstance);
-    if (!token) return options?.remoteOnly ? null : readLocalContent<T>(key);
+    if (!token) return null;
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
 
@@ -868,7 +822,6 @@ export async function getContent<T>(
         return driveParsed;
       }
 
-      // One-time migration: copy legacy IntranetContent list data into the drive folder
       const listId = await getOrCreateList(siteId, token);
       const listParsed = await readContentFromSharePoint<T>(siteId, listId, token, key);
       if (listParsed) {
@@ -877,7 +830,7 @@ export async function getContent<T>(
         return listParsed;
       }
 
-      return options?.remoteOnly ? null : readLocalContent<T>(key);
+      return null;
     }
 
     const listId = await getOrCreateList(siteId, token);
@@ -887,12 +840,40 @@ export async function getContent<T>(
       writeLocalContent(key, parsed);
       return parsed;
     }
-    return options?.remoteOnly ? null : readLocalContent<T>(key);
+    return null;
   } catch (err) {
-    console.error(`[contentService] getContent("${key}") failed:`, err);
+    console.error(`[contentService] fetchContentFromRemote("${key}") failed:`, err);
+    return null;
+  }
+}
+
+/**
+ * Read a content block.  Returns null if SharePoint is unreachable or the item
+ * has not been saved yet (callers should fall back to their DEFAULT_* constant).
+ *
+ * When browser cache exists, returns it immediately and refreshes SharePoint in
+ * the background (unless remoteOnly is set).
+ */
+export async function getContent<T>(
+  msalInstance: any,
+  key: string,
+  options?: ContentSyncOptions
+): Promise<T | null> {
+  if (BYPASS_AUTH) {
+    return readLocalContent<T>(key);
   }
 
-  return options?.remoteOnly ? null : readLocalContent<T>(key);
+  const cached = readLocalContent<T>(key);
+
+  if (!options?.remoteOnly && cached !== null) {
+    void fetchContentFromRemote<T>(msalInstance, key);
+    return cached;
+  }
+
+  const remote = await fetchContentFromRemote<T>(msalInstance, key);
+  if (remote !== null) return remote;
+
+  return options?.remoteOnly ? null : cached;
 }
 
 export interface SetContentResult {

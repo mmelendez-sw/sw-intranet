@@ -24,6 +24,7 @@ const renderApp = async () => {
     // auth errors via its event callbacks in-app.
     console.error(e);
   }
+
   ReactDOM.render(
     <React.StrictMode>
       <MsalProvider instance={msalInstance}>

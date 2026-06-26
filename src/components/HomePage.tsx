@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
-import { useMsal } from '@azure/msal-react';
+import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
@@ -11,6 +11,7 @@ import {
   uploadImage,
   uploadImageFromUrl,
   DEFAULT_CARDS,
+  SEED_CARDS,
   DEFAULT_ANNOUNCEMENTS,
   getCachedContent,
   isSharePointImageUrl,
@@ -148,6 +149,7 @@ const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) ===
 const getInitialCards = (): CardContent[] => {
   const cached = getCachedContent<CardContent[]>(CARDS_CONTENT_KEY);
   if (cached?.length) return normalizeCards(cached);
+  if (SEED_CARDS.length) return normalizeCards(SEED_CARDS);
   return DEFAULT_CARDS;
 };
 
@@ -159,11 +161,11 @@ const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !=
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const { instance } = useMsal();
+  const msalAuthenticated = useIsAuthenticated();
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
-  const hasMsalAccount = instance.getAllAccounts().length > 0;
-  const showHomeContent = userInfo.isAuthenticated || hasMsalAccount;
+  const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
@@ -173,9 +175,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [heroImageUrl, setHeroImageUrl] = useState(
     () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
   );
-  const [contentLoaded, setContentLoaded] = useState(
-    () => Boolean(getCachedContent<CardContent[]>(CARDS_CONTENT_KEY)?.length)
-  );
+  const contentLoaded = showHomeContent;
 
   // ── Announcement edit state ──
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -241,22 +241,26 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     return persistCardsToSharePoint(withNewOrders);
   }, [persistCardsToSharePoint]);
 
-  // ── Load content from SharePoint on mount ──
+  // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
     if (!showHomeContent) return;
-    if (hasFetchedCardsRef.current) {
-      setContentLoaded(true);
-      return;
-    }
+    if (hasFetchedCardsRef.current) return;
 
     let cancelled = false;
-    (async () => {
-      try {
-        const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
-        if (cancelled) return;
+    hasFetchedCardsRef.current = true;
 
-        hasFetchedCardsRef.current = true;
-        if (remoteCards && !userModifiedCardsRef.current) {
+    void (async () => {
+      try {
+        const cachedCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
+        if (!cancelled && cachedCards && !userModifiedCardsRef.current) {
+          const normalized = normalizeCards(cachedCards);
+          if (!cardsMatch(normalized, cardsRef.current)) {
+            setCards(normalized);
+          }
+        }
+
+        const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+        if (!cancelled && remoteCards && !userModifiedCardsRef.current) {
           const normalized = normalizeCards(remoteCards);
           if (!cardsMatch(normalized, cardsRef.current)) {
             setCards(normalized);
@@ -264,9 +268,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         }
       } catch (err) {
         console.error('[HomePage] failed to load cards:', err);
-        hasFetchedCardsRef.current = true;
-      } finally {
-        if (!cancelled) setContentLoaded(true);
       }
 
       if (cancelled) return;

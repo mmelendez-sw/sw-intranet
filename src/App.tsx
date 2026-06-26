@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
@@ -143,6 +143,24 @@ const App: React.FC = () => {
       });
     }
   };
+
+  useLayoutEffect(() => {
+    if (BYPASS_AUTH) return;
+    const accounts = instance.getAllAccounts();
+    if (accounts.length === 0) return;
+
+    const account = accounts[0];
+    const email = account.username || account.homeAccountId;
+    setUserInfo((prev) => {
+      if (prev.isAuthenticated) return prev;
+      return {
+        ...prev,
+        isAuthenticated: true,
+        email,
+        name: account.name || prev.name,
+      };
+    });
+  }, [instance]);
 
   useEffect(() => {
     // Check authentication status on app load
