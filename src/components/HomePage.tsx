@@ -15,6 +15,7 @@ import {
   DEFAULT_ANNOUNCEMENTS,
   getCachedContent,
   isSharePointImageUrl,
+  preloadSharePointImages,
   CardContent,
   Announcement,
 } from '../services/contentService';
@@ -218,6 +219,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const draggingCardIdxRef = useRef<number | null>(null);
   const userModifiedCardsRef = useRef(false);
   const hasFetchedCardsRef = useRef(false);
+  const preloadedImageUrlsRef = useRef(new Set<string>());
 
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
@@ -240,6 +242,18 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setCards(withNewOrders);
     return persistCardsToSharePoint(withNewOrders);
   }, [persistCardsToSharePoint]);
+
+  // ── Preload SharePoint card/hero images as soon as URLs are known ──
+  useEffect(() => {
+    if (!showHomeContent) return;
+    const urls = [
+      ...cards.map((card) => card.imageUrl),
+      heroImageUrl || undefined,
+    ].filter((url): url is string => !!url && isSharePointImageUrl(url));
+    const pending = urls.filter((url) => !preloadedImageUrlsRef.current.has(url));
+    pending.forEach((url) => preloadedImageUrlsRef.current.add(url));
+    if (pending.length) preloadSharePointImages(instance, pending);
+  }, [showHomeContent, instance, cards, heroImageUrl]);
 
   // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
@@ -598,20 +612,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       ? { draggable: false, onDragStart: (e: React.DragEvent) => e.preventDefault() }
       : {};
 
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
+    const local = LOCAL_IMAGES[fallbackIndex];
+
     if (card.imageUrl) {
       return (
         <SharePointImage
           src={card.imageUrl}
+          placeholderSrc={local.src}
           alt={card.title}
           className="card-image"
           {...blockImageDrag}
         />
       );
     }
-
-    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
-    const local = LOCAL_IMAGES[fallbackIndex];
 
     return (
       <img
@@ -637,6 +652,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
                 <SharePointImage
                   src={heroImageUrl || howBanner}
+                  placeholderSrc={howBanner}
                   alt="Homepage banner"
                   className="homepage-hero-image"
                 />

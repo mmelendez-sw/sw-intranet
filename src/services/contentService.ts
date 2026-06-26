@@ -530,6 +530,47 @@ async function fetchImageAsFile(msalInstance: any, imageUrl: string): Promise<Fi
 }
 
 const sharePointImageBlobCache = new Map<string, Promise<string | null>>();
+const sharePointImageResolvedCache = new Map<string, string>();
+const SHAREPOINT_IMAGE_SESSION_PREFIX = 'intranet-sp-img:';
+
+function readSessionImageCache(webUrl: string): string | null {
+  try {
+    return sessionStorage.getItem(`${SHAREPOINT_IMAGE_SESSION_PREFIX}${webUrl}`);
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionImageCache(webUrl: string, dataUrl: string): void {
+  try {
+    sessionStorage.setItem(`${SHAREPOINT_IMAGE_SESSION_PREFIX}${webUrl}`, dataUrl);
+  } catch (err) {
+    console.warn('[contentService] session image cache write failed:', err);
+  }
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Synchronous lookup for a previously fetched SharePoint image (session or in-memory). */
+export function getCachedSharePointImageUrl(webUrl: string): string | null {
+  if (!webUrl) return null;
+  if (!isSharePointImageUrl(webUrl)) return webUrl;
+  const resolved = sharePointImageResolvedCache.get(webUrl);
+  if (resolved) return resolved;
+  const session = readSessionImageCache(webUrl);
+  if (session) {
+    sharePointImageResolvedCache.set(webUrl, session);
+    return session;
+  }
+  return null;
+}
 
 export function isSharePointImageUrl(url: string): boolean {
   if (!url || url.startsWith('data:')) return false;
@@ -546,30 +587,48 @@ function webUrlToDrivePath(webUrl: string): string | null {
   }
 }
 
-async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): Promise<string | null> {
-  const drivePath = webUrlToDrivePath(webUrl);
-  if (!drivePath) {
-    console.warn('[contentService] could not parse SharePoint path from image URL:', webUrl);
-    return null;
-  }
+function encodeSharePointUrlForGraph(webUrl: string): string {
+  const base64 = btoa(webUrl);
+  return `u!${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+}
 
+async function fetchSharePointImageBlob(msalInstance: any, webUrl: string): Promise<Blob | null> {
   const token = await getToken(msalInstance);
   if (!token) return null;
 
-  const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${drivePath}:/content`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-
-  if (!res.ok) {
+  const drivePath = webUrlToDrivePath(webUrl);
+  if (drivePath) {
+    const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${drivePath}:/content`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (res.ok) return res.blob();
     const err = await res.text().catch(() => '');
     console.warn(`[contentService] SharePoint image fetch failed (${res.status}):`, drivePath, err);
-    return null;
   }
 
-  const blob = await res.blob();
-  return URL.createObjectURL(blob);
+  const shareId = encodeSharePointUrlForGraph(webUrl);
+  const shareRes = await fetch(
+    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem/content`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!shareRes.ok) {
+    const err = await shareRes.text().catch(() => '');
+    console.warn(`[contentService] SharePoint shares image fetch failed (${shareRes.status}):`, webUrl, err);
+    return null;
+  }
+  return shareRes.blob();
+}
+
+async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): Promise<string | null> {
+  const blob = await fetchSharePointImageBlob(msalInstance, webUrl);
+  if (!blob) return null;
+
+  const dataUrl = await blobToDataUrl(blob);
+  sharePointImageResolvedCache.set(webUrl, dataUrl);
+  writeSessionImageCache(webUrl, dataUrl);
+  return dataUrl;
 }
 
 /** Fetch a SharePoint-hosted image with the user's Graph token; returns a blob URL. */
@@ -580,12 +639,25 @@ export async function getSharePointImageBlobUrl(
   if (!webUrl) return null;
   if (!isSharePointImageUrl(webUrl)) return webUrl;
 
+  const resolved = getCachedSharePointImageUrl(webUrl);
+  if (resolved) return resolved;
+
   const cached = sharePointImageBlobCache.get(webUrl);
   if (cached) return cached;
 
   const pending = fetchSharePointImageBlobUrl(msalInstance, webUrl);
   sharePointImageBlobCache.set(webUrl, pending);
   return pending;
+}
+
+/** Start authenticated SharePoint image fetches early so components hit the cache. */
+export function preloadSharePointImages(msalInstance: any, urls: Array<string | undefined | null>): void {
+  const unique = Array.from(
+    new Set(urls.filter((url): url is string => !!url && isSharePointImageUrl(url)))
+  );
+  unique.forEach((url) => {
+    void getSharePointImageBlobUrl(msalInstance, url);
+  });
 }
 
 export async function uploadImageFromUrl(msalInstance: any, imageUrl: string): Promise<string | null> {
