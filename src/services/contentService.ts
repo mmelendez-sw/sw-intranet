@@ -30,6 +30,7 @@ import {
 import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
+const HOMEPAGE_HERO_KEY = 'homepage-hero';
 
 const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
 
@@ -531,19 +532,33 @@ async function fetchImageAsFile(msalInstance: any, imageUrl: string): Promise<Fi
 
 const sharePointImageBlobCache = new Map<string, Promise<string | null>>();
 const sharePointImageResolvedCache = new Map<string, string>();
-const SHAREPOINT_IMAGE_SESSION_PREFIX = 'intranet-sp-img:';
+const SHAREPOINT_IMAGE_CACHE_PREFIX = 'intranet-sp-img:';
 
-function readSessionImageCache(webUrl: string): string | null {
+function readPersistentImageCache(webUrl: string): string | null {
+  const key = `${SHAREPOINT_IMAGE_CACHE_PREFIX}${webUrl}`;
   try {
-    return sessionStorage.getItem(`${SHAREPOINT_IMAGE_SESSION_PREFIX}${webUrl}`);
+    const local = localStorage.getItem(key);
+    if (local) return local;
+  } catch {
+    // ignore
+  }
+  try {
+    return sessionStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-function writeSessionImageCache(webUrl: string, dataUrl: string): void {
+function writePersistentImageCache(webUrl: string, dataUrl: string): void {
+  const key = `${SHAREPOINT_IMAGE_CACHE_PREFIX}${webUrl}`;
   try {
-    sessionStorage.setItem(`${SHAREPOINT_IMAGE_SESSION_PREFIX}${webUrl}`, dataUrl);
+    localStorage.setItem(key, dataUrl);
+    return;
+  } catch (err) {
+    console.warn('[contentService] local image cache write failed:', err);
+  }
+  try {
+    sessionStorage.setItem(key, dataUrl);
   } catch (err) {
     console.warn('[contentService] session image cache write failed:', err);
   }
@@ -564,7 +579,7 @@ export function getCachedSharePointImageUrl(webUrl: string): string | null {
   if (!isSharePointImageUrl(webUrl)) return webUrl;
   const resolved = sharePointImageResolvedCache.get(webUrl);
   if (resolved) return resolved;
-  const session = readSessionImageCache(webUrl);
+  const session = readPersistentImageCache(webUrl);
   if (session) {
     sharePointImageResolvedCache.set(webUrl, session);
     return session;
@@ -627,7 +642,7 @@ async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): P
 
   const dataUrl = await blobToDataUrl(blob);
   sharePointImageResolvedCache.set(webUrl, dataUrl);
-  writeSessionImageCache(webUrl, dataUrl);
+  writePersistentImageCache(webUrl, dataUrl);
   return dataUrl;
 }
 
@@ -648,6 +663,35 @@ export async function getSharePointImageBlobUrl(
   const pending = fetchSharePointImageBlobUrl(msalInstance, webUrl);
   sharePointImageBlobCache.set(webUrl, pending);
   return pending;
+}
+
+/** Collect SharePoint image URLs from cached/seed homepage content for boot-time warmup. */
+export function collectHomepageImageUrls(): string[] {
+  const cachedCards = getCachedContent<CardContent[]>(HOMEPAGE_CARDS_KEY);
+  const cards = cachedCards?.length ? cachedCards : SEED_CARDS;
+  const urls: string[] = [];
+  for (const card of cards) {
+    if (card.imageUrl) urls.push(card.imageUrl);
+  }
+  const hero = getCachedContent<string>(HOMEPAGE_HERO_KEY);
+  if (hero) urls.push(hero);
+  return urls.filter((url) => isSharePointImageUrl(url));
+}
+
+/**
+ * Fetch homepage SharePoint images during app boot so the homepage paints from cache.
+ * Resolves immediately when every URL is already cached.
+ */
+export async function warmHomepageImageCache(msalInstance: any): Promise<void> {
+  if (!BYPASS_AUTH && msalInstance.getAllAccounts().length === 0) return;
+
+  const urls = collectHomepageImageUrls();
+  const uncached = urls.filter((url) => !getCachedSharePointImageUrl(url));
+  if (uncached.length === 0) return;
+
+  await Promise.all(
+    uncached.map((url) => getSharePointImageBlobUrl(msalInstance, url))
+  );
 }
 
 /** Start authenticated SharePoint image fetches early so components hit the cache. */

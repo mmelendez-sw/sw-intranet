@@ -4,7 +4,9 @@ import App from './App';
 import '../styles/global.css';
 import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
-import { msalConfig } from "./authConfig"
+import { msalConfig } from "./authConfig";
+import { warmHomepageImageCache } from './services/contentService';
+import { preloadBundledHomepageImages } from './utils/homepageImageWarmup';
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -13,6 +15,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 // render the app before MSAL has processed the auth response in the URL
 // hash, causing the user to appear unauthenticated after successful login.
 const renderApp = async () => {
+  preloadBundledHomepageImages();
+
   await msalInstance.initialize();
   // Ensure any redirect-based auth response is processed before rendering.
   // This is especially important on mobile Safari where the redirect flow is
@@ -24,6 +28,8 @@ const renderApp = async () => {
     // auth errors via its event callbacks in-app.
     console.error(e);
   }
+
+  void warmHomepageImageCache(msalInstance);
 
   ReactDOM.render(
     <React.StrictMode>
