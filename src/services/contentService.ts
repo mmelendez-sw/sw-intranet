@@ -27,7 +27,7 @@ import {
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
 } from '../authConfig';
-import seedCards from '../data/homepage-cards.seed.json';
+// import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
@@ -73,7 +73,8 @@ export interface CardContent {
 }
 
 /** Bundled snapshot for instant first paint before SharePoint responds. Update src/data/homepage-cards.seed.json from SharePoint when cards change. */
-export const SEED_CARDS: CardContent[] = seedCards as CardContent[];
+// export const SEED_CARDS: CardContent[] = seedCards as CardContent[];
+export const SEED_CARDS: CardContent[] = [];
 
 export interface SidebarSection {
   key: string;
