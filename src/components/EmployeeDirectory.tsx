@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
-import { loginRequest } from '../authConfig';
 import '../../styles/employee-directory.css';
 
 interface GraphUser {
@@ -9,48 +8,69 @@ interface GraphUser {
   jobTitle: string | null;
   department: string | null;
   mail: string | null;
+  accountEnabled?: boolean;
   photoUrl?: string; // resolved client-side
 }
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
 
-const DIRECTORY_SCOPES = ['User.ReadBasic.All'];
+const DIRECTORY_SCOPES = ['User.Read.All'];
+const ALLOWED_EMAIL_SUFFIX = '@symphonyinfra.com';
+
+const ACTIVE_USERS_URL =
+  'https://graph.microsoft.com/v1.0/users' +
+  '?$filter=accountEnabled%20eq%20true' +
+  '&$count=true' +
+  '&$top=999' +
+  '&$select=id,displayName,mail,jobTitle,department,accountEnabled';
+
+function hasAllowedEmail(mail: string | null | undefined): boolean {
+  return !!mail && mail.toLowerCase().endsWith(ALLOWED_EMAIL_SUFFIX);
+}
 
 async function getGraphToken(msalInstance: any): Promise<string | null> {
   const accounts = msalInstance.getAllAccounts();
   if (!accounts.length) return null;
 
-  const tokenRequest = { scopes: DIRECTORY_SCOPES, account: accounts[0] };
+  const account = accounts[0];
+  const tokenRequest = { scopes: DIRECTORY_SCOPES, account };
 
   try {
     const result = await msalInstance.acquireTokenSilent(tokenRequest);
     return result.accessToken;
   } catch (silentError) {
-    console.warn('[EmployeeDirectory] acquireTokenSilent failed, trying popup', silentError);
-    try {
-      if (typeof msalInstance.acquireTokenPopup === 'function') {
-        const result = await msalInstance.acquireTokenPopup({
-          ...loginRequest,
-          scopes: DIRECTORY_SCOPES,
-          account: accounts[0],
-        });
-        return result.accessToken;
-      }
-    } catch (popupError) {
-      console.error('[EmployeeDirectory] acquireTokenPopup failed:', popupError);
-    }
-    return null;
+    console.warn('[EmployeeDirectory] acquireTokenSilent failed, refreshing token', silentError);
   }
+
+  try {
+    const result = await msalInstance.acquireTokenSilent({ ...tokenRequest, forceRefresh: true });
+    return result.accessToken;
+  } catch (refreshError) {
+    console.warn('[EmployeeDirectory] forceRefresh failed, trying popup', refreshError);
+  }
+
+  try {
+    if (typeof msalInstance.acquireTokenPopup === 'function') {
+      const result = await msalInstance.acquireTokenPopup(tokenRequest);
+      return result.accessToken;
+    }
+  } catch (popupError) {
+    console.error('[EmployeeDirectory] acquireTokenPopup failed:', popupError);
+  }
+
+  return null;
 }
 
 async function fetchUsers(token: string): Promise<GraphUser[]> {
-  // User.ReadBasic.All only allows a limited property set — avoid $filter/$orderby
-  // on unsupported fields and do not $select department (needs User.Read.All).
   const users: GraphUser[] = [];
-  let url: string | null = 'https://graph.microsoft.com/v1.0/users?$top=999';
+  let url: string | null = ACTIVE_USERS_URL;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    ConsistencyLevel: 'eventual',
+  };
 
   while (url) {
-    const res: Response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    const res: Response = await fetch(url, { headers });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       throw new Error(`/users failed: ${res.status}${body ? ` — ${body.slice(0, 240)}` : ''}`);
@@ -61,7 +81,7 @@ async function fetchUsers(token: string): Promise<GraphUser[]> {
   }
 
   return users
-    .filter((u) => u.mail && u.displayName)
+    .filter((u) => u.displayName && hasAllowedEmail(u.mail) && u.accountEnabled !== false)
     .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
@@ -122,7 +142,7 @@ const EmployeeDirectory: React.FC = () => {
     try {
       const token = await getGraphToken(instance);
       if (!token) {
-        setError('Unable to authenticate with Microsoft Graph. Please sign out and sign in again.');
+        setError('Unable to load directory permissions. If prompted, approve access — you do not need to sign out. Otherwise ask IT to grant User.Read.All for this app.');
         return;
       }
 
@@ -161,7 +181,7 @@ const EmployeeDirectory: React.FC = () => {
     <div className="directory-page">
       <div className="directory-header">
         <h1>Employee Directory</h1>
-        <p>All Symphony Towers Infrastructure team members</p>
+        <p>Active Symphony Towers Infrastructure team members (@symphonyinfra.com)</p>
       </div>
 
       <div className="directory-search-bar">
@@ -201,7 +221,7 @@ const EmployeeDirectory: React.FC = () => {
       {!loading && !error && users.length === 0 && !search && (
         <div className="directory-empty">
           <strong>No employees found</strong>
-          No users with email addresses were returned from Microsoft 365.
+          No active users with @symphonyinfra.com email addresses were returned from Microsoft 365.
         </div>
       )}
 
