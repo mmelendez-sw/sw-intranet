@@ -170,6 +170,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
+  const [cardsLoading, setCardsLoading] = useState(() => getInitialCards().length === 0);
   const [announcements, setAnnouncements] = useState<Announcement[]>(
     () => getCachedContent<Announcement[]>(ANNOUNCEMENTS_CONTENT_KEY) ?? DEFAULT_ANNOUNCEMENTS
   );
@@ -255,6 +256,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (pending.length) preloadSharePointImages(instance, pending);
   }, [showHomeContent, instance, cards, heroImageUrl]);
 
+  useEffect(() => {
+    if (cards.length > 0) setCardsLoading(false);
+  }, [cards.length]);
+
   // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
     if (!showHomeContent) return;
@@ -283,6 +288,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       } catch (err) {
         console.error('[HomePage] failed to load cards:', err);
       }
+
+      if (!cancelled) setCardsLoading(false);
 
       if (cancelled) return;
 
@@ -716,7 +723,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Cards Grid ── */}
               <div className="grid-layout home-grid-layout">
-                {cards.map((card, index) => (
+                {cardsLoading && cards.length === 0 ? (
+                  <div className="home-cards-loading" role="status" aria-label="Loading cards">
+                    <div className="app-loading-spinner" aria-hidden="true" />
+                  </div>
+                ) : (
+                cards.map((card, index) => (
                   <div
                     key={`card-${card.order}-${card.title}`}
                     className={[
@@ -782,7 +794,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </div>
                     )}
                   </div>
-                ))}
+                ))
+                )}
 
                 {/* Add Card button — editors only */}
                 {canEdit && contentLoaded && (

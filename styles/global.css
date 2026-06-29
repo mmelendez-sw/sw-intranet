@@ -118,3 +118,34 @@ body {
     padding-top: 10px; /* Header becomes static on mobile */
   }
 }
+
+/* Shared loading spinner (boot + in-app) */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+.app-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(0, 51, 102, 0.15);
+  border-top-color: #003366;
+  border-radius: 50%;
+  animation: app-loading-spin 0.75s linear infinite;
+}
+
+.home-cards-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  grid-column: 1 / -1;
+}
+
+@keyframes app-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
