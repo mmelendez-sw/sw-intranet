@@ -174,7 +174,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                       )}
                     </td>
                     <td className="report-description-cell">{report.description}</td>
-                    {canEdit && (
+                    {isEditor && (
                       <td>
                         <div className="edit-row-actions">
                           <button className="edit-row-btn" onClick={() => openEdit(report)}>✏</button>
@@ -186,7 +186,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
               </tbody>
             </table>
 
-            {canEdit && (
+            {isEditor && (
               <div style={{ padding: '10px 0' }}>
                 <button className="edit-add-btn" onClick={addReport}>+ Add Report</button>
               </div>

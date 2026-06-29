@@ -10,6 +10,9 @@
  * Homepage cards (text + metadata) are stored as homepage-cards.json in:
  *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
+ * Reports metadata is stored as reports.json in:
+ *   Shared Documents/General/intranet/reports
+ *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
@@ -26,11 +29,24 @@ import {
   IMAGE_SHAREPOINT_FOLDER_PATH,
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
+  REPORTS_FOLDER_PATH,
+  REPORTS_DATA_FILENAME,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
+const REPORTS_CONTENT_KEY = 'reports';
+
+function getDriveContentConfig(key: string): { folderPath: string; fileName: string } | null {
+  if (key === HOMEPAGE_CARDS_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: CARDS_DATA_FILENAME };
+  }
+  if (key === REPORTS_CONTENT_KEY) {
+    return { folderPath: REPORTS_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
+  }
+  return null;
+}
 
 const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
 
@@ -799,9 +815,10 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
 async function readContentFromSharePointDrive<T>(
   siteId: string,
   token: string,
-  fileName: string
+  fileName: string,
+  folderPath: string = INTRANET_CONTENT_FOLDER_PATH
 ): Promise<T | null> {
-  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`;
   const res = await fetch(
     `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -851,10 +868,11 @@ async function writeContentToSharePointDrive<T>(
   siteId: string,
   token: string,
   fileName: string,
-  data: T
+  data: T,
+  folderPath: string = INTRANET_CONTENT_FOLDER_PATH
 ): Promise<boolean> {
-  await ensureDriveFolderPath(siteId, token, INTRANET_CONTENT_FOLDER_PATH);
-  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
+  await ensureDriveFolderPath(siteId, token, folderPath);
+  const filePath = `${folderPath}/${fileName}`;
   const jsonBody = JSON.stringify(data, null, 2);
 
   const existing = await getDriveItemByPath(siteId, token, filePath);
@@ -932,8 +950,14 @@ async function fetchContentFromRemote<T>(
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
 
-    if (key === HOMEPAGE_CARDS_KEY) {
-      const driveParsed = await readContentFromSharePointDrive<T>(siteId, token, CARDS_DATA_FILENAME);
+    const driveConfig = getDriveContentConfig(key);
+    if (driveConfig) {
+      const driveParsed = await readContentFromSharePointDrive<T>(
+        siteId,
+        token,
+        driveConfig.fileName,
+        driveConfig.folderPath
+      );
       if (driveParsed) {
         writeLocalContent(key, driveParsed);
         return driveParsed;
@@ -942,7 +966,13 @@ async function fetchContentFromRemote<T>(
       const listId = await getOrCreateList(siteId, token);
       const listParsed = await readContentFromSharePoint<T>(siteId, listId, token, key);
       if (listParsed) {
-        await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, listParsed);
+        await writeContentToSharePointDrive(
+          siteId,
+          token,
+          driveConfig.fileName,
+          listParsed,
+          driveConfig.folderPath
+        );
         writeLocalContent(key, listParsed);
         return listParsed;
       }
@@ -1028,8 +1058,15 @@ export async function setContentDetailed<T>(
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
 
-    if (key === HOMEPAGE_CARDS_KEY) {
-      const driveOk = await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, data);
+    const driveConfig = getDriveContentConfig(key);
+    if (driveConfig) {
+      const driveOk = await writeContentToSharePointDrive(
+        siteId,
+        token,
+        driveConfig.fileName,
+        data,
+        driveConfig.folderPath
+      );
       if (driveOk) {
         writeLocalContent(key, data);
         return { ok: true, storage: 'sharepoint' };
