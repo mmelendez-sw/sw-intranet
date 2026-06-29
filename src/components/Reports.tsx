@@ -71,7 +71,7 @@ const renumberReports = (reports: ReportItemContent[]): ReportItemContent[] =>
 
 const REPORTS_CONTENT_KEY = 'reports';
 /** Minimum time to show the reports loading spinner (set to 0 in production). */
-const REPORTS_SPINNER_MIN_MS = 100;
+const REPORTS_SPINNER_MIN_MS = 0;
 
 const getInitialReports = (): ReportItemContent[] =>
   getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
