@@ -129,6 +129,8 @@ const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
 const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
+/** Minimum time to show the cards loading spinner (set to 0 in production). */
+const CARDS_SPINNER_MIN_MS = 0;
 
 const sortCardsByOrder = (cardList: CardContent[]): CardContent[] =>
   [...cardList].sort((a, b) => a.order - b.order);
@@ -170,7 +172,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
-  const [cardsLoading, setCardsLoading] = useState(() => getInitialCards().length === 0);
+  const [cardsLoading, setCardsLoading] = useState(
+    () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
+  );
   const [announcements, setAnnouncements] = useState<Announcement[]>(
     () => getCachedContent<Announcement[]>(ANNOUNCEMENTS_CONTENT_KEY) ?? DEFAULT_ANNOUNCEMENTS
   );
@@ -221,6 +225,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const userModifiedCardsRef = useRef(false);
   const hasFetchedCardsRef = useRef(false);
   const preloadedImageUrlsRef = useRef(new Set<string>());
+  const cardsLoadingStartedRef = useRef(Date.now());
 
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
@@ -256,10 +261,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (pending.length) preloadSharePointImages(instance, pending);
   }, [showHomeContent, instance, cards, heroImageUrl]);
 
-  useEffect(() => {
-    if (cards.length > 0) setCardsLoading(false);
-  }, [cards.length]);
-
   // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
     if (!showHomeContent) return;
@@ -267,8 +268,20 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
     let cancelled = false;
     hasFetchedCardsRef.current = true;
+    if (cardsRef.current.length === 0) {
+      cardsLoadingStartedRef.current = Date.now();
+      setCardsLoading(true);
+    }
 
     void (async () => {
+      const finishCardsLoading = async () => {
+        const remaining = CARDS_SPINNER_MIN_MS - (Date.now() - cardsLoadingStartedRef.current);
+        if (remaining > 0) {
+          await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+        }
+        if (!cancelled) setCardsLoading(false);
+      };
+
       try {
         const cachedCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
         if (!cancelled && cachedCards && !userModifiedCardsRef.current) {
@@ -289,7 +302,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         console.error('[HomePage] failed to load cards:', err);
       }
 
-      if (!cancelled) setCardsLoading(false);
+      await finishCardsLoading();
 
       if (cancelled) return;
 
@@ -723,7 +736,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Cards Grid ── */}
               <div className="grid-layout home-grid-layout">
-                {cardsLoading && cards.length === 0 ? (
+                {cardsLoading ? (
                   <div className="home-cards-loading" role="status" aria-label="Loading cards">
                     <div className="app-loading-spinner" aria-hidden="true" />
                   </div>
