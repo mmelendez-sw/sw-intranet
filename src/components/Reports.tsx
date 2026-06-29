@@ -71,7 +71,7 @@ const renumberReports = (reports: ReportItemContent[]): ReportItemContent[] =>
 
 const REPORTS_CONTENT_KEY = 'reports';
 /** Minimum time to show the reports loading spinner (set to 0 in production). */
-const REPORTS_SPINNER_MIN_MS = 0;
+const REPORTS_SPINNER_MIN_MS = 100;
 
 const getInitialReports = (): ReportItemContent[] =>
   getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
@@ -261,6 +261,11 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
             )}
           </div>
 
+          {reportsLoading ? (
+            <div className="reports-loading" role="status" aria-label="Loading reports">
+              <div className="app-loading-spinner" aria-hidden="true" />
+            </div>
+          ) : (
           <div className="reports-table-wrapper">
             <table className="reports-table">
               <thead>
@@ -272,16 +277,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                 </tr>
               </thead>
               <tbody>
-                {reportsLoading ? (
-                  <tr>
-                    <td colSpan={canEdit ? 4 : 2} className="reports-loading-cell">
-                      <div className="reports-loading" role="status" aria-label="Loading reports">
-                        <div className="app-loading-spinner" aria-hidden="true" />
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                visibleReports.map((report, index) => (
+                {visibleReports.map((report, index) => (
                   <tr
                     key={`report-${report.order}-${report.title}`}
                     className={[
@@ -350,17 +346,17 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                       </td>
                     )}
                   </tr>
-                ))
-                )}
+                ))}
               </tbody>
             </table>
 
-            {canEdit && !reportsLoading && (
+            {canEdit && (
               <div style={{ padding: '10px 0' }}>
                 <button className="edit-add-btn" onClick={addReport}>+ Add Report</button>
               </div>
             )}
           </div>
+          )}
         </div>
 
         <IntranetSidebar userInfo={userInfo} className="reports-sidebar" />

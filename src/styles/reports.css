@@ -2,6 +2,7 @@
 .outermost-container { 
     display: flex; 
     flex-direction: row;
+    align-items: flex-start;
     padding-top: 1em;
     padding-left: clamp(10px, 3vw, 24px);
     padding-right: clamp(10px, 2vw, 24px);
@@ -13,26 +14,27 @@
 .reports-content-container {
     flex: 1; /* Takes up remaining space after sidebar */
     display: grid;
-    grid-template-columns: 1fr; /* Single column layout for reports */
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 0;
     padding: 10px;
-    margin-top: 1%;
     padding-right: 0;
     max-width: 100%;
-    align-items: center;
+    align-content: start;
+    align-items: stretch;
     min-width: 0;
 }
 
 .reports-text-bar {
-    grid-column: 1 / -1; /* Span across all columns */
+    grid-column: 1 / -1;
     color: #003366;
     text-align: center;
     font-size: 1.2rem;
     font-weight: bold;
     border-top: 1px solid #ddd;
     border-bottom: 2px solid #009acb;
-    padding: 15px 0; /* Reduce vertical padding */
-    line-height: 1; /* Adjust line height */
+    padding: 15px 0;
+    line-height: 1;
+    margin-bottom: 0;
 }
 
 .reports-text-bar h2 { 
@@ -52,18 +54,15 @@
 .reports-table-wrapper {
     width: 100%;
     overflow-x: auto;
-}
-
-.reports-loading-cell {
-    padding: 0;
-    border: none;
+    grid-column: 1 / -1;
 }
 
 .reports-loading {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 280px;
+    grid-column: 1 / -1;
+    padding: 16px 0;
 }
 
 /* Table Layout */
