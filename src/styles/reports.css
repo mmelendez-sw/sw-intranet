@@ -54,6 +54,18 @@
     overflow-x: auto;
 }
 
+.reports-loading-cell {
+    padding: 0;
+    border: none;
+}
+
+.reports-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+}
+
 /* Table Layout */
 .reports-table {
     width: 100%;

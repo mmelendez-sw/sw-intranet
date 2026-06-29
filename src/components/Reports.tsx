@@ -69,14 +69,22 @@ const sortReportsByOrder = (reports: ReportItemContent[]): ReportItemContent[] =
 const renumberReports = (reports: ReportItemContent[]): ReportItemContent[] =>
   reports.map((r, i) => ({ ...r, order: i + 1 }));
 
+const REPORTS_CONTENT_KEY = 'reports';
+/** Minimum time to show the reports loading spinner (set to 0 in production). */
+const REPORTS_SPINNER_MIN_MS = 0;
+
+const getInitialReports = (): ReportItemContent[] =>
+  getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
+
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
-  const [allReports, setAllReports] = useState<ReportItemContent[]>(
-    () => getCachedContent<ReportItemContent[]>('reports') ?? DEFAULT_REPORTS
+  const [allReports, setAllReports] = useState<ReportItemContent[]>(getInitialReports);
+  const [reportsLoading, setReportsLoading] = useState(
+    () => REPORTS_SPINNER_MIN_MS > 0 || getInitialReports().length === 0
   );
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
@@ -88,18 +96,49 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const allReportsRef = useRef(allReports);
   allReportsRef.current = allReports;
   const draggingReportIdxRef = useRef<number | null>(null);
+  const hasFetchedReportsRef = useRef(false);
+  const reportsLoadingStartedRef = useRef(Date.now());
 
   // ── Load from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const [remote, remoteConfig] = await Promise.all([
-        getContent<ReportItemContent[]>(instance, 'reports'),
-        getContent<SiteConfig>(instance, 'site-config'),
-      ]);
-      if (remote) setAllReports(remote);
-      if (remoteConfig) setSiteConfig(remoteConfig);
+    if (hasFetchedReportsRef.current) return;
+
+    let cancelled = false;
+    hasFetchedReportsRef.current = true;
+    if (allReportsRef.current.length === 0) {
+      reportsLoadingStartedRef.current = Date.now();
+      setReportsLoading(true);
+    }
+
+    void (async () => {
+      const finishReportsLoading = async () => {
+        const remaining = REPORTS_SPINNER_MIN_MS - (Date.now() - reportsLoadingStartedRef.current);
+        if (remaining > 0) {
+          await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+        }
+        if (!cancelled) setReportsLoading(false);
+      };
+
+      try {
+        const [remote, remoteConfig] = await Promise.all([
+          getContent<ReportItemContent[]>(instance, REPORTS_CONTENT_KEY),
+          getContent<SiteConfig>(instance, 'site-config'),
+        ]);
+        if (!cancelled) {
+          if (remote) setAllReports(remote);
+          if (remoteConfig) setSiteConfig(remoteConfig);
+        }
+      } catch (err) {
+        console.error('[Reports] failed to load reports:', err);
+      }
+
+      await finishReportsLoading();
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [userInfo.isAuthenticated, instance]);
 
   const isReportVisible = useCallback((report: ReportItemContent) => {
@@ -233,7 +272,16 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                 </tr>
               </thead>
               <tbody>
-                {visibleReports.map((report, index) => (
+                {reportsLoading ? (
+                  <tr>
+                    <td colSpan={canEdit ? 4 : 2} className="reports-loading-cell">
+                      <div className="reports-loading" role="status" aria-label="Loading reports">
+                        <div className="app-loading-spinner" aria-hidden="true" />
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                visibleReports.map((report, index) => (
                   <tr
                     key={`report-${report.order}-${report.title}`}
                     className={[
@@ -302,11 +350,12 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                       </td>
                     )}
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
 
-            {canEdit && (
+            {canEdit && !reportsLoading && (
               <div style={{ padding: '10px 0' }}>
                 <button className="edit-add-btn" onClick={addReport}>+ Add Report</button>
               </div>
