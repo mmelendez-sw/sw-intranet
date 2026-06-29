@@ -21,6 +21,7 @@ import {
   DEFAULT_CARDS,
   CardContent,
 } from '../services/contentService';
+import SharePointImage from './SharePointImage';
 
 import '../../styles/tv-display.css';
 
@@ -101,7 +102,7 @@ const TvDisplay: React.FC = () => {
     const src = card.imageUrl || LOCAL_IMAGES[displayIdx + 1] || LOCAL_IMAGES[1];
     return (
       <div className="tv-card-img-wrap">
-        <img src={src} alt={card.title} loading="lazy" />
+        <SharePointImage src={src} alt={card.title} loading="lazy" />
       </div>
     );
   };

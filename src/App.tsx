@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
@@ -11,7 +11,7 @@ import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember } from './authConfig';
+import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
@@ -62,7 +62,10 @@ const App: React.FC = () => {
       const cachedEditorStatus = localStorage.getItem(`editor_status_${email}`);
       const cachedEditorTimestamp = localStorage.getItem(`editor_status_timestamp_${email}`);
       const editorCacheValid = cachedEditorTimestamp && (Date.now() - parseInt(cachedEditorTimestamp)) < (24 * 60 * 60 * 1000);
-      let isEditor = cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false;
+      let isEditor = resolveIsEditor(
+        cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false,
+        email
+      );
 
       if (cachedEliteStatus && cacheValid) {
         isElite = cachedEliteStatus === 'true';
@@ -101,7 +104,7 @@ const App: React.FC = () => {
               isEditorGroupMember(instance),
             ]);
             isElite = eliteResult;
-            isEditor = editorResult;
+            isEditor = resolveIsEditor(editorResult, email);
             console.log('🔍 Elite:', isElite, '| Editor:', isEditor);
 
             localStorage.setItem(`elite_status_${email}`, isElite.toString());
@@ -122,7 +125,11 @@ const App: React.FC = () => {
               localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
               localStorage.setItem(`editor_status_${email}`, 'false');
               localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
-              setUserInfo(prev => ({ ...prev, isEliteGroup: false, isEditor: false }));
+              setUserInfo(prev => ({
+                ...prev,
+                isEliteGroup: false,
+                isEditor: resolveIsEditor(false, email),
+              }));
             }
           }
         }
@@ -136,6 +143,24 @@ const App: React.FC = () => {
       });
     }
   };
+
+  useLayoutEffect(() => {
+    if (BYPASS_AUTH) return;
+    const accounts = instance.getAllAccounts();
+    if (accounts.length === 0) return;
+
+    const account = accounts[0];
+    const email = account.username || account.homeAccountId;
+    setUserInfo((prev) => {
+      if (prev.isAuthenticated) return prev;
+      return {
+        ...prev,
+        isAuthenticated: true,
+        email,
+        name: account.name || prev.name,
+      };
+    });
+  }, [instance]);
 
   useEffect(() => {
     // Check authentication status on app load
@@ -410,10 +435,10 @@ const App: React.FC = () => {
           element={
             <EditMenuProvider>
               <Header userInfo={userInfo} />
-              <div className="below-header">
+              {/* <div className="below-header">
                 <AlertBanner userInfo={userInfo} />
                 <Ticker userInfo={userInfo} />
-              </div>
+              </div> */}
               <div className="main-content">
                 <Routes>
                   <Route path="/" element={<HomePage userInfo={userInfo} />} />

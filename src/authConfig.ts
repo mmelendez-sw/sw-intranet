@@ -1,7 +1,7 @@
 import { UserInfo } from './types/user';
 
-/** Dev-only: skip MSAL login and grant full access. Remove before merging to main. */
-export const BYPASS_AUTH = true;
+/** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
+export const BYPASS_AUTH = false;
 
 export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
@@ -11,11 +11,17 @@ export const DEV_USER_INFO: UserInfo = {
   name: 'Dev User',
 };
 
+const appOrigin =
+  typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://serena-dev.d2ryoyr4gox6p1.amplifyapp.com';
+
 export const msalConfig = {
   auth: {
     clientId: "543ae09d-95e7-47bb-b679-e4428c20918e",
     authority: "https://login.microsoftonline.com/63fbe43e-8963-4cb6-8f87-2ecc3cd029b4",
-    // redirectUri: "https://intranet.symphonywireless.com",
+    redirectUri: appOrigin,
+    postLogoutRedirectUri: appOrigin,
   },
   cache: {
     cacheLocation: "localStorage",
@@ -44,10 +50,32 @@ export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 // IntranetEditors security group ID
 export const INTRANET_EDITORS_GROUP_ID = 'cbf6d5aa-f6ca-435d-a707-af1d1fac87a2';
 
+// Emails granted editor UI access without IntranetEditors group membership
+export const EDIT_ALLOWLIST = new Set([
+  'mmelendez@symphonyinfra.com',
+  'shuang@symphonyinfra.com',
+  'sraffington@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+  'jpeterson@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+]);
+
+export const isEditAllowlisted = (email?: string): boolean => {
+  if (!email) return false;
+  return EDIT_ALLOWLIST.has(email.toLowerCase());
+};
+
+export const resolveIsEditor = (isGroupMember: boolean, email?: string): boolean =>
+  isGroupMember || isEditAllowlisted(email);
+
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
-export const IMAGE_SHAREPOINT_SITE_PATH = '/sites/TechnologyOrg';
+/** Intranet CMS: Shared Documents → General → intranet */
+export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
+export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
+export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
+export const CARDS_DATA_FILENAME = 'homepage-cards.json';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;
