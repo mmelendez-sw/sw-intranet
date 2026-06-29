@@ -7,6 +7,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
+  getCachedContent,
   DEFAULT_REPORTS,
   DEFAULT_SITE_CONFIG,
   ReportItemContent,
@@ -67,7 +68,9 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
-  const [allReports, setAllReports] = useState<ReportItemContent[]>(DEFAULT_REPORTS);
+  const [allReports, setAllReports] = useState<ReportItemContent[]>(
+    () => getCachedContent<ReportItemContent[]>('reports') ?? DEFAULT_REPORTS
+  );
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
   const [saving, setSaving] = useState(false);
