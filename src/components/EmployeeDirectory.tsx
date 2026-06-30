@@ -5,8 +5,11 @@ import '../../styles/employee-directory.css';
 interface GraphUser {
   id: string;
   displayName: string;
+  givenName?: string | null;
+  surname?: string | null;
   jobTitle: string | null;
   department: string | null;
+  companyName?: string | null;
   mail: string | null;
   accountEnabled?: boolean;
   photoUrl?: string; // resolved client-side
@@ -16,16 +19,34 @@ interface GraphUser {
 
 const DIRECTORY_SCOPES = ['User.Read.All'];
 const ALLOWED_EMAIL_SUFFIX = '@symphonyinfra.com';
+const ALLOWED_COMPANY = 'symphony';
 
 const ACTIVE_USERS_URL =
   'https://graph.microsoft.com/v1.0/users' +
   '?$filter=accountEnabled%20eq%20true' +
   '&$count=true' +
   '&$top=999' +
-  '&$select=id,displayName,mail,jobTitle,department,accountEnabled';
+  '&$select=id,displayName,givenName,surname,mail,jobTitle,department,companyName,accountEnabled';
 
 function hasAllowedEmail(mail: string | null | undefined): boolean {
   return !!mail && mail.toLowerCase().endsWith(ALLOWED_EMAIL_SUFFIX);
+}
+
+function hasFirstAndLastName(user: GraphUser): boolean {
+  const given = user.givenName?.trim();
+  const family = user.surname?.trim();
+  if (given && family) return true;
+
+  const parts = user.displayName.trim().split(/\s+/).filter((p) => p.length > 0);
+  return parts.length >= 2;
+}
+
+function isRoomResource(user: GraphUser): boolean {
+  return user.displayName.trim().toLowerCase().startsWith('room -');
+}
+
+function hasAllowedCompany(user: GraphUser): boolean {
+  return user.companyName?.trim().toLowerCase() === ALLOWED_COMPANY;
 }
 
 async function getGraphToken(msalInstance: any): Promise<string | null> {
@@ -81,7 +102,15 @@ async function fetchUsers(token: string): Promise<GraphUser[]> {
   }
 
   return users
-    .filter((u) => u.displayName && hasAllowedEmail(u.mail) && u.accountEnabled !== false)
+    .filter(
+      (u) =>
+        u.displayName &&
+        // hasAllowedEmail(u.mail) &&
+        u.accountEnabled !== false &&
+        hasFirstAndLastName(u) &&
+        !isRoomResource(u) &&
+        hasAllowedCompany(u)
+    )
     .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
@@ -181,7 +210,7 @@ const EmployeeDirectory: React.FC = () => {
     <div className="directory-page">
       <div className="directory-header">
         <h1>Employee Directory</h1>
-        <p>Active Symphony Towers Infrastructure team members (@symphonyinfra.com)</p>
+        {/* <p>Active Symphony Towers Infrastructure team members (@symphonyinfra.com)</p> */}
       </div>
 
       <div className="directory-search-bar">
