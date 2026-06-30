@@ -16,10 +16,14 @@
  * Reports metadata is stored as reports.json in:
  *   Shared Documents/General/intranet
  *
+ * Sidebar sections, quick links, and site config are stored as:
+ *   homepage-sidebar.json, quick-links.json, site-config.json
+ *   in Shared Documents/General/intranet
+ *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
- * Other content blocks (hero, site-alert, sidebar, etc.) use the IntranetContent SharePoint list:
+ * Other content blocks (hero, site-alert, ticker, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
  */
@@ -34,6 +38,9 @@ import {
   CARDS_DATA_FILENAME,
   REPORTS_DATA_FILENAME,
   ANNOUNCEMENTS_DATA_FILENAME,
+  SIDEBAR_DATA_FILENAME,
+  QUICK_LINKS_DATA_FILENAME,
+  SITE_CONFIG_DATA_FILENAME,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -41,6 +48,9 @@ const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
 const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
 const REPORTS_CONTENT_KEY = 'reports';
+const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
+const QUICK_LINKS_CONTENT_KEY = 'quick-links';
+const SITE_CONFIG_CONTENT_KEY = 'site-config';
 /** Previous reports.json location before co-locating with cards in General/intranet */
 const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
@@ -53,6 +63,15 @@ function getDriveContentConfig(key: string): { folderPath: string; fileName: str
   }
   if (key === REPORTS_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
+  }
+  if (key === SIDEBAR_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_DATA_FILENAME };
+  }
+  if (key === QUICK_LINKS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: QUICK_LINKS_DATA_FILENAME };
+  }
+  if (key === SITE_CONFIG_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SITE_CONFIG_DATA_FILENAME };
   }
   return null;
 }

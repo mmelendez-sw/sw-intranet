@@ -78,6 +78,9 @@ export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
+export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';
+export const QUICK_LINKS_DATA_FILENAME = 'quick-links.json';
+export const SITE_CONFIG_DATA_FILENAME = 'site-config.json';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;
