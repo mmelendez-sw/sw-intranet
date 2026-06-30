@@ -49,6 +49,14 @@ function hasAllowedCompany(user: GraphUser): boolean {
   return user.companyName?.trim().toLowerCase() === ALLOWED_COMPANY;
 }
 
+function hasJobTitle(user: GraphUser): boolean {
+  return !!user.jobTitle?.trim();
+}
+
+function isConsultant(user: GraphUser): boolean {
+  return (user.jobTitle ?? '').toLowerCase().includes('(consultant)');
+}
+
 async function getGraphToken(msalInstance: any): Promise<string | null> {
   const accounts = msalInstance.getAllAccounts();
   if (!accounts.length) return null;
@@ -109,7 +117,10 @@ async function fetchUsers(token: string): Promise<GraphUser[]> {
         u.accountEnabled !== false &&
         hasFirstAndLastName(u) &&
         !isRoomResource(u) &&
-        hasAllowedCompany(u)
+        hasAllowedCompany(u) &&
+        hasJobTitle(u) &&
+        !isConsultant(u)
+        
     )
     .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
