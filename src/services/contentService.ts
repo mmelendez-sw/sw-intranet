@@ -189,60 +189,67 @@ export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
 
 export const DEFAULT_TICKER_ITEMS: TickerItem[] = [];
 
-export const DEFAULT_QUICK_LINKS: QuickLink[] = [
-  { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },
-  { id: '2', label: 'SiteTracker', url: 'https://sitetracker-symphonyinfra.my.salesforce.com/', order: 2 },
-  { id: '3', label: 'Synaptek AI Search', url: 'https://symphonysitesearch.app/', order: 3 },
-  { id: '4', label: 'Trinet', url: 'https://identity.trinet.com/', order: 4 },
-  { id: '5', label: 'Concur', url: 'https://www.concursolutions.com/', order: 5 },
-  { id: '6', label: 'Netsuite', url: 'https://system.netsuite.com/app/center/card.nl?c=8089687', order: 6 },
-  { id: '7', label: 'Outlook', url: 'https://outlook.office.com/', order: 7 },
-];
+// export const DEFAULT_QUICK_LINKS: QuickLink[] = [
+//   { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },
+//   { id: '2', label: 'SiteTracker', url: 'https://sitetracker-symphonyinfra.my.salesforce.com/', order: 2 },
+//   { id: '3', label: 'Synaptek AI Search', url: 'https://symphonysitesearch.app/', order: 3 },
+//   { id: '4', label: 'Trinet', url: 'https://identity.trinet.com/', order: 4 },
+//   { id: '5', label: 'Concur', url: 'https://www.concursolutions.com/', order: 5 },
+//   { id: '6', label: 'Netsuite', url: 'https://system.netsuite.com/app/center/card.nl?c=8089687', order: 6 },
+//   { id: '7', label: 'Outlook', url: 'https://outlook.office.com/', order: 7 },
+// ];
+export const DEFAULT_QUICK_LINKS: QuickLink[] = [];
 
+// export const DEFAULT_SITE_CONFIG: SiteConfig = {
+//   supportEmail: '',
+//   leadGenEmail: '',
+//   companyName: 'Company Intranet',
+// };
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   supportEmail: '',
   leadGenEmail: '',
-  companyName: 'Company Intranet',
+  companyName: '',
 };
 
-// ─── Default content (mirrors current hard-coded values) ─────────────────────
+// ─── Default content (loaded from SharePoint; no hard-coded sidebar) ─────────
 
 export const DEFAULT_CARDS: CardContent[] = SEED_CARDS;
 
-export const DEFAULT_SIDEBAR: SidebarSection[] = [
-  {
-    key: 'hr-updates',
-    order: 1,
-    title: 'HR Updates',
-    content:
-      'Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.',
-    buttonLabel: 'Volunteer Organization Survey',
-    buttonUrl: 'https://www.surveymonkey.com/r/NKSLSRW',
-  },
-  {
-    key: 'it-updates',
-    order: 2,
-    title: 'IT Updates',
-    content: 'Do not click any phishing links',
-  },
-  {
-    key: 'exciting-news',
-    order: 3,
-    title: 'Exciting News',
-    content:
-      'Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.',
-  },
-  {
-    key: 'holiday-photos',
-    order: 4,
-    title: '2025 Holiday Party Photos',
-    content:
-      'Linked below are the photos from our annual Holiday Party! Please browse when you have some time!',
-    linkLabel: 'Holiday Party 2025',
-    linkUrl:
-      'https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd',
-  },
-];
+// export const DEFAULT_SIDEBAR: SidebarSection[] = [
+//   {
+//     key: 'hr-updates',
+//     order: 1,
+//     title: 'HR Updates',
+//     content:
+//       'Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.',
+//     buttonLabel: 'Volunteer Organization Survey',
+//     buttonUrl: 'https://www.surveymonkey.com/r/NKSLSRW',
+//   },
+//   {
+//     key: 'it-updates',
+//     order: 2,
+//     title: 'IT Updates',
+//     content: 'Do not click any phishing links',
+//   },
+//   {
+//     key: 'exciting-news',
+//     order: 3,
+//     title: 'Exciting News',
+//     content:
+//       'Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.',
+//   },
+//   {
+//     key: 'holiday-photos',
+//     order: 4,
+//     title: '2025 Holiday Party Photos',
+//     content:
+//       'Linked below are the photos from our annual Holiday Party! Please browse when you have some time!',
+//     linkLabel: 'Holiday Party 2025',
+//     linkUrl:
+//       'https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd',
+//   },
+// ];
+export const DEFAULT_SIDEBAR: SidebarSection[] = [];
 
 // export const DEFAULT_REPORTS: ReportItemContent[] = [
 //   { order: 1, title: 'Company Progress', description: 'A comprehensive view of company performance metrics and progress indicators.', link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false', isEliteOnly: false, excludedEmails: [] },
