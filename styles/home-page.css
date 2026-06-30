@@ -373,7 +373,9 @@
   margin-top: auto;
 }
 
-/* TV / large kiosk layout — cards only, 3 per row */
+/*
+ * Homepage TV / kiosk layout — disabled.
+ *
 .home-page.tv-layout {
   max-width: none;
   padding: clamp(40px, 5vh, 72px) 20px 16px;
@@ -409,8 +411,6 @@
   height: auto;
 }
 
-/* card-image uses default 300px / 350px on 4K — same as normal homepage */
-
 .home-page.tv-layout .edit-pencil-btn,
 .home-page.tv-layout .card-drag-handle,
 .home-page.tv-layout .card-reorder-row,
@@ -431,6 +431,7 @@
     min-height: 500px;
   }
 }
+*/
 
 .unauthenticated-message { 
   padding: 20px; 

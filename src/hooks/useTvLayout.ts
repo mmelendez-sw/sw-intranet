@@ -1,7 +1,9 @@
+/*
+ * TV layout hook — disabled. Re-enable for homepage kiosk mode (?tv=1 or large screens).
+ *
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-/** Landscape TV / kiosk screens (1080p and up). */
 const TV_MEDIA_QUERY = '(min-width: 1600px) and (min-height: 900px)';
 
 export function useTvLayout(): boolean {
@@ -26,3 +28,4 @@ export function useTvLayout(): boolean {
 
   return forceTv || matchesMedia;
 }
+*/
