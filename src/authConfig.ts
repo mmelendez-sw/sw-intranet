@@ -76,7 +76,7 @@ export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
 export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
 export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
-export const REPORTS_FOLDER_PATH = 'General/intranet/reports';
+export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {

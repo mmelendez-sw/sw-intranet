@@ -10,13 +10,16 @@
  * Homepage cards (text + metadata) are stored as homepage-cards.json in:
  *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
+ * Announcements are stored as announcements.json in:
+ *   Shared Documents/General/intranet
+ *
  * Reports metadata is stored as reports.json in:
- *   Shared Documents/General/intranet/reports
+ *   Shared Documents/General/intranet
  *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
- * Other content blocks use the IntranetContent SharePoint list:
+ * Other content blocks (hero, site-alert, sidebar, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
  */
@@ -29,21 +32,27 @@ import {
   IMAGE_SHAREPOINT_FOLDER_PATH,
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
-  REPORTS_FOLDER_PATH,
   REPORTS_DATA_FILENAME,
+  ANNOUNCEMENTS_DATA_FILENAME,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
+const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
 const REPORTS_CONTENT_KEY = 'reports';
+/** Previous reports.json location before co-locating with cards in General/intranet */
+const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
 function getDriveContentConfig(key: string): { folderPath: string; fileName: string } | null {
   if (key === HOMEPAGE_CARDS_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: CARDS_DATA_FILENAME };
   }
+  if (key === ANNOUNCEMENTS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: ANNOUNCEMENTS_DATA_FILENAME };
+  }
   if (key === REPORTS_CONTENT_KEY) {
-    return { folderPath: REPORTS_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
   }
   return null;
 }
@@ -962,6 +971,26 @@ async function fetchContentFromRemote<T>(
       if (driveParsed) {
         writeLocalContent(key, driveParsed);
         return driveParsed;
+      }
+
+      if (key === REPORTS_CONTENT_KEY) {
+        const legacyParsed = await readContentFromSharePointDrive<T>(
+          siteId,
+          token,
+          REPORTS_DATA_FILENAME,
+          LEGACY_REPORTS_FOLDER_PATH
+        );
+        if (legacyParsed) {
+          await writeContentToSharePointDrive(
+            siteId,
+            token,
+            driveConfig.fileName,
+            legacyParsed,
+            driveConfig.folderPath
+          );
+          writeLocalContent(key, legacyParsed);
+          return legacyParsed;
+        }
       }
 
       const listId = await getOrCreateList(siteId, token);
