@@ -161,6 +161,27 @@ const bulletsToText = (bullets: string[]) => bullets.join('\n');
 const parseBulletLines = (text: string) => text.split('\n');
 const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
+/** YYYY-MM-DD in local timezone (avoids UTC off-by-one from toISOString). */
+const todayLocalDateString = (): string => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+/** Parse date-only strings as local calendar dates, not UTC midnight. */
+const formatAnnouncementDate = (dateStr: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return dateStr;
+  const [, y, m, d] = match;
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString([], {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 const escapeHtmlAttr = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
