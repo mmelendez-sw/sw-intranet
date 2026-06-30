@@ -328,7 +328,7 @@
   list-style-type: disc;
 }
 
-.home-sidebar .quick-links button {
+.home-sidebar .quick-links .home-button {
   background-color: #005b99; /* Rich blue for buttons */
   color: #ffffff;
   border: none;
@@ -340,7 +340,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
 }
 
-.home-sidebar .quick-links button:hover {
+.home-sidebar .quick-links .home-button:hover {
   background-color: #0073d6; /* Brighter blue on hover */
 }
 

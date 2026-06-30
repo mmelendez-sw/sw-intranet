@@ -315,27 +315,30 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                 {link.label}
               </button>
               {canEdit && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
-                  <div className="sidebar-reorder-btns">
-                    <button
-                      className="sidebar-reorder-btn"
-                      onClick={() => moveLink(link.id, 'up')}
-                      disabled={lIdx === 0}
-                      title="Move link up"
-                    >↑</button>
-                    <button
-                      className="sidebar-reorder-btn"
-                      onClick={() => moveLink(link.id, 'down')}
-                      disabled={lIdx === sortedLinks.length - 1}
-                      title="Move link down"
-                    >↓</button>
-                  </div>
+                <div className="card-reorder-row" style={{ justifyContent: 'flex-start', padding: '3px 0 0' }}>
                   <button
+                    type="button"
+                    className="card-reorder-btn"
+                    onClick={() => moveLink(link.id, 'up')}
+                    disabled={lIdx === 0}
+                    title="Move link up"
+                  >↑</button>
+                  <button
+                    type="button"
+                    className="card-reorder-btn"
+                    onClick={() => moveLink(link.id, 'down')}
+                    disabled={lIdx === sortedLinks.length - 1}
+                    title="Move link down"
+                  >↓</button>
+                  <button
+                    type="button"
                     className="edit-pencil-btn"
-                    style={{ position: 'static', opacity: 1 }}
+                    style={{ position: 'static', opacity: 1, marginLeft: 4 }}
                     onClick={() => openLinkEdit(link)}
                     title="Edit link"
-                  >✏</button>
+                  >
+                    ✏ Edit
+                  </button>
                 </div>
               )}
             </div>
