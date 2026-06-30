@@ -161,6 +161,27 @@ const bulletsToText = (bullets: string[]) => bullets.join('\n');
 const parseBulletLines = (text: string) => text.split('\n');
 const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
+/** YYYY-MM-DD in local timezone (avoids UTC off-by-one from toISOString). */
+const todayLocalDateString = (): string => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+/** Parse date-only strings as local calendar dates, not UTC midnight. */
+const formatAnnouncementDate = (dateStr: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return dateStr;
+  const [, y, m, d] = match;
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString([], {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 // ─── HomePage ──────────────────────────────────────────────────────────────
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
@@ -605,7 +626,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       id: `ann-${Date.now()}`,
       title: 'New Announcement',
       content: 'Announcement details go here.',
-      date: new Date().toISOString().slice(0, 10),
+      date: todayLocalDateString(),
       isActive: true,
     };
     openAnnouncementEdit(newAnn);
@@ -723,7 +744,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <div style={{ fontWeight: 700, fontSize: 14, color: '#92400e', marginBottom: 3 }}>{ann.title}</div>
                           <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>{ann.content}</div>
                           <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
-                            {new Date(ann.date).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                            {formatAnnouncementDate(ann.date)}
                           </div>
                         </div>
                       </div>
