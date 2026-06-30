@@ -191,27 +191,6 @@ const buildClickHereBullet = (url: string, suffix = ''): string => {
   return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
 };
 
-/** YYYY-MM-DD in local timezone (avoids UTC off-by-one from toISOString). */
-const todayLocalDateString = (): string => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
-
-/** Parse date-only strings as local calendar dates, not UTC midnight. */
-const formatAnnouncementDate = (dateStr: string): string => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-  if (!match) return dateStr;
-  const [, y, m, d] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString([], {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
 // ─── HomePage ──────────────────────────────────────────────────────────────
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
