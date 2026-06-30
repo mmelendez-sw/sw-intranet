@@ -21,6 +21,7 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+import { useTvLayout } from '../hooks/useTvLayout';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -169,6 +170,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
+  const isTvLayout = useTvLayout();
+
+  useEffect(() => {
+    if (!isTvLayout) return;
+    document.body.classList.add('home-tv-mode');
+    return () => document.body.classList.remove('home-tv-mode');
+  }, [isTvLayout]);
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
@@ -622,6 +630,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Render helpers ──
   const cardClass = (index: number) => {
+    if (isTvLayout) {
+      return index % 2 === 0 ? 'card odd-card' : 'card even-card';
+    }
     if (index === 0) return 'card odd-card';
     const block = Math.floor((index - 1) / 2);
     return block % 2 === 0 ? 'card even-card' : 'card odd-card';
@@ -661,7 +672,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   };
 
   return (
-    <div className={`home-page ${showHomeContent ? 'authenticated' : 'unauthenticated'}`}>
+    <div className={`home-page ${showHomeContent ? 'authenticated' : 'unauthenticated'}${isTvLayout ? ' tv-layout' : ''}`}>
       {showHomeContent ? (
         <div className="home-layout">
           {/* ── Main Content ── */}
@@ -692,7 +703,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Announcements ── */}
               {(activeAnnouncements.length > 0 || canEdit) && (
-                <div style={{ margin: '16px 0 8px' }}>
+                <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
                       📢 Announcements
@@ -830,9 +841,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         </div>
       )}
 
+      {!isTvLayout && (
       <footer className="footer home-footer">
         <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
       </footer>
+      )}
 
       {/* ──────────── Edit Modals ──────────── */}
 

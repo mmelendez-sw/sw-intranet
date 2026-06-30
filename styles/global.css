@@ -119,6 +119,15 @@ body {
   }
 }
 
+/* Homepage TV / kiosk: hide site header when HomePage is in tv-layout */
+body.home-tv-mode .header {
+  display: none;
+}
+
+body.home-tv-mode .main-content {
+  padding-top: 0;
+}
+
 /* Shared loading spinner (boot + in-app) */
 .app-loading {
   display: flex;

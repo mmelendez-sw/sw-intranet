@@ -98,10 +98,10 @@
   border-top: 3px solid #0891b2;
 }
 
-/* ── Card image ── */
+/* ── Card image — match homepage .card-image (300px / 350px on 4K) ── */
 .tv-card-img-wrap {
   width: 100%;
-  height: 180px;
+  height: 300px;
   overflow: hidden;
   flex-shrink: 0;
   background: #1e293b;
@@ -220,10 +220,13 @@
 }
 
 /* ── Responsive: handle 1080p landscape well ── */
-@media (max-width: 1400px) {
+@media (min-width: 1920px) {
   .tv-card-img-wrap {
-    height: 150px;
+    height: 350px;
   }
+}
+
+@media (max-width: 1400px) {
   .tv-card-title {
     font-size: 15px;
   }
