@@ -326,15 +326,15 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           <section key={section.key} className="updates editable-wrapper">
             {section.title && <h2>{section.title}</h2>}
             <p dangerouslySetInnerHTML={{ __html: section.content }} />
-            {section.buttonLabel && section.buttonUrl && (
-              <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
-                {section.buttonLabel}
-              </button>
-            )}
             {section.linkLabel && section.linkUrl && (
               <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">
                 {section.linkLabel}
               </a>
+            )}
+            {section.buttonLabel && section.buttonUrl && (
+              <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
+                {section.buttonLabel}
+              </button>
             )}
             {canEdit && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
@@ -479,26 +479,6 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             <span className="edit-field-hint">HTML is supported, or use the insert tool above.</span>
           </div>
           <div className="edit-field-group">
-            <label>Button Label {buttonUrlSet ? '(required)' : '(optional)'}</label>
-            <input
-              type="text"
-              value={editSectionDraft.buttonLabel || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonLabel: e.target.value })}
-              required={buttonUrlSet}
-            />
-            {buttonUrlSet && !editSectionDraft.buttonLabel?.trim() && (
-              <span className="edit-field-hint">Required because Button URL is set.</span>
-            )}
-          </div>
-          <div className="edit-field-group">
-            <label>Button URL (optional)</label>
-            <input
-              type="text"
-              value={editSectionDraft.buttonUrl || ''}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonUrl: e.target.value })}
-            />
-          </div>
-          <div className="edit-field-group">
             <label>Link Label {linkUrlSet ? '(required)' : '(optional)'}</label>
             <input
               type="text"
@@ -516,6 +496,26 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               type="text"
               value={editSectionDraft.linkUrl || ''}
               onChange={e => setEditSectionDraft({ ...editSectionDraft, linkUrl: e.target.value })}
+            />
+          </div>
+          <div className="edit-field-group">
+            <label>Button Label {buttonUrlSet ? '(required)' : '(optional)'}</label>
+            <input
+              type="text"
+              value={editSectionDraft.buttonLabel || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonLabel: e.target.value })}
+              required={buttonUrlSet}
+            />
+            {buttonUrlSet && !editSectionDraft.buttonLabel?.trim() && (
+              <span className="edit-field-hint">Required because Button URL is set.</span>
+            )}
+          </div>
+          <div className="edit-field-group">
+            <label>Button URL (optional)</label>
+            <input
+              type="text"
+              value={editSectionDraft.buttonUrl || ''}
+              onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonUrl: e.target.value })}
             />
           </div>
         </EditModal>
