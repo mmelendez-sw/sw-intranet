@@ -8,6 +8,8 @@ import {
   SidebarSection,
   QuickLink,
   SiteConfig,
+  SidebarLayout,
+  SidebarLayoutBlock,
   DEFAULT_SIDEBAR,
   DEFAULT_QUICK_LINKS,
   DEFAULT_SITE_CONFIG,
@@ -91,6 +93,52 @@ const getSectionValidationError = (section: SidebarSection): string | null => {
   return null;
 };
 
+const QUICK_LINKS_BLOCK: SidebarLayoutBlock = { type: 'quick-links' };
+
+const buildDefaultSidebarLayout = (sections: SidebarSection[]): SidebarLayoutBlock[] => [
+  ...[...sections].sort((a, b) => a.order - b.order).map((s) => ({ type: 'section' as const, key: s.key })),
+  QUICK_LINKS_BLOCK,
+];
+
+const syncSidebarLayout = (
+  layoutBlocks: SidebarLayoutBlock[] | undefined,
+  sections: SidebarSection[]
+): SidebarLayoutBlock[] => {
+  const sectionKeys = new Set(sections.map((s) => s.key));
+  const base = layoutBlocks?.length ? layoutBlocks : buildDefaultSidebarLayout(sections);
+
+  const seen = new Set<string>();
+  const synced: SidebarLayoutBlock[] = [];
+  let hasQuickLinks = false;
+
+  for (const block of base) {
+    if (block.type === 'quick-links') {
+      if (!hasQuickLinks) {
+        synced.push(QUICK_LINKS_BLOCK);
+        hasQuickLinks = true;
+      }
+      continue;
+    }
+    if (sectionKeys.has(block.key) && !seen.has(block.key)) {
+      synced.push(block);
+      seen.add(block.key);
+    }
+  }
+
+  for (const section of [...sections].sort((a, b) => a.order - b.order)) {
+    if (!seen.has(section.key)) {
+      synced.push({ type: 'section', key: section.key });
+      seen.add(section.key);
+    }
+  }
+
+  if (!hasQuickLinks) {
+    synced.push(QUICK_LINKS_BLOCK);
+  }
+
+  return synced;
+};
+
 // ─── IntranetSidebar ──────────────────────────────────────────────────────────
 
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
@@ -103,6 +151,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [sections, setSections] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
   const [quickLinks, setQuickLinks] = useState<QuickLink[]>(DEFAULT_QUICK_LINKS);
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [blocks, setBlocks] = useState<SidebarLayoutBlock[]>(() => buildDefaultSidebarLayout(DEFAULT_SIDEBAR));
 
   // ── Section edit state ──
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
@@ -127,14 +176,17 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
     (async () => {
-      const [remoteSections, remoteLinks, remoteConfig] = await Promise.all([
+      const [remoteSections, remoteLinks, remoteConfig, remoteLayout] = await Promise.all([
         getContent<SidebarSection[]>(instance, 'homepage-sidebar'),
         getContent<QuickLink[]>(instance, 'quick-links'),
         getContent<SiteConfig>(instance, 'site-config'),
+        getContent<SidebarLayout>(instance, 'sidebar-layout'),
       ]);
+      const sectionsData = remoteSections ?? [];
       if (remoteSections) setSections(remoteSections);
       if (remoteLinks) setQuickLinks(remoteLinks);
       if (remoteConfig) setSiteConfig(remoteConfig);
+      setBlocks(syncSidebarLayout(remoteLayout?.blocks, sectionsData));
     })();
   }, [userInfo.isAuthenticated, instance]);
 
@@ -175,6 +227,11 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     resetSectionLinkInsert();
   }, [editSectionDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix, resetSectionLinkInsert]);
 
+  const persistSidebarLayout = async (newBlocks: SidebarLayoutBlock[]) => {
+    setBlocks(newBlocks);
+    await setContent(instance, 'sidebar-layout', { blocks: newBlocks });
+  };
+
   const saveSection = async () => {
     if (!editSectionDraft) return;
     const validationError = getSectionValidationError(editSectionDraft);
@@ -195,7 +252,10 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     setSavingSection(true);
     const updated = sections.filter(s => s.key !== editSectionDraft.key);
     const ok = await setContent(instance, 'homepage-sidebar', updated);
-    if (ok) setSections(updated);
+    if (ok) {
+      setSections(updated);
+      await persistSidebarLayout(blocks.filter(b => b.type !== 'section' || b.key !== editSectionDraft.key));
+    }
     setSavingSection(false);
     closeSectionEdit();
   };
@@ -208,20 +268,25 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       content: 'Add your content here.',
     };
     const updated = [...sections, newSection];
+    const newBlock: SidebarLayoutBlock = { type: 'section', key: newSection.key };
+    const quickLinksIdx = blocks.findIndex(b => b.type === 'quick-links');
+    const newBlocks = quickLinksIdx >= 0
+      ? [...blocks.slice(0, quickLinksIdx), newBlock, ...blocks.slice(quickLinksIdx)]
+      : [...blocks, newBlock];
     const ok = await setContent(instance, 'homepage-sidebar', updated);
-    if (ok) { setSections(updated); openSectionEdit(newSection); }
+    if (ok) {
+      setSections(updated);
+      await persistSidebarLayout(newBlocks);
+      openSectionEdit(newSection);
+    }
   };
 
-  const moveSidebarSection = async (key: string, direction: 'up' | 'down') => {
-    const sorted = [...sections].sort((a, b) => a.order - b.order);
-    const idx = sorted.findIndex(s => s.key === key);
-    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= sorted.length) return;
-    const reordered = [...sorted];
-    [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
-    const withNewOrders = reordered.map((s, i) => ({ ...s, order: i + 1 }));
-    setSections(withNewOrders);
-    await setContent(instance, 'homepage-sidebar', withNewOrders);
+  const moveBlock = async (blockIdx: number, direction: 'up' | 'down') => {
+    const targetIdx = direction === 'up' ? blockIdx - 1 : blockIdx + 1;
+    if (targetIdx < 0 || targetIdx >= blocks.length) return;
+    const reordered = [...blocks];
+    [reordered[blockIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[blockIdx]];
+    await persistSidebarLayout(reordered);
   };
 
   // ── Quick link handlers ──
@@ -286,8 +351,33 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     setEditingConfig(false);
   };
 
-  const sortedSections = [...sections].sort((a, b) => a.order - b.order);
   const sortedLinks = [...quickLinks].sort((a, b) => a.order - b.order);
+
+  const renderBlockReorder = (blockIdx: number, compact = false) => (
+    <div
+      className="card-reorder-row"
+      style={{
+        justifyContent: 'flex-start',
+        padding: compact ? 0 : (canEdit ? '3px 0 0' : 0),
+        marginTop: compact ? 0 : (canEdit ? 8 : 0),
+      }}
+    >
+      <button
+        type="button"
+        className="card-reorder-btn"
+        onClick={() => moveBlock(blockIdx, 'up')}
+        disabled={blockIdx === 0}
+        title="Move block up"
+      >↑</button>
+      <button
+        type="button"
+        className="card-reorder-btn"
+        onClick={() => moveBlock(blockIdx, 'down')}
+        disabled={blockIdx === blocks.length - 1}
+        title="Move block down"
+      >↓</button>
+    </div>
+  );
 
   return (
     <>
@@ -321,103 +411,104 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           )}
         </section>
 
-        {/* ── Sidebar sections from SharePoint ── */}
-        {sortedSections.map((section, sIdx) => (
-          <section key={section.key} className="updates editable-wrapper">
-            {section.title && <h2>{section.title}</h2>}
-            <p dangerouslySetInnerHTML={{ __html: section.content }} />
-            {section.linkLabel && section.linkUrl && (
-              <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">
-                {section.linkLabel}
-              </a>
-            )}
-            {section.buttonLabel && section.buttonUrl && (
-              <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
-                {section.buttonLabel}
-              </button>
-            )}
-            {canEdit && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
-                <div className="sidebar-reorder-btns">
-                  <button
-                    className="sidebar-reorder-btn"
-                    onClick={() => moveSidebarSection(section.key, 'up')}
-                    disabled={sIdx === 0}
-                    title="Move section up"
-                  >↑</button>
-                  <button
-                    className="sidebar-reorder-btn"
-                    onClick={() => moveSidebarSection(section.key, 'down')}
-                    disabled={sIdx === sortedSections.length - 1}
-                    title="Move section down"
-                  >↓</button>
-                </div>
-                <button
-                  className="edit-pencil-btn"
-                  style={{ position: 'static', opacity: 1 }}
-                  onClick={() => openSectionEdit(section)}
-                  title="Edit section"
-                >
-                  ✏ Edit
-                </button>
-              </div>
-            )}
-          </section>
-        ))}
+        {/* ── Sidebar blocks (sections + quick links, unified order) ── */}
+        {blocks.map((block, blockIdx) => {
+          if (block.type === 'section') {
+            const section = sections.find(s => s.key === block.key);
+            if (!section) return null;
+            return (
+              <section key={section.key} className="updates editable-wrapper">
+                {section.title && <h2>{section.title}</h2>}
+                <p dangerouslySetInnerHTML={{ __html: section.content }} />
+                {section.linkLabel && section.linkUrl && (
+                  <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">
+                    {section.linkLabel}
+                  </a>
+                )}
+                {section.buttonLabel && section.buttonUrl && (
+                  <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
+                    {section.buttonLabel}
+                  </button>
+                )}
+                {canEdit && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    {renderBlockReorder(blockIdx)}
+                    <button
+                      className="edit-pencil-btn"
+                      style={{ position: 'static', opacity: 1 }}
+                      onClick={() => openSectionEdit(section)}
+                      title="Edit section"
+                    >
+                      ✏ Edit
+                    </button>
+                  </div>
+                )}
+              </section>
+            );
+          }
+
+          if (block.type === 'quick-links') {
+            return (
+              <section key="quick-links-block" className="quick-links editable-wrapper">
+                <h2>Quick Links</h2>
+                {sortedLinks.map((link, lIdx) => (
+                  <div key={link.id} style={{ marginBottom: canEdit ? 6 : 0 }}>
+                    <button
+                      className="home-button"
+                      style={{ width: '100%' }}
+                      onClick={() => window.open(link.url, '_blank')}
+                    >
+                      {link.label}
+                    </button>
+                    {canEdit && (
+                      <div className="card-reorder-row" style={{ justifyContent: 'flex-start', padding: '3px 0 0' }}>
+                        <button
+                          type="button"
+                          className="card-reorder-btn"
+                          onClick={() => moveLink(link.id, 'up')}
+                          disabled={lIdx === 0}
+                          title="Move link up"
+                        >↑</button>
+                        <button
+                          type="button"
+                          className="card-reorder-btn"
+                          onClick={() => moveLink(link.id, 'down')}
+                          disabled={lIdx === sortedLinks.length - 1}
+                          title="Move link down"
+                        >↓</button>
+                        <button
+                          type="button"
+                          className="edit-pencil-btn"
+                          style={{ position: 'static', opacity: 1, marginLeft: 4 }}
+                          onClick={() => openLinkEdit(link)}
+                          title="Edit link"
+                        >
+                          ✏ Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {canEdit && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                    <button className="edit-add-btn" style={{ margin: 0 }} onClick={addLink}>
+                      + Add Link
+                    </button>
+                    {renderBlockReorder(blockIdx, true)}
+                  </div>
+                )}
+              </section>
+            );
+          }
+
+          return null;
+        })}
 
         {canEdit && (
           <div style={{ padding: '4px 0 8px' }}>
             <button className="edit-add-btn" onClick={addSection}>+ Add Section</button>
           </div>
         )}
-
-        {/* ── Quick Links ── */}
-        <section className="quick-links">
-          <h2>Quick Links</h2>
-          {sortedLinks.map((link, lIdx) => (
-            <div key={link.id} className={canEdit ? 'editable-wrapper' : ''} style={{ marginBottom: canEdit ? 6 : 0 }}>
-              <button
-                className="home-button"
-                style={{ width: '100%' }}
-                onClick={() => window.open(link.url, '_blank')}
-              >
-                {link.label}
-              </button>
-              {canEdit && (
-                <div className="card-reorder-row" style={{ justifyContent: 'flex-start', padding: '3px 0 0' }}>
-                  <button
-                    type="button"
-                    className="card-reorder-btn"
-                    onClick={() => moveLink(link.id, 'up')}
-                    disabled={lIdx === 0}
-                    title="Move link up"
-                  >↑</button>
-                  <button
-                    type="button"
-                    className="card-reorder-btn"
-                    onClick={() => moveLink(link.id, 'down')}
-                    disabled={lIdx === sortedLinks.length - 1}
-                    title="Move link down"
-                  >↓</button>
-                  <button
-                    type="button"
-                    className="edit-pencil-btn"
-                    style={{ position: 'static', opacity: 1, marginLeft: 4 }}
-                    onClick={() => openLinkEdit(link)}
-                    title="Edit link"
-                  >
-                    ✏ Edit
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-          {canEdit && (
-            <button className="edit-add-btn" style={{ marginTop: 6 }} onClick={addLink}>
-              + Add Link
-            </button>
-          )}
-        </section>
       </aside>
 
       {/* ── Section Edit Modal ── */}

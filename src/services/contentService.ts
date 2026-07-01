@@ -20,6 +20,8 @@
  *   homepage-sidebar.json, quick-links.json, site-config.json
  *   in Shared Documents/General/intranet
  *
+ * Sidebar block order (sections vs quick links) is stored as sidebar-layout.json
+ *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
@@ -41,6 +43,7 @@ import {
   SIDEBAR_DATA_FILENAME,
   QUICK_LINKS_DATA_FILENAME,
   SITE_CONFIG_DATA_FILENAME,
+  SIDEBAR_LAYOUT_DATA_FILENAME,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -51,6 +54,7 @@ const REPORTS_CONTENT_KEY = 'reports';
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const QUICK_LINKS_CONTENT_KEY = 'quick-links';
 const SITE_CONFIG_CONTENT_KEY = 'site-config';
+const SIDEBAR_LAYOUT_CONTENT_KEY = 'sidebar-layout';
 /** Previous reports.json location before co-locating with cards in General/intranet */
 const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
@@ -72,6 +76,9 @@ function getDriveContentConfig(key: string): { folderPath: string; fileName: str
   }
   if (key === SITE_CONFIG_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SITE_CONFIG_DATA_FILENAME };
+  }
+  if (key === SIDEBAR_LAYOUT_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_LAYOUT_DATA_FILENAME };
   }
   return null;
 }
@@ -171,6 +178,15 @@ export interface QuickLink {
   label: string;
   url: string;
   order: number;
+}
+
+/** Ordered sidebar blocks — sections and the quick-links group can be interleaved. */
+export type SidebarLayoutBlock =
+  | { type: 'section'; key: string }
+  | { type: 'quick-links' };
+
+export interface SidebarLayout {
+  blocks: SidebarLayoutBlock[];
 }
 
 export interface SiteConfig {
