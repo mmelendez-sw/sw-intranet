@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../styles/reports.css';
+import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
@@ -359,7 +360,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
           )}
         </div>
 
-        <IntranetSidebar userInfo={userInfo} className="reports-sidebar" />
+        <IntranetSidebar userInfo={userInfo} className="home-sidebar" />
       </div>
 
       <footer className="footer">

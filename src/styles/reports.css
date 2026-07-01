@@ -185,12 +185,6 @@
     font-size: 0.9em;
 }
 
-.reports-sidebar {
-    width: 100%;
-    max-width: 320px;
-    min-width: 250px;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .outermost-container {
@@ -203,7 +197,7 @@
     }
 
     .sidebar,
-    .reports-sidebar {
+    .home-sidebar {
         width: 100%;
         max-width: 100%;
         min-width: 0;
