@@ -76,6 +76,21 @@ const buildHtmlLink = (url: string, label: string, suffix = ''): string => {
   return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
 };
 
+const getSectionValidationError = (section: SidebarSection): string | null => {
+  const buttonUrl = section.buttonUrl?.trim() || '';
+  const buttonLabel = section.buttonLabel?.trim() || '';
+  const linkUrl = section.linkUrl?.trim() || '';
+  const linkLabel = section.linkLabel?.trim() || '';
+
+  if (buttonUrl && !buttonLabel) {
+    return 'Button Label is required when Button URL is set.';
+  }
+  if (linkUrl && !linkLabel) {
+    return 'Link Label is required when Link URL is set.';
+  }
+  return null;
+};
+
 // ─── IntranetSidebar ──────────────────────────────────────────────────────────
 
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
@@ -162,6 +177,11 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
 
   const saveSection = async () => {
     if (!editSectionDraft) return;
+    const validationError = getSectionValidationError(editSectionDraft);
+    if (validationError) {
+      window.alert(validationError);
+      return;
+    }
     setSavingSection(true);
     const updated = sections.map(s => s.key === editSectionDraft.key ? editSectionDraft : s);
     const ok = await setContent(instance, 'homepage-sidebar', updated);
@@ -401,7 +421,10 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       </aside>
 
       {/* ── Section Edit Modal ── */}
-      {editingSection && editSectionDraft && (
+      {editingSection && editSectionDraft && (() => {
+        const buttonUrlSet = Boolean(editSectionDraft.buttonUrl?.trim());
+        const linkUrlSet = Boolean(editSectionDraft.linkUrl?.trim());
+        return (
         <EditModal
           title={`Edit Section: ${editSectionDraft.title}`}
           onClose={closeSectionEdit}
@@ -456,12 +479,16 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             <span className="edit-field-hint">HTML is supported, or use the insert tool above.</span>
           </div>
           <div className="edit-field-group">
-            <label>Button Label (optional)</label>
+            <label>Button Label {buttonUrlSet ? '(required)' : '(optional)'}</label>
             <input
               type="text"
               value={editSectionDraft.buttonLabel || ''}
               onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonLabel: e.target.value })}
+              required={buttonUrlSet}
             />
+            {buttonUrlSet && !editSectionDraft.buttonLabel?.trim() && (
+              <span className="edit-field-hint">Required because Button URL is set.</span>
+            )}
           </div>
           <div className="edit-field-group">
             <label>Button URL (optional)</label>
@@ -472,12 +499,16 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             />
           </div>
           <div className="edit-field-group">
-            <label>Link Label (optional)</label>
+            <label>Link Label {linkUrlSet ? '(required)' : '(optional)'}</label>
             <input
               type="text"
               value={editSectionDraft.linkLabel || ''}
               onChange={e => setEditSectionDraft({ ...editSectionDraft, linkLabel: e.target.value })}
+              required={linkUrlSet}
             />
+            {linkUrlSet && !editSectionDraft.linkLabel?.trim() && (
+              <span className="edit-field-hint">Required because Link URL is set.</span>
+            )}
           </div>
           <div className="edit-field-group">
             <label>Link URL (optional)</label>
@@ -488,7 +519,8 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             />
           </div>
         </EditModal>
-      )}
+        );
+      })()}
 
       {/* ── Quick Link Edit Modal ── */}
       {editingLink && editLinkDraft && (
