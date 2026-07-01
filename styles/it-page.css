@@ -170,7 +170,7 @@
 
 .sidebar p,
 .sidebar ul,
-.sidebar button {
+.sidebar button:not(.edit-pencil-btn):not(.edit-add-btn):not(.card-reorder-btn):not(.sidebar-reorder-btn):not(.home-button) {
   font-size: 0.9em;
   color: #333;
 }
@@ -189,7 +189,7 @@
   list-style-type: disc;
 }
 
-.sidebar .quick-links button {
+.sidebar .quick-links .home-button {
   background-color: #005b99; /* Rich blue for buttons */
   color: #ffffff;
   border: none;
@@ -201,7 +201,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
 }
 
-.sidebar .quick-links button:hover {
+.sidebar .quick-links .home-button:hover {
   background-color: #0073d6; /* Brighter blue on hover */
 }
 

@@ -115,7 +115,7 @@
     padding: 10px;
     background-color: #ffffff; /* Matches dropdown background */
     color: #333; /* Text color */
-    text-align: center;
+    text-align: left;
     cursor: pointer;
     font-size: 0.9rem;
     transition: background-color 0.2s ease;
@@ -126,7 +126,21 @@
 .dropdown-item:hover {
     background-color: #f0f0f0; /* Light gray hover background */
     color: #000; /* Text becomes darker on hover */
-    text-align: center;
+}
+
+.dropdown-edit-toggle {
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+}
+
+.dropdown-edit-toggle.active {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.dropdown-edit-toggle.active:hover {
+    background-color: #0a58ca;
+    color: #fff;
 }
 
 /* Adjustments for Accessibility */

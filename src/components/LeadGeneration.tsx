@@ -2,7 +2,9 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
 import * as exifr from 'exifr';
+import { BYPASS_AUTH } from '../authConfig';
 import { UserInfo } from '../types/user';
+import { getContent, SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';
 import '../../styles/lead-generation.css';
 
 interface FormData {
@@ -228,6 +230,7 @@ interface LeadGenerationProps {
 const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const hasSignedInAccount = instance.getAllAccounts().length > 0;
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -240,7 +243,15 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const libraryInputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
 
-  if (!userInfo.isAuthenticated && !hasSignedInAccount) {
+  useEffect(() => {
+    if (!userInfo.isAuthenticated) return;
+    (async () => {
+      const remoteConfig = await getContent<SiteConfig>(instance, 'site-config');
+      if (remoteConfig) setSiteConfig(remoteConfig);
+    })();
+  }, [userInfo.isAuthenticated, instance]);
+
+  if (!BYPASS_AUTH && !userInfo.isAuthenticated && !hasSignedInAccount) {
     return <Navigate to="/" replace />;
   }
 
@@ -545,7 +556,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         </tr>
       </table>
       <br/>
-      <p style="color: #666; font-size: 12px;">This email was sent from the Symphony Towers Infrastructure Intranet Lead Generation form.</p>
+      <p style="color: #666; font-size: 12px;">This email was sent from the ${siteConfig.companyName} Intranet Lead Generation form.</p>
     `;
 
     const attachments = await Promise.all(data.photos.map(async (photo, index) => {
@@ -573,7 +584,7 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         toRecipients: [
           {
             emailAddress: {
-              address: 'EmployeeLeads@symphonyinfra.com',
+              address: siteConfig.leadGenEmail || 'leads@yourcompany.com',
             },
           },
         ],

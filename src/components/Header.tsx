@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { loginRequest } from '../authConfig';
+import { BYPASS_AUTH, loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
+import { useEditMode } from '../context/EditMenuContext';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -71,6 +72,7 @@ const isIOSEdge = (): boolean => /edgios/i.test(navigator.userAgent);
 const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
+  const { isEditMode, toggleEditMode } = useEditMode();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
@@ -122,8 +124,12 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
     }
   };
 
-  const handleLogout = async () => {
+  const closeDropdown = () => {
     setIsDropdownOpen(false);
+  };
+
+  const handleLogout = async () => {
+    closeDropdown();
     try {
       await instance.logoutPopup();
     } catch (e: any) {
@@ -148,25 +154,24 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             position: 'fixed',
             top: '40px',
             right: '20px',
-            background: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+            minWidth: '180px',
             zIndex: 9999,
           }}
         >
+          {userInfo.isEditor && (
+            <button
+              type="button"
+              onClick={toggleEditMode}
+              className={`dropdown-item dropdown-edit-toggle${isEditMode ? ' active' : ''}`}
+              aria-pressed={isEditMode}
+            >
+              ✏ Edit{isEditMode ? ' (on)' : ''}
+            </button>
+          )}
           <button
+            type="button"
             onClick={handleLogout}
             className="dropdown-item"
-            style={{
-              padding: '10px',
-              width: '100%',
-              backgroundColor: 'white',
-              border: 'none',
-              textAlign: 'left',
-              cursor: 'pointer',
-              color: '#333',
-            }}
           >
             Logout
           </button>
@@ -192,12 +197,16 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
         {userInfo.isAuthenticated && (
-          <><i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link></>
+          <>
+            <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
+            <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
+            <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
+          </>
         )}
       </nav>
       <div className="user">
-        {isAuthenticated && accounts[0] ? (
-          <div className="user-dropdown" style={{ position: 'relative' }}>
+        {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
+          <div className="user-dropdown">
             <span
               onClick={toggleDropdown}
               className="user-name"
@@ -207,7 +216,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 alignItems: 'center',
               }}
             >
-              Welcome, {accounts[0]?.name?.split(' ')[0]}!
+              Welcome, {(BYPASS_AUTH ? userInfo.name : accounts[0]?.name)?.split(' ')[0]}!
               {userInfo.isEliteGroup && (
                 <span
                   style={{

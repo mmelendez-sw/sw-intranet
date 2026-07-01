@@ -1,0 +1,73 @@
+/* Ticker Wrapper — flows below header + alert banner */
+.ticker-wrap {
+    position: relative;
+    width: 100%;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 8px;
+    background-color: white;
+    box-sizing: border-box;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.ticker-track {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    height: 3rem;
+}
+
+.ticker {
+    display: inline-block;
+    height: 3rem;
+    line-height: 3rem;
+    white-space: nowrap;
+    padding-right: 100%;
+    box-sizing: content-box;
+    animation: ticker 30s linear infinite;
+}
+
+.ticker__item {
+    display: inline-block;
+    padding: 0 2rem;
+    font-size: 1.5rem;
+    color: red;
+    /* color: #004E7C; */
+}
+
+.ticker-edit-btn {
+    position: static;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: rgba(13, 110, 253, 0.88);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    z-index: 10;
+}
+
+.ticker-edit-btn:hover {
+    background: rgba(10, 88, 202, 0.95);
+}
+
+@keyframes ticker {
+    0% {
+        transform: translate3d(0, 0, 0);
+        visibility: visible;
+    }
+    100% {
+        transform: translate3d(-100%, 0, 0);
+    }
+}
