@@ -93,6 +93,26 @@ const getSectionValidationError = (section: SidebarSection): string | null => {
   return null;
 };
 
+const isValidHttpUrl = (value: string): boolean => {
+  try {
+    new URL(value.trim());
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getQuickLinkValidationError = (link: QuickLink): string | null => {
+  const url = link.url?.trim() || '';
+  if (!url) {
+    return 'URL is required.';
+  }
+  if (!isValidHttpUrl(url)) {
+    return 'Please enter a valid URL (include https://).';
+  }
+  return null;
+};
+
 const QUICK_LINKS_BLOCK: SidebarLayoutBlock = { type: 'quick-links' };
 
 const buildDefaultSidebarLayout = (sections: SidebarSection[]): SidebarLayoutBlock[] => [
@@ -298,6 +318,11 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
 
   const saveLink = async () => {
     if (!editLinkDraft) return;
+    const validationError = getQuickLinkValidationError(editLinkDraft);
+    if (validationError) {
+      window.alert(validationError);
+      return;
+    }
     setSavingLink(true);
     const updated = isNewLink
       ? [...quickLinks, editLinkDraft]
@@ -632,12 +657,13 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             />
           </div>
           <div className="edit-field-group">
-            <label>URL</label>
+            <label>URL (required)</label>
             <input
               type="url"
               value={editLinkDraft.url}
               onChange={e => setEditLinkDraft({ ...editLinkDraft, url: e.target.value })}
               placeholder="https://..."
+              required
             />
           </div>
         </EditModal>
