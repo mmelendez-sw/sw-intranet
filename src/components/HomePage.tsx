@@ -185,8 +185,14 @@ const formatAnnouncementDate = (dateStr: string): string => {
 const escapeHtmlAttr = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-const buildClickHereBullet = (url: string, suffix = ''): string => {
-  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">CLICK HERE</a>`;
+const escapeHtmlText = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const DEFAULT_LINK_LABEL = 'CLICK HERE';
+
+const buildClickHereBullet = (url: string, label: string, suffix = ''): string => {
+  const linkText = label.trim() || DEFAULT_LINK_LABEL;
+  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
   const trimmedSuffix = suffix.trim();
   return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
 };
@@ -246,6 +252,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
   const [cardSaveStatus, setCardSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'saved-local' | 'error'>('idle');
   const [linkInsertUrl, setLinkInsertUrl] = useState('');
+  const [linkInsertLabel, setLinkInsertLabel] = useState('');
   const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
 
   const cardsRef = useRef(cards);
@@ -396,6 +403,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setIsNewCard(false);
     setCardSaveStatus('idle');
     setLinkInsertUrl('');
+    setLinkInsertLabel('');
     setLinkInsertSuffix('');
   }, []);
 
@@ -417,6 +425,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setIsNewCard(true);
     setCardSaveStatus('idle');
     setLinkInsertUrl('');
+    setLinkInsertLabel('');
     setLinkInsertSuffix('');
   }, [cards]);
 
@@ -432,11 +441,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
     setEditCardDraft({
       ...editCardDraft,
-      bullets: [...editCardDraft.bullets, buildClickHereBullet(url, linkInsertSuffix)],
+      bullets: [...editCardDraft.bullets, buildClickHereBullet(url, linkInsertLabel, linkInsertSuffix)],
     });
     setLinkInsertUrl('');
+    setLinkInsertLabel('');
     setLinkInsertSuffix('');
-  }, [editCardDraft, linkInsertUrl, linkInsertSuffix]);
+  }, [editCardDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix]);
 
   const handleImageFileChange = (file: File) => {
     setPendingImageFile(file);
@@ -561,6 +571,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setImagePreviewUrl('');
     setCardSaveStatus('idle');
     setLinkInsertUrl('');
+    setLinkInsertLabel('');
     setLinkInsertSuffix('');
   }, [canEdit, flushCardDraftSave]);
 
@@ -928,12 +939,18 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               onChange={e => setEditCardDraft({ ...editCardDraft, bullets: parseBulletLines(e.target.value) })}
             />
             <div className="edit-link-insert">
-              <span className="edit-link-insert-label">Insert link button</span>
+              <span className="edit-link-insert-label">Insert link</span>
               <input
                 type="url"
                 placeholder="https://…"
                 value={linkInsertUrl}
                 onChange={e => setLinkInsertUrl(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder={`Link text (defaults to ${DEFAULT_LINK_LABEL})`}
+                value={linkInsertLabel}
+                onChange={e => setLinkInsertLabel(e.target.value)}
               />
               <input
                 type="text"
@@ -947,7 +964,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 onClick={insertClickHereLink}
                 disabled={!linkInsertUrl.trim()}
               >
-                Insert CLICK HERE link
+                Insert link
               </button>
             </div>
             <span className="edit-field-hint">One bullet per line. HTML is supported, or use the insert tool above.</span>

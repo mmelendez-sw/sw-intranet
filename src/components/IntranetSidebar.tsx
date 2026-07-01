@@ -61,6 +61,21 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
   );
 };
 
+const escapeHtmlAttr = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+const escapeHtmlText = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const DEFAULT_LINK_LABEL = 'CLICK HERE';
+
+const buildHtmlLink = (url: string, label: string, suffix = ''): string => {
+  const linkText = label.trim() || DEFAULT_LINK_LABEL;
+  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
+  const trimmedSuffix = suffix.trim();
+  return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
+};
+
 // ─── IntranetSidebar ──────────────────────────────────────────────────────────
 
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
@@ -78,6 +93,9 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
   const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
   const [savingSection, setSavingSection] = useState(false);
+  const [linkInsertUrl, setLinkInsertUrl] = useState('');
+  const [linkInsertLabel, setLinkInsertLabel] = useState('');
+  const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
 
   // ── Quick link edit state ──
   const [editingLink, setEditingLink] = useState<QuickLink | null>(null);
@@ -105,11 +123,42 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     })();
   }, [userInfo.isAuthenticated, instance]);
 
+  const resetSectionLinkInsert = useCallback(() => {
+    setLinkInsertUrl('');
+    setLinkInsertLabel('');
+    setLinkInsertSuffix('');
+  }, []);
+
+  const closeSectionEdit = useCallback(() => {
+    setEditingSection(null);
+    resetSectionLinkInsert();
+  }, [resetSectionLinkInsert]);
+
   // ── Section handlers ──
   const openSectionEdit = useCallback((section: SidebarSection) => {
     setEditingSection(section);
     setEditSectionDraft({ ...section });
-  }, []);
+    resetSectionLinkInsert();
+  }, [resetSectionLinkInsert]);
+
+  const insertLinkIntoSection = useCallback(() => {
+    if (!editSectionDraft) return;
+    const url = linkInsertUrl.trim();
+    if (!url) return;
+    try {
+      new URL(url);
+    } catch {
+      window.alert('Please enter a valid URL (include https://).');
+      return;
+    }
+    const snippet = buildHtmlLink(url, linkInsertLabel, linkInsertSuffix);
+    const content = editSectionDraft.content.trim();
+    setEditSectionDraft({
+      ...editSectionDraft,
+      content: content ? `${content} ${snippet}` : snippet,
+    });
+    resetSectionLinkInsert();
+  }, [editSectionDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix, resetSectionLinkInsert]);
 
   const saveSection = async () => {
     if (!editSectionDraft) return;
@@ -118,7 +167,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     const ok = await setContent(instance, 'homepage-sidebar', updated);
     if (ok) setSections(updated);
     setSavingSection(false);
-    setEditingSection(null);
+    closeSectionEdit();
   };
 
   const deleteSection = async () => {
@@ -128,7 +177,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     const ok = await setContent(instance, 'homepage-sidebar', updated);
     if (ok) setSections(updated);
     setSavingSection(false);
-    setEditingSection(null);
+    closeSectionEdit();
   };
 
   const addSection = async () => {
@@ -355,7 +404,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       {editingSection && editSectionDraft && (
         <EditModal
           title={`Edit Section: ${editSectionDraft.title}`}
-          onClose={() => setEditingSection(null)}
+          onClose={closeSectionEdit}
           onSave={saveSection}
           isSaving={savingSection}
           onDelete={deleteSection}
@@ -375,6 +424,36 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               value={editSectionDraft.content}
               onChange={e => setEditSectionDraft({ ...editSectionDraft, content: e.target.value })}
             />
+            <div className="edit-link-insert">
+              <span className="edit-link-insert-label">Insert link</span>
+              <input
+                type="url"
+                placeholder="https://…"
+                value={linkInsertUrl}
+                onChange={e => setLinkInsertUrl(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder={`Link text (defaults to ${DEFAULT_LINK_LABEL})`}
+                value={linkInsertLabel}
+                onChange={e => setLinkInsertLabel(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Optional text after link"
+                value={linkInsertSuffix}
+                onChange={e => setLinkInsertSuffix(e.target.value)}
+              />
+              <button
+                type="button"
+                className="edit-link-insert-btn"
+                onClick={insertLinkIntoSection}
+                disabled={!linkInsertUrl.trim()}
+              >
+                Insert link
+              </button>
+            </div>
+            <span className="edit-field-hint">HTML is supported, or use the insert tool above.</span>
           </div>
           <div className="edit-field-group">
             <label>Button Label (optional)</label>
