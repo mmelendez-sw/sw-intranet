@@ -5,36 +5,124 @@ import '../../styles/employee-directory.css';
 interface GraphUser {
   id: string;
   displayName: string;
+  givenName?: string | null;
+  surname?: string | null;
   jobTitle: string | null;
   department: string | null;
+  companyName?: string | null;
   mail: string | null;
+  accountEnabled?: boolean;
   photoUrl?: string; // resolved client-side
 }
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
 
+const DIRECTORY_SCOPES = ['User.Read.All'];
+const ALLOWED_EMAIL_SUFFIX = '@symphonyinfra.com';
+const ALLOWED_COMPANY = 'symphony';
+
+const ACTIVE_USERS_URL =
+  'https://graph.microsoft.com/v1.0/users' +
+  '?$filter=accountEnabled%20eq%20true' +
+  '&$count=true' +
+  '&$top=999' +
+  '&$select=id,displayName,givenName,surname,mail,jobTitle,department,companyName,accountEnabled';
+
+function hasAllowedEmail(mail: string | null | undefined): boolean {
+  return !!mail && mail.toLowerCase().endsWith(ALLOWED_EMAIL_SUFFIX);
+}
+
+function hasFirstAndLastName(user: GraphUser): boolean {
+  const given = user.givenName?.trim();
+  const family = user.surname?.trim();
+  if (given && family) return true;
+
+  const parts = user.displayName.trim().split(/\s+/).filter((p) => p.length > 0);
+  return parts.length >= 2;
+}
+
+function isRoomResource(user: GraphUser): boolean {
+  return user.displayName.trim().toLowerCase().startsWith('room -');
+}
+
+function hasAllowedCompany(user: GraphUser): boolean {
+  return user.companyName?.trim().toLowerCase() === ALLOWED_COMPANY;
+}
+
+function hasJobTitle(user: GraphUser): boolean {
+  return !!user.jobTitle?.trim();
+}
+
+function isConsultant(user: GraphUser): boolean {
+  return (user.jobTitle ?? '').toLowerCase().includes('(consultant)');
+}
+
 async function getGraphToken(msalInstance: any): Promise<string | null> {
+  const accounts = msalInstance.getAllAccounts();
+  if (!accounts.length) return null;
+
+  const account = accounts[0];
+  const tokenRequest = { scopes: DIRECTORY_SCOPES, account };
+
   try {
-    const accounts = msalInstance.getAllAccounts();
-    if (!accounts.length) return null;
-    const result = await msalInstance.acquireTokenSilent({
-      scopes: ['User.ReadBasic.All'],
-      account: accounts[0],
-    });
+    const result = await msalInstance.acquireTokenSilent(tokenRequest);
     return result.accessToken;
-  } catch {
-    return null;
+  } catch (silentError) {
+    console.warn('[EmployeeDirectory] acquireTokenSilent failed, refreshing token', silentError);
   }
+
+  try {
+    const result = await msalInstance.acquireTokenSilent({ ...tokenRequest, forceRefresh: true });
+    return result.accessToken;
+  } catch (refreshError) {
+    console.warn('[EmployeeDirectory] forceRefresh failed, trying popup', refreshError);
+  }
+
+  try {
+    if (typeof msalInstance.acquireTokenPopup === 'function') {
+      const result = await msalInstance.acquireTokenPopup(tokenRequest);
+      return result.accessToken;
+    }
+  } catch (popupError) {
+    console.error('[EmployeeDirectory] acquireTokenPopup failed:', popupError);
+  }
+
+  return null;
 }
 
 async function fetchUsers(token: string): Promise<GraphUser[]> {
-  const res = await fetch(
-    "https://graph.microsoft.com/v1.0/users?$select=id,displayName,jobTitle,department,mail&$top=100&$filter=accountEnabled eq true&$orderby=displayName",
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (!res.ok) throw new Error(`/users failed: ${res.status}`);
-  const data = await res.json();
-  return (data.value as GraphUser[]).filter(u => u.mail); // exclude service accounts
+  const users: GraphUser[] = [];
+  let url: string | null = ACTIVE_USERS_URL;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    ConsistencyLevel: 'eventual',
+  };
+
+  while (url) {
+    const res: Response = await fetch(url, { headers });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`/users failed: ${res.status}${body ? ` — ${body.slice(0, 240)}` : ''}`);
+    }
+    const data: { value?: GraphUser[]; '@odata.nextLink'?: string } = await res.json();
+    users.push(...(data.value ?? []));
+    url = data['@odata.nextLink'] ?? null;
+  }
+
+  return users
+    .filter(
+      (u) =>
+        u.displayName &&
+        // hasAllowedEmail(u.mail) &&
+        u.accountEnabled !== false &&
+        hasFirstAndLastName(u) &&
+        !isRoomResource(u) &&
+        hasAllowedCompany(u) &&
+        hasJobTitle(u) &&
+        !isConsultant(u)
+        
+    )
+    .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
 async function fetchPhoto(token: string, userId: string): Promise<string | null> {
@@ -94,7 +182,7 @@ const EmployeeDirectory: React.FC = () => {
     try {
       const token = await getGraphToken(instance);
       if (!token) {
-        setError('Unable to authenticate with Microsoft Graph. Please sign in again.');
+        setError('Unable to load directory permissions. If prompted, approve access — you do not need to sign out. Otherwise ask IT to grant User.Read.All for this app.');
         return;
       }
 
@@ -102,7 +190,7 @@ const EmployeeDirectory: React.FC = () => {
       setUsers(rawUsers);
       setLoading(false);
 
-      // Load photos lazily — don't block the initial render
+      // Load photos in the background — don't block the initial render
       const withPhotos = await Promise.all(
         rawUsers.map(async (u) => {
           const photoUrl = await fetchPhoto(token, u.id);
@@ -112,6 +200,7 @@ const EmployeeDirectory: React.FC = () => {
       setUsers(withPhotos);
     } catch (err: any) {
       setError(err.message ?? 'Failed to load employee directory.');
+    } finally {
       setLoading(false);
     }
   }, [instance]);
@@ -132,7 +221,7 @@ const EmployeeDirectory: React.FC = () => {
     <div className="directory-page">
       <div className="directory-header">
         <h1>Employee Directory</h1>
-        <p>All active Symphony Towers Infrastructure team members</p>
+        {/* <p>Active Symphony Towers Infrastructure team members (@symphonyinfra.com)</p> */}
       </div>
 
       <div className="directory-search-bar">
@@ -169,7 +258,14 @@ const EmployeeDirectory: React.FC = () => {
         </div>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
+      {!loading && !error && users.length === 0 && !search && (
+        <div className="directory-empty">
+          <strong>No employees found</strong>
+          No active users with @symphonyinfra.com email addresses were returned from Microsoft 365.
+        </div>
+      )}
+
+      {!loading && !error && filtered.length === 0 && users.length > 0 && (
         <div className="directory-empty">
           <strong>No results</strong>
           No employees match "{search}".

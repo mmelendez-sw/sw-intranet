@@ -2,8 +2,10 @@
 
 .directory-page {
   padding: 28px 32px;
-  max-width: 1200px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .directory-header {
@@ -64,7 +66,7 @@
 /* ── Card grid ── */
 .directory-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -155,7 +157,7 @@
 /* ── Loading skeleton ── */
 .directory-skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -208,13 +210,28 @@
 }
 
 /* ── Responsive ── */
+@media (max-width: 1200px) {
+  .directory-grid,
+  .directory-skeleton-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .directory-grid,
+  .directory-skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 600px) {
   .directory-page {
     padding: 16px;
   }
 
-  .directory-grid {
-    grid-template-columns: 1fr 1fr;
+  .directory-grid,
+  .directory-skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 

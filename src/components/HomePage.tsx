@@ -21,6 +21,7 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+// import { useTvLayout } from '../hooks/useTvLayout';
 
 import img3 from '../../images/site_3.jpg';
 import img3Md from '../../images/site_3_md.jpg';
@@ -160,6 +161,42 @@ const bulletsToText = (bullets: string[]) => bullets.join('\n');
 const parseBulletLines = (text: string) => text.split('\n');
 const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
+/** YYYY-MM-DD in local timezone (avoids UTC off-by-one from toISOString). */
+const todayLocalDateString = (): string => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+/** Parse date-only strings as local calendar dates, not UTC midnight. */
+const formatAnnouncementDate = (dateStr: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!match) return dateStr;
+  const [, y, m, d] = match;
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString([], {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+const escapeHtmlAttr = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+const escapeHtmlText = (value: string): string =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const DEFAULT_LINK_LABEL = 'CLICK HERE';
+
+const buildClickHereBullet = (url: string, label: string, suffix = ''): string => {
+  const linkText = label.trim() || DEFAULT_LINK_LABEL;
+  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
+  const trimmedSuffix = suffix.trim();
+  return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
+};
+
 // ─── HomePage ──────────────────────────────────────────────────────────────
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
@@ -169,6 +206,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
+  // const isTvLayout = useTvLayout();
+  // useEffect(() => {
+  //   if (!isTvLayout) return;
+  //   document.body.classList.add('home-tv-mode');
+  //   return () => document.body.classList.remove('home-tv-mode');
+  // }, [isTvLayout]);
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
@@ -208,6 +251,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [draggingCardIdx, setDraggingCardIdx] = useState<number | null>(null);
   const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
   const [cardSaveStatus, setCardSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'saved-local' | 'error'>('idle');
+  const [linkInsertUrl, setLinkInsertUrl] = useState('');
+  const [linkInsertLabel, setLinkInsertLabel] = useState('');
+  const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -356,6 +402,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     originalCardImageUrlRef.current = card.imageUrl || '';
     setIsNewCard(false);
     setCardSaveStatus('idle');
+    setLinkInsertUrl('');
+    setLinkInsertLabel('');
+    setLinkInsertSuffix('');
   }, []);
 
   const openNewCardEdit = useCallback(() => {
@@ -375,7 +424,29 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     originalCardImageUrlRef.current = '';
     setIsNewCard(true);
     setCardSaveStatus('idle');
+    setLinkInsertUrl('');
+    setLinkInsertLabel('');
+    setLinkInsertSuffix('');
   }, [cards]);
+
+  const insertClickHereLink = useCallback(() => {
+    if (!editCardDraft) return;
+    const url = linkInsertUrl.trim();
+    if (!url) return;
+    try {
+      new URL(url);
+    } catch {
+      window.alert('Please enter a valid URL (include https://).');
+      return;
+    }
+    setEditCardDraft({
+      ...editCardDraft,
+      bullets: [...editCardDraft.bullets, buildClickHereBullet(url, linkInsertLabel, linkInsertSuffix)],
+    });
+    setLinkInsertUrl('');
+    setLinkInsertLabel('');
+    setLinkInsertSuffix('');
+  }, [editCardDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix]);
 
   const handleImageFileChange = (file: File) => {
     setPendingImageFile(file);
@@ -499,6 +570,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     pendingImageFileRef.current = null;
     setImagePreviewUrl('');
     setCardSaveStatus('idle');
+    setLinkInsertUrl('');
+    setLinkInsertLabel('');
+    setLinkInsertSuffix('');
   }, [canEdit, flushCardDraftSave]);
 
   const deleteCardByOrder = async (order: number) => {
@@ -598,7 +672,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       id: `ann-${Date.now()}`,
       title: 'New Announcement',
       content: 'Announcement details go here.',
-      date: new Date().toISOString().slice(0, 10),
+      date: todayLocalDateString(),
       isActive: true,
     };
     openAnnouncementEdit(newAnn);
@@ -622,6 +696,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Render helpers ──
   const cardClass = (index: number) => {
+    // if (isTvLayout) {
+    //   return index % 2 === 0 ? 'card odd-card' : 'card even-card';
+    // }
     if (index === 0) return 'card odd-card';
     const block = Math.floor((index - 1) / 2);
     return block % 2 === 0 ? 'card even-card' : 'card odd-card';
@@ -692,7 +769,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Announcements ── */}
               {(activeAnnouncements.length > 0 || canEdit) && (
-                <div style={{ margin: '16px 0 8px' }}>
+                <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
                       📢 Announcements
@@ -713,7 +790,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <div style={{ fontWeight: 700, fontSize: 14, color: '#92400e', marginBottom: 3 }}>{ann.title}</div>
                           <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>{ann.content}</div>
                           <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
-                            {new Date(ann.date).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}
+                            {formatAnnouncementDate(ann.date)}
                           </div>
                         </div>
                       </div>
@@ -861,7 +938,36 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               value={bulletsToText(editCardDraft.bullets)}
               onChange={e => setEditCardDraft({ ...editCardDraft, bullets: parseBulletLines(e.target.value) })}
             />
-            <span className="edit-field-hint">One bullet per line. HTML is supported (e.g. &lt;a href="..."&gt;Link&lt;/a&gt;).</span>
+            <div className="edit-link-insert">
+              <span className="edit-link-insert-label">Insert link</span>
+              <input
+                type="url"
+                placeholder="https://…"
+                value={linkInsertUrl}
+                onChange={e => setLinkInsertUrl(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder={`Link text (defaults to ${DEFAULT_LINK_LABEL})`}
+                value={linkInsertLabel}
+                onChange={e => setLinkInsertLabel(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Optional text after link (e.g. to learn more…)"
+                value={linkInsertSuffix}
+                onChange={e => setLinkInsertSuffix(e.target.value)}
+              />
+              <button
+                type="button"
+                className="edit-link-insert-btn"
+                onClick={insertClickHereLink}
+                disabled={!linkInsertUrl.trim()}
+              >
+                Insert link
+              </button>
+            </div>
+            <span className="edit-field-hint">One bullet per line. HTML is supported, or use the insert tool above.</span>
           </div>
 
           {/* ── Image section ── */}

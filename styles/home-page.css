@@ -328,7 +328,7 @@
   list-style-type: disc;
 }
 
-.home-sidebar .quick-links button {
+.home-sidebar .quick-links .home-button {
   background-color: #005b99; /* Rich blue for buttons */
   color: #ffffff;
   border: none;
@@ -340,7 +340,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
 }
 
-.home-sidebar .quick-links button:hover {
+.home-sidebar .quick-links .home-button:hover {
   background-color: #0073d6; /* Brighter blue on hover */
 }
 
@@ -372,6 +372,66 @@
 .home-page.unauthenticated .footer {
   margin-top: auto;
 }
+
+/*
+ * Homepage TV / kiosk layout — disabled.
+ *
+.home-page.tv-layout {
+  max-width: none;
+  padding: clamp(40px, 5vh, 72px) 20px 16px;
+  min-height: 100vh;
+}
+
+.home-page.tv-layout .home-sidebar,
+.home-page.tv-layout .homepage-hero,
+.home-page.tv-layout .home-announcements {
+  display: none !important;
+}
+
+.home-page.tv-layout .home-layout {
+  display: block;
+}
+
+.home-page.tv-layout .home-content-container,
+.home-page.tv-layout .home-main-content {
+  width: 100%;
+  max-width: none;
+}
+
+.home-page.tv-layout .home-grid-layout {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto;
+  gap: 16px;
+  margin: 0;
+  align-items: stretch;
+}
+
+.home-page.tv-layout .card {
+  min-height: 450px;
+  height: auto;
+}
+
+.home-page.tv-layout .edit-pencil-btn,
+.home-page.tv-layout .card-drag-handle,
+.home-page.tv-layout .card-reorder-row,
+.home-page.tv-layout .edit-add-btn {
+  display: none !important;
+}
+
+@media (min-width: 1920px) {
+  .home-page.tv-layout {
+    padding: clamp(48px, 6vh, 80px) 28px 20px;
+  }
+
+  .home-page.tv-layout .home-grid-layout {
+    gap: 20px;
+  }
+
+  .home-page.tv-layout .card {
+    min-height: 500px;
+  }
+}
+*/
 
 .unauthenticated-message { 
   padding: 20px; 

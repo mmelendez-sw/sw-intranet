@@ -32,14 +32,14 @@ export const msalConfig = {
 export const loginRequest = {
   // Files.ReadWrite.All — lead submission Excel workbook
   // Sites.ReadWrite.All — SharePoint CMS read/write (requires admin consent)
-  // User.ReadBasic.All — Employee Directory (requires admin consent)
+  // User.Read.All — Employee Directory (active users; requires admin consent)
   scopes: [
     "User.Read",
     "GroupMember.Read.All",
     "Mail.Send",
     "Files.ReadWrite.All",
     "Sites.ReadWrite.All",
-    "User.ReadBasic.All",
+    "User.Read.All",
     "Calendars.Read",
   ],
 };
@@ -76,6 +76,12 @@ export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
 export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
 export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
+export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
+export const REPORTS_DATA_FILENAME = 'reports.json';
+export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';
+export const QUICK_LINKS_DATA_FILENAME = 'quick-links.json';
+export const SITE_CONFIG_DATA_FILENAME = 'site-config.json';
+export const SIDEBAR_LAYOUT_DATA_FILENAME = 'sidebar-layout.json';
 
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;

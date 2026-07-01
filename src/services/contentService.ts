@@ -10,10 +10,22 @@
  * Homepage cards (text + metadata) are stored as homepage-cards.json in:
  *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
+ * Announcements are stored as announcements.json in:
+ *   Shared Documents/General/intranet
+ *
+ * Reports metadata is stored as reports.json in:
+ *   Shared Documents/General/intranet
+ *
+ * Sidebar sections, quick links, and site config are stored as:
+ *   homepage-sidebar.json, quick-links.json, site-config.json
+ *   in Shared Documents/General/intranet
+ *
+ * Sidebar block order (sections vs quick links) is stored as sidebar-layout.json
+ *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
- * Other content blocks use the IntranetContent SharePoint list:
+ * Other content blocks (hero, site-alert, ticker, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
  */
@@ -26,11 +38,50 @@ import {
   IMAGE_SHAREPOINT_FOLDER_PATH,
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
+  REPORTS_DATA_FILENAME,
+  ANNOUNCEMENTS_DATA_FILENAME,
+  SIDEBAR_DATA_FILENAME,
+  QUICK_LINKS_DATA_FILENAME,
+  SITE_CONFIG_DATA_FILENAME,
+  SIDEBAR_LAYOUT_DATA_FILENAME,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
+const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
+const REPORTS_CONTENT_KEY = 'reports';
+const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
+const QUICK_LINKS_CONTENT_KEY = 'quick-links';
+const SITE_CONFIG_CONTENT_KEY = 'site-config';
+const SIDEBAR_LAYOUT_CONTENT_KEY = 'sidebar-layout';
+/** Previous reports.json location before co-locating with cards in General/intranet */
+const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
+
+function getDriveContentConfig(key: string): { folderPath: string; fileName: string } | null {
+  if (key === HOMEPAGE_CARDS_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: CARDS_DATA_FILENAME };
+  }
+  if (key === ANNOUNCEMENTS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: ANNOUNCEMENTS_DATA_FILENAME };
+  }
+  if (key === REPORTS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
+  }
+  if (key === SIDEBAR_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_DATA_FILENAME };
+  }
+  if (key === QUICK_LINKS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: QUICK_LINKS_DATA_FILENAME };
+  }
+  if (key === SITE_CONFIG_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SITE_CONFIG_DATA_FILENAME };
+  }
+  if (key === SIDEBAR_LAYOUT_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_LAYOUT_DATA_FILENAME };
+  }
+  return null;
+}
 
 const LOCAL_CONTENT_PREFIX = 'intranet-local-content:';
 
@@ -129,6 +180,15 @@ export interface QuickLink {
   order: number;
 }
 
+/** Ordered sidebar blocks — sections and the quick-links group can be interleaved. */
+export type SidebarLayoutBlock =
+  | { type: 'section'; key: string }
+  | { type: 'quick-links' };
+
+export interface SidebarLayout {
+  blocks: SidebarLayoutBlock[];
+}
+
 export interface SiteConfig {
   supportEmail: string;
   leadGenEmail: string;
@@ -145,80 +205,88 @@ export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
 
 export const DEFAULT_TICKER_ITEMS: TickerItem[] = [];
 
-export const DEFAULT_QUICK_LINKS: QuickLink[] = [
-  { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },
-  { id: '2', label: 'SiteTracker', url: 'https://sitetracker-symphonyinfra.my.salesforce.com/', order: 2 },
-  { id: '3', label: 'Synaptek AI Search', url: 'https://symphonysitesearch.app/', order: 3 },
-  { id: '4', label: 'Trinet', url: 'https://identity.trinet.com/', order: 4 },
-  { id: '5', label: 'Concur', url: 'https://www.concursolutions.com/', order: 5 },
-  { id: '6', label: 'Netsuite', url: 'https://system.netsuite.com/app/center/card.nl?c=8089687', order: 6 },
-  { id: '7', label: 'Outlook', url: 'https://outlook.office.com/', order: 7 },
-];
+// export const DEFAULT_QUICK_LINKS: QuickLink[] = [
+//   { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },
+//   { id: '2', label: 'SiteTracker', url: 'https://sitetracker-symphonyinfra.my.salesforce.com/', order: 2 },
+//   { id: '3', label: 'Synaptek AI Search', url: 'https://symphonysitesearch.app/', order: 3 },
+//   { id: '4', label: 'Trinet', url: 'https://identity.trinet.com/', order: 4 },
+//   { id: '5', label: 'Concur', url: 'https://www.concursolutions.com/', order: 5 },
+//   { id: '6', label: 'Netsuite', url: 'https://system.netsuite.com/app/center/card.nl?c=8089687', order: 6 },
+//   { id: '7', label: 'Outlook', url: 'https://outlook.office.com/', order: 7 },
+// ];
+export const DEFAULT_QUICK_LINKS: QuickLink[] = [];
 
+// export const DEFAULT_SITE_CONFIG: SiteConfig = {
+//   supportEmail: '',
+//   leadGenEmail: '',
+//   companyName: 'Company Intranet',
+// };
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   supportEmail: '',
   leadGenEmail: '',
-  companyName: 'Company Intranet',
+  companyName: '',
 };
 
-// ─── Default content (mirrors current hard-coded values) ─────────────────────
+// ─── Default content (loaded from SharePoint; no hard-coded sidebar) ─────────
 
 export const DEFAULT_CARDS: CardContent[] = SEED_CARDS;
 
-export const DEFAULT_SIDEBAR: SidebarSection[] = [
-  {
-    key: 'hr-updates',
-    order: 1,
-    title: 'HR Updates',
-    content:
-      'Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.',
-    buttonLabel: 'Volunteer Organization Survey',
-    buttonUrl: 'https://www.surveymonkey.com/r/NKSLSRW',
-  },
-  {
-    key: 'it-updates',
-    order: 2,
-    title: 'IT Updates',
-    content: 'Do not click any phishing links',
-  },
-  {
-    key: 'exciting-news',
-    order: 3,
-    title: 'Exciting News',
-    content:
-      'Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.',
-  },
-  {
-    key: 'holiday-photos',
-    order: 4,
-    title: '2025 Holiday Party Photos',
-    content:
-      'Linked below are the photos from our annual Holiday Party! Please browse when you have some time!',
-    linkLabel: 'Holiday Party 2025',
-    linkUrl:
-      'https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd',
-  },
-];
+// export const DEFAULT_SIDEBAR: SidebarSection[] = [
+//   {
+//     key: 'hr-updates',
+//     order: 1,
+//     title: 'HR Updates',
+//     content:
+//       'Please take a moment to fill out this survey below to help us better understand your volunteer interests and organization recommendations.',
+//     buttonLabel: 'Volunteer Organization Survey',
+//     buttonUrl: 'https://www.surveymonkey.com/r/NKSLSRW',
+//   },
+//   {
+//     key: 'it-updates',
+//     order: 2,
+//     title: 'IT Updates',
+//     content: 'Do not click any phishing links',
+//   },
+//   {
+//     key: 'exciting-news',
+//     order: 3,
+//     title: 'Exciting News',
+//     content:
+//       'Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.',
+//   },
+//   {
+//     key: 'holiday-photos',
+//     order: 4,
+//     title: '2025 Holiday Party Photos',
+//     content:
+//       'Linked below are the photos from our annual Holiday Party! Please browse when you have some time!',
+//     linkLabel: 'Holiday Party 2025',
+//     linkUrl:
+//       'https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd',
+//   },
+// ];
+export const DEFAULT_SIDEBAR: SidebarSection[] = [];
 
-export const DEFAULT_REPORTS: ReportItemContent[] = [
-  { order: 1, title: 'Company Progress', description: 'A comprehensive view of company performance metrics and progress indicators.', link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false', isEliteOnly: false, excludedEmails: [] },
-  { order: 2, title: 'All Acquisitions Summary', description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.', link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 3, title: 'Daily Opportunity Count', description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.', link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 4, title: 'Portfolio Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.', link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 5, title: 'Tower Purchase Opportunities', description: 'A complete view of all opportunities with the Tower Purchase transaction type.', link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 6, title: 'Closing - Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.', link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 7, title: 'Signed LOIs - SNDA', description: 'A comprehensive look at Signed Letters of Intent and SNDA agreements.', link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 8, title: 'Daily Acquisitions Summary', description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.', link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 9, title: 'Underwriting Reports', description: 'Ad-hoc reports for Underwriting Team i.e. Broker Pipeline', link: 'https://app.powerbi.com/links/1fRk37tWhP?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 10, title: 'Site Analysis', description: 'Analysis of the site data', link: 'https://app.powerbi.com/links/isIvWaCuac?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 11, title: 'WIP - In-Month Conversion Tracker', description: 'Work In Progress - A tracker to view opportunity conversions by month.', link: '', isEliteOnly: false, excludedEmails: [] },
-  { order: 12, title: 'WIP - TS and CR Trends Report', description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.', link: '', isEliteOnly: false, excludedEmails: [] },
-  { order: 13, title: 'TK Salesforce Sites', description: 'A comprehensive look at TK High Rent Relocation Sites and their status.', link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
-  { order: 14, title: 'Elite - Origination Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.', link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
-  { order: 15, title: 'Elite - Company Progress', description: 'A complete view of current GCF and Capital Acquisition activity.', link: 'https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/2695a41c69787864795c?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
-  { order: 16, title: 'Elite - Scorecard Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.', link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
-  { order: 17, title: 'Elite - Acquisition Team Commission Report', description: 'A comprehensive look at the Symphony Towers Infrastructure Acquisition Team Commission Breakdown.', link: 'https://app.powerbi.com/links/yGE8PseRVw?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['jcymbalista@symphonyinfra.com', 'cdolgon@symphonyinfra.com'] },
-];
+// export const DEFAULT_REPORTS: ReportItemContent[] = [
+//   { order: 1, title: 'Company Progress', description: 'A comprehensive view of company performance metrics and progress indicators.', link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false', isEliteOnly: false, excludedEmails: [] },
+//   { order: 2, title: 'All Acquisitions Summary', description: 'A comprehensive look at All Symphony Towers Infrastructure Acquisitions broken down by month, quarter, and year.', link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 3, title: 'Daily Opportunity Count', description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.', link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 4, title: 'Portfolio Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.', link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 5, title: 'Tower Purchase Opportunities', description: 'A complete view of all opportunities with the Tower Purchase transaction type.', link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 6, title: 'Closing - Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.', link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 7, title: 'Signed LOIs - SNDA', description: 'A comprehensive look at Signed Letters of Intent and SNDA agreements.', link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 8, title: 'Daily Acquisitions Summary', description: 'A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.', link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 9, title: 'Underwriting Reports', description: 'Ad-hoc reports for Underwriting Team i.e. Broker Pipeline', link: 'https://app.powerbi.com/links/1fRk37tWhP?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 10, title: 'Site Analysis', description: 'Analysis of the site data', link: 'https://app.powerbi.com/links/isIvWaCuac?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 11, title: 'WIP - In-Month Conversion Tracker', description: 'Work In Progress - A tracker to view opportunity conversions by month.', link: '', isEliteOnly: false, excludedEmails: [] },
+//   { order: 12, title: 'WIP - TS and CR Trends Report', description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.', link: '', isEliteOnly: false, excludedEmails: [] },
+//   { order: 13, title: 'TK Salesforce Sites', description: 'A comprehensive look at TK High Rent Relocation Sites and their status.', link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: false, excludedEmails: [] },
+//   { order: 14, title: 'Elite - Origination Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.', link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
+//   { order: 15, title: 'Elite - Company Progress', description: 'A complete view of current GCF and Capital Acquisition activity.', link: 'https://app.powerbi.com/groups/me/reports/e091da31-91dd-42c2-9b17-099d2e07c492/2695a41c69787864795c?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
+//   { order: 16, title: 'Elite - Scorecard Pipeline', description: 'A comprehensive look at the Symphony Towers Infrastructure Scorecard Pipeline.', link: 'https://app.powerbi.com/links/q75bs_ZEe2?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['arivera@symphonyinfra.com'] },
+//   { order: 17, title: 'Elite - Acquisition Team Commission Report', description: 'A comprehensive look at the Symphony Towers Infrastructure Acquisition Team Commission Breakdown.', link: 'https://app.powerbi.com/links/yGE8PseRVw?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare', isEliteOnly: true, excludedEmails: ['jcymbalista@symphonyinfra.com', 'cdolgon@symphonyinfra.com'] },
+// ];
+export const DEFAULT_REPORTS: ReportItemContent[] = [];
 
 // ─── Internal Graph helpers ───────────────────────────────────────────────────
 
@@ -799,9 +867,10 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
 async function readContentFromSharePointDrive<T>(
   siteId: string,
   token: string,
-  fileName: string
+  fileName: string,
+  folderPath: string = INTRANET_CONTENT_FOLDER_PATH
 ): Promise<T | null> {
-  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
+  const filePath = `${folderPath}/${fileName}`;
   const res = await fetch(
     `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -851,10 +920,11 @@ async function writeContentToSharePointDrive<T>(
   siteId: string,
   token: string,
   fileName: string,
-  data: T
+  data: T,
+  folderPath: string = INTRANET_CONTENT_FOLDER_PATH
 ): Promise<boolean> {
-  await ensureDriveFolderPath(siteId, token, INTRANET_CONTENT_FOLDER_PATH);
-  const filePath = `${INTRANET_CONTENT_FOLDER_PATH}/${fileName}`;
+  await ensureDriveFolderPath(siteId, token, folderPath);
+  const filePath = `${folderPath}/${fileName}`;
   const jsonBody = JSON.stringify(data, null, 2);
 
   const existing = await getDriveItemByPath(siteId, token, filePath);
@@ -932,17 +1002,49 @@ async function fetchContentFromRemote<T>(
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
 
-    if (key === HOMEPAGE_CARDS_KEY) {
-      const driveParsed = await readContentFromSharePointDrive<T>(siteId, token, CARDS_DATA_FILENAME);
+    const driveConfig = getDriveContentConfig(key);
+    if (driveConfig) {
+      const driveParsed = await readContentFromSharePointDrive<T>(
+        siteId,
+        token,
+        driveConfig.fileName,
+        driveConfig.folderPath
+      );
       if (driveParsed) {
         writeLocalContent(key, driveParsed);
         return driveParsed;
       }
 
+      if (key === REPORTS_CONTENT_KEY) {
+        const legacyParsed = await readContentFromSharePointDrive<T>(
+          siteId,
+          token,
+          REPORTS_DATA_FILENAME,
+          LEGACY_REPORTS_FOLDER_PATH
+        );
+        if (legacyParsed) {
+          await writeContentToSharePointDrive(
+            siteId,
+            token,
+            driveConfig.fileName,
+            legacyParsed,
+            driveConfig.folderPath
+          );
+          writeLocalContent(key, legacyParsed);
+          return legacyParsed;
+        }
+      }
+
       const listId = await getOrCreateList(siteId, token);
       const listParsed = await readContentFromSharePoint<T>(siteId, listId, token, key);
       if (listParsed) {
-        await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, listParsed);
+        await writeContentToSharePointDrive(
+          siteId,
+          token,
+          driveConfig.fileName,
+          listParsed,
+          driveConfig.folderPath
+        );
         writeLocalContent(key, listParsed);
         return listParsed;
       }
@@ -1028,8 +1130,15 @@ export async function setContentDetailed<T>(
 
     const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
 
-    if (key === HOMEPAGE_CARDS_KEY) {
-      const driveOk = await writeContentToSharePointDrive(siteId, token, CARDS_DATA_FILENAME, data);
+    const driveConfig = getDriveContentConfig(key);
+    if (driveConfig) {
+      const driveOk = await writeContentToSharePointDrive(
+        siteId,
+        token,
+        driveConfig.fileName,
+        data,
+        driveConfig.folderPath
+      );
       if (driveOk) {
         writeLocalContent(key, data);
         return { ok: true, storage: 'sharepoint' };

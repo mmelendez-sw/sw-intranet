@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../styles/reports.css';
+import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
@@ -7,6 +8,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
+  getCachedContent,
   DEFAULT_REPORTS,
   DEFAULT_SITE_CONFIG,
   ReportItemContent,
@@ -61,45 +63,110 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
 
 // ─── Reports Page ──────────────────────────────────────────────────────────
 
+const sortReportsByOrder = (reports: ReportItemContent[]): ReportItemContent[] =>
+  [...reports].sort((a, b) => a.order - b.order);
+
+/** Assign sequential order values; preserves the array's current display order. */
+const renumberReports = (reports: ReportItemContent[]): ReportItemContent[] =>
+  reports.map((r, i) => ({ ...r, order: i + 1 }));
+
+const REPORTS_CONTENT_KEY = 'reports';
+/** Minimum time to show the reports loading spinner (set to 0 in production). */
+const REPORTS_SPINNER_MIN_MS = 0;
+
+const getInitialReports = (): ReportItemContent[] =>
+  getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
+
 const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
-  const [allReports, setAllReports] = useState<ReportItemContent[]>(DEFAULT_REPORTS);
+  const [allReports, setAllReports] = useState<ReportItemContent[]>(getInitialReports);
+  const [reportsLoading, setReportsLoading] = useState(
+    () => REPORTS_SPINNER_MIN_MS > 0 || getInitialReports().length === 0
+  );
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
   const [saving, setSaving] = useState(false);
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const [draggingReportIdx, setDraggingReportIdx] = useState<number | null>(null);
+  const [dragOverReportIdx, setDragOverReportIdx] = useState<number | null>(null);
+
+  const allReportsRef = useRef(allReports);
+  allReportsRef.current = allReports;
+  const draggingReportIdxRef = useRef<number | null>(null);
+  const hasFetchedReportsRef = useRef(false);
+  const reportsLoadingStartedRef = useRef(Date.now());
 
   // ── Load from SharePoint on mount ──
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const [remote, remoteConfig] = await Promise.all([
-        getContent<ReportItemContent[]>(instance, 'reports'),
-        getContent<SiteConfig>(instance, 'site-config'),
-      ]);
-      if (remote) setAllReports(remote);
-      if (remoteConfig) setSiteConfig(remoteConfig);
+    if (hasFetchedReportsRef.current) return;
+
+    let cancelled = false;
+    hasFetchedReportsRef.current = true;
+    if (allReportsRef.current.length === 0) {
+      reportsLoadingStartedRef.current = Date.now();
+      setReportsLoading(true);
+    }
+
+    void (async () => {
+      const finishReportsLoading = async () => {
+        const remaining = REPORTS_SPINNER_MIN_MS - (Date.now() - reportsLoadingStartedRef.current);
+        if (remaining > 0) {
+          await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+        }
+        if (!cancelled) setReportsLoading(false);
+      };
+
+      try {
+        const [remote, remoteConfig] = await Promise.all([
+          getContent<ReportItemContent[]>(instance, REPORTS_CONTENT_KEY),
+          getContent<SiteConfig>(instance, 'site-config'),
+        ]);
+        if (!cancelled) {
+          if (remote) setAllReports(remote);
+          if (remoteConfig) setSiteConfig(remoteConfig);
+        }
+      } catch (err) {
+        console.error('[Reports] failed to load reports:', err);
+      }
+
+      await finishReportsLoading();
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [userInfo.isAuthenticated, instance]);
 
-  // ── Filter for display ──
-  const displayReports = allReports
-    .filter(r => {
-      if (r.isEliteOnly && !userInfo.isEliteGroup) return false;
-      if (r.excludedEmails?.length && userInfo.email) {
-        return !r.excludedEmails.map(e => e.toLowerCase()).includes(userInfo.email.toLowerCase());
-      }
-      return true;
-    })
-    .sort((a, b) => a.order - b.order);
+  const isReportVisible = useCallback((report: ReportItemContent) => {
+    if (report.isEliteOnly && !userInfo.isEliteGroup) return false;
+    if (report.excludedEmails?.length && userInfo.email) {
+      return !report.excludedEmails.map((e) => e.toLowerCase()).includes(userInfo.email.toLowerCase());
+    }
+    return true;
+  }, [userInfo.isEliteGroup, userInfo.email]);
+
+  const orderedReports = sortReportsByOrder(allReports);
+  const visibleReports = canEdit ? orderedReports : orderedReports.filter(isReportVisible);
 
   const pageTitle = userInfo.isEliteGroup
     ? `${siteConfig.companyName} Elite Status Reports`
     : `${siteConfig.companyName} Status Reports`;
+
+  const persistReports = useCallback(async (updated: ReportItemContent[]) => {
+    const ok = await setContent(instance, 'reports', updated);
+    if (ok) setAllReports(updated);
+    return ok;
+  }, [instance]);
+
+  const applyReportOrderChange = useCallback(async (withNewOrders: ReportItemContent[]) => {
+    setAllReports(withNewOrders);
+    return persistReports(withNewOrders);
+  }, [persistReports]);
 
   // ── Editing ──
   const openEdit = useCallback((report: ReportItemContent) => {
@@ -120,7 +187,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const deleteReport = async () => {
     if (!editDraft) return;
     setSaving(true);
-    const updated = allReports.filter(r => r.order !== editDraft.order);
+    const updated = renumberReports(allReports.filter((r) => r.order !== editDraft.order));
     const ok = await setContent(instance, 'reports', updated);
     if (ok) setAllReports(updated);
     setSaving(false);
@@ -129,7 +196,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
 
   const addReport = async () => {
     const newReport: ReportItemContent = {
-      order: allReports.length > 0 ? Math.max(...allReports.map(r => r.order)) + 1 : 1,
+      order: allReports.length > 0 ? Math.max(...allReports.map((r) => r.order)) + 1 : 1,
       title: 'New Report',
       description: 'Description of the new report.',
       link: '',
@@ -139,6 +206,49 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
     const updated = [...allReports, newReport];
     const ok = await setContent(instance, 'reports', updated);
     if (ok) { setAllReports(updated); openEdit(newReport); }
+  };
+
+  // ── Report reordering ──
+  const moveReport = async (currentIdx: number, direction: 'up' | 'down') => {
+    const displayOrder = sortReportsByOrder(allReportsRef.current);
+    const targetIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+    if (targetIdx < 0 || targetIdx >= displayOrder.length) return;
+    const reordered = [...displayOrder];
+    [reordered[currentIdx], reordered[targetIdx]] = [reordered[targetIdx], reordered[currentIdx]];
+    await applyReportOrderChange(renumberReports(reordered));
+  };
+
+  const onReportDrop = async (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fromIdx = draggingReportIdxRef.current;
+    if (fromIdx === null || fromIdx === targetIdx) {
+      draggingReportIdxRef.current = null;
+      setDraggingReportIdx(null);
+      setDragOverReportIdx(null);
+      return;
+    }
+    const ordered = sortReportsByOrder(allReportsRef.current);
+    const reordered = [...ordered];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    draggingReportIdxRef.current = null;
+    setDraggingReportIdx(null);
+    setDragOverReportIdx(null);
+    await applyReportOrderChange(renumberReports(reordered));
+  };
+
+  const onReportDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('text/plain', String(index));
+    e.dataTransfer.effectAllowed = 'move';
+    draggingReportIdxRef.current = index;
+    setDraggingReportIdx(index);
+  };
+
+  const onReportDragEnd = () => {
+    draggingReportIdxRef.current = null;
+    setDraggingReportIdx(null);
+    setDragOverReportIdx(null);
   };
 
   return (
@@ -152,18 +262,59 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
             )}
           </div>
 
+          {reportsLoading ? (
+            <div className="reports-loading" role="status" aria-label="Loading reports">
+              <div className="app-loading-spinner" aria-hidden="true" />
+            </div>
+          ) : (
           <div className="reports-table-wrapper">
             <table className="reports-table">
               <thead>
                 <tr>
+                  {canEdit && <th style={{ width: 44 }} aria-label="Reorder" />}
                   <th>Title</th>
                   <th>Description</th>
-                  {canEdit && <th style={{ width: 80 }}>Edit</th>}
+                  {canEdit && <th style={{ width: 120 }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {displayReports.map((report, index) => (
-                  <tr key={report.order} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
+                {visibleReports.map((report, index) => (
+                  <tr
+                    key={`report-${report.order}-${report.title}`}
+                    className={[
+                      index % 2 === 0 ? 'odd-row' : 'even-row',
+                      canEdit ? 'report-row-reorderable' : '',
+                      draggingReportIdx === index ? 'report-row-dragging' : '',
+                      dragOverReportIdx === index && draggingReportIdx !== index ? 'report-row-drag-over' : '',
+                    ].filter(Boolean).join(' ')}
+                    onDragOver={(e) => {
+                      if (!canEdit) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      setDragOverReportIdx(index);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setDragOverReportIdx((current) => (current === index ? null : current));
+                      }
+                    }}
+                    onDrop={(e) => { if (canEdit) void onReportDrop(e, index); }}
+                  >
+                    {canEdit && (
+                      <td className="report-reorder-cell">
+                        <div
+                          className="report-drag-handle"
+                          title="Drag to reorder"
+                          draggable
+                          onDragStart={(e) => onReportDragStart(e, index)}
+                          onDragEnd={onReportDragEnd}
+                        >
+                          <div className="drag-dots">
+                            <span /><span /><span /><span /><span /><span />
+                          </div>
+                        </div>
+                      </td>
+                    )}
                     <td>
                       {report.link ? (
                         <button className="report-button" onClick={() => window.open(report.link, '_blank')}>
@@ -176,8 +327,22 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                     <td className="report-description-cell">{report.description}</td>
                     {canEdit && (
                       <td>
-                        <div className="edit-row-actions">
-                          <button className="edit-row-btn" onClick={() => openEdit(report)}>✏</button>
+                        <div className="report-reorder-actions">
+                          <button
+                            type="button"
+                            className="card-reorder-btn"
+                            onClick={(e) => { e.stopPropagation(); void moveReport(index, 'up'); }}
+                            disabled={index === 0}
+                            title="Move report up"
+                          >↑</button>
+                          <button
+                            type="button"
+                            className="card-reorder-btn"
+                            onClick={(e) => { e.stopPropagation(); void moveReport(index, 'down'); }}
+                            disabled={index === visibleReports.length - 1}
+                            title="Move report down"
+                          >↓</button>
+                          <button className="edit-row-btn" onClick={() => openEdit(report)} title="Edit report">✏</button>
                         </div>
                       </td>
                     )}
@@ -192,9 +357,10 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
               </div>
             )}
           </div>
+          )}
         </div>
 
-        <IntranetSidebar userInfo={userInfo} className="reports-sidebar" />
+        <IntranetSidebar userInfo={userInfo} className="home-sidebar" />
       </div>
 
       <footer className="footer">
@@ -257,7 +423,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
             />
             <span className="edit-field-hint">Comma-separated. These users will not see this report.</span>
           </div>
-          <div className="edit-field-group">
+          {/* <div className="edit-field-group">
             <label>Display Order</label>
             <input
               type="text"
@@ -267,7 +433,7 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                 if (!isNaN(n)) setEditDraft({ ...editDraft, order: n });
               }}
             />
-          </div>
+          </div> */}
         </EditModal>
       )}
     </div>

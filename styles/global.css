@@ -119,6 +119,18 @@ body {
   }
 }
 
+/*
+ * Homepage TV / kiosk — disabled.
+ *
+body.home-tv-mode .header {
+  display: none;
+}
+
+body.home-tv-mode .main-content {
+  padding-top: 0;
+}
+*/
+
 /* Shared loading spinner (boot + in-app) */
 .app-loading {
   display: flex;
