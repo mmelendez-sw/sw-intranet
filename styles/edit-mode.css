@@ -37,6 +37,36 @@
 
 .edit-pencil-btn:hover {
   background: rgba(10, 88, 202, 0.95);
+  color: #fff;
+}
+
+/* White label text — overrides page-level .sidebar button { color: #333 } etc. */
+button.edit-pencil-btn,
+button.edit-add-btn,
+button.edit-delete-btn,
+button.edit-link-insert-btn,
+button.edit-row-btn,
+button.edit-btn-save,
+button.ticker-edit-btn,
+.sidebar button.edit-pencil-btn,
+.sidebar button.edit-add-btn,
+.home-sidebar button.edit-pencil-btn,
+.home-sidebar button.edit-add-btn,
+.quick-links button.edit-pencil-btn,
+.card-reorder-row button.edit-pencil-btn {
+  color: #fff;
+}
+
+button.edit-pencil-btn:hover,
+button.edit-add-btn:hover,
+button.edit-delete-btn:hover,
+button.edit-link-insert-btn:hover:not(:disabled),
+button.edit-row-btn:hover,
+button.edit-btn-save:hover:not(:disabled),
+button.ticker-edit-btn:hover,
+.sidebar button.edit-pencil-btn:hover,
+.home-sidebar button.edit-pencil-btn:hover {
+  color: #fff;
 }
 
 /* Always show pencil on touch devices (no hover) */
