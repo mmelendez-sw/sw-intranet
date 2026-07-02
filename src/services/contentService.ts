@@ -25,6 +25,9 @@
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
+ * Department page content (updates, resources, FAQ) is stored as:
+ *   General/intranet/departments/{slug}.json  (e.g. it.json, hr.json)
+ *
  * Other content blocks (hero, site-alert, ticker, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
@@ -44,6 +47,7 @@ import {
   QUICK_LINKS_DATA_FILENAME,
   SITE_CONFIG_DATA_FILENAME,
   SIDEBAR_LAYOUT_DATA_FILENAME,
+  DEPARTMENTS_CONTENT_FOLDER_PATH,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -145,6 +149,96 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
+}
+
+export interface DepartmentSectionContent {
+  title: string;
+  items: string[];
+}
+
+export interface DepartmentPageContent {
+  updates: DepartmentSectionContent;
+  resources: DepartmentSectionContent;
+  faq: DepartmentSectionContent;
+}
+
+export function buildDefaultDepartmentContent(
+  departmentLabel: string,
+  overrides?: {
+    updates?: Partial<DepartmentSectionContent>;
+    resources?: Partial<DepartmentSectionContent>;
+    faq?: Partial<DepartmentSectionContent>;
+  }
+): DepartmentPageContent {
+  const withSection = (
+    defaultTitle: string,
+    sectionOverrides?: Partial<DepartmentSectionContent>
+  ): DepartmentSectionContent => ({
+    title: sectionOverrides?.title?.trim() || defaultTitle,
+    items: sectionOverrides?.items ?? [],
+  });
+
+  return {
+    updates: withSection(`${departmentLabel} Updates`, overrides?.updates),
+    resources: withSection(`${departmentLabel} Resources`, overrides?.resources),
+    faq: withSection('FAQ', overrides?.faq),
+  };
+}
+
+export const EMPTY_DEPARTMENT_CONTENT = buildDefaultDepartmentContent('Department');
+
+/** Accept legacy SharePoint payloads that stored plain string arrays per section. */
+export function normalizeDepartmentContent(
+  raw: unknown,
+  defaults: DepartmentPageContent
+): DepartmentPageContent {
+  if (!raw || typeof raw !== 'object') return defaults;
+
+  const data = raw as Record<string, unknown>;
+  const firstSection = data.updates;
+
+  if (
+    firstSection &&
+    typeof firstSection === 'object' &&
+    !Array.isArray(firstSection) &&
+    'title' in firstSection &&
+    'items' in firstSection
+  ) {
+    const content = raw as DepartmentPageContent;
+    return {
+      updates: {
+        title: content.updates.title?.trim() || defaults.updates.title,
+        items: Array.isArray(content.updates.items) ? content.updates.items : [],
+      },
+      resources: {
+        title: content.resources.title?.trim() || defaults.resources.title,
+        items: Array.isArray(content.resources.items) ? content.resources.items : [],
+      },
+      faq: {
+        title: content.faq.title?.trim() || defaults.faq.title,
+        items: Array.isArray(content.faq.items) ? content.faq.items : [],
+      },
+    };
+  }
+
+  if (Array.isArray(data.updates) || Array.isArray(data.resources) || Array.isArray(data.faq)) {
+    return {
+      updates: {
+        title: defaults.updates.title,
+        items: Array.isArray(data.updates) ? (data.updates as string[]) : [],
+      },
+      resources: {
+        title: defaults.resources.title,
+        items: Array.isArray(data.resources) ? (data.resources as string[]) : [],
+      },
+      faq: {
+        title: defaults.faq.title,
+        items: Array.isArray(data.faq) ? (data.faq as string[]) : [],
+      },
+    };
+  }
+
+  return defaults;
 }
 
 export interface SiteAlert {
@@ -1179,4 +1273,103 @@ export async function setContentDetailed<T>(
     return { ok: true, storage: 'local' };
   }
   return { ok: false, storage: 'none' };
+}
+
+// ─── Department page content (General/intranet/departments/{slug}.json) ───────
+
+const departmentCacheKey = (slug: string): string => `department-${slug}`;
+
+export function getDepartmentContentFileName(slug: string): string {
+  return `${slug}.json`;
+}
+
+async function fetchDepartmentContentFromRemote(
+  msalInstance: any,
+  slug: string
+): Promise<DepartmentPageContent | null> {
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) return null;
+
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
+    const parsed = await readContentFromSharePointDrive<DepartmentPageContent>(
+      siteId,
+      token,
+      getDepartmentContentFileName(slug),
+      DEPARTMENTS_CONTENT_FOLDER_PATH
+    );
+    if (parsed) {
+      writeLocalContent(departmentCacheKey(slug), parsed);
+      return parsed;
+    }
+    return null;
+  } catch (err) {
+    console.error(`[contentService] fetchDepartmentContentFromRemote("${slug}") failed:`, err);
+    return null;
+  }
+}
+
+export async function getDepartmentContent(
+  msalInstance: any,
+  slug: string,
+  options?: ContentSyncOptions
+): Promise<DepartmentPageContent | null> {
+  const key = departmentCacheKey(slug);
+  if (BYPASS_AUTH) {
+    return readLocalContent<DepartmentPageContent>(key);
+  }
+
+  const cached = readLocalContent<DepartmentPageContent>(key);
+  if (!options?.remoteOnly && cached !== null) {
+    void fetchDepartmentContentFromRemote(msalInstance, slug);
+    return cached;
+  }
+
+  const remote = await fetchDepartmentContentFromRemote(msalInstance, slug);
+  if (remote !== null) return remote;
+
+  return options?.remoteOnly ? null : cached;
+}
+
+export async function setDepartmentContent(
+  msalInstance: any,
+  slug: string,
+  data: DepartmentPageContent,
+  options?: ContentSyncOptions
+): Promise<boolean> {
+  const key = departmentCacheKey(slug);
+  if (BYPASS_AUTH) {
+    return writeLocalContent(key, data);
+  }
+
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) throw new Error('Could not acquire SharePoint token.');
+
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
+    const driveOk = await writeContentToSharePointDrive(
+      siteId,
+      token,
+      getDepartmentContentFileName(slug),
+      data,
+      DEPARTMENTS_CONTENT_FOLDER_PATH
+    );
+    if (driveOk) {
+      writeLocalContent(key, data);
+      return true;
+    }
+  } catch (err) {
+    console.error(`[contentService] setDepartmentContent("${slug}") failed:`, err);
+  }
+
+  if (!options?.remoteOnly) {
+    const localOk = writeLocalContent(key, data);
+    if (localOk) {
+      console.warn(
+        `[contentService] setDepartmentContent("${slug}") saved to browser storage (SharePoint write failed)`
+      );
+      return true;
+    }
+  }
+  return false;
 }

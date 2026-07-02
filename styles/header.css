@@ -84,29 +84,28 @@
 
 .nav-dropdown-caret {
     display: inline-block;
-    width: 0.45em;
-    height: 0.45em;
-    border-right: 2px solid currentColor;
-    border-bottom: 2px solid currentColor;
-    transform: rotate(45deg) translateY(-1px);
+    font-size: 0.7em;
+    line-height: 1;
+    margin-left: 4px;
+    color: currentColor;
     transition: transform 0.2s ease;
     flex-shrink: 0;
 }
 
 .nav-dropdown-caret.open {
-    transform: rotate(-135deg) translateY(1px);
+    transform: rotate(180deg);
 }
 
 .nav-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    /* Sized to fit "Asset Management" with even horizontal padding */
+    min-width: calc(16ch + 2rem);
     background-color: #156894;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 4px;
+    border-radius: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    z-index: 10000;
     overflow: hidden;
 }
 
@@ -114,14 +113,20 @@
 .nav-bar .nav-dropdown-menu a.nav-dropdown-item {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
-    padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 1rem;
     margin: 0;
     color: #ffffff;
     text-decoration: none;
     font-family: inherit;
     font-size: 1rem;
     font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+    line-height: 1.25;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 

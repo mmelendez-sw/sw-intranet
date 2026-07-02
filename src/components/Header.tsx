@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
@@ -78,7 +78,10 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const departmentsRef = useRef<HTMLDivElement>(null);
+  const departmentsMenuRef = useRef<HTMLDivElement>(null);
+  const [departmentsMenuStyle, setDepartmentsMenuStyle] = useState<React.CSSProperties>({});
 
   // Listen for redirect-based auth failures (e.g. CA block on the redirect flow).
   useEffect(() => {
@@ -92,10 +95,46 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
     };
   }, [instance]);
 
+  const updateDepartmentsMenuPosition = useCallback(() => {
+    const header = headerRef.current;
+    const trigger = departmentsRef.current;
+    if (!header || !trigger) return;
+
+    const headerRect = header.getBoundingClientRect();
+    const triggerRect = trigger.getBoundingClientRect();
+
+    setDepartmentsMenuStyle({
+      position: 'fixed',
+      top: `${headerRect.bottom}px`,
+      left: `${triggerRect.left}px`,
+      zIndex: 10000,
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isDepartmentsOpen) return;
+    updateDepartmentsMenuPosition();
+  }, [isDepartmentsOpen, updateDepartmentsMenuPosition]);
+
+  useEffect(() => {
+    if (!isDepartmentsOpen) return;
+
+    window.addEventListener('resize', updateDepartmentsMenuPosition);
+    window.addEventListener('scroll', updateDepartmentsMenuPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateDepartmentsMenuPosition);
+      window.removeEventListener('scroll', updateDepartmentsMenuPosition, true);
+    };
+  }, [isDepartmentsOpen, updateDepartmentsMenuPosition]);
+
   useEffect(() => {
     if (!isDepartmentsOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
-      if (departmentsRef.current && !departmentsRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const clickedTrigger = departmentsRef.current?.contains(target);
+      const clickedMenu = departmentsMenuRef.current?.contains(target);
+      if (!clickedTrigger && !clickedMenu) {
         setIsDepartmentsOpen(false);
       }
     };
@@ -167,6 +206,32 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
     setIsDepartmentsOpen(false);
   };
 
+  const DepartmentsMenu = () =>
+    ReactDOM.createPortal(
+      isDepartmentsOpen && (
+        <div
+          ref={departmentsMenuRef}
+          className="nav-dropdown-menu"
+          role="menu"
+          style={departmentsMenuStyle}
+        >
+          {DEPARTMENTS.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className="nav-dropdown-item"
+              role="menuitem"
+              onClick={closeDepartments}
+            >
+              <i className={item.icon} aria-hidden="true" />
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      ),
+      document.body
+    );
+
   const DropdownMenu = () =>
     ReactDOM.createPortal(
       isDropdownOpen && (
@@ -214,7 +279,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   };
 
   return (
-    <header className="header" style={{ zIndex: 5000 }}>
+    <header ref={headerRef} className="header" style={{ zIndex: 5000 }}>
       <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
@@ -237,29 +302,16 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                   <span
                     className={`nav-dropdown-caret${isDepartmentsOpen ? ' open' : ''}`}
                     aria-hidden="true"
-                  />
+                  >
+                    ▼
+                  </span>
                 </span>
               </button>
-              {isDepartmentsOpen && (
-                <div className="nav-dropdown-menu" role="menu">
-                  {DEPARTMENTS.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className="nav-dropdown-item"
-                      role="menuitem"
-                      onClick={closeDepartments}
-                    >
-                      <i className={item.icon} aria-hidden="true" />
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
             </div>
           </>
         )}
       </nav>
+      <DepartmentsMenu />
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
           <div className="user-dropdown">
