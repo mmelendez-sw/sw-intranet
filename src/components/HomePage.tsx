@@ -288,6 +288,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   isNewCardRef.current = isNewCard;
   const cardAutosaveTimerRef = useRef<number | null>(null);
   const originalCardImageUrlRef = useRef('');
+  const editingCardOrderRef = useRef<number | null>(null);
   const lastLocalCardSaveRef = useRef(0);
   const skipNextAutosaveRef = useRef(false);
   const draggingCardIdxRef = useRef<number | null>(null);
@@ -420,6 +421,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Card editing ──
   const openCardEdit = useCallback((card: CardContent) => {
+    editingCardOrderRef.current = card.order;
     setEditingCard(card);
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
     setPendingImageFile(null);
@@ -434,6 +436,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const openNewCardEdit = useCallback(() => {
     const nextOrder = cards.length + 1;
+    editingCardOrderRef.current = nextOrder;
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
     const nextImageIndex = ((cards.length % totalFallbacks) + 1);
     setEditingCard(null);
@@ -579,14 +582,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     };
   }, [editCardDraft, pendingImageFile, canEdit, scheduleCardAutosave]);
 
-  const closeCardEdit = useCallback(async () => {
+  const resetCardEditState = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
       window.clearTimeout(cardAutosaveTimerRef.current);
       cardAutosaveTimerRef.current = null;
     }
-    if (editCardDraftRef.current && canEdit) {
-      await flushCardDraftSave();
-    }
+    editingCardOrderRef.current = null;
     setEditingCard(null);
     setEditCardDraft(null);
     editCardDraftRef.current = null;
@@ -598,24 +599,43 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setLinkInsertUrl('');
     setLinkInsertLabel('');
     setLinkInsertSuffix('');
-  }, [canEdit, flushCardDraftSave]);
+  }, []);
+
+  const closeCardEdit = useCallback(async () => {
+    if (editCardDraftRef.current && canEdit) {
+      await flushCardDraftSave();
+    }
+    resetCardEditState();
+  }, [canEdit, flushCardDraftSave, resetCardEditState]);
 
   const deleteCardByOrder = async (order: number) => {
     if (!window.confirm('Delete this card?')) return;
+
+    if (cardAutosaveTimerRef.current) {
+      window.clearTimeout(cardAutosaveTimerRef.current);
+      cardAutosaveTimerRef.current = null;
+    }
+    skipNextAutosaveRef.current = true;
+    editCardDraftRef.current = null;
+
     setSavingCard(true);
-    const updated = renumberCards(cardsRef.current.filter((c) => c.order !== order));
+    const updated = renumberCards(
+      sortCardsByOrder(cardsRef.current).filter((c) => c.order !== order)
+    );
+    cardsRef.current = updated;
     const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
       const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (remoteCards) setCards(normalizeCards(remoteCards));
     }
     setSavingCard(false);
-    closeCardEdit();
+    resetCardEditState();
   };
 
   const deleteCard = async () => {
-    if (!editCardDraft) return;
-    await deleteCardByOrder(editCardDraft.order);
+    const order = editingCardOrderRef.current;
+    if (!order) return;
+    await deleteCardByOrder(order);
   };
 
   const addCard = () => {
