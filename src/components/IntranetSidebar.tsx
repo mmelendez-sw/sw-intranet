@@ -415,7 +415,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               className="home-button"
               onClick={() => window.open(`mailto:${siteConfig.supportEmail}`, '_self')}
             >
-              Report Technology Issue
+              Report IT Issue
             </button>
           ) : (
             canEdit && (
@@ -678,7 +678,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           isSaving={savingConfig}
         >
           <div className="edit-field-group">
-            <label>Support Email ("Report Technology Issue" button)</label>
+            <label>Support Email ("Report IT Issue" button)</label>
             <input
               type="email"
               value={configDraft.supportEmail}

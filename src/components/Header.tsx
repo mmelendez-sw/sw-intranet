@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
@@ -8,6 +8,7 @@ import { BYPASS_AUTH, loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import { DEPARTMENTS } from '../config/departments';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -75,7 +76,9 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { isEditMode, toggleEditMode } = useEditMode();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
+  const departmentsRef = useRef<HTMLDivElement>(null);
 
   // Listen for redirect-based auth failures (e.g. CA block on the redirect flow).
   useEffect(() => {
@@ -88,6 +91,17 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       if (callbackId) instance.removeEventCallback(callbackId);
     };
   }, [instance]);
+
+  useEffect(() => {
+    if (!isDepartmentsOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (departmentsRef.current && !departmentsRef.current.contains(e.target as Node)) {
+        setIsDepartmentsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDepartmentsOpen]);
 
   const handleLogin = async () => {
     setAuthBlockError(false);
@@ -143,6 +157,14 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prevState) => !prevState);
+  };
+
+  const toggleDepartments = () => {
+    setIsDepartmentsOpen((prev) => !prev);
+  };
+
+  const closeDepartments = () => {
+    setIsDepartmentsOpen(false);
   };
 
   const DropdownMenu = () =>
@@ -201,6 +223,40 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
             <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
             <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
+            <div className="nav-dropdown" ref={departmentsRef}>
+              <button
+                type="button"
+                className={`nav-dropdown-trigger${isDepartmentsOpen ? ' open' : ''}`}
+                onClick={toggleDepartments}
+                aria-expanded={isDepartmentsOpen}
+                aria-haspopup="true"
+              >
+                <i className="fa-solid fa-building" aria-hidden="true" />
+                <span className="nav-dropdown-label">
+                  Departments
+                  <span
+                    className={`nav-dropdown-caret${isDepartmentsOpen ? ' open' : ''}`}
+                    aria-hidden="true"
+                  />
+                </span>
+              </button>
+              {isDepartmentsOpen && (
+                <div className="nav-dropdown-menu" role="menu">
+                  {DEPARTMENTS.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className="nav-dropdown-item"
+                      role="menuitem"
+                      onClick={closeDepartments}
+                    >
+                      <i className={item.icon} aria-hidden="true" />
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
       </nav>

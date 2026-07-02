@@ -16,7 +16,7 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 
-interface TechnologyReportsProps {
+interface ReportsProps {
   userInfo: UserInfo;
 }
 
@@ -77,7 +77,7 @@ const REPORTS_SPINNER_MIN_MS = 0;
 const getInitialReports = (): ReportItemContent[] =>
   getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
 
-const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
+const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
@@ -440,4 +440,4 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   );
 };
 
-export default TechnologyReports;
+export default Reports;
