@@ -18,6 +18,9 @@ import {
   preloadSharePointImages,
   CardContent,
   Announcement,
+  HomepageLayout,
+  HomepageCardsPerRow,
+  normalizeHomepageLayout,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -127,6 +130,7 @@ const EditModal: React.FC<EditModalProps> = ({
 const CARDS_CONTENT_KEY = 'homepage-cards';
 const HERO_CONTENT_KEY = 'homepage-hero';
 const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
+const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
 const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
@@ -190,6 +194,21 @@ const escapeHtmlText = (value: string): string =>
 
 const DEFAULT_LINK_LABEL = 'CLICK HERE';
 
+const CARDS_PER_ROW_OPTIONS: HomepageCardsPerRow[] = [2, 3, 4, 5];
+
+/** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
+const isOddCardFor4Columns = (index: number): boolean => {
+  let isOdd = true;
+  for (let i = 1; i <= index; i++) {
+    const cardNum = i + 1;
+    if (cardNum % 4 === 1 && cardNum > 4) {
+      continue;
+    }
+    isOdd = !isOdd;
+  }
+  return isOdd;
+};
+
 const buildClickHereBullet = (url: string, label: string, suffix = ''): string => {
   const linkText = label.trim() || DEFAULT_LINK_LABEL;
   const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
@@ -224,6 +243,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [heroImageUrl, setHeroImageUrl] = useState(
     () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
   );
+  const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
+    () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
+  );
+  const [savingLayout, setSavingLayout] = useState(false);
   const contentLoaded = showHomeContent;
 
   // ── Announcement edit state ──
@@ -353,13 +376,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       if (cancelled) return;
 
       try {
-        const [remoteHero, remoteAnnouncements] = await Promise.all([
+        const [remoteHero, remoteAnnouncements, remoteLayout] = await Promise.all([
           getContent<string>(instance, HERO_CONTENT_KEY),
           getContent<Announcement[]>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+          getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
         ]);
         if (cancelled) return;
         if (remoteHero) setHeroImageUrl(remoteHero);
         if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+        if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
       } catch (err) {
         console.error('[HomePage] failed to load hero/announcements:', err);
       }
@@ -597,6 +622,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     openNewCardEdit();
   };
 
+  const changeCardsPerRow = async (next: HomepageCardsPerRow) => {
+    if (next === cardsPerRow || savingLayout) return;
+    setSavingLayout(true);
+    const layout: HomepageLayout = { cardsPerRow: next };
+    const ok = await setContent(instance, HOMEPAGE_LAYOUT_CONTENT_KEY, layout);
+    if (ok) setCardsPerRow(next);
+    setSavingLayout(false);
+  };
+
   // ── Card reordering ──
   const moveCard = async (currentIdx: number, direction: 'up' | 'down') => {
     const displayOrder = [...cardsRef.current];
@@ -695,13 +729,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   };
 
   // ── Render helpers ──
-  const cardClass = (index: number) => {
-    // if (isTvLayout) {
-    //   return index % 2 === 0 ? 'card odd-card' : 'card even-card';
-    // }
-    if (index === 0) return 'card odd-card';
-    const block = Math.floor((index - 1) / 2);
-    return block % 2 === 0 ? 'card even-card' : 'card odd-card';
+  const cardClass = (index: number, columnsPerRow: HomepageCardsPerRow): string => {
+    const base = 'card';
+    if (columnsPerRow === 2) {
+      if (index === 0) return `${base} odd-card`;
+      const block = Math.floor((index - 1) / 2);
+      return block % 2 === 0 ? `${base} even-card` : `${base} odd-card`;
+    }
+    if (columnsPerRow === 4) {
+      return isOddCardFor4Columns(index) ? `${base} odd-card` : `${base} even-card`;
+    }
+    return index % 2 === 0 ? `${base} odd-card` : `${base} even-card`;
   };
 
   const renderCardImage = (card: CardContent, index: number) => {
@@ -812,7 +850,32 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               )}
 
               {/* ── Cards Grid ── */}
-              <div className="grid-layout home-grid-layout">
+              {canEdit && contentLoaded && (
+                <div className="home-layout-controls">
+                  <span className="home-layout-controls-label">Cards per row</span>
+                  <div className="edit-segment-group" role="group" aria-label="Cards per row">
+                    {CARDS_PER_ROW_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`edit-segment-btn${cardsPerRow === option ? ' active' : ''}`}
+                        onClick={() => { void changeCardsPerRow(option); }}
+                        disabled={savingLayout}
+                        aria-pressed={cardsPerRow === option}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div
+                className="grid-layout home-grid-layout"
+                style={{
+                  '--home-cards-per-row': cardsPerRow,
+                  gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
+                } as React.CSSProperties}
+              >
                 {cardsLoading ? (
                   <div className="home-cards-loading" role="status" aria-label="Loading cards">
                     <div className="app-loading-spinner" aria-hidden="true" />
@@ -822,7 +885,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div
                     key={`card-${card.order}-${card.title}`}
                     className={[
-                      cardClass(index),
+                      cardClass(index, cardsPerRow),
                       'editable-wrapper',
                       canEdit ? 'card-reorderable' : '',
                       draggingCardIdx === index ? 'card-dragging' : '',

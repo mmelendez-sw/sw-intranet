@@ -47,6 +47,7 @@ import {
   QUICK_LINKS_DATA_FILENAME,
   SITE_CONFIG_DATA_FILENAME,
   SIDEBAR_LAYOUT_DATA_FILENAME,
+  HOMEPAGE_LAYOUT_DATA_FILENAME,
   DEPARTMENTS_CONTENT_FOLDER_PATH,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
@@ -59,6 +60,7 @@ const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const QUICK_LINKS_CONTENT_KEY = 'quick-links';
 const SITE_CONFIG_CONTENT_KEY = 'site-config';
 const SIDEBAR_LAYOUT_CONTENT_KEY = 'sidebar-layout';
+const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
 /** Previous reports.json location before co-locating with cards in General/intranet */
 const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
@@ -83,6 +85,9 @@ function getDriveContentConfig(key: string): { folderPath: string; fileName: str
   }
   if (key === SIDEBAR_LAYOUT_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_LAYOUT_DATA_FILENAME };
+  }
+  if (key === HOMEPAGE_LAYOUT_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: HOMEPAGE_LAYOUT_DATA_FILENAME };
   }
   return null;
 }
@@ -125,6 +130,25 @@ export interface CardContent {
   imageUrl: string;
   /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
   imageIndex?: number;
+}
+
+export type HomepageCardsPerRow = 2 | 3 | 4 | 5;
+
+export interface HomepageLayout {
+  cardsPerRow: HomepageCardsPerRow;
+}
+
+export const DEFAULT_HOMEPAGE_LAYOUT: HomepageLayout = {
+  cardsPerRow: 2,
+};
+
+export function normalizeHomepageLayout(raw: unknown): HomepageLayout {
+  if (!raw || typeof raw !== 'object') return DEFAULT_HOMEPAGE_LAYOUT;
+  const cardsPerRow = (raw as HomepageLayout).cardsPerRow;
+  if (cardsPerRow === 2 || cardsPerRow === 3 || cardsPerRow === 4 || cardsPerRow === 5) {
+    return { cardsPerRow };
+  }
+  return DEFAULT_HOMEPAGE_LAYOUT;
 }
 
 /** Bundled snapshot for instant first paint before SharePoint responds. Update src/data/homepage-cards.seed.json from SharePoint when cards change. */

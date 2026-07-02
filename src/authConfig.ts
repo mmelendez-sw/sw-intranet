@@ -82,6 +82,7 @@ export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';
 export const QUICK_LINKS_DATA_FILENAME = 'quick-links.json';
 export const SITE_CONFIG_DATA_FILENAME = 'site-config.json';
 export const SIDEBAR_LAYOUT_DATA_FILENAME = 'sidebar-layout.json';
+export const HOMEPAGE_LAYOUT_DATA_FILENAME = 'homepage-layout.json';
 /** Per-department page content: General/intranet/departments/{slug}.json */
 export const DEPARTMENTS_CONTENT_FOLDER_PATH = 'General/intranet/departments';
 
