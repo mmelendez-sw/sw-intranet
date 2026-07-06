@@ -58,6 +58,7 @@ export const EDIT_ALLOWLIST = new Set([
   'vasmar@symphonyinfra.com',
   'jpeterson@symphonyinfra.com',
   'htolani@symphonyinfra.com',
+  'aquinn@symphonyinfra.com',
 ]);
 
 export const isEditAllowlisted = (email?: string): boolean => {
