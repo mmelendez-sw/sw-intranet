@@ -13,8 +13,19 @@ import {
   DEFAULT_SITE_CONFIG,
   ReportItemContent,
   SiteConfig,
+  // Editor email tracking (disabled):
+  // buildReportsContentFile,
+  // stampReportEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
+
+/*
+ * Editor email tracking for reports.json (disabled).
+ * To enable: uncomment exports in contentService.ts, then in persistReports/saveReport:
+ *   const file = buildReportsContentFile(updated, userInfo.email, getCachedContent(REPORTS_CONTENT_KEY));
+ *   await setContent(instance, REPORTS_CONTENT_KEY, file);
+ * Stamp drafts with stampReportEditor(draft, userInfo.email, isNew) before saving.
+ */
 
 interface ReportsProps {
   userInfo: UserInfo;
@@ -158,6 +169,8 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     : `${siteConfig.companyName} Status Reports`;
 
   const persistReports = useCallback(async (updated: ReportItemContent[]) => {
+    // const file = buildReportsContentFile(updated, userInfo.email, getCachedContent(REPORTS_CONTENT_KEY));
+    // const ok = await setContent(instance, REPORTS_CONTENT_KEY, file);
     const ok = await setContent(instance, 'reports', updated);
     if (ok) setAllReports(updated);
     return ok;
@@ -178,6 +191,10 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     if (!editDraft) return;
     setSaving(true);
     const updated = allReports.map(r => r.order === editDraft.order ? editDraft : r);
+    // const stamped = stampReportEditor(editDraft, userInfo.email, false);
+    // const updated = allReports.map((r) => (r.order === editDraft.order ? stamped : r));
+    // const file = buildReportsContentFile(updated, userInfo.email, getCachedContent(REPORTS_CONTENT_KEY));
+    // const ok = await setContent(instance, REPORTS_CONTENT_KEY, file);
     const ok = await setContent(instance, 'reports', updated);
     if (ok) setAllReports(updated);
     setSaving(false);

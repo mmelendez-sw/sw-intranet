@@ -20,6 +20,9 @@
  *   homepage-sidebar.json, quick-links.json, site-config.json
  *   in Shared Documents/General/intranet
  *
+ * Optional editor-email tracking (disabled in code) would wrap payloads as:
+ *   { "sections"|"reports"|"announcements"|"cards": [...], "editor@email": { "lastEditedAt": "..." } }
+ *
  * Sidebar block order (sections vs quick links) is stored as sidebar-layout.json
  *
  * Card images are stored in:
@@ -136,38 +139,45 @@ export interface CardContent {
 }
 
 /*
-// ─── Editor email keys in homepage-cards.json (disabled) ─────────────────────
+// ─── Editor email tracking in JSON files (disabled) ──────────────────────────
+//
+// When enabled, each file is saved as:
+//   { "<payloadKey>": [ ...items ], "<editor@email>": { "lastEditedAt": "..." }, ... }
+// Each item may also include createdBy / editedBy fields.
+//
+// Files: homepage-cards.json (cards), homepage-sidebar.json (sections),
+//        reports.json (reports), announcements.json (announcements)
 
-export interface HomepageCardsEditorActivity {
+export interface EditorActivity {
   lastEditedAt: string;
 }
 
-export type HomepageCardsFile = {
-  cards: CardContent[];
-} & Record<string, CardContent[] | HomepageCardsEditorActivity | undefined>;
-
-const isEditorActivity = (value: unknown): value is HomepageCardsEditorActivity =>
+const isEditorActivity = (value: unknown): value is EditorActivity =>
   !!value &&
   typeof value === 'object' &&
-  typeof (value as HomepageCardsEditorActivity).lastEditedAt === 'string';
+  typeof (value as EditorActivity).lastEditedAt === 'string';
 
-export function extractEditorActivity(raw: unknown): Record<string, HomepageCardsEditorActivity> {
+export function extractEditorActivity(
+  raw: unknown,
+  payloadKey: string
+): Record<string, EditorActivity> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  const activity: Record<string, HomepageCardsEditorActivity> = {};
+  const activity: Record<string, EditorActivity> = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-    if (key === 'cards' || !isEditorActivity(value)) continue;
+    if (key === payloadKey || !isEditorActivity(value)) continue;
     activity[key.toLowerCase()] = value;
   }
   return activity;
 }
 
-export function buildHomepageCardsFile(
-  cards: CardContent[],
+export function buildEditorTrackedFile<T>(
+  payloadKey: string,
+  items: T[],
   editorEmail?: string,
   existingRaw?: unknown
-): HomepageCardsFile {
-  const file: HomepageCardsFile = { cards };
-  const editorActivity = extractEditorActivity(existingRaw);
+): Record<string, T[] | EditorActivity | undefined> {
+  const file: Record<string, T[] | EditorActivity | undefined> = { [payloadKey]: items };
+  const editorActivity = extractEditorActivity(existingRaw, payloadKey);
   const email = editorEmail?.trim().toLowerCase();
   if (email) {
     editorActivity[email] = { lastEditedAt: new Date().toISOString() };
@@ -178,17 +188,103 @@ export function buildHomepageCardsFile(
   return file;
 }
 
+export function stampEditorFields<
+  T extends { createdBy?: string; editedBy?: string },
+>(item: T, editorEmail: string | undefined, isNew: boolean): T {
+  const email = editorEmail?.trim().toLowerCase();
+  if (!email) return item;
+  if (isNew) {
+    return { ...item, createdBy: item.createdBy ?? email, editedBy: email };
+  }
+  return { ...item, editedBy: email };
+}
+
+// ── Homepage cards (homepage-cards.json) ──
+
+export type HomepageCardsFile = {
+  cards: CardContent[];
+} & Record<string, CardContent[] | EditorActivity | undefined>;
+
+export function buildHomepageCardsFile(
+  cards: CardContent[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): HomepageCardsFile {
+  return buildEditorTrackedFile('cards', cards, editorEmail, existingRaw) as HomepageCardsFile;
+}
+
 export function stampCardEditor(
   card: CardContent,
   editorEmail: string | undefined,
   isNew: boolean
 ): CardContent {
-  const email = editorEmail?.trim().toLowerCase();
-  if (!email) return card;
-  if (isNew) {
-    return { ...card, createdBy: card.createdBy ?? email, editedBy: email };
-  }
-  return { ...card, editedBy: email };
+  return stampEditorFields(card, editorEmail, isNew);
+}
+
+// ── Sidebar sections (homepage-sidebar.json) ──
+
+export type SidebarContentFile = {
+  sections: SidebarSection[];
+} & Record<string, SidebarSection[] | EditorActivity | undefined>;
+
+export function buildSidebarContentFile(
+  sections: SidebarSection[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): SidebarContentFile {
+  return buildEditorTrackedFile('sections', sections, editorEmail, existingRaw) as SidebarContentFile;
+}
+
+export function stampSidebarSectionEditor(
+  section: SidebarSection,
+  editorEmail: string | undefined,
+  isNew: boolean
+): SidebarSection {
+  return stampEditorFields(section, editorEmail, isNew);
+}
+
+// ── Reports (reports.json) ──
+
+export type ReportsContentFile = {
+  reports: ReportItemContent[];
+} & Record<string, ReportItemContent[] | EditorActivity | undefined>;
+
+export function buildReportsContentFile(
+  reports: ReportItemContent[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): ReportsContentFile {
+  return buildEditorTrackedFile('reports', reports, editorEmail, existingRaw) as ReportsContentFile;
+}
+
+export function stampReportEditor(
+  report: ReportItemContent,
+  editorEmail: string | undefined,
+  isNew: boolean
+): ReportItemContent {
+  return stampEditorFields(report, editorEmail, isNew);
+}
+
+// ── Announcements (announcements.json) ──
+
+export type AnnouncementsContentFile = {
+  announcements: Announcement[];
+} & Record<string, Announcement[] | EditorActivity | undefined>;
+
+export function buildAnnouncementsContentFile(
+  announcements: Announcement[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): AnnouncementsContentFile {
+  return buildEditorTrackedFile('announcements', announcements, editorEmail, existingRaw) as AnnouncementsContentFile;
+}
+
+export function stampAnnouncementEditor(
+  announcement: Announcement,
+  editorEmail: string | undefined,
+  isNew: boolean
+): Announcement {
+  return stampEditorFields(announcement, editorEmail, isNew);
 }
 
 */
@@ -235,6 +331,9 @@ export interface SidebarSection {
   buttonUrl?: string;
   linkLabel?: string;
   linkUrl?: string;
+  // Editor email tracking (disabled — see commented block in contentService.ts)
+  // createdBy?: string;
+  // editedBy?: string;
 }
 
 export interface ReportItemContent {
@@ -244,6 +343,9 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
+  // Editor email tracking (disabled — see commented block in contentService.ts)
+  // createdBy?: string;
+  // editedBy?: string;
 }
 
 export interface DepartmentSectionContent {
@@ -354,6 +456,39 @@ export interface Announcement {
   /** ISO date string */
   date: string;
   isActive: boolean;
+  // Editor email tracking (disabled — see commented block in contentService.ts)
+  // createdBy?: string;
+  // editedBy?: string;
+}
+
+/** Read sidebar sections from a bare array or a wrapped { sections: [...] } file. */
+export function parseSidebarContent(raw: unknown): SidebarSection[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as SidebarSection[];
+  if (typeof raw === 'object' && Array.isArray((raw as { sections?: SidebarSection[] }).sections)) {
+    return (raw as { sections: SidebarSection[] }).sections;
+  }
+  return [];
+}
+
+/** Read reports from a bare array or a wrapped { reports: [...] } file. */
+export function parseReportsContent(raw: unknown): ReportItemContent[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as ReportItemContent[];
+  if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
+    return (raw as { reports: ReportItemContent[] }).reports;
+  }
+  return [];
+}
+
+/** Read announcements from a bare array or a wrapped { announcements: [...] } file. */
+export function parseAnnouncementsContent(raw: unknown): Announcement[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as Announcement[];
+  if (typeof raw === 'object' && Array.isArray((raw as { announcements?: Announcement[] }).announcements)) {
+    return (raw as { announcements: Announcement[] }).announcements;
+  }
+  return [];
 }
 
 export interface TickerItem {

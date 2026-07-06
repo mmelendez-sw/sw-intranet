@@ -22,6 +22,10 @@ import {
   HomepageCardsPerRow,
   normalizeHomepageLayout,
   parseHomepageCardsContent,
+  // Editor email tracking (disabled):
+  // parseAnnouncementsContent,
+  // buildAnnouncementsContentFile,
+  // stampAnnouncementEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -198,6 +202,12 @@ const DEFAULT_LINK_LABEL = 'CLICK HERE';
 
 const CARDS_PER_ROW_OPTIONS: HomepageCardsPerRow[] = [2, 3, 4, 5];
 
+/*
+ * Editor email tracking (disabled) — see contentService.ts commented block.
+ * Homepage cards: buildHomepageCardsFile + stampCardEditor in persistCardsToSharePoint
+ * Announcements: buildAnnouncementsContentFile + stampAnnouncementEditor in saveAnnouncement
+ */
+
 /** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
 const isOddCardFor4Columns = (index: number): boolean => {
   let isOdd = true;
@@ -302,6 +312,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
+    // const file = buildHomepageCardsFile(sanitized, userInfo.email, getCachedContent(CARDS_CONTENT_KEY));
+    // const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
     const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
     if (result.ok) {
       setCards(sanitized);
@@ -531,6 +543,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
 
     const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
+    // const updated = buildCardsWithDraft(
+    //   stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
+    //   cardsRef.current,
+    //   isNewCardRef.current
+    // );
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
       return;
     }
@@ -707,6 +724,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const updated = announcements.some(a => a.id === editAnnouncementDraft.id)
       ? announcements.map(a => a.id === editAnnouncementDraft.id ? editAnnouncementDraft : a)
       : [...announcements, editAnnouncementDraft];
+    // const isNew = !announcements.some((a) => a.id === editAnnouncementDraft.id);
+    // const stamped = stampAnnouncementEditor(editAnnouncementDraft, userInfo.email, isNew);
+    // const updated = isNew
+    //   ? [...announcements, stamped]
+    //   : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
+    // const file = buildAnnouncementsContentFile(updated, userInfo.email, getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
+    // const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
     const ok = await setContent(instance, 'announcements', updated);
     if (ok) setAnnouncements(updated);
     setSavingAnnouncement(false);

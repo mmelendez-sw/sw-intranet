@@ -13,8 +13,21 @@ import {
   DEFAULT_SIDEBAR,
   DEFAULT_QUICK_LINKS,
   DEFAULT_SITE_CONFIG,
+  // Editor email tracking (disabled):
+  // getCachedContent,
+  // buildSidebarContentFile,
+  // stampSidebarSectionEditor,
 } from '../services/contentService';
 import '../../styles/edit-mode.css';
+
+/*
+ * Editor email tracking for homepage-sidebar.json (disabled).
+ * To enable: uncomment exports in contentService.ts, then replace setContent calls
+ * for sidebar sections with:
+ *   const file = buildSidebarContentFile(updated, userInfo.email, getCachedContent('homepage-sidebar'));
+ *   await setContent(instance, 'homepage-sidebar', file);
+ * Stamp drafts with stampSidebarSectionEditor(draft, userInfo.email, isNew) before saving.
+ */
 
 interface IntranetSidebarProps {
   userInfo: UserInfo;
@@ -261,6 +274,13 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     }
     setSavingSection(true);
     const updated = sections.map(s => s.key === editSectionDraft.key ? editSectionDraft : s);
+    // const isNewSection = !sections.some((s) => s.key === editSectionDraft.key);
+    // const stamped = stampSidebarSectionEditor(editSectionDraft, userInfo.email, isNewSection);
+    // const withStamp = isNewSection
+    //   ? [...sections, stamped]
+    //   : sections.map((s) => (s.key === editSectionDraft.key ? stamped : s));
+    // const file = buildSidebarContentFile(withStamp, userInfo.email, getCachedContent('homepage-sidebar'));
+    // const ok = await setContent(instance, 'homepage-sidebar', file);
     const ok = await setContent(instance, 'homepage-sidebar', updated);
     if (ok) setSections(updated);
     setSavingSection(false);
