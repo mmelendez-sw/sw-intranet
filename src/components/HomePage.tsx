@@ -21,6 +21,9 @@ import {
   HomepageLayout,
   HomepageCardsPerRow,
   normalizeHomepageLayout,
+  parseHomepageCardsContent,
+  buildHomepageCardsFile,
+  stampCardEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -155,8 +158,9 @@ const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
 const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
 
 const getInitialCards = (): CardContent[] => {
-  const cached = getCachedContent<CardContent[]>(CARDS_CONTENT_KEY);
-  if (cached?.length) return normalizeCards(cached);
+  const cached = getCachedContent<unknown>(CARDS_CONTENT_KEY);
+  const parsed = parseHomepageCardsContent(cached);
+  if (parsed.length) return normalizeCards(parsed);
   if (SEED_CARDS.length) return normalizeCards(SEED_CARDS);
   return DEFAULT_CARDS;
 };
@@ -300,7 +304,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
-    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
+    const existingRaw = getCachedContent<unknown>(CARDS_CONTENT_KEY);
+    const file = buildHomepageCardsFile(sanitized, userInfo.email, existingRaw);
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
     if (result.ok) {
       setCards(sanitized);
       lastLocalCardSaveRef.current = Date.now();
@@ -310,7 +316,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
     setCardSaveStatus('error');
     return false;
-  }, [instance]);
+  }, [instance, userInfo.email]);
 
   const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
     userModifiedCardsRef.current = true;
@@ -353,17 +359,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       };
 
       try {
-        const cachedCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
+        const cachedCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY);
         if (!cancelled && cachedCards && !userModifiedCardsRef.current) {
-          const normalized = normalizeCards(cachedCards);
+          const normalized = normalizeCards(parseHomepageCardsContent(cachedCards));
           if (!cardsMatch(normalized, cardsRef.current)) {
             setCards(normalized);
           }
         }
 
-        const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+        const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
         if (!cancelled && remoteCards && !userModifiedCardsRef.current) {
-          const normalized = normalizeCards(remoteCards);
+          const normalized = normalizeCards(parseHomepageCardsContent(remoteCards));
           if (!cardsMatch(normalized, cardsRef.current)) {
             setCards(normalized);
           }
@@ -403,9 +409,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const syncCardsFromSharePoint = async () => {
       if (editCardDraftRef.current) return;
       if (userModifiedCardsRef.current && Date.now() - lastLocalCardSaveRef.current < 120_000) return;
-      const remote = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      const remote = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (!remote) return;
-      const normalized = normalizeCards(remote);
+      const normalized = normalizeCards(parseHomepageCardsContent(remote));
       if (!cardsMatch(normalized, cardsRef.current)) {
         userModifiedCardsRef.current = false;
         setCards(normalized);
@@ -528,7 +534,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setUploadingImage(false);
     }
 
-    const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
+    const updated = buildCardsWithDraft(
+      stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
+      cardsRef.current,
+      isNewCardRef.current
+    );
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
       return;
     }
@@ -553,7 +563,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setSavingCard(false);
       setUploadingImage(false);
     }
-  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint]);
+  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint, userInfo.email]);
 
   const scheduleCardAutosave = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
@@ -625,8 +635,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     cardsRef.current = updated;
     const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
-      const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
-      if (remoteCards) setCards(normalizeCards(remoteCards));
+      const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      if (remoteCards) setCards(normalizeCards(parseHomepageCardsContent(remoteCards)));
     }
     setSavingCard(false);
     resetCardEditState();
