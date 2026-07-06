@@ -10,10 +10,6 @@
  * Homepage cards (text + metadata) are stored as homepage-cards.json in:
  *   Shared Documents/General/intranet  (SymphonyWirelessTeam site)
  *
- * File shape:
- *   { "cards": [ ... ], "editor@company.com": { "lastEditedAt": "..." }, ... }
- * Legacy files may be a bare CardContent[] array.
- *
  * Announcements are stored as announcements.json in:
  *   Shared Documents/General/intranet
  *
@@ -134,17 +130,18 @@ export interface CardContent {
   imageUrl: string;
   /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
   imageIndex?: number;
-  /** Login email of the editor who created this card. */
-  createdBy?: string;
-  /** Login email of the editor who last edited this card. */
-  editedBy?: string;
+  // Editor email tracking (disabled — see commented block below)
+  // createdBy?: string;
+  // editedBy?: string;
 }
+
+/*
+// ─── Editor email keys in homepage-cards.json (disabled) ─────────────────────
 
 export interface HomepageCardsEditorActivity {
   lastEditedAt: string;
 }
 
-/** SharePoint homepage-cards.json shape (legacy files may be a bare CardContent[]). */
 export type HomepageCardsFile = {
   cards: CardContent[];
 } & Record<string, CardContent[] | HomepageCardsEditorActivity | undefined>;
@@ -154,17 +151,6 @@ const isEditorActivity = (value: unknown): value is HomepageCardsEditorActivity 
   typeof value === 'object' &&
   typeof (value as HomepageCardsEditorActivity).lastEditedAt === 'string';
 
-/** Read the cards array from legacy or current homepage-cards.json payloads. */
-export function parseHomepageCardsContent(raw: unknown): CardContent[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw as CardContent[];
-  if (typeof raw === 'object' && Array.isArray((raw as HomepageCardsFile).cards)) {
-    return (raw as HomepageCardsFile).cards;
-  }
-  return [];
-}
-
-/** Collect per-editor activity entries keyed by login email from a cards file. */
 export function extractEditorActivity(raw: unknown): Record<string, HomepageCardsEditorActivity> {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
   const activity: Record<string, HomepageCardsEditorActivity> = {};
@@ -175,7 +161,6 @@ export function extractEditorActivity(raw: unknown): Record<string, HomepageCard
   return activity;
 }
 
-/** Build the JSON document written to homepage-cards.json. */
 export function buildHomepageCardsFile(
   cards: CardContent[],
   editorEmail?: string,
@@ -204,6 +189,18 @@ export function stampCardEditor(
     return { ...card, createdBy: card.createdBy ?? email, editedBy: email };
   }
   return { ...card, editedBy: email };
+}
+
+*/
+
+/** Read cards from a bare array or a wrapped { cards: [...] } file. */
+export function parseHomepageCardsContent(raw: unknown): CardContent[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as CardContent[];
+  if (typeof raw === 'object' && Array.isArray((raw as { cards?: CardContent[] }).cards)) {
+    return (raw as { cards: CardContent[] }).cards;
+  }
+  return [];
 }
 
 export type HomepageCardsPerRow = 2 | 3 | 4 | 5;

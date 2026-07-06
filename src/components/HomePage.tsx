@@ -22,8 +22,6 @@ import {
   HomepageCardsPerRow,
   normalizeHomepageLayout,
   parseHomepageCardsContent,
-  buildHomepageCardsFile,
-  stampCardEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -304,9 +302,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
-    const existingRaw = getCachedContent<unknown>(CARDS_CONTENT_KEY);
-    const file = buildHomepageCardsFile(sanitized, userInfo.email, existingRaw);
-    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
     if (result.ok) {
       setCards(sanitized);
       lastLocalCardSaveRef.current = Date.now();
@@ -316,7 +312,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
     setCardSaveStatus('error');
     return false;
-  }, [instance, userInfo.email]);
+  }, [instance]);
 
   const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
     userModifiedCardsRef.current = true;
@@ -534,11 +530,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setUploadingImage(false);
     }
 
-    const updated = buildCardsWithDraft(
-      stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
-      cardsRef.current,
-      isNewCardRef.current
-    );
+    const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
       return;
     }
@@ -563,7 +555,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setSavingCard(false);
       setUploadingImage(false);
     }
-  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint, userInfo.email]);
+  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint]);
 
   const scheduleCardAutosave = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
