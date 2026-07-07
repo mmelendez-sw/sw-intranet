@@ -19,6 +19,7 @@ import { loginRequest } from '../authConfig';
 import {
   getContent,
   DEFAULT_CARDS,
+  parseHomepageCardsContent,
   CardContent,
 } from '../services/contentService';
 import SharePointImage from './SharePointImage';
@@ -82,8 +83,9 @@ const TvDisplay: React.FC = () => {
       // Silent auth failed — content service will also fail and we'll use defaults
     }
 
-    const remote = await getContent<CardContent[]>(instance, 'homepage-cards');
-    const sorted = [...(remote ?? DEFAULT_CARDS)].sort((a, b) => a.order - b.order);
+    const remote = await getContent<unknown>(instance, 'homepage-cards');
+    const parsed = parseHomepageCardsContent(remote);
+    const sorted = [...(parsed.length ? parsed : DEFAULT_CARDS)].sort((a, b) => a.order - b.order);
     setCards(sorted);
     setLoading(false);
     setLastRefresh(new Date());

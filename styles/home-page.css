@@ -134,10 +134,11 @@
 }
 
 .home-grid-layout {
+  --home-cards-per-row: 2;
   margin: 10px auto;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--home-cards-per-row, 2), minmax(0, 1fr));
   grid-auto-rows: 1fr;
   align-items: stretch;
   gap: 10px;
@@ -192,10 +193,12 @@
   gap: 20px; /* Space between cards */
 }
 
-/* Homepage: four cards in a 2×2 grid (overrides .grid-layout column count) */
+/* Homepage grid — must follow .grid-layout so column count isn't overridden */
 .grid-layout.home-grid-layout {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--home-cards-per-row, 2), minmax(0, 1fr));
   grid-auto-rows: 1fr;
+  align-items: stretch;
+  gap: 10px;
 }
 
 .card {
@@ -445,20 +448,6 @@
   .content-container {
     max-width: 95%; /* Slight padding on very large screens */
   }
-  
-  .card {
-    min-height: 500px; /* Slightly larger cards on big screens */
-  }
-  
-  .card-image {
-    height: 350px; /* Larger images on big screens */
-  }
-}
-
-@media (max-width: 1200px) {
-  .home-grid-layout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 900px) {
@@ -486,7 +475,7 @@
     max-width: 1200px; /* Limit width on medium screens */
   }
 
-  .grid-layout {
+  .grid-layout:not(.home-grid-layout) {
     grid-template-columns: repeat(2, 1fr); /* Two cards per row on medium screens */
     grid-auto-rows: 1fr;
     align-items: stretch;
@@ -545,12 +534,8 @@
     padding: 14px;
   }
 
-  .grid-layout {
+  .grid-layout:not(.home-grid-layout) {
     grid-template-columns: 1fr; /* Cards stack vertically on small screens */
-  }
-
-  .grid-layout.home-grid-layout {
-    grid-template-columns: 1fr;
   }
 
   .card {

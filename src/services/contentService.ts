@@ -20,10 +20,17 @@
  *   homepage-sidebar.json, quick-links.json, site-config.json
  *   in Shared Documents/General/intranet
  *
+ * Editor-email tracking: payloads are saved as:
+ *   { "sections"|"reports"|"announcements"|"cards": [...], "editor@email": { "lastEditedAt": "..." } }
+ * Tracking is written to JSON only — not shown in the intranet UI.
+ *
  * Sidebar block order (sections vs quick links) is stored as sidebar-layout.json
  *
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
+ *
+ * Department page content (updates, resources, FAQ) is stored as:
+ *   General/intranet/departments/{slug}.json  (e.g. it.json, hr.json)
  *
  * Other content blocks (hero, site-alert, ticker, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
@@ -44,6 +51,8 @@ import {
   QUICK_LINKS_DATA_FILENAME,
   SITE_CONFIG_DATA_FILENAME,
   SIDEBAR_LAYOUT_DATA_FILENAME,
+  HOMEPAGE_LAYOUT_DATA_FILENAME,
+  DEPARTMENTS_CONTENT_FOLDER_PATH,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -55,6 +64,7 @@ const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const QUICK_LINKS_CONTENT_KEY = 'quick-links';
 const SITE_CONFIG_CONTENT_KEY = 'site-config';
 const SIDEBAR_LAYOUT_CONTENT_KEY = 'sidebar-layout';
+const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
 /** Previous reports.json location before co-locating with cards in General/intranet */
 const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
@@ -79,6 +89,9 @@ function getDriveContentConfig(key: string): { folderPath: string; fileName: str
   }
   if (key === SIDEBAR_LAYOUT_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: SIDEBAR_LAYOUT_DATA_FILENAME };
+  }
+  if (key === HOMEPAGE_LAYOUT_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: HOMEPAGE_LAYOUT_DATA_FILENAME };
   }
   return null;
 }
@@ -121,6 +134,185 @@ export interface CardContent {
   imageUrl: string;
   /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
   imageIndex?: number;
+  createdBy?: string;
+  editedBy?: string;
+}
+
+// ─── Editor email tracking in JSON files ─────────────────────────────────────
+//
+// Each file is saved as:
+//   { "<payloadKey>": [ ...items ], "<editor@email>": { "lastEditedAt": "..." }, ... }
+// Each item may also include createdBy / editedBy fields.
+//
+// Files: homepage-cards.json (cards), homepage-sidebar.json (sections),
+//        reports.json (reports), announcements.json (announcements)
+
+export interface EditorActivity {
+  lastEditedAt: string;
+}
+
+const isEditorActivity = (value: unknown): value is EditorActivity =>
+  !!value &&
+  typeof value === 'object' &&
+  typeof (value as EditorActivity).lastEditedAt === 'string';
+
+export function extractEditorActivity(
+  raw: unknown,
+  payloadKey: string
+): Record<string, EditorActivity> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const activity: Record<string, EditorActivity> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (key === payloadKey || !isEditorActivity(value)) continue;
+    activity[key.toLowerCase()] = value;
+  }
+  return activity;
+}
+
+export function buildEditorTrackedFile<T>(
+  payloadKey: string,
+  items: T[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): Record<string, T[] | EditorActivity | undefined> {
+  const file: Record<string, T[] | EditorActivity | undefined> = { [payloadKey]: items };
+  const editorActivity = extractEditorActivity(existingRaw, payloadKey);
+  const email = editorEmail?.trim().toLowerCase();
+  if (email) {
+    editorActivity[email] = { lastEditedAt: new Date().toISOString() };
+  }
+  for (const [editor, meta] of Object.entries(editorActivity)) {
+    file[editor] = meta;
+  }
+  return file;
+}
+
+export function stampEditorFields<
+  T extends { createdBy?: string; editedBy?: string },
+>(item: T, editorEmail: string | undefined, isNew: boolean): T {
+  const email = editorEmail?.trim().toLowerCase();
+  if (!email) return item;
+  if (isNew) {
+    return { ...item, createdBy: item.createdBy ?? email, editedBy: email };
+  }
+  return { ...item, editedBy: email };
+}
+
+// ── Homepage cards (homepage-cards.json) ──
+
+export type HomepageCardsFile = {
+  cards: CardContent[];
+} & Record<string, CardContent[] | EditorActivity | undefined>;
+
+export function buildHomepageCardsFile(
+  cards: CardContent[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): HomepageCardsFile {
+  return buildEditorTrackedFile('cards', cards, editorEmail, existingRaw) as HomepageCardsFile;
+}
+
+export function stampCardEditor(
+  card: CardContent,
+  editorEmail: string | undefined,
+  isNew: boolean
+): CardContent {
+  return stampEditorFields(card, editorEmail, isNew);
+}
+
+// ── Sidebar sections (homepage-sidebar.json) ──
+
+export type SidebarContentFile = {
+  sections: SidebarSection[];
+} & Record<string, SidebarSection[] | EditorActivity | undefined>;
+
+export function buildSidebarContentFile(
+  sections: SidebarSection[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): SidebarContentFile {
+  return buildEditorTrackedFile('sections', sections, editorEmail, existingRaw) as SidebarContentFile;
+}
+
+export function stampSidebarSectionEditor(
+  section: SidebarSection,
+  editorEmail: string | undefined,
+  isNew: boolean
+): SidebarSection {
+  return stampEditorFields(section, editorEmail, isNew);
+}
+
+// ── Reports (reports.json) ──
+
+export type ReportsContentFile = {
+  reports: ReportItemContent[];
+} & Record<string, ReportItemContent[] | EditorActivity | undefined>;
+
+export function buildReportsContentFile(
+  reports: ReportItemContent[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): ReportsContentFile {
+  return buildEditorTrackedFile('reports', reports, editorEmail, existingRaw) as ReportsContentFile;
+}
+
+export function stampReportEditor(
+  report: ReportItemContent,
+  editorEmail: string | undefined,
+  isNew: boolean
+): ReportItemContent {
+  return stampEditorFields(report, editorEmail, isNew);
+}
+
+// ── Announcements (announcements.json) ──
+
+export type AnnouncementsContentFile = {
+  announcements: Announcement[];
+} & Record<string, Announcement[] | EditorActivity | undefined>;
+
+export function buildAnnouncementsContentFile(
+  announcements: Announcement[],
+  editorEmail?: string,
+  existingRaw?: unknown
+): AnnouncementsContentFile {
+  return buildEditorTrackedFile('announcements', announcements, editorEmail, existingRaw) as AnnouncementsContentFile;
+}
+
+export function stampAnnouncementEditor(
+  announcement: Announcement,
+  editorEmail: string | undefined,
+  isNew: boolean
+): Announcement {
+  return stampEditorFields(announcement, editorEmail, isNew);
+}
+
+/** Read cards from a bare array or a wrapped { cards: [...] } file. */
+export function parseHomepageCardsContent(raw: unknown): CardContent[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as CardContent[];
+  if (typeof raw === 'object' && Array.isArray((raw as { cards?: CardContent[] }).cards)) {
+    return (raw as { cards: CardContent[] }).cards;
+  }
+  return [];
+}
+
+export type HomepageCardsPerRow = 2 | 3 | 4 | 5;
+
+export interface HomepageLayout {
+  cardsPerRow: HomepageCardsPerRow;
+}
+
+export const DEFAULT_HOMEPAGE_LAYOUT: HomepageLayout = {
+  cardsPerRow: 2,
+};
+
+export function normalizeHomepageLayout(raw: unknown): HomepageLayout {
+  if (!raw || typeof raw !== 'object') return DEFAULT_HOMEPAGE_LAYOUT;
+  const cardsPerRow = (raw as HomepageLayout).cardsPerRow;
+  if (cardsPerRow === 2 || cardsPerRow === 3 || cardsPerRow === 4 || cardsPerRow === 5) {
+    return { cardsPerRow };
+  }
+  return DEFAULT_HOMEPAGE_LAYOUT;
 }
 
 /** Bundled snapshot for instant first paint before SharePoint responds. Update src/data/homepage-cards.seed.json from SharePoint when cards change. */
@@ -136,6 +328,8 @@ export interface SidebarSection {
   buttonUrl?: string;
   linkLabel?: string;
   linkUrl?: string;
+  createdBy?: string;
+  editedBy?: string;
 }
 
 export interface ReportItemContent {
@@ -145,6 +339,98 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
+  createdBy?: string;
+  editedBy?: string;
+}
+
+export interface DepartmentSectionContent {
+  title: string;
+  items: string[];
+}
+
+export interface DepartmentPageContent {
+  updates: DepartmentSectionContent;
+  resources: DepartmentSectionContent;
+  faq: DepartmentSectionContent;
+}
+
+export function buildDefaultDepartmentContent(
+  departmentLabel: string,
+  overrides?: {
+    updates?: Partial<DepartmentSectionContent>;
+    resources?: Partial<DepartmentSectionContent>;
+    faq?: Partial<DepartmentSectionContent>;
+  }
+): DepartmentPageContent {
+  const withSection = (
+    defaultTitle: string,
+    sectionOverrides?: Partial<DepartmentSectionContent>
+  ): DepartmentSectionContent => ({
+    title: sectionOverrides?.title?.trim() || defaultTitle,
+    items: sectionOverrides?.items ?? [],
+  });
+
+  return {
+    updates: withSection(`${departmentLabel} Updates`, overrides?.updates),
+    resources: withSection(`${departmentLabel} Resources`, overrides?.resources),
+    faq: withSection('FAQ', overrides?.faq),
+  };
+}
+
+export const EMPTY_DEPARTMENT_CONTENT = buildDefaultDepartmentContent('Department');
+
+/** Accept legacy SharePoint payloads that stored plain string arrays per section. */
+export function normalizeDepartmentContent(
+  raw: unknown,
+  defaults: DepartmentPageContent
+): DepartmentPageContent {
+  if (!raw || typeof raw !== 'object') return defaults;
+
+  const data = raw as Record<string, unknown>;
+  const firstSection = data.updates;
+
+  if (
+    firstSection &&
+    typeof firstSection === 'object' &&
+    !Array.isArray(firstSection) &&
+    'title' in firstSection &&
+    'items' in firstSection
+  ) {
+    const content = raw as DepartmentPageContent;
+    return {
+      updates: {
+        title: content.updates.title?.trim() || defaults.updates.title,
+        items: Array.isArray(content.updates.items) ? content.updates.items : [],
+      },
+      resources: {
+        title: content.resources.title?.trim() || defaults.resources.title,
+        items: Array.isArray(content.resources.items) ? content.resources.items : [],
+      },
+      faq: {
+        title: content.faq.title?.trim() || defaults.faq.title,
+        items: Array.isArray(content.faq.items) ? content.faq.items : [],
+      },
+    };
+  }
+
+  if (Array.isArray(data.updates) || Array.isArray(data.resources) || Array.isArray(data.faq)) {
+    return {
+      updates: {
+        title: defaults.updates.title,
+        items: Array.isArray(data.updates) ? (data.updates as string[]) : [],
+      },
+      resources: {
+        title: defaults.resources.title,
+        items: Array.isArray(data.resources) ? (data.resources as string[]) : [],
+      },
+      faq: {
+        title: defaults.faq.title,
+        items: Array.isArray(data.faq) ? (data.faq as string[]) : [],
+      },
+    };
+  }
+
+  return defaults;
 }
 
 export interface SiteAlert {
@@ -165,6 +451,38 @@ export interface Announcement {
   /** ISO date string */
   date: string;
   isActive: boolean;
+  createdBy?: string;
+  editedBy?: string;
+}
+
+/** Read sidebar sections from a bare array or a wrapped { sections: [...] } file. */
+export function parseSidebarContent(raw: unknown): SidebarSection[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as SidebarSection[];
+  if (typeof raw === 'object' && Array.isArray((raw as { sections?: SidebarSection[] }).sections)) {
+    return (raw as { sections: SidebarSection[] }).sections;
+  }
+  return [];
+}
+
+/** Read reports from a bare array or a wrapped { reports: [...] } file. */
+export function parseReportsContent(raw: unknown): ReportItemContent[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as ReportItemContent[];
+  if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
+    return (raw as { reports: ReportItemContent[] }).reports;
+  }
+  return [];
+}
+
+/** Read announcements from a bare array or a wrapped { announcements: [...] } file. */
+export function parseAnnouncementsContent(raw: unknown): Announcement[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as Announcement[];
+  if (typeof raw === 'object' && Array.isArray((raw as { announcements?: Announcement[] }).announcements)) {
+    return (raw as { announcements: Announcement[] }).announcements;
+  }
+  return [];
 }
 
 export interface TickerItem {
@@ -736,8 +1054,8 @@ export async function getSharePointImageBlobUrl(
 
 /** Collect SharePoint image URLs from cached/seed homepage content for boot-time warmup. */
 export function collectHomepageImageUrls(): string[] {
-  const cachedCards = getCachedContent<CardContent[]>(HOMEPAGE_CARDS_KEY);
-  const cards = cachedCards?.length ? cachedCards : SEED_CARDS;
+  const cachedCards = parseHomepageCardsContent(getCachedContent<unknown>(HOMEPAGE_CARDS_KEY));
+  const cards = cachedCards.length ? cachedCards : SEED_CARDS;
   const urls: string[] = [];
   for (const card of cards) {
     if (card.imageUrl) urls.push(card.imageUrl);
@@ -1179,4 +1497,103 @@ export async function setContentDetailed<T>(
     return { ok: true, storage: 'local' };
   }
   return { ok: false, storage: 'none' };
+}
+
+// ─── Department page content (General/intranet/departments/{slug}.json) ───────
+
+const departmentCacheKey = (slug: string): string => `department-${slug}`;
+
+export function getDepartmentContentFileName(slug: string): string {
+  return `${slug}.json`;
+}
+
+async function fetchDepartmentContentFromRemote(
+  msalInstance: any,
+  slug: string
+): Promise<DepartmentPageContent | null> {
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) return null;
+
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
+    const parsed = await readContentFromSharePointDrive<DepartmentPageContent>(
+      siteId,
+      token,
+      getDepartmentContentFileName(slug),
+      DEPARTMENTS_CONTENT_FOLDER_PATH
+    );
+    if (parsed) {
+      writeLocalContent(departmentCacheKey(slug), parsed);
+      return parsed;
+    }
+    return null;
+  } catch (err) {
+    console.error(`[contentService] fetchDepartmentContentFromRemote("${slug}") failed:`, err);
+    return null;
+  }
+}
+
+export async function getDepartmentContent(
+  msalInstance: any,
+  slug: string,
+  options?: ContentSyncOptions
+): Promise<DepartmentPageContent | null> {
+  const key = departmentCacheKey(slug);
+  if (BYPASS_AUTH) {
+    return readLocalContent<DepartmentPageContent>(key);
+  }
+
+  const cached = readLocalContent<DepartmentPageContent>(key);
+  if (!options?.remoteOnly && cached !== null) {
+    void fetchDepartmentContentFromRemote(msalInstance, slug);
+    return cached;
+  }
+
+  const remote = await fetchDepartmentContentFromRemote(msalInstance, slug);
+  if (remote !== null) return remote;
+
+  return options?.remoteOnly ? null : cached;
+}
+
+export async function setDepartmentContent(
+  msalInstance: any,
+  slug: string,
+  data: DepartmentPageContent,
+  options?: ContentSyncOptions
+): Promise<boolean> {
+  const key = departmentCacheKey(slug);
+  if (BYPASS_AUTH) {
+    return writeLocalContent(key, data);
+  }
+
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) throw new Error('Could not acquire SharePoint token.');
+
+    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
+    const driveOk = await writeContentToSharePointDrive(
+      siteId,
+      token,
+      getDepartmentContentFileName(slug),
+      data,
+      DEPARTMENTS_CONTENT_FOLDER_PATH
+    );
+    if (driveOk) {
+      writeLocalContent(key, data);
+      return true;
+    }
+  } catch (err) {
+    console.error(`[contentService] setDepartmentContent("${slug}") failed:`, err);
+  }
+
+  if (!options?.remoteOnly) {
+    const localOk = writeLocalContent(key, data);
+    if (localOk) {
+      console.warn(
+        `[contentService] setDepartmentContent("${slug}") saved to browser storage (SharePoint write failed)`
+      );
+      return true;
+    }
+  }
+  return false;
 }

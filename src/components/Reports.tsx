@@ -13,10 +13,13 @@ import {
   DEFAULT_SITE_CONFIG,
   ReportItemContent,
   SiteConfig,
+  parseReportsContent,
+  buildReportsContentFile,
+  stampReportEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 
-interface TechnologyReportsProps {
+interface ReportsProps {
   userInfo: UserInfo;
 }
 
@@ -74,10 +77,12 @@ const REPORTS_CONTENT_KEY = 'reports';
 /** Minimum time to show the reports loading spinner (set to 0 in production). */
 const REPORTS_SPINNER_MIN_MS = 0;
 
-const getInitialReports = (): ReportItemContent[] =>
-  getCachedContent<ReportItemContent[]>(REPORTS_CONTENT_KEY) ?? DEFAULT_REPORTS;
+const getInitialReports = (): ReportItemContent[] => {
+  const parsed = parseReportsContent(getCachedContent(REPORTS_CONTENT_KEY));
+  return parsed.length ? parsed : DEFAULT_REPORTS;
+};
 
-const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
+const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
@@ -123,11 +128,14 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
 
       try {
         const [remote, remoteConfig] = await Promise.all([
-          getContent<ReportItemContent[]>(instance, REPORTS_CONTENT_KEY),
+          getContent<unknown>(instance, REPORTS_CONTENT_KEY),
           getContent<SiteConfig>(instance, 'site-config'),
         ]);
         if (!cancelled) {
-          if (remote) setAllReports(remote);
+          if (remote) {
+            const parsed = parseReportsContent(remote);
+            if (parsed.length) setAllReports(parsed);
+          }
           if (remoteConfig) setSiteConfig(remoteConfig);
         }
       } catch (err) {
@@ -158,10 +166,11 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
     : `${siteConfig.companyName} Status Reports`;
 
   const persistReports = useCallback(async (updated: ReportItemContent[]) => {
-    const ok = await setContent(instance, 'reports', updated);
+    const file = buildReportsContentFile(updated, userInfo.email, getCachedContent(REPORTS_CONTENT_KEY));
+    const ok = await setContent(instance, REPORTS_CONTENT_KEY, file);
     if (ok) setAllReports(updated);
     return ok;
-  }, [instance]);
+  }, [instance, userInfo.email]);
 
   const applyReportOrderChange = useCallback(async (withNewOrders: ReportItemContent[]) => {
     setAllReports(withNewOrders);
@@ -177,21 +186,20 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   const saveReport = async () => {
     if (!editDraft) return;
     setSaving(true);
-    const updated = allReports.map(r => r.order === editDraft.order ? editDraft : r);
-    const ok = await setContent(instance, 'reports', updated);
-    if (ok) setAllReports(updated);
+    const stamped = stampReportEditor(editDraft, userInfo.email, false);
+    const updated = allReports.map(r => r.order === editDraft.order ? stamped : r);
+    const ok = await persistReports(updated);
+    if (ok) setEditingReport(null);
     setSaving(false);
-    setEditingReport(null);
   };
 
   const deleteReport = async () => {
     if (!editDraft) return;
     setSaving(true);
     const updated = renumberReports(allReports.filter((r) => r.order !== editDraft.order));
-    const ok = await setContent(instance, 'reports', updated);
-    if (ok) setAllReports(updated);
+    const ok = await persistReports(updated);
+    if (ok) setEditingReport(null);
     setSaving(false);
-    setEditingReport(null);
   };
 
   const addReport = async () => {
@@ -203,9 +211,10 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
       isEliteOnly: false,
       excludedEmails: [],
     };
-    const updated = [...allReports, newReport];
-    const ok = await setContent(instance, 'reports', updated);
-    if (ok) { setAllReports(updated); openEdit(newReport); }
+    const stamped = stampReportEditor(newReport, userInfo.email, true);
+    const updated = [...allReports, stamped];
+    const ok = await persistReports(updated);
+    if (ok) { openEdit(stamped); }
   };
 
   // ── Report reordering ──
@@ -324,7 +333,9 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
                         <button className="report-button" disabled>{report.title}</button>
                       )}
                     </td>
-                    <td className="report-description-cell">{report.description}</td>
+                    <td className="report-description-cell">
+                      {report.description}
+                    </td>
                     {canEdit && (
                       <td>
                         <div className="report-reorder-actions">
@@ -440,4 +451,4 @@ const TechnologyReports: React.FC<TechnologyReportsProps> = ({ userInfo }) => {
   );
 };
 
-export default TechnologyReports;
+export default Reports;
