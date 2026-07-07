@@ -19,13 +19,13 @@
   height: 100%;
 }
 
-/* IT Page specific overrides */
-.home-page.technology-page .content-container {
+/* Department page specific overrides */
+.home-page.department-page .content-container {
   max-width: 2000px;
   gap: 60px;
 }
 
-.home-page.technology-page .main-content {
+.home-page.department-page .main-content {
   max-width: none;
   width: 100%;
   margin-left: 120px;
@@ -57,7 +57,7 @@
   flex-direction: column;
 }
 
-.home-page.technology-page .main-content h1 {
+.home-page.department-page .main-content h1 {
   text-align: center;
   margin-top: -50px !important;
   margin-bottom: 20px !important;
@@ -241,8 +241,8 @@
   font-size: 18px; 
 }
 
-/* Center the Technology heading at the very top and in the middle */
-.technology-heading-centered {
+/* Center the IT heading at the very top and in the middle */
+.department-heading-centered {
   grid-column: 1 / span 2;
   grid-row: 1;
   text-align: center;
@@ -284,7 +284,7 @@
   .main-content {
     height: auto;
   }
-  .technology-heading-centered {
+  .department-heading-centered {
     font-size: 2em;
     padding: 20px 0 0 0;
   }
@@ -305,19 +305,19 @@
   }
 }
 
-/* Move sidebar further right on Technology page only */
-.home-page.technology-page .sidebar {
+/* Move sidebar further right on Department page only */
+.home-page.department-page .sidebar {
   margin-left: 110px;
   margin-top: 10px;
 }
 
-/* Shift card grid to the right on Technology page only */
-.home-page.technology-page .grid-layout {
+/* Shift card grid to the right on Department page only */
+.home-page.department-page .grid-layout {
   margin-left: 100px;
   margin-top: -50px;
 }
 
-/* Responsive grid for Technology page */
+/* Responsive grid for Department page */
 .responsive-tech-grid {
   display: grid;
   grid-template-columns: 700px 700px;
@@ -345,7 +345,7 @@
     min-width: 0 !important;
     max-width: 100% !important;
   }
-  .home-page.technology-page .sidebar {
+  .home-page.department-page .sidebar {
     margin-left: 0 !important;
     max-width: 100% !important;
     min-width: 0 !important;
@@ -353,7 +353,7 @@
   }
 }
 
-/* IT Page New Layout Styles */
+/* Department page New Layout Styles */
 .business-reports-button-container {
   text-align: center;
   margin-bottom: 0;
@@ -386,31 +386,31 @@
   background-color: #0073d6;
 }
 
-.tech-updates-large-card {
+.department-updates-large-card {
   width: 100%;
   margin-bottom: 40px;
   margin-top: 0;
 }
 
-.tech-updates-large-card .card {
+.department-updates-large-card .card {
   width: 100%;
   min-height: auto; /* Allow dynamic height */
   height: auto; /* Let content determine height */
 }
 
-.tech-resources-faq-container {
+.department-resources-faq-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   width: 100%;
 }
 
-.tech-resources-faq-container .card {
+.department-resources-faq-container .card {
   min-height: 540px;
 }
 
-.tech-updates-large-card,
-.tech-resources-faq-container {
+.department-updates-large-card,
+.department-resources-faq-container {
   max-width: 1800px;
   margin-left: auto;
   margin-right: auto;
@@ -422,7 +422,7 @@
 
 /* Responsive adjustments for the new layout */
 @media (max-width: 1200px) {
-  .tech-resources-faq-container {
+  .department-resources-faq-container {
     grid-template-columns: 1fr;
     gap: 20px;
   }
@@ -436,8 +436,8 @@
 }
 
 @media (max-width: 1300px) {
-  .tech-updates-large-card,
-  .tech-resources-faq-container,
+  .department-updates-large-card,
+  .department-resources-faq-container,
   .business-reports-button {
     max-width: 95vw;
   }
@@ -451,14 +451,14 @@
     font-size: 1em;
   }
   
-  .tech-updates-large-card .card,
-  .tech-resources-faq-container .card {
+  .department-updates-large-card .card,
+  .department-resources-faq-container .card {
     min-height: 400px;
   }
 }
 
 /* Responsive override cleanup */
-.home-page.technology-page .content-container {
+.home-page.department-page .content-container {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
   gap: 24px;
@@ -468,14 +468,14 @@
   align-items: start;
 }
 
-.home-page.technology-page .main-content {
+.home-page.department-page .main-content {
   margin-left: 0;
   margin-top: 0;
   width: 100%;
 }
 
-.home-page.technology-page .sidebar,
-.technology-sidebar {
+.home-page.department-page .sidebar,
+.department-sidebar {
   width: 100%;
   max-width: 320px;
   min-width: 0;
@@ -483,19 +483,19 @@
   margin-top: 10px;
 }
 
-.tech-small-card {
+.department-small-card {
   min-height: 540px;
 }
 
 @media (max-width: 1200px) {
-  .home-page.technology-page .content-container {
+  .home-page.department-page .content-container {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 10px 0;
   }
 
-  .home-page.technology-page .sidebar,
-  .technology-sidebar {
+  .home-page.department-page .sidebar,
+  .department-sidebar {
     max-width: 100%;
     margin-top: 0;
   }
@@ -507,7 +507,34 @@
 }
 
 @media (max-width: 768px) {
-  .tech-small-card {
+  .department-small-card {
     min-height: auto;
   }
+}
+
+.department-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.department-card-header h2 {
+  margin-bottom: 10px;
+}
+
+.department-edit-btn {
+  position: static;
+  opacity: 1;
+  margin: 0 0 10px;
+}
+
+.department-save-hint {
+  margin: 12px auto 0;
+  max-width: 1800px;
+  font-size: 0.85em;
+  color: #555;
+  text-align: center;
 }

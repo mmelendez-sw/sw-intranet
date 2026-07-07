@@ -18,6 +18,15 @@ import {
   preloadSharePointImages,
   CardContent,
   Announcement,
+  HomepageLayout,
+  HomepageCardsPerRow,
+  normalizeHomepageLayout,
+  parseHomepageCardsContent,
+  parseAnnouncementsContent,
+  buildHomepageCardsFile,
+  buildAnnouncementsContentFile,
+  stampCardEditor,
+  stampAnnouncementEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -127,6 +136,7 @@ const EditModal: React.FC<EditModalProps> = ({
 const CARDS_CONTENT_KEY = 'homepage-cards';
 const HERO_CONTENT_KEY = 'homepage-hero';
 const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
+const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
 const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
@@ -151,8 +161,9 @@ const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
 const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
 
 const getInitialCards = (): CardContent[] => {
-  const cached = getCachedContent<CardContent[]>(CARDS_CONTENT_KEY);
-  if (cached?.length) return normalizeCards(cached);
+  const cached = getCachedContent<unknown>(CARDS_CONTENT_KEY);
+  const parsed = parseHomepageCardsContent(cached);
+  if (parsed.length) return normalizeCards(parsed);
   if (SEED_CARDS.length) return normalizeCards(SEED_CARDS);
   return DEFAULT_CARDS;
 };
@@ -190,6 +201,26 @@ const escapeHtmlText = (value: string): string =>
 
 const DEFAULT_LINK_LABEL = 'CLICK HERE';
 
+const CARDS_PER_ROW_OPTIONS: HomepageCardsPerRow[] = [2, 3, 4, 5];
+
+const getInitialAnnouncements = (): Announcement[] => {
+  const parsed = parseAnnouncementsContent(getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
+  return parsed.length ? parsed : DEFAULT_ANNOUNCEMENTS;
+};
+
+/** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
+const isOddCardFor4Columns = (index: number): boolean => {
+  let isOdd = true;
+  for (let i = 1; i <= index; i++) {
+    const cardNum = i + 1;
+    if (cardNum % 4 === 1 && cardNum > 4) {
+      continue;
+    }
+    isOdd = !isOdd;
+  }
+  return isOdd;
+};
+
 const buildClickHereBullet = (url: string, label: string, suffix = ''): string => {
   const linkText = label.trim() || DEFAULT_LINK_LABEL;
   const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
@@ -218,12 +249,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [cardsLoading, setCardsLoading] = useState(
     () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
   );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(
-    () => getCachedContent<Announcement[]>(ANNOUNCEMENTS_CONTENT_KEY) ?? DEFAULT_ANNOUNCEMENTS
-  );
+  const [announcements, setAnnouncements] = useState<Announcement[]>(getInitialAnnouncements);
   const [heroImageUrl, setHeroImageUrl] = useState(
     () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
   );
+  const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
+    () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
+  );
+  const [savingLayout, setSavingLayout] = useState(false);
   const contentLoaded = showHomeContent;
 
   // ── Announcement edit state ──
@@ -265,6 +298,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   isNewCardRef.current = isNewCard;
   const cardAutosaveTimerRef = useRef<number | null>(null);
   const originalCardImageUrlRef = useRef('');
+  const editingCardOrderRef = useRef<number | null>(null);
   const lastLocalCardSaveRef = useRef(0);
   const skipNextAutosaveRef = useRef(false);
   const draggingCardIdxRef = useRef<number | null>(null);
@@ -276,7 +310,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
-    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
+    const file = buildHomepageCardsFile(sanitized, userInfo.email, getCachedContent(CARDS_CONTENT_KEY));
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
     if (result.ok) {
       setCards(sanitized);
       lastLocalCardSaveRef.current = Date.now();
@@ -286,7 +321,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
     setCardSaveStatus('error');
     return false;
-  }, [instance]);
+  }, [instance, userInfo.email]);
 
   const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
     userModifiedCardsRef.current = true;
@@ -329,17 +364,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       };
 
       try {
-        const cachedCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY);
+        const cachedCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY);
         if (!cancelled && cachedCards && !userModifiedCardsRef.current) {
-          const normalized = normalizeCards(cachedCards);
+          const normalized = normalizeCards(parseHomepageCardsContent(cachedCards));
           if (!cardsMatch(normalized, cardsRef.current)) {
             setCards(normalized);
           }
         }
 
-        const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+        const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
         if (!cancelled && remoteCards && !userModifiedCardsRef.current) {
-          const normalized = normalizeCards(remoteCards);
+          const normalized = normalizeCards(parseHomepageCardsContent(remoteCards));
           if (!cardsMatch(normalized, cardsRef.current)) {
             setCards(normalized);
           }
@@ -353,13 +388,18 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       if (cancelled) return;
 
       try {
-        const [remoteHero, remoteAnnouncements] = await Promise.all([
+        const [remoteHero, remoteAnnouncements, remoteLayout] = await Promise.all([
           getContent<string>(instance, HERO_CONTENT_KEY),
-          getContent<Announcement[]>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+          getContent<unknown>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+          getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
         ]);
         if (cancelled) return;
         if (remoteHero) setHeroImageUrl(remoteHero);
-        if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+        if (remoteAnnouncements) {
+          const parsed = parseAnnouncementsContent(remoteAnnouncements);
+          if (parsed.length) setAnnouncements(parsed);
+        }
+        if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
       } catch (err) {
         console.error('[HomePage] failed to load hero/announcements:', err);
       }
@@ -377,9 +417,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const syncCardsFromSharePoint = async () => {
       if (editCardDraftRef.current) return;
       if (userModifiedCardsRef.current && Date.now() - lastLocalCardSaveRef.current < 120_000) return;
-      const remote = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      const remote = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (!remote) return;
-      const normalized = normalizeCards(remote);
+      const normalized = normalizeCards(parseHomepageCardsContent(remote));
       if (!cardsMatch(normalized, cardsRef.current)) {
         userModifiedCardsRef.current = false;
         setCards(normalized);
@@ -395,6 +435,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Card editing ──
   const openCardEdit = useCallback((card: CardContent) => {
+    editingCardOrderRef.current = card.order;
     setEditingCard(card);
     setEditCardDraft({ ...card, bullets: [...card.bullets] });
     setPendingImageFile(null);
@@ -409,6 +450,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const openNewCardEdit = useCallback(() => {
     const nextOrder = cards.length + 1;
+    editingCardOrderRef.current = nextOrder;
     const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
     const nextImageIndex = ((cards.length % totalFallbacks) + 1);
     setEditingCard(null);
@@ -500,7 +542,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setUploadingImage(false);
     }
 
-    const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
+    const updated = buildCardsWithDraft(
+      stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
+      cardsRef.current,
+      isNewCardRef.current
+    );
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
       return;
     }
@@ -525,7 +571,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setSavingCard(false);
       setUploadingImage(false);
     }
-  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint]);
+  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint, userInfo.email]);
 
   const scheduleCardAutosave = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
@@ -554,14 +600,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     };
   }, [editCardDraft, pendingImageFile, canEdit, scheduleCardAutosave]);
 
-  const closeCardEdit = useCallback(async () => {
+  const resetCardEditState = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
       window.clearTimeout(cardAutosaveTimerRef.current);
       cardAutosaveTimerRef.current = null;
     }
-    if (editCardDraftRef.current && canEdit) {
-      await flushCardDraftSave();
-    }
+    editingCardOrderRef.current = null;
     setEditingCard(null);
     setEditCardDraft(null);
     editCardDraftRef.current = null;
@@ -573,28 +617,56 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setLinkInsertUrl('');
     setLinkInsertLabel('');
     setLinkInsertSuffix('');
-  }, [canEdit, flushCardDraftSave]);
+  }, []);
+
+  const closeCardEdit = useCallback(async () => {
+    if (editCardDraftRef.current && canEdit) {
+      await flushCardDraftSave();
+    }
+    resetCardEditState();
+  }, [canEdit, flushCardDraftSave, resetCardEditState]);
 
   const deleteCardByOrder = async (order: number) => {
     if (!window.confirm('Delete this card?')) return;
+
+    if (cardAutosaveTimerRef.current) {
+      window.clearTimeout(cardAutosaveTimerRef.current);
+      cardAutosaveTimerRef.current = null;
+    }
+    skipNextAutosaveRef.current = true;
+    editCardDraftRef.current = null;
+
     setSavingCard(true);
-    const updated = renumberCards(cardsRef.current.filter((c) => c.order !== order));
+    const updated = renumberCards(
+      sortCardsByOrder(cardsRef.current).filter((c) => c.order !== order)
+    );
+    cardsRef.current = updated;
     const ok = await persistCardsToSharePoint(updated);
     if (!ok) {
-      const remoteCards = await getContent<CardContent[]>(instance, CARDS_CONTENT_KEY, CARD_POLL);
-      if (remoteCards) setCards(normalizeCards(remoteCards));
+      const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
+      if (remoteCards) setCards(normalizeCards(parseHomepageCardsContent(remoteCards)));
     }
     setSavingCard(false);
-    closeCardEdit();
+    resetCardEditState();
   };
 
   const deleteCard = async () => {
-    if (!editCardDraft) return;
-    await deleteCardByOrder(editCardDraft.order);
+    const order = editingCardOrderRef.current;
+    if (!order) return;
+    await deleteCardByOrder(order);
   };
 
   const addCard = () => {
     openNewCardEdit();
+  };
+
+  const changeCardsPerRow = async (next: HomepageCardsPerRow) => {
+    if (next === cardsPerRow || savingLayout) return;
+    setSavingLayout(true);
+    const layout: HomepageLayout = { cardsPerRow: next };
+    const ok = await setContent(instance, HOMEPAGE_LAYOUT_CONTENT_KEY, layout);
+    if (ok) setCardsPerRow(next);
+    setSavingLayout(false);
   };
 
   // ── Card reordering ──
@@ -645,14 +717,26 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setEditAnnouncementDraft({ ...ann });
   }, []);
 
+  const persistAnnouncements = useCallback(async (updated: Announcement[]) => {
+    const file = buildAnnouncementsContentFile(
+      updated,
+      userInfo.email,
+      getCachedContent(ANNOUNCEMENTS_CONTENT_KEY)
+    );
+    const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
+    if (ok) setAnnouncements(updated);
+    return ok;
+  }, [instance, userInfo.email]);
+
   const saveAnnouncement = async () => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
-    const updated = announcements.some(a => a.id === editAnnouncementDraft.id)
-      ? announcements.map(a => a.id === editAnnouncementDraft.id ? editAnnouncementDraft : a)
-      : [...announcements, editAnnouncementDraft];
-    const ok = await setContent(instance, 'announcements', updated);
-    if (ok) setAnnouncements(updated);
+    const isNew = !announcements.some((a) => a.id === editAnnouncementDraft.id);
+    const stamped = stampAnnouncementEditor(editAnnouncementDraft, userInfo.email, isNew);
+    const updated = isNew
+      ? [...announcements, stamped]
+      : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
+    await persistAnnouncements(updated);
     setSavingAnnouncement(false);
     setEditingAnnouncement(null);
   };
@@ -661,10 +745,28 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
     const updated = announcements.filter(a => a.id !== editAnnouncementDraft.id);
-    const ok = await setContent(instance, 'announcements', updated);
-    if (ok) setAnnouncements(updated);
+    await persistAnnouncements(updated);
     setSavingAnnouncement(false);
     setEditingAnnouncement(null);
+  };
+
+  const makeAnnouncementVisible = async (ann: Announcement) => {
+    setSavingAnnouncement(true);
+    const updated = announcements.map(a =>
+      a.id === ann.id
+        ? stampAnnouncementEditor({ ...a, isActive: true }, userInfo.email, false)
+        : a
+    );
+    await persistAnnouncements(updated);
+    setSavingAnnouncement(false);
+  };
+
+  const deleteAnnouncementById = async (ann: Announcement) => {
+    if (!window.confirm(`Delete "${ann.title}"?`)) return;
+    setSavingAnnouncement(true);
+    const updated = announcements.filter(a => a.id !== ann.id);
+    await persistAnnouncements(updated);
+    setSavingAnnouncement(false);
   };
 
   const addAnnouncement = () => {
@@ -678,9 +780,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     openAnnouncementEdit(newAnn);
   };
 
-  const activeAnnouncements = announcements
-    .filter(a => a.isActive)
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const sortAnnouncementsByDate = (list: Announcement[]) =>
+    [...list].sort((a, b) => b.date.localeCompare(a.date));
+
+  const activeAnnouncements = sortAnnouncementsByDate(announcements.filter(a => a.isActive));
+  const inactiveAnnouncements = sortAnnouncementsByDate(announcements.filter(a => !a.isActive));
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
 
   // ── Hero editing ──
@@ -695,13 +799,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   };
 
   // ── Render helpers ──
-  const cardClass = (index: number) => {
-    // if (isTvLayout) {
-    //   return index % 2 === 0 ? 'card odd-card' : 'card even-card';
-    // }
-    if (index === 0) return 'card odd-card';
-    const block = Math.floor((index - 1) / 2);
-    return block % 2 === 0 ? 'card even-card' : 'card odd-card';
+  const cardClass = (index: number, columnsPerRow: HomepageCardsPerRow): string => {
+    const base = 'card';
+    if (columnsPerRow === 2) {
+      if (index === 0) return `${base} odd-card`;
+      const block = Math.floor((index - 1) / 2);
+      return block % 2 === 0 ? `${base} even-card` : `${base} odd-card`;
+    }
+    if (columnsPerRow === 4) {
+      return isOddCardFor4Columns(index) ? `${base} odd-card` : `${base} even-card`;
+    }
+    return index % 2 === 0 ? `${base} odd-card` : `${base} even-card`;
   };
 
   const renderCardImage = (card: CardContent, index: number) => {
@@ -768,7 +876,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </section>
 
               {/* ── Announcements ── */}
-              {(activeAnnouncements.length > 0 || canEdit) && (
+              {(activeAnnouncements.length > 0 || (canEdit && inactiveAnnouncements.length > 0) || canEdit) && (
                 <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
@@ -808,11 +916,81 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       {announcementsExpanded ? '▲ Show fewer' : `▼ Show all ${activeAnnouncements.length} announcements`}
                     </button>
                   )}
+
+                  {canEdit && inactiveAnnouncements.length > 0 && (
+                    <div className="home-announcements-inactive">
+                      <h3 className="home-announcements-inactive-heading">
+                        Hidden announcements ({inactiveAnnouncements.length})
+                      </h3>
+                      {inactiveAnnouncements.map(ann => (
+                        <div key={ann.id} className="announcement-inactive-item editable-wrapper">
+                          <div className="announcement-inactive-content">
+                            <span className="announcement-inactive-badge">Inactive</span>
+                            <div className="announcement-inactive-title">{ann.title}</div>
+                            <div className="announcement-inactive-body">{ann.content}</div>
+                            <div className="announcement-inactive-date">
+                              {formatAnnouncementDate(ann.date)}
+                            </div>
+                          </div>
+                          <div className="announcement-inactive-actions">
+                            <button
+                              type="button"
+                              className="edit-row-btn"
+                              onClick={() => { void makeAnnouncementVisible(ann); }}
+                              disabled={savingAnnouncement}
+                            >
+                              Make visible
+                            </button>
+                            <button
+                              type="button"
+                              className="edit-row-btn announcement-delete-btn"
+                              onClick={() => { void deleteAnnouncementById(ann); }}
+                              disabled={savingAnnouncement}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="edit-pencil-btn"
+                            onClick={() => openAnnouncementEdit(ann)}
+                          >
+                            ✏ Edit
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* ── Cards Grid ── */}
-              <div className="grid-layout home-grid-layout">
+              {canEdit && contentLoaded && (
+                <div className="home-layout-controls">
+                  <span className="home-layout-controls-label">Cards per row</span>
+                  <div className="edit-segment-group" role="group" aria-label="Cards per row">
+                    {CARDS_PER_ROW_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`edit-segment-btn${cardsPerRow === option ? ' active' : ''}`}
+                        onClick={() => { void changeCardsPerRow(option); }}
+                        disabled={savingLayout}
+                        aria-pressed={cardsPerRow === option}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div
+                className="grid-layout home-grid-layout"
+                style={{
+                  '--home-cards-per-row': cardsPerRow,
+                  gridTemplateColumns: `repeat(${cardsPerRow}, minmax(0, 1fr))`,
+                } as React.CSSProperties}
+              >
                 {cardsLoading ? (
                   <div className="home-cards-loading" role="status" aria-label="Loading cards">
                     <div className="app-loading-spinner" aria-hidden="true" />
@@ -822,7 +1000,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   <div
                     key={`card-${card.order}-${card.title}`}
                     className={[
-                      cardClass(index),
+                      cardClass(index, cardsPerRow),
                       'editable-wrapper',
                       canEdit ? 'card-reorderable' : '',
                       draggingCardIdx === index ? 'card-dragging' : '',

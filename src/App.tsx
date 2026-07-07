@@ -6,7 +6,8 @@ import Header from './components/Header';
 import AlertBanner from './components/AlertBanner';
 import Ticker from './components/Ticker';
 import HomePage from './components/HomePage';
-import ITPage from './components/ITPage';
+// import DepartmentPage from './components/DepartmentPage';
+// import { DEPARTMENTS } from './config/departments';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
@@ -450,7 +451,15 @@ const App: React.FC = () => {
                     <>
                       <Route path="/directory" element={<EmployeeDirectory />} />
                       <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-                      <Route path="/technology" element={<ITPage userInfo={userInfo} />} />
+                      {/* Department page routes disabled — restore when pages are ready
+                      {DEPARTMENTS.map((department) => (
+                        <Route
+                          key={department.path}
+                          path={department.path}
+                          element={<DepartmentPage userInfo={userInfo} department={department} />}
+                        />
+                      ))}
+                      */}
                     </>
                   )}
                 </Routes>

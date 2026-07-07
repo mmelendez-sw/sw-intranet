@@ -13,8 +13,14 @@ import {
   DEFAULT_SIDEBAR,
   DEFAULT_QUICK_LINKS,
   DEFAULT_SITE_CONFIG,
+  getCachedContent,
+  parseSidebarContent,
+  buildSidebarContentFile,
+  stampSidebarSectionEditor,
 } from '../services/contentService';
 import '../../styles/edit-mode.css';
+
+const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 
 interface IntranetSidebarProps {
   userInfo: UserInfo;
@@ -197,13 +203,13 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     if (!userInfo.isAuthenticated) return;
     (async () => {
       const [remoteSections, remoteLinks, remoteConfig, remoteLayout] = await Promise.all([
-        getContent<SidebarSection[]>(instance, 'homepage-sidebar'),
+        getContent<unknown>(instance, SIDEBAR_CONTENT_KEY),
         getContent<QuickLink[]>(instance, 'quick-links'),
         getContent<SiteConfig>(instance, 'site-config'),
         getContent<SidebarLayout>(instance, 'sidebar-layout'),
       ]);
-      const sectionsData = remoteSections ?? [];
-      if (remoteSections) setSections(remoteSections);
+      const sectionsData = remoteSections ? parseSidebarContent(remoteSections) : [];
+      if (sectionsData.length) setSections(sectionsData);
       if (remoteLinks) setQuickLinks(remoteLinks);
       if (remoteConfig) setSiteConfig(remoteConfig);
       setBlocks(syncSidebarLayout(remoteLayout?.blocks, sectionsData));
@@ -252,6 +258,13 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     await setContent(instance, 'sidebar-layout', { blocks: newBlocks });
   };
 
+  const persistSidebarSections = async (updated: SidebarSection[]) => {
+    const file = buildSidebarContentFile(updated, userInfo.email, getCachedContent(SIDEBAR_CONTENT_KEY));
+    const ok = await setContent(instance, SIDEBAR_CONTENT_KEY, file);
+    if (ok) setSections(updated);
+    return ok;
+  };
+
   const saveSection = async () => {
     if (!editSectionDraft) return;
     const validationError = getSectionValidationError(editSectionDraft);
@@ -260,20 +273,22 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       return;
     }
     setSavingSection(true);
-    const updated = sections.map(s => s.key === editSectionDraft.key ? editSectionDraft : s);
-    const ok = await setContent(instance, 'homepage-sidebar', updated);
-    if (ok) setSections(updated);
+    const isNewSection = !sections.some((s) => s.key === editSectionDraft.key);
+    const stamped = stampSidebarSectionEditor(editSectionDraft, userInfo.email, isNewSection);
+    const updated = isNewSection
+      ? [...sections, stamped]
+      : sections.map((s) => (s.key === editSectionDraft.key ? stamped : s));
+    const ok = await persistSidebarSections(updated);
     setSavingSection(false);
-    closeSectionEdit();
+    if (ok) closeSectionEdit();
   };
 
   const deleteSection = async () => {
     if (!editSectionDraft) return;
     setSavingSection(true);
     const updated = sections.filter(s => s.key !== editSectionDraft.key);
-    const ok = await setContent(instance, 'homepage-sidebar', updated);
+    const ok = await persistSidebarSections(updated);
     if (ok) {
-      setSections(updated);
       await persistSidebarLayout(blocks.filter(b => b.type !== 'section' || b.key !== editSectionDraft.key));
     }
     setSavingSection(false);
@@ -287,17 +302,17 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       title: 'New Section',
       content: 'Add your content here.',
     };
-    const updated = [...sections, newSection];
-    const newBlock: SidebarLayoutBlock = { type: 'section', key: newSection.key };
+    const stamped = stampSidebarSectionEditor(newSection, userInfo.email, true);
+    const updated = [...sections, stamped];
+    const newBlock: SidebarLayoutBlock = { type: 'section', key: stamped.key };
     const quickLinksIdx = blocks.findIndex(b => b.type === 'quick-links');
     const newBlocks = quickLinksIdx >= 0
       ? [...blocks.slice(0, quickLinksIdx), newBlock, ...blocks.slice(quickLinksIdx)]
       : [...blocks, newBlock];
-    const ok = await setContent(instance, 'homepage-sidebar', updated);
+    const ok = await persistSidebarSections(updated);
     if (ok) {
-      setSections(updated);
       await persistSidebarLayout(newBlocks);
-      openSectionEdit(newSection);
+      openSectionEdit(stamped);
     }
   };
 
@@ -415,7 +430,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               className="home-button"
               onClick={() => window.open(`mailto:${siteConfig.supportEmail}`, '_self')}
             >
-              Report Technology Issue
+              Report IT Issue
             </button>
           ) : (
             canEdit && (
@@ -678,7 +693,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           isSaving={savingConfig}
         >
           <div className="edit-field-group">
-            <label>Support Email ("Report Technology Issue" button)</label>
+            <label>Support Email ("Report IT Issue" button)</label>
             <input
               type="email"
               value={configDraft.supportEmail}
