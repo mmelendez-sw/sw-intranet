@@ -662,3 +662,16 @@ button.ticker-edit-btn:hover,
   height: 16px;
   cursor: pointer;
 }
+
+/* Editor metadata display (disabled — enable with contentService editor tracking)
+.content-editor-meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.content-editor-meta span + span::before {
+  content: ' · ';
+}
+*/

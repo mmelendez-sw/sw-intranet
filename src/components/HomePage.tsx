@@ -876,6 +876,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
                             {formatAnnouncementDate(ann.date)}
                           </div>
+                          {/* Editor metadata (disabled — enable with contentService editor tracking)
+                          {canEdit && ann.editedBy && (
+                            <div className="content-editor-meta">
+                              {ann.createdBy && <span>Created by {ann.createdBy}</span>}
+                              {ann.editedBy && <span>Last edited by {ann.editedBy}</span>}
+                            </div>
+                          )}
+                          */}
                         </div>
                       </div>
                       {canEdit && (
@@ -970,6 +978,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
                         ))}
                       </ul>
+                      {/* Editor metadata (disabled — enable with contentService editor tracking)
+                      {canEdit && card.editedBy && (
+                        <div className="content-editor-meta">
+                          {card.createdBy && <span>Created by {card.createdBy}</span>}
+                          {card.editedBy && <span>Last edited by {card.editedBy}</span>}
+                        </div>
+                      )}
+                      */}
                     </div>
                     {canEdit && contentLoaded && (
                       <div className="card-reorder-row">
@@ -1155,6 +1171,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </button>
               </span>
             )}
+            {/* Editor metadata (disabled — enable with contentService editor tracking)
+            {(editCardDraft.createdBy || editCardDraft.editedBy) && (
+              <div className="content-editor-meta" style={{ marginTop: 12 }}>
+                {editCardDraft.createdBy && <span>Created by {editCardDraft.createdBy}</span>}
+                {editCardDraft.editedBy && <span>Last edited by {editCardDraft.editedBy}</span>}
+              </div>
+            )}
+            */}
           </div>
         </EditModal>
       )}
@@ -1188,6 +1212,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, isActive: e.target.checked })} />
             <label htmlFor="ann-active">Active (visible to all users)</label>
           </div>
+          {/* Editor metadata (disabled — enable with contentService editor tracking)
+          {(editAnnouncementDraft.createdBy || editAnnouncementDraft.editedBy) && (
+            <div className="content-editor-meta" style={{ marginTop: 12 }}>
+              {editAnnouncementDraft.createdBy && <span>Created by {editAnnouncementDraft.createdBy}</span>}
+              {editAnnouncementDraft.editedBy && <span>Last edited by {editAnnouncementDraft.editedBy}</span>}
+            </div>
+          )}
+          */}
         </EditModal>
       )}
 

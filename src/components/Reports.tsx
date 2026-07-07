@@ -341,7 +341,17 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
                         <button className="report-button" disabled>{report.title}</button>
                       )}
                     </td>
-                    <td className="report-description-cell">{report.description}</td>
+                    <td className="report-description-cell">
+                      {report.description}
+                      {/* Editor metadata (disabled — enable with contentService editor tracking)
+                      {canEdit && report.editedBy && (
+                        <div className="content-editor-meta">
+                          {report.createdBy && <span>Created by {report.createdBy}</span>}
+                          {report.editedBy && <span>Last edited by {report.editedBy}</span>}
+                        </div>
+                      )}
+                      */}
+                    </td>
                     {canEdit && (
                       <td>
                         <div className="report-reorder-actions">
@@ -440,6 +450,14 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
             />
             <span className="edit-field-hint">Comma-separated. These users will not see this report.</span>
           </div>
+          {/* Editor metadata (disabled — enable with contentService editor tracking)
+          {(editDraft.createdBy || editDraft.editedBy) && (
+            <div className="content-editor-meta" style={{ marginTop: 12 }}>
+              {editDraft.createdBy && <span>Created by {editDraft.createdBy}</span>}
+              {editDraft.editedBy && <span>Last edited by {editDraft.editedBy}</span>}
+            </div>
+          )}
+          */}
           {/* <div className="edit-field-group">
             <label>Display Order</label>
             <input

@@ -475,6 +475,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                     {section.buttonLabel}
                   </button>
                 )}
+                {/* Editor metadata (disabled — enable with contentService editor tracking)
+                {canEdit && section.editedBy && (
+                  <div className="content-editor-meta">
+                    {section.createdBy && <span>Created by {section.createdBy}</span>}
+                    {section.editedBy && <span>Last edited by {section.editedBy}</span>}
+                  </div>
+                )}
+                */}
                 {canEdit && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                     {renderBlockReorder(blockIdx)}
@@ -654,6 +662,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               onChange={e => setEditSectionDraft({ ...editSectionDraft, buttonUrl: e.target.value })}
             />
           </div>
+          {/* Editor metadata (disabled — enable with contentService editor tracking)
+          {(editSectionDraft.createdBy || editSectionDraft.editedBy) && (
+            <div className="content-editor-meta" style={{ marginTop: 12 }}>
+              {editSectionDraft.createdBy && <span>Created by {editSectionDraft.createdBy}</span>}
+              {editSectionDraft.editedBy && <span>Last edited by {editSectionDraft.editedBy}</span>}
+            </div>
+          )}
+          */}
         </EditModal>
         );
       })()}
