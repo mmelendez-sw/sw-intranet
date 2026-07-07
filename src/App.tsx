@@ -79,6 +79,21 @@ const App: React.FC = () => {
           email: email,
           name: account.name,
         });
+
+        // Recover from a stale editor_status=false cache (e.g. transient Graph errors).
+        const hasCachedEditorFalse =
+          cachedEditorStatus && editorCacheValid && cachedEditorStatus === 'false';
+        if (hasCachedEditorFalse && !isEditor) {
+          void isEditorGroupMember(instance)
+            .then((isMember) => {
+              const verified = resolveIsEditor(isMember, email);
+              if (!verified) return;
+              localStorage.setItem(`editor_status_${email}`, 'true');
+              localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
+              setUserInfo((prev) => (prev.isEditor ? prev : { ...prev, isEditor: true }));
+            })
+            .catch(() => {});
+        }
       } else {
         console.log('🔍 Cache invalid or missing, checking group membership...');
 
@@ -122,14 +137,14 @@ const App: React.FC = () => {
               const delay = retryDelays[retryCount - 1] || 8000;
               await new Promise(resolve => setTimeout(resolve, delay));
             } else {
+              // Cache elite failure only — do not cache editor=false on transient errors,
+              // or editors lose the dropdown Edit toggle until the 24h cache expires.
               localStorage.setItem(`elite_status_${email}`, 'false');
               localStorage.setItem(`elite_status_timestamp_${email}`, Date.now().toString());
-              localStorage.setItem(`editor_status_${email}`, 'false');
-              localStorage.setItem(`editor_status_timestamp_${email}`, Date.now().toString());
               setUserInfo(prev => ({
                 ...prev,
                 isEliteGroup: false,
-                isEditor: resolveIsEditor(false, email),
+                isEditor: resolveIsEditor(false, email) || prev.isEditor,
               }));
             }
           }
@@ -208,20 +223,16 @@ const App: React.FC = () => {
         const cachedTimestamp = localStorage.getItem(`elite_status_timestamp_${email}`);
         const cacheValid = cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < (24 * 60 * 60 * 1000);
         
-        const cachedEditorStatus2 = localStorage.getItem(`editor_status_${email}`);
-        const cachedEditorTimestamp2 = localStorage.getItem(`editor_status_timestamp_${email}`);
-        const editorCacheValid2 = cachedEditorTimestamp2 && (Date.now() - parseInt(cachedEditorTimestamp2)) < (24 * 60 * 60 * 1000);
-        const cachedIsEditor = cachedEditorStatus2 && editorCacheValid2 ? cachedEditorStatus2 === 'true' : false;
-
         if (cachedEliteStatus && cacheValid) {
           const isElite = cachedEliteStatus === 'true';
           console.log('🔍 Initial elite check from cache:', isElite);
 
+          // Editor status is resolved in checkAuthentication — do not overwrite it here
+          // with a raw cache read, which can clear editor access after refresh.
           setUserInfo(prev => ({
             ...prev,
             isAuthenticated: true,
             isEliteGroup: isElite,
-            isEditor: cachedIsEditor,
             email: email,
             name: account.name,
           }));
