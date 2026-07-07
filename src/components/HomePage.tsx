@@ -718,6 +718,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setEditAnnouncementDraft({ ...ann });
   }, []);
 
+  const persistAnnouncements = useCallback(async (updated: Announcement[]) => {
+    const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, updated);
+    if (ok) setAnnouncements(updated);
+    return ok;
+  }, [instance]);
+
   const saveAnnouncement = async () => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
@@ -730,9 +736,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     //   ? [...announcements, stamped]
     //   : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
     // const file = buildAnnouncementsContentFile(updated, userInfo.email, getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
-    // const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
-    const ok = await setContent(instance, 'announcements', updated);
-    if (ok) setAnnouncements(updated);
+    await persistAnnouncements(updated);
     setSavingAnnouncement(false);
     setEditingAnnouncement(null);
   };
@@ -741,10 +745,26 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
     const updated = announcements.filter(a => a.id !== editAnnouncementDraft.id);
-    const ok = await setContent(instance, 'announcements', updated);
-    if (ok) setAnnouncements(updated);
+    await persistAnnouncements(updated);
     setSavingAnnouncement(false);
     setEditingAnnouncement(null);
+  };
+
+  const makeAnnouncementVisible = async (ann: Announcement) => {
+    setSavingAnnouncement(true);
+    const updated = announcements.map(a =>
+      a.id === ann.id ? { ...a, isActive: true } : a
+    );
+    await persistAnnouncements(updated);
+    setSavingAnnouncement(false);
+  };
+
+  const deleteAnnouncementById = async (ann: Announcement) => {
+    if (!window.confirm(`Delete "${ann.title}"?`)) return;
+    setSavingAnnouncement(true);
+    const updated = announcements.filter(a => a.id !== ann.id);
+    await persistAnnouncements(updated);
+    setSavingAnnouncement(false);
   };
 
   const addAnnouncement = () => {
@@ -758,9 +778,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     openAnnouncementEdit(newAnn);
   };
 
-  const activeAnnouncements = announcements
-    .filter(a => a.isActive)
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const sortAnnouncementsByDate = (list: Announcement[]) =>
+    [...list].sort((a, b) => b.date.localeCompare(a.date));
+
+  const activeAnnouncements = sortAnnouncementsByDate(announcements.filter(a => a.isActive));
+  const inactiveAnnouncements = sortAnnouncementsByDate(announcements.filter(a => !a.isActive));
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
 
   // ── Hero editing ──
@@ -852,7 +874,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               </section>
 
               {/* ── Announcements ── */}
-              {(activeAnnouncements.length > 0 || canEdit) && (
+              {(activeAnnouncements.length > 0 || (canEdit && inactiveAnnouncements.length > 0) || canEdit) && (
                 <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
@@ -899,6 +921,51 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                     >
                       {announcementsExpanded ? '▲ Show fewer' : `▼ Show all ${activeAnnouncements.length} announcements`}
                     </button>
+                  )}
+
+                  {canEdit && inactiveAnnouncements.length > 0 && (
+                    <div className="home-announcements-inactive">
+                      <h3 className="home-announcements-inactive-heading">
+                        Hidden announcements ({inactiveAnnouncements.length})
+                      </h3>
+                      {inactiveAnnouncements.map(ann => (
+                        <div key={ann.id} className="announcement-inactive-item editable-wrapper">
+                          <div className="announcement-inactive-content">
+                            <span className="announcement-inactive-badge">Inactive</span>
+                            <div className="announcement-inactive-title">{ann.title}</div>
+                            <div className="announcement-inactive-body">{ann.content}</div>
+                            <div className="announcement-inactive-date">
+                              {formatAnnouncementDate(ann.date)}
+                            </div>
+                          </div>
+                          <div className="announcement-inactive-actions">
+                            <button
+                              type="button"
+                              className="edit-row-btn"
+                              onClick={() => { void makeAnnouncementVisible(ann); }}
+                              disabled={savingAnnouncement}
+                            >
+                              Make visible
+                            </button>
+                            <button
+                              type="button"
+                              className="edit-row-btn announcement-delete-btn"
+                              onClick={() => { void deleteAnnouncementById(ann); }}
+                              disabled={savingAnnouncement}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="edit-pencil-btn"
+                            onClick={() => openAnnouncementEdit(ann)}
+                          >
+                            ✏ Edit
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
