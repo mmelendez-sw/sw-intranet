@@ -215,17 +215,20 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           role="menu"
           style={departmentsMenuStyle}
         >
+          {/*
+            Department navigation disabled — restore Link when pages are ready:
+            <Link to={item.path} className="nav-dropdown-item" role="menuitem" onClick={closeDepartments}>…</Link>
+          */}
           {DEPARTMENTS.map((item) => (
-            <Link
+            <span
               key={item.path}
-              to={item.path}
-              className="nav-dropdown-item"
+              className="nav-dropdown-item nav-dropdown-item-disabled"
               role="menuitem"
-              onClick={closeDepartments}
+              aria-disabled="true"
             >
               <i className={item.icon} aria-hidden="true" />
               {item.label}
-            </Link>
+            </span>
           ))}
         </div>
       ),

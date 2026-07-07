@@ -136,6 +136,17 @@
     color: #ffffff;
 }
 
+.nav-dropdown-item-disabled {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.nav-dropdown-menu .nav-dropdown-item-disabled:hover,
+.nav-bar .nav-dropdown-menu .nav-dropdown-item-disabled:hover {
+    background-color: transparent;
+    color: #ffffff;
+}
+
 /* User Section */
 .user {
     display: flex;
