@@ -22,10 +22,11 @@ import {
   HomepageCardsPerRow,
   normalizeHomepageLayout,
   parseHomepageCardsContent,
-  // Editor email tracking (disabled):
-  // parseAnnouncementsContent,
-  // buildAnnouncementsContentFile,
-  // stampAnnouncementEditor,
+  parseAnnouncementsContent,
+  buildHomepageCardsFile,
+  buildAnnouncementsContentFile,
+  stampCardEditor,
+  stampAnnouncementEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
@@ -202,11 +203,10 @@ const DEFAULT_LINK_LABEL = 'CLICK HERE';
 
 const CARDS_PER_ROW_OPTIONS: HomepageCardsPerRow[] = [2, 3, 4, 5];
 
-/*
- * Editor email tracking (disabled) — see contentService.ts commented block.
- * Homepage cards: buildHomepageCardsFile + stampCardEditor in persistCardsToSharePoint
- * Announcements: buildAnnouncementsContentFile + stampAnnouncementEditor in saveAnnouncement
- */
+const getInitialAnnouncements = (): Announcement[] => {
+  const parsed = parseAnnouncementsContent(getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
+  return parsed.length ? parsed : DEFAULT_ANNOUNCEMENTS;
+};
 
 /** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
 const isOddCardFor4Columns = (index: number): boolean => {
@@ -249,9 +249,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [cardsLoading, setCardsLoading] = useState(
     () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
   );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(
-    () => getCachedContent<Announcement[]>(ANNOUNCEMENTS_CONTENT_KEY) ?? DEFAULT_ANNOUNCEMENTS
-  );
+  const [announcements, setAnnouncements] = useState<Announcement[]>(getInitialAnnouncements);
   const [heroImageUrl, setHeroImageUrl] = useState(
     () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
   );
@@ -312,9 +310,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
-    // const file = buildHomepageCardsFile(sanitized, userInfo.email, getCachedContent(CARDS_CONTENT_KEY));
-    // const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
-    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, sanitized);
+    const file = buildHomepageCardsFile(sanitized, userInfo.email, getCachedContent(CARDS_CONTENT_KEY));
+    const result = await setContentDetailed(instance, CARDS_CONTENT_KEY, file);
     if (result.ok) {
       setCards(sanitized);
       lastLocalCardSaveRef.current = Date.now();
@@ -324,7 +321,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     }
     setCardSaveStatus('error');
     return false;
-  }, [instance]);
+  }, [instance, userInfo.email]);
 
   const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
     userModifiedCardsRef.current = true;
@@ -393,12 +390,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       try {
         const [remoteHero, remoteAnnouncements, remoteLayout] = await Promise.all([
           getContent<string>(instance, HERO_CONTENT_KEY),
-          getContent<Announcement[]>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+          getContent<unknown>(instance, ANNOUNCEMENTS_CONTENT_KEY),
           getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
         ]);
         if (cancelled) return;
         if (remoteHero) setHeroImageUrl(remoteHero);
-        if (remoteAnnouncements) setAnnouncements(remoteAnnouncements);
+        if (remoteAnnouncements) {
+          const parsed = parseAnnouncementsContent(remoteAnnouncements);
+          if (parsed.length) setAnnouncements(parsed);
+        }
         if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
       } catch (err) {
         console.error('[HomePage] failed to load hero/announcements:', err);
@@ -542,12 +542,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setUploadingImage(false);
     }
 
-    const updated = buildCardsWithDraft(finalDraft, cardsRef.current, isNewCardRef.current);
-    // const updated = buildCardsWithDraft(
-    //   stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
-    //   cardsRef.current,
-    //   isNewCardRef.current
-    // );
+    const updated = buildCardsWithDraft(
+      stampCardEditor(finalDraft, userInfo.email, isNewCardRef.current),
+      cardsRef.current,
+      isNewCardRef.current
+    );
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
       return;
     }
@@ -572,7 +571,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       setSavingCard(false);
       setUploadingImage(false);
     }
-  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint]);
+  }, [buildCardsWithDraft, canEdit, instance, persistCardsToSharePoint, userInfo.email]);
 
   const scheduleCardAutosave = useCallback(() => {
     if (cardAutosaveTimerRef.current) {
@@ -719,23 +718,24 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   }, []);
 
   const persistAnnouncements = useCallback(async (updated: Announcement[]) => {
-    const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, updated);
+    const file = buildAnnouncementsContentFile(
+      updated,
+      userInfo.email,
+      getCachedContent(ANNOUNCEMENTS_CONTENT_KEY)
+    );
+    const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
     if (ok) setAnnouncements(updated);
     return ok;
-  }, [instance]);
+  }, [instance, userInfo.email]);
 
   const saveAnnouncement = async () => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
-    const updated = announcements.some(a => a.id === editAnnouncementDraft.id)
-      ? announcements.map(a => a.id === editAnnouncementDraft.id ? editAnnouncementDraft : a)
-      : [...announcements, editAnnouncementDraft];
-    // const isNew = !announcements.some((a) => a.id === editAnnouncementDraft.id);
-    // const stamped = stampAnnouncementEditor(editAnnouncementDraft, userInfo.email, isNew);
-    // const updated = isNew
-    //   ? [...announcements, stamped]
-    //   : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
-    // const file = buildAnnouncementsContentFile(updated, userInfo.email, getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
+    const isNew = !announcements.some((a) => a.id === editAnnouncementDraft.id);
+    const stamped = stampAnnouncementEditor(editAnnouncementDraft, userInfo.email, isNew);
+    const updated = isNew
+      ? [...announcements, stamped]
+      : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
     await persistAnnouncements(updated);
     setSavingAnnouncement(false);
     setEditingAnnouncement(null);
@@ -753,7 +753,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const makeAnnouncementVisible = async (ann: Announcement) => {
     setSavingAnnouncement(true);
     const updated = announcements.map(a =>
-      a.id === ann.id ? { ...a, isActive: true } : a
+      a.id === ann.id
+        ? stampAnnouncementEditor({ ...a, isActive: true }, userInfo.email, false)
+        : a
     );
     await persistAnnouncements(updated);
     setSavingAnnouncement(false);
@@ -898,14 +900,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
                             {formatAnnouncementDate(ann.date)}
                           </div>
-                          {/* Editor metadata (disabled — enable with contentService editor tracking)
-                          {canEdit && ann.editedBy && (
-                            <div className="content-editor-meta">
-                              {ann.createdBy && <span>Created by {ann.createdBy}</span>}
-                              {ann.editedBy && <span>Last edited by {ann.editedBy}</span>}
-                            </div>
-                          )}
-                          */}
                         </div>
                       </div>
                       {canEdit && (
@@ -1045,14 +1039,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
                         ))}
                       </ul>
-                      {/* Editor metadata (disabled — enable with contentService editor tracking)
-                      {canEdit && card.editedBy && (
-                        <div className="content-editor-meta">
-                          {card.createdBy && <span>Created by {card.createdBy}</span>}
-                          {card.editedBy && <span>Last edited by {card.editedBy}</span>}
-                        </div>
-                      )}
-                      */}
                     </div>
                     {canEdit && contentLoaded && (
                       <div className="card-reorder-row">
@@ -1238,14 +1224,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </button>
               </span>
             )}
-            {/* Editor metadata (disabled — enable with contentService editor tracking)
-            {(editCardDraft.createdBy || editCardDraft.editedBy) && (
-              <div className="content-editor-meta" style={{ marginTop: 12 }}>
-                {editCardDraft.createdBy && <span>Created by {editCardDraft.createdBy}</span>}
-                {editCardDraft.editedBy && <span>Last edited by {editCardDraft.editedBy}</span>}
-              </div>
-            )}
-            */}
           </div>
         </EditModal>
       )}
@@ -1279,14 +1257,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, isActive: e.target.checked })} />
             <label htmlFor="ann-active">Active (visible to all users)</label>
           </div>
-          {/* Editor metadata (disabled — enable with contentService editor tracking)
-          {(editAnnouncementDraft.createdBy || editAnnouncementDraft.editedBy) && (
-            <div className="content-editor-meta" style={{ marginTop: 12 }}>
-              {editAnnouncementDraft.createdBy && <span>Created by {editAnnouncementDraft.createdBy}</span>}
-              {editAnnouncementDraft.editedBy && <span>Last edited by {editAnnouncementDraft.editedBy}</span>}
-            </div>
-          )}
-          */}
         </EditModal>
       )}
 

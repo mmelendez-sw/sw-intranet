@@ -20,8 +20,9 @@
  *   homepage-sidebar.json, quick-links.json, site-config.json
  *   in Shared Documents/General/intranet
  *
- * Optional editor-email tracking (disabled in code) would wrap payloads as:
+ * Editor-email tracking: payloads are saved as:
  *   { "sections"|"reports"|"announcements"|"cards": [...], "editor@email": { "lastEditedAt": "..." } }
+ * Tracking is written to JSON only — not shown in the intranet UI.
  *
  * Sidebar block order (sections vs quick links) is stored as sidebar-layout.json
  *
@@ -133,15 +134,13 @@ export interface CardContent {
   imageUrl: string;
   /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
   imageIndex?: number;
-  // Editor email tracking (disabled — see commented block below)
-  // createdBy?: string;
-  // editedBy?: string;
+  createdBy?: string;
+  editedBy?: string;
 }
 
-/*
-// ─── Editor email tracking in JSON files (disabled) ──────────────────────────
+// ─── Editor email tracking in JSON files ─────────────────────────────────────
 //
-// When enabled, each file is saved as:
+// Each file is saved as:
 //   { "<payloadKey>": [ ...items ], "<editor@email>": { "lastEditedAt": "..." }, ... }
 // Each item may also include createdBy / editedBy fields.
 //
@@ -287,8 +286,6 @@ export function stampAnnouncementEditor(
   return stampEditorFields(announcement, editorEmail, isNew);
 }
 
-*/
-
 /** Read cards from a bare array or a wrapped { cards: [...] } file. */
 export function parseHomepageCardsContent(raw: unknown): CardContent[] {
   if (!raw) return [];
@@ -331,9 +328,8 @@ export interface SidebarSection {
   buttonUrl?: string;
   linkLabel?: string;
   linkUrl?: string;
-  // Editor email tracking (disabled — see commented block in contentService.ts)
-  // createdBy?: string;
-  // editedBy?: string;
+  createdBy?: string;
+  editedBy?: string;
 }
 
 export interface ReportItemContent {
@@ -343,9 +339,8 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
-  // Editor email tracking (disabled — see commented block in contentService.ts)
-  // createdBy?: string;
-  // editedBy?: string;
+  createdBy?: string;
+  editedBy?: string;
 }
 
 export interface DepartmentSectionContent {
@@ -456,9 +451,8 @@ export interface Announcement {
   /** ISO date string */
   date: string;
   isActive: boolean;
-  // Editor email tracking (disabled — see commented block in contentService.ts)
-  // createdBy?: string;
-  // editedBy?: string;
+  createdBy?: string;
+  editedBy?: string;
 }
 
 /** Read sidebar sections from a bare array or a wrapped { sections: [...] } file. */
