@@ -54,6 +54,7 @@ import {
   HOMEPAGE_LAYOUT_DATA_FILENAME,
   DEPARTMENTS_CONTENT_FOLDER_PATH,
 } from '../authConfig';
+import { acquireSharePointToken } from '../utils/msalToken';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
@@ -656,30 +657,7 @@ async function resolveContentJsonFieldName(siteId: string, listId: string, token
 
 async function getToken(msalInstance: any): Promise<string | null> {
   try {
-    const accounts = msalInstance.getAllAccounts();
-    if (!accounts.length) return null;
-
-    const tokenRequest = {
-      scopes: ['Sites.ReadWrite.All', 'Files.ReadWrite.All'],
-      account: accounts[0],
-    };
-
-    try {
-      const result = await msalInstance.acquireTokenSilent(tokenRequest);
-      return result.accessToken;
-    } catch (silentError) {
-      console.warn('[contentService] acquireTokenSilent failed, trying popup fallback', silentError);
-      if (typeof msalInstance.acquireTokenPopup === 'function') {
-        try {
-          const result = await msalInstance.acquireTokenPopup(tokenRequest);
-          return result.accessToken;
-        } catch (popupError) {
-          console.error('[contentService] acquireTokenPopup failed:', popupError);
-          return null;
-        }
-      }
-      return null;
-    }
+    return await acquireSharePointToken(msalInstance);
   } catch (err) {
     console.error('[contentService] getToken failed:', err);
     return null;

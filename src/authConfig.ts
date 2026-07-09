@@ -1,4 +1,5 @@
 import { UserInfo } from './types/user';
+import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
 export const BYPASS_AUTH = false;
@@ -94,26 +95,16 @@ const checkGroupMembership = async (msalInstance: any, groupId: string): Promise
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) return false;
 
-    const activeAccount = accounts[0];
-    const graphScopes = ["User.Read", "GroupMember.Read.All"];
+    const graphScopes = GRAPH_GROUP_SCOPES;
 
-    // Silent only: popup races with Lead Generation's Mail.Send popup.
-    let accessToken;
-    try {
-      accessToken = await msalInstance.acquireTokenSilent({
-        scopes: graphScopes,
-        account: activeAccount,
-      });
-    } catch {
-      return false;
-    }
-
-    if (!accessToken?.accessToken) return false;
+    // Silent only — interactive login is handled by the header Login button.
+    const accessToken = await acquireTokenSilentOnly(msalInstance, graphScopes);
+    if (!accessToken) return false;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     const graphHeaders = {
-      Authorization: `Bearer ${accessToken.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     };
 
