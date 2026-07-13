@@ -25,3 +25,7 @@ Thumbs.db
 
 # Environment variables
 .env
+server/.env
+
+# Server build output
+server/dist/

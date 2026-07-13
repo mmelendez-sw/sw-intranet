@@ -4,22 +4,24 @@
  * Standalone full-screen card display for office TV / kiosk screens.
  * No navigation, no sidebar, no authentication UI.
  *
- * Auth strategy
- * ─────────────
- * Attempts MSAL acquireTokenSilent using any cached account (works invisibly
- * on domain-joined Windows machines running Edge).  If no token is available,
- * falls back to the bundled DEFAULT_CARDS so the screen always shows something.
+ * Cards are loaded from homepage-cards.json via:
+ *   1. TV_CARDS_API_URL — client-credentials API (server/handler.ts) for kiosks
+ *   2. MSAL + direct Graph drive/item fetch (fallback)
  *
  * Content refresh: every 5 minutes automatically.
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useMsal } from '@azure/msal-react';
-import { loginRequest } from '../authConfig';
+import { loginRequest, TV_CARDS_API_URL } from '../authConfig';
 import {
   getContent,
+  fetchTvHomepageCardsFromApi,
+  fetchTvHomepageCardsRaw,
   DEFAULT_CARDS,
   parseHomepageCardsContent,
+  preloadSharePointImages,
+  isSharePointImageUrl,
   CardContent,
 } from '../services/contentService';
 import SharePointImage from './SharePointImage';
@@ -27,19 +29,32 @@ import SharePointImage from './SharePointImage';
 import '../../styles/tv-display.css';
 
 // ── Local fallback images (same as HomePage) ───────────────────────────────
-import img3  from '../../images/site_3.jpg';
-import img4  from '../../images/coat.jpg';
-import img7  from '../../images/mm2.jpg';
-import img9  from '../../images/vol.jpg';
+import img3 from '../../images/site_3.jpg';
+import img4 from '../../images/coat.jpg';
+import img7 from '../../images/mm2.jpg';
+import img9 from '../../images/vol.jpg';
 import img10 from '../../images/emp.jpg';
-import logo  from '../../images/sti-horizontal-white.png';
+import img11 from '../../images/wider_app.png';
+import logo from '../../images/sti-horizontal-white.png';
 
+/** Fallback local images indexed by card imageIndex (1-based), same as HomePage. */
 const LOCAL_IMAGES: Record<number, string> = {
   1: img9,
+  2: img11,
   3: img7,
   4: img4,
   5: img3,
   6: img10,
+};
+
+const normalizeTvCards = (remoteCards: CardContent[]): CardContent[] => {
+  const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+  return [...remoteCards]
+    .sort((a, b) => a.order - b.order)
+    .map((card, idx) => ({
+      ...card,
+      imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as CardContent['imageIndex']),
+    }));
 };
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -73,23 +88,43 @@ const TvDisplay: React.FC = () => {
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadCards = useCallback(async () => {
-    // Try silent auth first — works on domain-joined machines with no prompt
-    try {
-      const accounts = instance.getAllAccounts();
-      if (accounts.length > 0) {
-        await instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] });
-      }
-    } catch {
-      // Silent auth failed — content service will also fail and we'll use defaults
+    let remote: unknown = null;
+
+    // Prefer client-credentials API (kiosk / no user session)
+    if (TV_CARDS_API_URL) {
+      remote = await fetchTvHomepageCardsFromApi(TV_CARDS_API_URL);
     }
 
-    const remote = await getContent<unknown>(instance, 'homepage-cards');
+    if (!remote) {
+      try {
+        const accounts = instance.getAllAccounts();
+        if (accounts.length > 0) {
+          await instance.acquireTokenSilent({ ...loginRequest, account: accounts[0] });
+        }
+      } catch {
+        // Silent auth failed — try Graph drive fetch or defaults below
+      }
+
+      remote = await fetchTvHomepageCardsRaw(instance);
+      if (!remote) {
+        remote = await getContent<unknown>(instance, 'homepage-cards');
+      }
+    }
+
     const parsed = parseHomepageCardsContent(remote);
-    const sorted = [...(parsed.length ? parsed : DEFAULT_CARDS)].sort((a, b) => a.order - b.order);
+    const sorted = normalizeTvCards(parsed.length ? parsed : DEFAULT_CARDS);
     setCards(sorted);
     setLoading(false);
     setLastRefresh(new Date());
   }, [instance]);
+
+  // Preload SharePoint card images when authenticated (same as HomePage)
+  useEffect(() => {
+    const urls = cards
+      .map((card) => card.imageUrl)
+      .filter((url): url is string => !!url && isSharePointImageUrl(url));
+    if (urls.length) preloadSharePointImages(instance, urls);
+  }, [cards, instance]);
 
   // Initial load + periodic refresh
   useEffect(() => {
@@ -100,11 +135,28 @@ const TvDisplay: React.FC = () => {
     };
   }, [loadCards]);
 
-  const renderImage = (card: CardContent, displayIdx: number) => {
-    const src = card.imageUrl || LOCAL_IMAGES[displayIdx + 1] || LOCAL_IMAGES[1];
+  const renderImage = (card: CardContent, index: number) => {
+    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
+    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
+    const placeholder = LOCAL_IMAGES[fallbackIndex] || LOCAL_IMAGES[1];
+
+    if (card.imageUrl) {
+      return (
+        <div className="tv-card-img-wrap">
+          <SharePointImage
+            src={card.imageUrl}
+            placeholderSrc={placeholder}
+            alt={card.title}
+            className="tv-card-image"
+            loading="lazy"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="tv-card-img-wrap">
-        <SharePointImage src={src} alt={card.title} loading="lazy" />
+        <img src={placeholder} alt={card.title} className="tv-card-image" loading="lazy" />
       </div>
     );
   };
@@ -119,7 +171,6 @@ const TvDisplay: React.FC = () => {
       <div className="tv-topbar">
         <div className="tv-topbar-left">
           <img src={logo} alt="Symphony Towers Infrastructure" className="tv-topbar-logo" />
-          <span className="tv-topbar-title">Symphony Towers Infrastructure</span>
         </div>
         <LiveClock />
       </div>
@@ -132,7 +183,10 @@ const TvDisplay: React.FC = () => {
       ) : (
         <div className="tv-grid">
           {cards.map((card, idx) => (
-            <div key={card.order} className="tv-card">
+            <div
+              key={card.order}
+              className={`tv-card${idx % 2 === 1 ? ' tv-card-even' : ''}`}
+            >
               {renderImage(card, idx)}
               <div className="tv-card-body">
                 <h2 className="tv-card-title">{card.title}</h2>
@@ -150,7 +204,7 @@ const TvDisplay: React.FC = () => {
       {/* ── Footer ── */}
       <div className="tv-footer">
         <span className="tv-footer-text">
-          &copy; {new Date().getFullYear()} Symphony Towers Infrastructure &mdash; Internal Display Only
+          &copy; {new Date().getFullYear()} &mdash; Internal Display Only
         </span>
         <span className="tv-footer-refresh">{refreshLabel} &bull; Auto-refreshes every 5 min</span>
       </div>

@@ -72,6 +72,12 @@ module.exports = {
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
+    proxy: {
+      '/api/tv-cards': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   mode: 'development',
 };

@@ -77,6 +77,23 @@ export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
 export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
 export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
+/** SharePoint drive ID for direct Graph reads on /tv (kiosk displays). */
+export const TV_SHAREPOINT_DRIVE_ID =
+  'b!PRZFjpqB2U6dHC5-1xRK-ckNeOcC0b9OuYzaxCUuqlF98qlI6Tz8RYjJa1ViXSq_';
+/** homepage-cards.json item ID for GET /drives/{driveId}/items/{itemId}/content */
+export const TV_HOMEPAGE_CARDS_ITEM_ID = '01UIS5FCXU77HFE7F73JAI4TKRF5NURVFT';
+
+/**
+ * Public TV cards API (client-credentials Lambda). When set, /tv uses this instead of MSAL.
+ * Local dev: use /api/tv-cards with `npm run tv-api` + webpack proxy.
+ * Production: set to your deployed API Gateway URL.
+ */
+export const TV_CARDS_API_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') return '/api/tv-cards';
+  return '';
+})();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
 export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';

@@ -53,6 +53,8 @@ import {
   SIDEBAR_LAYOUT_DATA_FILENAME,
   HOMEPAGE_LAYOUT_DATA_FILENAME,
   DEPARTMENTS_CONTENT_FOLDER_PATH,
+  TV_SHAREPOINT_DRIVE_ID,
+  TV_HOMEPAGE_CARDS_ITEM_ID,
 } from '../authConfig';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -1202,6 +1204,58 @@ async function readContentFromSharePointDrive<T>(
   const text = await res.text();
   if (!text.trim()) return null;
   return JSON.parse(text) as T;
+}
+
+/**
+ * Direct Graph read for /tv — fetches homepage-cards.json via drive ID (+ optional item ID).
+ * Matches: GET /drives/{driveId}/items/{itemId}/content
+ * Falls back to drive path when TV_HOMEPAGE_CARDS_ITEM_ID is not set.
+ */
+export async function fetchTvHomepageCardsRaw(msalInstance: any): Promise<unknown | null> {
+  if (BYPASS_AUTH) {
+    return readLocalContent(HOMEPAGE_CARDS_KEY);
+  }
+
+  const token = await getToken(msalInstance);
+  if (!token) return null;
+
+  const driveId = encodeURIComponent(TV_SHAREPOINT_DRIVE_ID);
+  const url = TV_HOMEPAGE_CARDS_ITEM_ID
+    ? `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${TV_HOMEPAGE_CARDS_ITEM_ID}/content`
+    : `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${INTRANET_CONTENT_FOLDER_PATH}/${CARDS_DATA_FILENAME}:/content`;
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.warn(`[contentService] fetchTvHomepageCardsRaw failed: ${res.status} ${err}`);
+    return null;
+  }
+
+  const text = await res.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('[contentService] fetchTvHomepageCardsRaw: invalid JSON', err);
+    return null;
+  }
+}
+
+/** Fetch homepage cards from the public TV API (client-credentials backend). */
+export async function fetchTvHomepageCardsFromApi(apiUrl: string): Promise<unknown | null> {
+  if (!apiUrl) return null;
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      console.warn(`[contentService] fetchTvHomepageCardsFromApi failed: ${res.status} ${err}`);
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn('[contentService] fetchTvHomepageCardsFromApi error:', err);
+    return null;
+  }
 }
 
 async function getDriveItemByPath(
