@@ -29,6 +29,10 @@
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
+ * Default card fallback images live in:
+ *   Shared Documents/General/intranet/Default Images
+ * (all image files in the folder; cards cycle through them by display order)
+ *
  * Department page content (updates, resources, FAQ) is stored as:
  *   General/intranet/departments/{slug}.json  (e.g. it.json, hr.json)
  *
@@ -43,6 +47,7 @@ import {
   SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_FOLDER_PATH,
+  DEFAULT_IMAGES_FOLDER_PATH,
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
   REPORTS_DATA_FILENAME,
@@ -132,12 +137,97 @@ export interface CardContent {
   title: string;
   /** Each string in this array renders as one <li>. HTML is allowed (e.g. <a> tags). */
   bullets: string[];
-  /** Public image URL.  Empty string → component falls back to its bundled default. */
+  /** Public image URL. Empty string → Default Images folder (cycled by card display order). */
   imageUrl: string;
-  /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
+  /** Optional legacy field; defaults no longer use a fixed 1–6 filename map. */
   imageIndex?: number;
   createdBy?: string;
   editedBy?: string;
+}
+
+const DEFAULT_IMAGE_FILE_RE = /\.(jpe?g|png|gif|webp|bmp|svg)$/i;
+
+let defaultFallbackImageUrlsCache: string[] | null = null;
+let defaultFallbackImageUrlsPending: Promise<string[]> | null = null;
+
+function encodeDriveRelativePath(path: string): string {
+  return path
+    .split('/')
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+/** Build a SharePoint webUrl under Shared Documents for a drive-relative path. */
+export function buildSharePointDocumentUrl(driveRelativePath: string): string {
+  return `https://${SHAREPOINT_HOST}${SHAREPOINT_SITE_PATH}/Shared%20Documents/${encodeDriveRelativePath(driveRelativePath)}`;
+}
+
+/**
+ * List image files in Shared Documents/General/intranet/Default Images (sorted by name).
+ * Result is cached for the page session.
+ */
+export async function fetchDefaultFallbackImageUrls(msalInstance: any): Promise<string[]> {
+  if (defaultFallbackImageUrlsCache) return defaultFallbackImageUrlsCache;
+  if (defaultFallbackImageUrlsPending) return defaultFallbackImageUrlsPending;
+
+  defaultFallbackImageUrlsPending = (async () => {
+    try {
+      const token = await getToken(msalInstance);
+      if (!token) return [];
+
+      const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+      const folderPath = encodeDriveRelativePath(DEFAULT_IMAGES_FOLDER_PATH);
+      const res = await fetch(
+        `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${folderPath}:/children?$select=id,name,webUrl,file&$top=200`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) {
+        const err = await res.text().catch(() => '');
+        console.warn(
+          `[contentService] Default Images folder list failed (${res.status}):`,
+          DEFAULT_IMAGES_FOLDER_PATH,
+          err
+        );
+        return [];
+      }
+
+      const data = await res.json();
+      const urls = ((data.value as Array<{ name?: string; webUrl?: string; file?: unknown }>) || [])
+        .filter((item) => !!item.file && DEFAULT_IMAGE_FILE_RE.test(item.name || ''))
+        .sort((a, b) =>
+          String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' })
+        )
+        .map((item) => item.webUrl)
+        .filter((url): url is string => !!url);
+
+      defaultFallbackImageUrlsCache = urls;
+      return urls;
+    } catch (err) {
+      console.warn('[contentService] Default Images folder list error:', err);
+      return [];
+    } finally {
+      defaultFallbackImageUrlsPending = null;
+    }
+  })();
+
+  return defaultFallbackImageUrlsPending;
+}
+
+/** Clear cached Default Images list (e.g. after editors add/remove files). */
+export function clearDefaultFallbackImageUrlCache(): void {
+  defaultFallbackImageUrlsCache = null;
+  defaultFallbackImageUrlsPending = null;
+}
+
+/**
+ * Pick a default image URL by cycling through the folder list.
+ * `cardIndex` is 0-based display position among cards.
+ */
+export function pickDefaultFallbackImageUrl(urls: string[], cardIndex: number): string {
+  if (!urls.length) return '';
+  const i = ((cardIndex % urls.length) + urls.length) % urls.length;
+  return urls[i];
 }
 
 // ─── Editor email tracking in JSON files ─────────────────────────────────────
@@ -1074,7 +1164,8 @@ export function collectHomepageImageUrls(): string[] {
 export async function warmHomepageImageCache(msalInstance: any): Promise<void> {
   if (!BYPASS_AUTH && msalInstance.getAllAccounts().length === 0) return;
 
-  const urls = collectHomepageImageUrls();
+  const defaultUrls = await fetchDefaultFallbackImageUrls(msalInstance);
+  const urls = [...defaultUrls, ...collectHomepageImageUrls()];
   const uncached = urls.filter((url) => !getCachedSharePointImageUrl(url));
   if (uncached.length === 0) return;
 

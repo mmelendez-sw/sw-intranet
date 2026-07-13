@@ -21,41 +21,18 @@ import {
   DEFAULT_CARDS,
   parseHomepageCardsContent,
   preloadSharePointImages,
-  isSharePointImageUrl,
+  fetchDefaultFallbackImageUrls,
+  pickDefaultFallbackImageUrl,
   CardContent,
 } from '../services/contentService';
 import SharePointImage from './SharePointImage';
 
 import '../../styles/tv-display.css';
 
-// ── Local fallback images (same as HomePage) ───────────────────────────────
-import img3 from '../../images/site_3.jpg';
-import img4 from '../../images/coat.jpg';
-import img7 from '../../images/mm2.jpg';
-import img9 from '../../images/vol.jpg';
-import img10 from '../../images/emp.jpg';
-import img11 from '../../images/wider_app.png';
 import logo from '../../images/sti-horizontal-white.png';
 
-/** Fallback local images indexed by card imageIndex (1-based), same as HomePage. */
-const LOCAL_IMAGES: Record<number, string> = {
-  1: img9,
-  2: img11,
-  3: img7,
-  4: img4,
-  5: img3,
-  6: img10,
-};
-
-const normalizeTvCards = (remoteCards: CardContent[]): CardContent[] => {
-  const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-  return [...remoteCards]
-    .sort((a, b) => a.order - b.order)
-    .map((card, idx) => ({
-      ...card,
-      imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as CardContent['imageIndex']),
-    }));
-};
+const normalizeTvCards = (remoteCards: CardContent[]): CardContent[] =>
+  [...remoteCards].sort((a, b) => a.order - b.order);
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -83,6 +60,7 @@ const LiveClock: React.FC = () => {
 const TvDisplay: React.FC = () => {
   const { instance } = useMsal();
   const [cards, setCards] = useState<CardContent[]>([]);
+  const [defaultFallbackImageUrls, setDefaultFallbackImageUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,13 +96,29 @@ const TvDisplay: React.FC = () => {
     setLastRefresh(new Date());
   }, [instance]);
 
-  // Preload SharePoint card images when authenticated (same as HomePage)
+  // Load Default Images folder listing (size drives cycle length)
   useEffect(() => {
-    const urls = cards
-      .map((card) => card.imageUrl)
-      .filter((url): url is string => !!url && isSharePointImageUrl(url));
+    let cancelled = false;
+    void (async () => {
+      const urls = await fetchDefaultFallbackImageUrls(instance);
+      if (!cancelled) setDefaultFallbackImageUrls(urls);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [instance]);
+
+  // Preload SharePoint card / default images when known
+  useEffect(() => {
+    const urls = [
+      ...defaultFallbackImageUrls,
+      ...cards.map(
+        (card, index) =>
+          card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index)
+      ),
+    ];
     if (urls.length) preloadSharePointImages(instance, urls);
-  }, [cards, instance]);
+  }, [cards, defaultFallbackImageUrls, instance]);
 
   // Initial load + periodic refresh
   useEffect(() => {
@@ -136,27 +130,18 @@ const TvDisplay: React.FC = () => {
   }, [loadCards]);
 
   const renderImage = (card: CardContent, index: number) => {
-    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
-    const placeholder = LOCAL_IMAGES[fallbackIndex] || LOCAL_IMAGES[1];
-
-    if (card.imageUrl) {
-      return (
-        <div className="tv-card-img-wrap">
-          <SharePointImage
-            src={card.imageUrl}
-            placeholderSrc={placeholder}
-            alt={card.title}
-            className="tv-card-image"
-            loading="lazy"
-          />
-        </div>
-      );
-    }
+    const imageSrc =
+      card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index);
+    if (!imageSrc) return null;
 
     return (
       <div className="tv-card-img-wrap">
-        <img src={placeholder} alt={card.title} className="tv-card-image" loading="lazy" />
+        <SharePointImage
+          src={imageSrc}
+          alt={card.title}
+          className="tv-card-image"
+          loading="lazy"
+        />
       </div>
     );
   };
@@ -183,7 +168,7 @@ const TvDisplay: React.FC = () => {
       ) : (
         <div className="tv-grid">
           {cards.map((card, idx) => (
-            <div
+            <article
               key={card.order}
               className={`tv-card${idx % 2 === 1 ? ' tv-card-even' : ''}`}
             >
@@ -196,7 +181,7 @@ const TvDisplay: React.FC = () => {
                   ))}
                 </ul>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
@@ -204,9 +189,9 @@ const TvDisplay: React.FC = () => {
       {/* ── Footer ── */}
       <div className="tv-footer">
         <span className="tv-footer-text">
-          &copy; {new Date().getFullYear()} &mdash; Internal Display Only
+          © {new Date().getFullYear()} — Internal Display Only
         </span>
-        <span className="tv-footer-refresh">{refreshLabel} &bull; Auto-refreshes every 5 min</span>
+        <span className="tv-footer-refresh">{refreshLabel}</span>
       </div>
     </div>
   );

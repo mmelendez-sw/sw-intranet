@@ -76,6 +76,8 @@ export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
 export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
 export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
 export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
+/** Card fallback images when imageUrl is empty — listed from this folder at runtime. */
+export const DEFAULT_IMAGES_FOLDER_PATH = 'General/intranet/Default Images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
 /** SharePoint drive ID for direct Graph reads on /tv (kiosk displays). */
 export const TV_SHAREPOINT_DRIVE_ID =

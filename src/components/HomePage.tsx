@@ -16,6 +16,8 @@ import {
   getCachedContent,
   isSharePointImageUrl,
   preloadSharePointImages,
+  fetchDefaultFallbackImageUrls,
+  pickDefaultFallbackImageUrl,
   CardContent,
   Announcement,
   HomepageLayout,
@@ -32,29 +34,7 @@ import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
 // import { useTvLayout } from '../hooks/useTvLayout';
 
-import img3 from '../../images/site_3.jpg';
-import img3Md from '../../images/site_3_md.jpg';
-import img3Sm from '../../images/site_3_sm.jpg';
-import img4 from '../../images/coat.jpg';
-import img4Md from '../../images/coat_md.jpg';
-import img4Sm from '../../images/coat_sm.jpg';
-import img7 from '../../images/mm2.jpg';
-import img9 from '../../images/vol.jpg';
-import img10 from '../../images/emp.jpg';
-import img10Md from '../../images/emp_md.jpg';
-import img10Sm from '../../images/emp_sm.jpg';
-import img11 from '../../images/wider_app.png';
 import howBanner from '../../images/H.O.W.-banner.png';
-
-// Fallback local images indexed by card order (1-based)
-const LOCAL_IMAGES: Record<number, { src: string; srcSet?: string; sizes?: string }> = {
-  1: { src: img9 },
-  2: { src: img11 },
-  3: { src: img7 },
-  4: { src: img4, srcSet: `${img4Sm} 480w, ${img4Md} 900w, ${img4} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
-  5: { src: img3, srcSet: `${img3Sm} 480w, ${img3Md} 900w, ${img3} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
-  6: { src: img10, srcSet: `${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`, sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw' },
-};
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -150,13 +130,8 @@ const sortCardsByOrder = (cardList: CardContent[]): CardContent[] =>
 const renumberCards = (cardList: CardContent[]): CardContent[] =>
   cardList.map((c, i) => ({ ...c, order: i + 1 }));
 
-const normalizeCards = (remoteCards: CardContent[]): CardContent[] => {
-  const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-  return renumberCards(sortCardsByOrder(remoteCards)).map((card, idx) => ({
-    ...card,
-    imageIndex: card.imageIndex ?? (((idx % totalFallbacks) + 1) as CardContent['imageIndex']),
-  }));
-};
+const normalizeCards = (remoteCards: CardContent[]): CardContent[] =>
+  renumberCards(sortCardsByOrder(remoteCards));
 
 const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -256,6 +231,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
     () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
   );
+  const [defaultFallbackImageUrls, setDefaultFallbackImageUrls] = useState<string[]>([]);
   const [savingLayout, setSavingLayout] = useState(false);
   const contentLoaded = showHomeContent;
 
@@ -330,17 +306,34 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     return persistCardsToSharePoint(withNewOrders);
   }, [persistCardsToSharePoint]);
 
+  // ── Load Default Images folder listing (size drives cycle length) ──
+  useEffect(() => {
+    if (!showHomeContent) return;
+    let cancelled = false;
+    void (async () => {
+      const urls = await fetchDefaultFallbackImageUrls(instance);
+      if (!cancelled) setDefaultFallbackImageUrls(urls);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showHomeContent, instance]);
+
   // ── Preload SharePoint card/hero images as soon as URLs are known ──
   useEffect(() => {
     if (!showHomeContent) return;
     const urls = [
-      ...cards.map((card) => card.imageUrl),
+      ...defaultFallbackImageUrls,
+      ...cards.map(
+        (card, index) =>
+          card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index)
+      ),
       heroImageUrl || undefined,
     ].filter((url): url is string => !!url && isSharePointImageUrl(url));
     const pending = urls.filter((url) => !preloadedImageUrlsRef.current.has(url));
     pending.forEach((url) => preloadedImageUrlsRef.current.add(url));
     if (pending.length) preloadSharePointImages(instance, pending);
-  }, [showHomeContent, instance, cards, heroImageUrl]);
+  }, [showHomeContent, instance, cards, heroImageUrl, defaultFallbackImageUrls]);
 
   // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
@@ -451,15 +444,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const openNewCardEdit = useCallback(() => {
     const nextOrder = cards.length + 1;
     editingCardOrderRef.current = nextOrder;
-    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-    const nextImageIndex = ((cards.length % totalFallbacks) + 1);
     setEditingCard(null);
     setEditCardDraft({
       order: nextOrder,
       title: 'New Card',
       bullets: ['Add your content here.'],
       imageUrl: '',
-      imageIndex: nextImageIndex,
     });
     setPendingImageFile(null);
     setImagePreviewUrl('');
@@ -817,27 +807,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       ? { draggable: false, onDragStart: (e: React.DragEvent) => e.preventDefault() }
       : {};
 
-    const totalFallbacks = Object.keys(LOCAL_IMAGES).length;
-    const fallbackIndex = card.imageIndex ?? ((index % totalFallbacks) + 1);
-    const local = LOCAL_IMAGES[fallbackIndex];
-
-    if (card.imageUrl) {
-      return (
-        <SharePointImage
-          src={card.imageUrl}
-          placeholderSrc={local.src}
-          alt={card.title}
-          className="card-image"
-          {...blockImageDrag}
-        />
-      );
-    }
+    const imageSrc =
+      card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index);
+    if (!imageSrc) return null;
 
     return (
-      <img
-        src={local.src}
-        srcSet={local.srcSet}
-        sizes={local.sizes}
+      <SharePointImage
+        src={imageSrc}
         alt={card.title}
         className="card-image"
         {...blockImageDrag}
@@ -1195,7 +1171,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             </div>
             <span className="edit-field-hint">
               Card text saves to Shared Documents/General/intranet/homepage-cards.json.
-              Images upload to Shared Documents/General/intranet/images.
+              Custom images upload to Shared Documents/General/intranet/images.
+              Empty image URL cycles through all images in General/intranet/Default Images.
             </span>
 
             {/* Divider */}
