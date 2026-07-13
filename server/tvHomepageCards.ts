@@ -77,6 +77,44 @@ export async function getHomepageCardsRaw(token: string): Promise<unknown> {
   return JSON.parse(text) as unknown;
 }
 
+export interface HomepageCardsMeta {
+  eTag: string | null;
+  cTag: string | null;
+  lastModifiedDateTime: string | null;
+}
+
+/** Lightweight metadata for change detection (no file content download). */
+export async function getHomepageCardsMeta(token: string): Promise<HomepageCardsMeta> {
+  const url =
+    `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
+    `/items/${TV_HOMEPAGE_CARDS_ITEM_ID}?$select=eTag,cTag,lastModifiedDateTime`;
+
+  const resp = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Graph meta request failed: ${resp.status} ${await resp.text()}`);
+  }
+
+  const data = (await resp.json()) as {
+    eTag?: string;
+    cTag?: string;
+    lastModifiedDateTime?: string;
+  };
+
+  return {
+    eTag: data.eTag ?? null,
+    cTag: data.cTag ?? null,
+    lastModifiedDateTime: data.lastModifiedDateTime ?? null,
+  };
+}
+
+/** Stable fingerprint for comparing two meta responses. */
+export function homepageCardsMetaFingerprint(meta: HomepageCardsMeta): string {
+  return `${meta.eTag || meta.cTag || ''}|${meta.lastModifiedDateTime || ''}`;
+}
+
 export async function getHomepageCards(
   tenantId: string,
   clientId: string,

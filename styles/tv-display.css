@@ -164,6 +164,68 @@
   letter-spacing: 0.05em;
 }
 
+.tv-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.tv-empty-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #003366;
+}
+
+.tv-empty-detail {
+  margin: 0;
+  max-width: 640px;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.tv-empty-hint {
+  margin: 8px 0 0;
+  max-width: 640px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.tv-empty-hint code {
+  font-size: 12px;
+  background: #e8eef3;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.tv-signin-btn {
+  margin-top: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 6px;
+  background: #004e7c;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tv-signin-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.tv-signin-btn:hover:not(:disabled) {
+  background: #003c66;
+}
+
 .tv-loading-dots::after {
   content: '';
   display: inline-block;

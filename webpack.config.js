@@ -76,6 +76,25 @@ module.exports = {
       '/api/tv-cards': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        // Avoid cryptic HTML 404 when tv-api is not running
+        onError: (err, _req, res) => {
+          console.warn('[webpack] /api/tv-cards proxy error (is tv-api running?):', err.message);
+          if (res && !res.headersSent) {
+            res.writeHead(502, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'TV API unavailable. Run npm run tv-api.' }));
+          }
+        },
+      },
+      '/api/images': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        onError: (err, _req, res) => {
+          console.warn('[webpack] /api/images proxy error (is tv-api running?):', err.message);
+          if (res && !res.headersSent) {
+            res.writeHead(502, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'TV API unavailable. Run npm run tv-api.' }));
+          }
+        },
       },
     },
   },

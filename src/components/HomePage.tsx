@@ -17,7 +17,8 @@ import {
   isSharePointImageUrl,
   preloadSharePointImages,
   fetchDefaultFallbackImageUrls,
-  pickDefaultFallbackImageUrl,
+  getDefaultFallbackImageDisplaySrc,
+  DriveItem,
   CardContent,
   Announcement,
   HomepageLayout,
@@ -231,7 +232,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
     () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
   );
-  const [defaultFallbackImageUrls, setDefaultFallbackImageUrls] = useState<string[]>([]);
+  const [defaultFallbackImages, setDefaultFallbackImages] = useState<DriveItem[]>([]);
   const [savingLayout, setSavingLayout] = useState(false);
   const contentLoaded = showHomeContent;
 
@@ -311,8 +312,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (!showHomeContent) return;
     let cancelled = false;
     void (async () => {
-      const urls = await fetchDefaultFallbackImageUrls(instance);
-      if (!cancelled) setDefaultFallbackImageUrls(urls);
+      const images = await fetchDefaultFallbackImageUrls(instance);
+      if (!cancelled) setDefaultFallbackImages(images);
     })();
     return () => {
       cancelled = true;
@@ -323,17 +324,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   useEffect(() => {
     if (!showHomeContent) return;
     const urls = [
-      ...defaultFallbackImageUrls,
-      ...cards.map(
-        (card, index) =>
-          card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index)
-      ),
+      ...defaultFallbackImages.map((item) => item.webUrl),
+      ...cards.map((card, index) => {
+        if (card.imageUrl?.trim()) return card.imageUrl;
+        return getDefaultFallbackImageDisplaySrc(index, defaultFallbackImages) || undefined;
+      }),
       heroImageUrl || undefined,
     ].filter((url): url is string => !!url && isSharePointImageUrl(url));
     const pending = urls.filter((url) => !preloadedImageUrlsRef.current.has(url));
     pending.forEach((url) => preloadedImageUrlsRef.current.add(url));
     if (pending.length) preloadSharePointImages(instance, pending);
-  }, [showHomeContent, instance, cards, heroImageUrl, defaultFallbackImageUrls]);
+  }, [showHomeContent, instance, cards, heroImageUrl, defaultFallbackImages]);
 
   // ── Load content from SharePoint (background refresh; UI uses cache immediately) ──
   useEffect(() => {
@@ -808,7 +809,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       : {};
 
     const imageSrc =
-      card.imageUrl || pickDefaultFallbackImageUrl(defaultFallbackImageUrls, index);
+      (card.imageUrl && card.imageUrl.trim()) ||
+      getDefaultFallbackImageDisplaySrc(index, defaultFallbackImages);
     if (!imageSrc) return null;
 
     return (

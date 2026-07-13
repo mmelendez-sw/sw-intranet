@@ -86,14 +86,16 @@ export const TV_SHAREPOINT_DRIVE_ID =
 export const TV_HOMEPAGE_CARDS_ITEM_ID = '01UIS5FCXU77HFE7F73JAI4TKRF5NURVFT';
 
 /**
- * Public TV cards API (client-credentials Lambda). When set, /tv uses this instead of MSAL.
- * Local dev: use /api/tv-cards with `npm run tv-api` + webpack proxy.
- * Production: set to your deployed API Gateway URL.
+ * Public TV cards API (client-credentials Lambda). Empty = SPA-only /tv
+ * (seed/cache + bundled images; no login, no API).
+ * Set in production when the kiosk API is deployed, e.g.:
+ *   window.TV_CARDS_API_URL = 'https://….amazonaws.com/api/tv-cards'
+ * Local: leave empty, or set that global / run npm run tv-api and point here.
  */
 export const TV_CARDS_API_URL = (() => {
   if (typeof window === 'undefined') return '';
-  const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') return '/api/tv-cards';
+  const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
+  if (typeof injected === 'string' && injected.trim()) return injected.trim();
   return '';
 })();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
