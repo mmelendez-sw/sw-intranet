@@ -90,12 +90,18 @@ export const TV_HOMEPAGE_CARDS_ITEM_ID = '01UIS5FCXU77HFE7F73JAI4TKRF5NURVFT';
  * (seed/cache + bundled images; no login, no API).
  * Set in production when the kiosk API is deployed, e.g.:
  *   window.TV_CARDS_API_URL = 'https://….amazonaws.com/api/tv-cards'
- * Local: leave empty, or set that global / run npm run tv-api and point here.
+ * Local: defaults to /api/tv-cards (webpack → npm run tv-api on :3001).
  */
 export const TV_CARDS_API_URL = (() => {
   if (typeof window === 'undefined') return '';
   const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
   if (typeof injected === 'string' && injected.trim()) return injected.trim();
+  const host = window.location.hostname;
+  // Hit tv-api directly — webpack proxy to :3001 is easy to miss in local,
+  // and the API already sends Access-Control-Allow-Origin: *.
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001/api/tv-cards';
+  }
   return '';
 })();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';

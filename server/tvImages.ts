@@ -47,6 +47,126 @@ export async function getDefaultImagesFolderId(token: string): Promise<string> {
   return folderIdCache;
 }
 
+function encodeSharePointUrlForGraph(webUrl: string): string {
+  const base64 = Buffer.from(webUrl, 'utf8').toString('base64');
+  return `u!${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
+}
+
+function webUrlToDrivePath(webUrl: string): string | null {
+  try {
+    const pathname = decodeURIComponent(new URL(webUrl).pathname);
+    const match = pathname.match(/\/Shared Documents\/(.+)$/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function isSharePointWebUrl(url: string): boolean {
+  if (!url || url.startsWith('data:') || url.startsWith('/')) return false;
+  return /sharepoint\.com/i.test(url) || /graph\.microsoft\.com/i.test(url);
+}
+
+/** Resolve a SharePoint file webUrl → drive item id (app token). */
+export async function resolveDriveItemIdFromWebUrl(
+  webUrl: string,
+  token: string
+): Promise<string | null> {
+  const drivePath = webUrlToDrivePath(webUrl);
+  if (drivePath) {
+    const encodedPath = encodeDrivePath(drivePath);
+    const byPathUrl =
+      `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
+      `/root:/${encodedPath}?$select=id`;
+    const byPath = await fetch(byPathUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (byPath.ok) {
+      const data = (await byPath.json()) as { id?: string };
+      if (data.id) return data.id;
+    }
+  }
+
+  const shareId = encodeSharePointUrlForGraph(webUrl);
+  const shareRes = await fetch(
+    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem?$select=id`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!shareRes.ok) {
+    const err = await shareRes.text().catch(() => '');
+    console.warn(
+      `[tvImages] resolveDriveItemIdFromWebUrl failed (${shareRes.status}):`,
+      webUrl,
+      err
+    );
+    return null;
+  }
+  const data = (await shareRes.json()) as { id?: string };
+  return data.id ?? null;
+}
+
+/** Fetch image bytes for a SharePoint webUrl via Graph (app token). */
+export async function getDriveImageContentByWebUrl(
+  webUrl: string,
+  token: string
+): Promise<{ body: ArrayBuffer; contentType: string } | null> {
+  const drivePath = webUrlToDrivePath(webUrl);
+  if (drivePath) {
+    const encodedPath = encodeDrivePath(drivePath);
+    const byPathUrl =
+      `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
+      `/root:/${encodedPath}:/content`;
+    const byPath = await fetch(byPathUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (byPath.ok) {
+      return {
+        body: await byPath.arrayBuffer(),
+        contentType: byPath.headers.get('content-type') || 'application/octet-stream',
+      };
+    }
+  }
+
+  const shareId = encodeSharePointUrlForGraph(webUrl);
+  const shareRes = await fetch(
+    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem/content`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!shareRes.ok) {
+    const err = await shareRes.text().catch(() => '');
+    console.warn(
+      `[tvImages] getDriveImageContentByWebUrl failed (${shareRes.status}):`,
+      webUrl,
+      err
+    );
+    return null;
+  }
+  return {
+    body: await shareRes.arrayBuffer(),
+    contentType: shareRes.headers.get('content-type') || 'application/octet-stream',
+  };
+}
+
+/** Public origin for `/api/images/...` links (SPA may be on another port). */
+export function getTvApiPublicBase(): string {
+  return (
+    process.env.TV_API_PUBLIC_BASE ||
+    (process.env.TV_API_PORT ? `http://localhost:${process.env.TV_API_PORT}` : '')
+  ).replace(/\/$/, '');
+}
+
+export function toPublicImageProxyUrl(driveItemId: string): string {
+  const path = `/api/images/${encodeURIComponent(driveItemId)}`;
+  const publicBase = getTvApiPublicBase();
+  return publicBase ? `${publicBase}${path}` : path;
+}
+
+export function toPublicImageByUrlProxy(webUrl: string): string {
+  const path = `/api/images/by-url?url=${encodeURIComponent(webUrl)}`;
+  const publicBase = getTvApiPublicBase();
+  return publicBase ? `${publicBase}${path}` : path;
+}
+
 /** List image files in Default Images, sorted by name (cached briefly). */
 export async function listDefaultImageFiles(token: string): Promise<DriveImageFile[]> {
   if (filesCache && Date.now() - filesCache.at < FILES_CACHE_MS) {

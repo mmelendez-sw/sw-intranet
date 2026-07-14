@@ -1444,6 +1444,22 @@ export async function fetchTvHomepageCardsRaw(msalInstance: any): Promise<unknow
   }
 }
 
+/**
+ * Absolute `/api/images/...` (and other `/api/...`) URLs against the TV cards API origin.
+ * Relative paths break when the SPA (e.g. :3000) and tv-api (:3001) differ.
+ */
+export function resolveTvMediaUrl(url: string, cardsApiUrl: string = ''): string {
+  const trimmed = (url || '').trim();
+  if (!trimmed.startsWith('/api/')) return trimmed;
+  const base = (cardsApiUrl || '').trim();
+  if (!base || base.startsWith('/')) return trimmed;
+  try {
+    return new URL(trimmed, new URL(base).origin).href;
+  } catch {
+    return trimmed;
+  }
+}
+
 /** Fetch homepage cards from the public TV API (client-credentials backend). */
 export async function fetchTvHomepageCardsFromApi(apiUrl: string): Promise<unknown | null> {
   if (!apiUrl) return null;

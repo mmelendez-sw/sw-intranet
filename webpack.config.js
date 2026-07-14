@@ -72,31 +72,21 @@ module.exports = {
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
-    proxy: {
-      '/api/tv-cards': {
+    // Array form is more reliable on webpack-dev-server v4 than object-key paths.
+    proxy: [
+      {
+        context: ['/api/tv-cards', '/api/images'],
         target: 'http://localhost:3001',
         changeOrigin: true,
-        // Avoid cryptic HTML 404 when tv-api is not running
         onError: (err, _req, res) => {
-          console.warn('[webpack] /api/tv-cards proxy error (is tv-api running?):', err.message);
+          console.warn('[webpack] /api proxy error (is tv-api running?):', err.message);
           if (res && !res.headersSent) {
             res.writeHead(502, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'TV API unavailable. Run npm run tv-api.' }));
           }
         },
       },
-      '/api/images': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        onError: (err, _req, res) => {
-          console.warn('[webpack] /api/images proxy error (is tv-api running?):', err.message);
-          if (res && !res.headersSent) {
-            res.writeHead(502, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'TV API unavailable. Run npm run tv-api.' }));
-          }
-        },
-      },
-    },
+    ],
   },
   mode: 'development',
 };

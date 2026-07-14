@@ -22,6 +22,7 @@ import {
   fetchTvHomepageCardsMetaFromApi,
   fetchTvHomepageCardsMeta,
   tvHomepageCardsMetaFingerprint,
+  resolveTvMediaUrl,
   DEFAULT_CARDS,
   parseHomepageCardsContent,
   preloadSharePointImages,
@@ -38,7 +39,12 @@ import '../../styles/tv-display.css';
 import logo from '../../images/sti-horizontal-white.png';
 
 const normalizeTvCards = (remoteCards: CardContent[]): CardContent[] =>
-  [...remoteCards].sort((a, b) => a.order - b.order);
+  [...remoteCards]
+    .map((card) => ({
+      ...card,
+      imageUrl: resolveTvMediaUrl(card.imageUrl || '', TV_CARDS_API_URL),
+    }))
+    .sort((a, b) => a.order - b.order);
 
 const META_POLL_INTERVAL_MS = 20_000;
 const CARDS_CACHE_KEY = 'homepage-cards';

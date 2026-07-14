@@ -5,6 +5,7 @@
  *   GET /api/tv-cards        — homepage cards (empty imageUrl → /api/images/{id})
  *   GET /api/tv-cards/meta   — eTag / lastModified only (cheap change detection)
  *   GET /api/images/:id      — proxy SharePoint drive item bytes
+ *   GET /api/images/by-url?url= — proxy SharePoint webUrl bytes (app credentials)
  *
  * Required env vars:
  *   TENANT_ID, CLIENT_ID, CLIENT_SECRET
@@ -15,7 +16,11 @@
 
 import { getGraphToken, getHomepageCardsMeta } from './tvHomepageCards';
 import { getHomepageCardsWithImages } from './enrichCards';
-import { getDriveImageContent, clearDefaultImagesCache } from './tvImages';
+import {
+  getDriveImageContent,
+  getDriveImageContentByWebUrl,
+  clearDefaultImagesCache,
+} from './tvImages';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -44,9 +49,27 @@ function getPath(event?: {
   );
 }
 
+function getQuery(
+  event?: {
+    queryStringParameters?: Record<string, string | undefined> | null;
+  }
+): Record<string, string> {
+  const raw = event?.queryStringParameters || {};
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === 'string') out[k] = v;
+  }
+  return out;
+}
+
 function matchImageProxy(path: string): string | null {
+  if (/\/api\/images\/by-url\/?$/i.test(path)) return null;
   const match = path.match(/\/api\/images\/([^/?#]+)/i);
   return match ? decodeURIComponent(match[1]) : null;
+}
+
+function isImageByUrlPath(path: string): boolean {
+  return /\/api\/images\/by-url\/?$/i.test(path);
 }
 
 function isCardsMetaPath(path: string): boolean {
@@ -65,6 +88,7 @@ export async function handler(event?: {
   httpMethod?: string;
   path?: string;
   rawPath?: string;
+  queryStringParameters?: Record<string, string | undefined> | null;
   requestContext?: { http?: { path?: string; method?: string } };
 }): Promise<{
   statusCode: number;
@@ -78,12 +102,43 @@ export async function handler(event?: {
   }
 
   const path = getPath(event);
+  const query = getQuery(event);
   const imageItemId = matchImageProxy(path);
 
   try {
     const tenantId = requireEnv('TENANT_ID');
     const clientId = requireEnv('CLIENT_ID');
     const clientSecret = requireEnv('CLIENT_SECRET');
+
+    if (isImageByUrlPath(path)) {
+      const webUrl = (query.url || '').trim();
+      if (!webUrl) {
+        return {
+          statusCode: 400,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: 'Missing url query parameter' }),
+        };
+      }
+      const token = await getGraphToken(tenantId, clientId, clientSecret);
+      const result = await getDriveImageContentByWebUrl(webUrl, token);
+      if (!result) {
+        return {
+          statusCode: 404,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: 'Could not fetch SharePoint image' }),
+        };
+      }
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': result.contentType,
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=300',
+        },
+        body: Buffer.from(result.body).toString('base64'),
+        isBase64Encoded: true,
+      };
+    }
 
     if (imageItemId) {
       const token = await getGraphToken(tenantId, clientId, clientSecret);
@@ -110,6 +165,14 @@ export async function handler(event?: {
           'Cache-Control': 'no-store',
         },
         body: JSON.stringify(meta),
+      };
+    }
+
+    if (!isCardsPath(path)) {
+      return {
+        statusCode: 404,
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ error: 'Not found' }),
       };
     }
 
