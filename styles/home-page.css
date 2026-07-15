@@ -5,14 +5,15 @@
 
 /* TV display (fully-vertical-cards): cards only, sidebar pushed off-screen */
 .home-page.authenticated {
-  margin-top: 2.5rem;
+  background: #ffffff;
+  margin-top: 0;
   overflow: hidden;
   max-height: 100vh;
   box-sizing: border-box;
 }
 
 .home-page.authenticated .content-container {
-  margin-top: 1.5rem;
+  margin-top: 0;
   margin-bottom: 0;
 }
 
@@ -23,9 +24,68 @@
 
 .content-container {
   display: grid;
-  gap: 20px;
+  gap: 12px;
   padding: 10px;
   margin-top: 10px;
+}
+
+.company-progress-header {
+  align-items: center;
+  background: #005b99;
+  border: 1px solid #0073a8;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  min-height: 58px;
+  padding: 5px 12px;
+  width: 100%;
+}
+
+.company-progress-header h1 {
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+.company-progress-logo {
+  background: transparent;
+  border-radius: 2px;
+  max-height: 44px;
+  max-width: 300px;
+  object-fit: contain;
+  padding: 6px 10px;
+  width: 100%;
+}
+
+.company-progress-year {
+  background: #005b99;
+  border-radius: 10px 10px 4px 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  justify-self: end;
+  min-width: 145px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.company-progress-year-label {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.75);
+  font-size: 0.82rem;
+  font-style: italic;
+  font-weight: 600;
+  padding: 3px 8px;
+}
+
+.company-progress-year-select {
+  background: #0a6fa8;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  margin: 5px 10px 7px;
+  padding: 5px 8px;
 }
 
 /* Grid Layout for Main Content */
@@ -90,6 +150,97 @@
 .card:hover {
   transform: translateY(-5px); /* Slightly lift the card */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
+}
+
+.salesforce-panel {
+  background-color: #ffffff;
+  border: 1px solid #d6d6d6;
+  border-radius: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  padding: 0;
+}
+
+.salesforce-panel-header {
+  align-items: center;
+  background-color: #005b99;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0;
+  padding: 3px 12px 4px;
+}
+
+.salesforce-panel h2 {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.salesforce-error {
+  color: #b00020;
+  padding: 20px;
+}
+
+.closed-rent-gauge {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0 12px;
+  position: relative;
+}
+
+.closed-rent-gauge-svg {
+  display: block;
+  max-width: 330px;
+  width: 100%;
+}
+
+.closed-rent-gauge-track,
+.closed-rent-gauge-fill {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-width: 46;
+}
+
+.closed-rent-gauge-track {
+  stroke: #eeeeee;
+}
+
+.closed-rent-gauge-fill {
+  stroke: #68b4f5;
+}
+
+.closed-rent-gauge-goal {
+  stroke: #283ab3;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.closed-rent-gauge-goal-text {
+  fill: #666666;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.closed-rent-gauge-value {
+  color: #666666;
+  font-size: 3rem;
+  font-weight: 500;
+  line-height: 1;
+  margin-top: -44px;
+}
+
+.closed-rent-gauge-scale {
+  color: #666666;
+  display: flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  justify-content: space-between;
+  margin-top: -2px;
+  max-width: 310px;
+  width: 96%;
 }
 
 /* Alternate styles for even cards */

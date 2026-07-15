@@ -46,6 +46,12 @@ module.exports = {
     open: true,
     hot: true,
     historyApiFallback: true,
+    proxy: {
+      '/api/salesforce': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   mode: 'development',
 };

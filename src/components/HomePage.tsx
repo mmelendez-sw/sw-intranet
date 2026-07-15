@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 
 
@@ -10,20 +10,97 @@ import img9 from '../../images/vol.jpg'
 // import img10Md from '../../images/emp_md.jpg'
 // import img10Sm from '../../images/emp_sm.jpg'
 import img11 from '../../images/wider_app.png'
+import stiLogo from '../../images/sti-horizontal-white.png';
 // import img11 from '../../images/sip.jpeg'
 
 interface HomePageProps {
   isAuthenticated: boolean;
 }
 
+interface SalesforceQueryResponse {
+  totalSize: number;
+  records: unknown[];
+}
+
+const CLOSED_RENT_MAX = 250;
+const CLOSED_RENT_GOAL = 104;
+
+const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
+  const path = '/api/salesforce/current-investments';
+  if (typeof window === 'undefined') return path;
+
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return `http://localhost:3001${path}`;
+  }
+
+  return path;
+})();
+
 const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
   console.log('HomePage Render - isAuthenticated:', isAuthenticated);
+  const [salesforceTotal, setSalesforceTotal] = useState(0);
+  const [salesforceLoading, setSalesforceLoading] = useState(false);
+  const [salesforceError, setSalesforceError] = useState('');
+  const closedRentCount = salesforceTotal;
+  const gaugePercent = Math.min(closedRentCount / CLOSED_RENT_MAX, 1) * 100;
+  const goalAngle = ((180 - (CLOSED_RENT_GOAL / CLOSED_RENT_MAX) * 180) * Math.PI) / 180;
+  const goalInner = {
+    x: 110 + 76 * Math.cos(goalAngle),
+    y: 110 - 76 * Math.sin(goalAngle),
+  };
+  const goalOuter = {
+    x: 110 + 98 * Math.cos(goalAngle),
+    y: 110 - 98 * Math.sin(goalAngle),
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+    setSalesforceLoading(true);
+    setSalesforceError('');
+
+    fetch(SALESFORCE_CURRENT_INVESTMENTS_URL)
+      .then(async (response) => {
+        if (!response.ok) {
+          const text = await response.text().catch(() => '');
+          throw new Error(text || `Salesforce request failed (${response.status})`);
+        }
+        return response.json() as Promise<SalesforceQueryResponse>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setSalesforceTotal(data.totalSize || 0);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setSalesforceError(err instanceof Error ? err.message : 'Could not load Salesforce data.');
+      })
+      .finally(() => {
+        if (!cancelled) setSalesforceLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   return (
     <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
       {isAuthenticated ? (
         <>
           <div className="content-container">
+            <div className="company-progress-header">
+              <img src={stiLogo} alt="Symphony Towers" className="company-progress-logo" />
+              <h1>Company Progress</h1>
+              <div className="company-progress-year">
+                <div className="company-progress-year-label">2026</div>
+                <div className="company-progress-year-select">2026 (Year)</div>
+              </div>
+            </div>
+
+            {/* Homepage cards hidden for now. Change false to true to restore. */}
+            {false && (
             <div className="grid-layout">
               {/* Card 1 */}
               <div className="card odd-card">
@@ -154,6 +231,53 @@ const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
               </div>
               */}
             </div>
+            )}
+
+            <section className="salesforce-panel">
+              <div className="salesforce-panel-header">
+                <h2>Closed Rent (#)</h2>
+              </div>
+              {salesforceLoading ? (
+                <p>Loading Salesforce data...</p>
+              ) : salesforceError ? (
+                <p className="salesforce-error">{salesforceError}</p>
+              ) : (
+                <div className="closed-rent-gauge" role="img" aria-label={`Closed Rent count is ${closedRentCount} out of ${CLOSED_RENT_MAX}, goal ${CLOSED_RENT_GOAL}`}>
+                  <svg viewBox="0 0 220 130" className="closed-rent-gauge-svg">
+                    <path
+                      className="closed-rent-gauge-track"
+                      d="M 20 110 A 90 90 0 0 1 200 110"
+                      pathLength="100"
+                    />
+                    <path
+                      className="closed-rent-gauge-fill"
+                      d="M 20 110 A 90 90 0 0 1 200 110"
+                      pathLength="100"
+                      style={{ strokeDasharray: `${gaugePercent} 100` }}
+                    />
+                    <line
+                      className="closed-rent-gauge-goal"
+                      x1={goalInner.x}
+                      y1={goalInner.y}
+                      x2={goalOuter.x}
+                      y2={goalOuter.y}
+                    />
+                    <text
+                      className="closed-rent-gauge-goal-text"
+                      x={goalOuter.x - 12}
+                      y={goalOuter.y - 8}
+                    >
+                      {CLOSED_RENT_GOAL}
+                    </text>
+                  </svg>
+                  <div className="closed-rent-gauge-value">{closedRentCount}</div>
+                  <div className="closed-rent-gauge-scale">
+                    <span>0</span>
+                    <span>{CLOSED_RENT_MAX}</span>
+                  </div>
+                </div>
+              )}
+            </section>
 
             <aside className="sidebar">
               <section className="quick-links">
