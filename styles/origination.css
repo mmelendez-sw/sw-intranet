@@ -1,0 +1,14 @@
+.origination {
+  padding: 20px;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
+
+.origination h1 {
+  color: var(--symphony-blue);
+}
+  
+.origination ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
