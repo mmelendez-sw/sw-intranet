@@ -1,11 +1,17 @@
 import React from 'react';
 import '../styles/reports.css';
+import { UserInfo } from '../types/user';
+import { isPowerBIReport, getPowerBILicenseIndicator, getEliteGroupIndicator } from '../services/powerbiLicenseService';
+
+interface ReportsProps {
+  userInfo: UserInfo;
+}
 
 const reports = [
   {
-    title: 'Daily Opportunity Count',
-    description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
-    link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    title: 'Company Progress',
+    description: 'A comprehensive view of company performance metrics and progress indicators.',
+    link: 'https://app.powerbi.com/reportEmbed?reportId=e091da31-91dd-42c2-9b17-099d2e07c492&autoAuth=true&ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&filterPaneEnabled=false&navContentPaneEnabled=false',
   },
   {
     title: 'All Acquisitions Summary',
@@ -13,82 +19,248 @@ const reports = [
     link: 'https://app.powerbi.com/links/PDJWKnYPlL?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
+    title: 'Daily Opportunity Count',
+    description: 'A comprehensive status report on all current Symphony Towers Infrastructure Opportunities, Term Sheets, and Closed Rent.',
+    link: 'https://app.powerbi.com/links/cJsxxPeDQx?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
     title: 'Portfolio Pipeline',
     description: 'A comprehensive look at the Symphony Towers Infrastructure Portfolio pipeline.',
     link: 'https://app.powerbi.com/links/EJYOMILU2S?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
-    title: 'TK Salesforce Sites',
-    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
-    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  },  
-  // {
-  //   title: 'Site Tracker - Easement and Towers Report',
-  //   description: 'A comprehensive look at Easements and Towers combined.',
-  //   link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  // },
-  // {
-  //   title: 'Site Tracker - Sales Pipeline Activity',
-  //   description: 'A comprehensive look at current sales pipeline activity.',
-  //   link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
-  // },
-  {
     title: 'Tower Purchase Opportunities',
     description: 'A complete view of all opportunities with the Tower Purchase transaction type.',
     link: 'https://app.powerbi.com/links/15otqb7SY1?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=44739935-cc8c-4072-8232-79d8be3360f8',
   },  
+  {title: 'Closing - Pipeline', 
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Closing Pipeline.',
+    link: 'https://app.powerbi.com/links/Cs4H7e-pez?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare'
+  }, 
   {
-    title: 'Daily Acquisitions Summary',
+    title: 'Signed LOIs - SNDA',
+    description: 'A comprehensive look at Signed Letters of Intent and Subordination, Non-Disturbance, and Attornment agreements.',
+    link: 'https://app.powerbi.com/links/M87CTzygq_?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'WIP - Daily Acquisitions Summary',
     description: 'Work In Progress - A comprehensive look at the Symphony Towers Infrastructure Daily Acquisitions.',
-    link: 'https://app.powerbi.com/links/hMDIVOJ44O?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
   },
   {
     title: 'WIP - In-Month Conversion Tracker',
     description: 'Work In Progress - A tracker to view opportunity conversions by month.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
   },  
   {
     title: 'WIP - TS and CR Trends Report',
     description: 'Work In Progress - A comprehensive look at trends in Term Sheets and Closed Rent.',
-    // link: 'https://app.powerbi.com/links/5E9lu5wCmG?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare&bookmarkGuid=d608bae3-6929-4c8f-995b-bb0c0b7cf15a',
-  }, {},  {},  {},  {},  {},  {},  {},  {}
+  },
+  {
+    title: 'Site Tracker - Easement and Towers Report',
+    description: 'A comprehensive look at Easements and Towers combined.',
+    link: 'https://app.powerbi.com/links/EcIcSqZiXq?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'Site Tracker - Sales Pipeline Activity',
+    description: 'A comprehensive look at current sales pipeline activity.',
+    link: 'https://app.powerbi.com/links/ucuKVV73py?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
+  {
+    title: 'TK Salesforce Sites',
+    description: 'A comprehensive look at TK High Rent Relocation Sites and their status.',
+    link: 'https://app.powerbi.com/links/ArNJaolb9U?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+  },
 ];
 
-const TechnologyReports: React.FC = () => {
+// Elite reports - additional reports for elite group members (completely independent of Power BI license)
+const eliteReports = [
+  {
+    title: 'Elite - Origination Pipeline',
+    description: 'A comprehensive look at the Symphony Towers Infrastructure Origination Pipeline.',
+    link: 'https://app.powerbi.com/links/lUwfP_rkT6?ctid=63fbe43e-8963-4cb6-8f87-2ecc3cd029b4&pbi_source=linkShare',
+    isEliteReport: true, // Mark as elite report
+  },
+];
+
+const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
+  // INDEPENDENT CONDITIONAL RENDERING:
+  // 1. Elite group membership - controls which reports are shown (completely independent)
+  // 2. Power BI license - controls which Power BI reports are accessible (only for non-elite reports)
+  
+  // Build reports array based on elite group membership (independent of Power BI license)
+  const getAvailableReports = () => {
+    if (userInfo.isEliteGroup) {
+      return [...eliteReports, ...reports];
+    } else {
+      return reports;
+    }
+  };
+  
+  const availableReports = getAvailableReports();
+  
+  // Get page title based on elite group membership (independent of Power BI license)
+  const getPageTitle = () => {
+    if (userInfo.isEliteGroup) {
+      return 'Symphony Towers Infrastructure Elite Status Reports';
+    } else {
+      return 'Symphony Towers Infrastructure Status Reports';
+    }
+  };
+
+  // Get elite access indicator (independent of Power BI license)
+  const getEliteIndicator = () => {
+    if (userInfo.isEliteGroup) {
+      return (
+        <div style={{ 
+          backgroundColor: '#f0f0f0', 
+          color: '#333', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          fontStyle: 'italic'
+        }}>
+          Elite Access - Additional reports available
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Get Power BI license status indicator (independent of elite group)
+  const getPowerBIIndicator = () => {
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    if (!hasPowerBILicense) {
+      return (
+        <div style={{ 
+          backgroundColor: '#fff3cd', 
+          color: '#856404', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          border: '1px solid #ffeaa7'
+        }}>
+          ⚠️ Limited Access - Power BI reports require a Power BI license. Contact your administrator to request access.
+        </div>
+      );
+    } else {
+      return (
+        <div style={{ 
+          backgroundColor: '#e8f4fd', 
+          color: '#1e3a8a', 
+          padding: '8px', 
+          borderRadius: '4px', 
+          marginTop: '10px',
+          fontSize: '0.9em',
+          fontWeight: 'bold'
+        }}>
+          📊 Power BI License Active - Power BI Reports Available
+        </div>
+      );
+    }
+  };
+
+  // Enhanced report button with independent conditions
+  const getReportButton = (report: any) => {
+    const isPowerBI = isPowerBIReport(report);
+    const isEliteReport = report.isEliteReport || false;
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    // Elite reports are always accessible regardless of Power BI license
+    if (isEliteReport) {
+      return (
+        <button 
+          className="report-button" 
+          onClick={() => window.open(report.link, '_blank')}
+          style={{
+            backgroundColor: '#004E7C', // Elite blue color
+            color: '#ffffff',
+            fontWeight: 'bold'
+          }}
+        >
+          {report.title}
+          <span style={{ marginLeft: '5px', fontSize: '0.8em' }}>👑</span>
+        </button>
+      );
+    }
+    
+    // Regular reports follow Power BI license rules
+    if (report.link) {
+      return (
+        <button 
+          className="report-button" 
+          onClick={() => window.open(report.link, '_blank')}
+          disabled={isPowerBI && !hasPowerBILicense}
+          style={{
+            opacity: isPowerBI && !hasPowerBILicense ? 0.5 : 1,
+            cursor: isPowerBI && !hasPowerBILicense ? 'not-allowed' : 'pointer'
+          }}
+          title={isPowerBI && !hasPowerBILicense ? 'Power BI license required' : ''}
+        >
+          {report.title}
+          {isPowerBI && !hasPowerBILicense && <span style={{ marginLeft: '5px', fontSize: '0.8em' }}>🔒</span>}
+        </button>
+      );
+    } else {
+      return (
+        <button className="report-button">
+          {report.title}
+        </button>
+      );
+    }
+  };
+
+  // Get access indicator for each report (independent of other conditions)
+  const getReportAccessIndicator = (report: any) => {
+    const isPowerBI = isPowerBIReport(report);
+    const isEliteReport = report.isEliteReport || false;
+    const hasPowerBILicense = userInfo.hasPowerBILicense || false;
+    
+    // Elite reports always show as accessible
+    if (isEliteReport) {
+      return <span style={{ color: '#004E7C', fontWeight: 'bold' }}>👑 Elite Access</span>;
+    }
+    
+    // Regular reports follow Power BI license rules
+    if (isPowerBI) {
+      if (hasPowerBILicense) {
+        return <span style={{ color: 'green' }}>📊 Power BI</span>;
+      } else {
+        return <span style={{ color: 'red' }}>❌ License Required</span>;
+      }
+    } else {
+      return <span style={{ color: 'blue' }}>🔗 External</span>;
+    }
+  };
+
   return (
     <div className="home-page">
       <div className="outermost-container">
         <div className="reports-content-container">
           <div className="reports-text-bar">
-             <h2>Symphony Towers Infrastructure Status Reports</h2>
+             <h2>{getPageTitle()}</h2>
+             {getEliteIndicator()}
+             {getPowerBIIndicator()}
           </div>
           <table className="reports-table">
             <thead>
               <tr>
                 <th>Title</th>
                 <th>Description</th>
+                <th>Access</th>
               </tr>
             </thead>
             <tbody>
-            {reports.map((report, index) => (
+            {availableReports.map((report, index) => (
               <tr key={index} className={index % 2 === 0 ? 'odd-row' : 'even-row'}>
                 <td>
-                  {report.title ? (
-                    report.link ? (
-                      <button 
-                        className="report-button" 
-                        onClick={() => window.open(report.link, '_blank')}
-                      >
-                        {report.title}
-                      </button>
-                    ) : (
-                      <button className="report-button">
-                        {report.title}
-                      </button>
-                    )
-                  ) : null}
+                  {report.title ? getReportButton(report) : null}
                 </td>
                 <td style={{ height: '55px' }}>{report.description || ''}</td>
+                <td>
+                  {getReportAccessIndicator(report)}
+                </td>
               </tr>
             ))}
             </tbody>
@@ -107,6 +279,11 @@ const TechnologyReports: React.FC = () => {
             <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
             <button className="home-button" onClick={() => window.open('https://sitetracker-symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
             <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button> 
+            {userInfo.isEliteGroup ? (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Elite Reports</button>
+            ) : (
+              <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
+            )}
             <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
             <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
             <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
@@ -130,4 +307,4 @@ const TechnologyReports: React.FC = () => {
   );
 };
 
-export default TechnologyReports;
+export default Reports;

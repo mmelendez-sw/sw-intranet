@@ -1,322 +1,393 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
-
-
-import img3 from '../../images/site_3.jpg';
-// import img4 from '../../images/coat.jpg';
-// import earthdayImg from '../../images/earthday.png';
-import img9 from '../../images/vol.jpg'
-// import img10 from '../../images/emp.jpg'
-// import img10Md from '../../images/emp_md.jpg'
-// import img10Sm from '../../images/emp_sm.jpg'
-import img11 from '../../images/wider_app.png'
-import stiLogo from '../../images/sti-horizontal-white.png';
-// import img11 from '../../images/sip.jpeg'
+import { UserInfo } from '../types/user';
+import { PowerbiService } from '../services/powerbiService';
 
 interface HomePageProps {
-  isAuthenticated: boolean;
+  userInfo: UserInfo;
 }
 
-interface SalesforceQueryResponse {
-  totalSize: number;
-  records: unknown[];
+interface SalesforceInvestmentRecord {
+  Id: string;
+  All_In_Purchase_Price__c?: number | null;
+  Annual_Rent__c?: number | null;
+  Source_Type__c?: string | null;
 }
+
+interface SalesforceInvestmentResponse {
+  records?: SalesforceInvestmentRecord[];
+}
+
+const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
+  if (typeof window === 'undefined') return '/api/salesforce/current-investments';
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001/api/salesforce/current-investments';
+  }
+  return '/api/salesforce/current-investments';
+})();
 
 const CLOSED_RENT_MAX = 250;
 const CLOSED_RENT_GOAL = 104;
+const CAPITAL_DEPLOYED_MAX = 210_000_000;
+const CAPITAL_DEPLOYED_GOAL = 82_000_000;
 
-const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
-  const path = '/api/salesforce/current-investments';
-  if (typeof window === 'undefined') return path;
+const getGaugePoint = (value: number, max: number, radius: number) => {
+  const centerX = 150;
+  const centerY = 150;
+  const ratio = Math.max(0, Math.min(value / max, 1));
+  const angle = Math.PI - (ratio * Math.PI);
 
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return `http://localhost:3001${path}`;
-  }
-
-  return path;
-})();
-
-const HomePage: React.FC<HomePageProps> = ({ isAuthenticated }) => {
-  console.log('HomePage Render - isAuthenticated:', isAuthenticated);
-  const [salesforceTotal, setSalesforceTotal] = useState(0);
-  const [salesforceLoading, setSalesforceLoading] = useState(false);
-  const [salesforceError, setSalesforceError] = useState('');
-  const closedRentCount = salesforceTotal;
-  const gaugePercent = Math.min(closedRentCount / CLOSED_RENT_MAX, 1) * 100;
-  const goalAngle = ((180 - (CLOSED_RENT_GOAL / CLOSED_RENT_MAX) * 180) * Math.PI) / 180;
-  const goalInner = {
-    x: 110 + 76 * Math.cos(goalAngle),
-    y: 110 - 76 * Math.sin(goalAngle),
+  return {
+    x: centerX + radius * Math.cos(angle),
+    y: centerY - radius * Math.sin(angle),
   };
-  const goalOuter = {
-    x: 110 + 98 * Math.cos(goalAngle),
-    y: 110 - 98 * Math.sin(goalAngle),
-  };
+};
+
+const toNumber = (value?: number | null) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  return value;
+};
+
+const formatMillions = (value: number) => `$${Math.round(value / 1_000_000)}M`;
+const formatMillionsPrecise = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
+
+const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
+  console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
+  const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  const chartOverlayRef = useRef<HTMLDivElement>(null);
+  const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
+  const [powerbiError, setPowerbiError] = useState<string | null>(null);
+  const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
+  const [salesforceLoading, setSalesforceLoading] = useState(true);
+  const [salesforceError, setSalesforceError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    const container = powerbiContainerRef.current;
+    if (!container) return;
+    const preventZoom: EventListener = (e) => {
+      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+        e.preventDefault();
+      }
+    };
+    container.addEventListener('wheel', preventZoom, { passive: false });
+    container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+    container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', preventZoom);
+      container.removeEventListener('gesturestart', preventZoom as EventListener);
+      container.removeEventListener('gesturechange', preventZoom as EventListener);
+    };
+  }, []);
 
-    let cancelled = false;
-    setSalesforceLoading(true);
-    setSalesforceError('');
+  useEffect(() => {
+    const overlay = chartOverlayRef.current;
+    if (!overlay) return;
+    const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
+      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+        e.preventDefault();
+      }
+    };
+    overlay.addEventListener('wheel', preventZoom, { passive: false });
+    overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+    overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+    return () => {
+      overlay.removeEventListener('wheel', preventZoom);
+      overlay.removeEventListener('gesturestart', preventZoom as EventListener);
+      overlay.removeEventListener('gesturechange', preventZoom as EventListener);
+    };
+  }, []);
 
-    fetch(SALESFORCE_CURRENT_INVESTMENTS_URL)
-      .then(async (response) => {
-        if (!response.ok) {
-          const text = await response.text().catch(() => '');
-          throw new Error(text || `Salesforce request failed (${response.status})`);
+  // Load PowerBI configuration - Only if user has Power BI license
+  useEffect(() => {
+    const loadPowerbiConfig = async () => {
+      try {
+        const powerbiService = PowerbiService.getInstance();
+        
+        // Validate configuration first
+        if (!powerbiService.validateConfiguration()) {
+          setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
+          return;
         }
-        return response.json() as Promise<SalesforceQueryResponse>;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        setSalesforceTotal(data.totalSize || 0);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setSalesforceError(err instanceof Error ? err.message : 'Could not load Salesforce data.');
-      })
-      .finally(() => {
-        if (!cancelled) setSalesforceLoading(false);
-      });
+
+        // Generate embed token for the report
+        const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
+        setPowerbiConfig(embedToken);
+        setPowerbiError(null);
+      } catch (error) {
+        console.error('Failed to load PowerBI configuration:', error);
+        setPowerbiError('Failed to load PowerBI report. Please check configuration.');
+      }
+    };
+
+    if (userInfo.isAuthenticated && userInfo.hasPowerBILicense) {
+      loadPowerbiConfig();
+    }
+  }, [userInfo.isAuthenticated, userInfo.hasPowerBILicense]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadSalesforceRows = async () => {
+      try {
+        setSalesforceLoading(true);
+        setSalesforceError(null);
+
+        const response = await fetch(SALESFORCE_CURRENT_INVESTMENTS_URL);
+        const data: SalesforceInvestmentResponse & { error?: string } = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || `Salesforce request failed (${response.status})`);
+        }
+
+        if (isActive) {
+          setSalesforceRows(data.records || []);
+        }
+      } catch (error) {
+        console.error('Failed to load Salesforce investments:', error);
+        if (isActive) {
+          setSalesforceError(error instanceof Error ? error.message : 'Failed to load Salesforce data.');
+          setSalesforceRows([]);
+        }
+      } finally {
+        if (isActive) {
+          setSalesforceLoading(false);
+        }
+      }
+    };
+
+    loadSalesforceRows();
 
     return () => {
-      cancelled = true;
+      isActive = false;
     };
-  }, [isAuthenticated]);
+  }, []);
+
+  const closedRentCount = salesforceRows.length;
+  const closedRentPercent = Math.min((closedRentCount / CLOSED_RENT_MAX) * 100, 100);
+  const goalInnerPoint = getGaugePoint(CLOSED_RENT_GOAL, CLOSED_RENT_MAX, 97);
+  const goalOuterPoint = getGaugePoint(CLOSED_RENT_GOAL, CLOSED_RENT_MAX, 143);
+  const goalLabelX = goalInnerPoint.x - 6;
+  const goalLabelY = goalOuterPoint.y - 12;
+  const capitalDeployed = salesforceRows.reduce(
+    (total, row) => total + toNumber(row.All_In_Purchase_Price__c),
+    0
+  );
+  const capitalDeployedPercent = Math.min((capitalDeployed / CAPITAL_DEPLOYED_MAX) * 100, 100);
+  const capitalGoalInnerPoint = getGaugePoint(CAPITAL_DEPLOYED_GOAL, CAPITAL_DEPLOYED_MAX, 97);
+  const capitalGoalOuterPoint = getGaugePoint(CAPITAL_DEPLOYED_GOAL, CAPITAL_DEPLOYED_MAX, 143);
+  const capitalGoalLabelX = capitalGoalInnerPoint.x - 6;
+  const capitalGoalLabelY = capitalGoalOuterPoint.y - 12;
+  const gcfAcquired = salesforceRows.reduce(
+    (total, row) => total + toNumber(row.Annual_Rent__c),
+    0
+  );
 
   return (
-    <div className={`home-page ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}>
-      {isAuthenticated ? (
-        <>
-          <div className="content-container">
-            <div className="company-progress-header">
-              <img src={stiLogo} alt="Symphony Towers" className="company-progress-logo" />
-              <h1>Company Progress</h1>
-              <div className="company-progress-year">
-                <div className="company-progress-year-label">2026</div>
-                <div className="company-progress-year-select">2026 (Year)</div>
-              </div>
-            </div>
-
-            {/* Homepage cards hidden for now. Change false to true to restore. */}
-            {false && (
-            <div className="grid-layout">
-              {/* Card 1 */}
-              <div className="card odd-card">
-                <img src={img9} alt="Meals on Main Street" className="card-image" style={{ objectFit: 'contain' }} />
-                <div className="card-text">
-                  <h2>Important Dates</h2>
-                    <ul>
-                      <li>July - Q2 Performance Reviews</li>
-                      <li>7/3: Independence Day Observed</li>
-                      <li>9/7: Labor Day</li>
-                      <li>11/26: Thanksgiving Day</li>
-                      <li>11/27: Day After Thanksgiving</li>
-                      <li>12/25: Christmas Day</li>
-                    </ul>
+    <div className="home-page authenticated">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%' }}>
+          {/* Main Content White Box */}
+          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
+            <div className="main-content" style={{ flex: 1, width: '100%' }}>
+              
+              {/* Power BI Report Embed - Only show if user has Power BI license */}
+              {userInfo.hasPowerBILicense ? (
+                <div
+                  ref={powerbiContainerRef}
+                  className="powerbi-embed-container"
+                  style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
+                >
+                  {powerbiError ? (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      height: '100%', 
+                      color: '#d32f2f',
+                      textAlign: 'center',
+                      padding: '20px'
+                    }}>
+                      <div>
+                        <h3>⚠️ PowerBI Configuration Error</h3>
+                        <p>{powerbiError}</p>
+                        <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
+                          Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
+                        </p>
+                      </div>
+                    </div>
+                  ) : powerbiConfig ? (
+                    <iframe
+                      title="Company Progress"
+                      width="100%"
+                      height="425"
+                      src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
+                      frameBorder="0"
+                      allowFullScreen={false}
+                      style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
+                      sandbox="allow-scripts allow-same-origin allow-popups"
+                    />
+                  ) : (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      height: '100%', 
+                      color: '#666'
+                    }}>
+                      <div>Loading PowerBI report...</div>
+                    </div>
+                  )}
+                  <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
                 </div>
-              </div>
-              {/* Card 2 */}
-              {/* <div className="card even-card">
-                <img src={img11} alt="Bowling 2025" className="card-image" />
-                <div className="card-text">
-                  <h2>Hidden Talents</h2>
-                  <ul>
-                    <li>
-                      A fun-filled Paint & Sip that brought the team together.  
-                    </li>
-                  </ul>
-                </div>
-              </div> */}
-              <div className="card even-card">
-                <img src={img11} alt="Bowling 2025" className="card-image" />
-                <div className="card-text">
-                  <h2>New Employee Leads App</h2>
-                  <ul>
-                    <li>
-                      Our goal is to collect 2 leads per month per employee. 
-                    </li>
-                    <li>
-                      This initiative is a part of our company-wide goals for the year. 
-                    </li>
-                    <li>
-                      Please refer to the intranet to learn more about our 2 leads initiative.
-                    </li>
-                    <li>
-                      Please refer to the intranet to learn how to download the app. 
-                    </li>
-                    <li>
-                      Please refer to the intranet to learn how to submit the leads from desktop browser. 
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              {/* Card 3 — Earth Day (uncomment when ready)
-              <div className="card odd-card">
-                <img
-                  src={earthdayImg}
-                  alt="Earth Day"
-                  className="card-image"
-                  style={{ objectFit: 'contain' }}
-                />
-                <div className="card-text">
-                  <h2>What Can You Do This Earth Day</h2>
-                  <ul>
-                    <li>Bring a reusable water bottle or coffee mug</li>
-                    <li>Take a walk, bike ride, or spend time outdoors</li>
-                    <li>Pick up litter during a walk or commute</li>
-                    <li>Try a meat-free meal or shop locally for the day.</li>
-                    <li>
-                      Planting flowers and trees helps clean the air, support pollinators, and create healthier, greener spaces for everyone.
-                    </li>
-                    <li>If in the office, feel free to grab a packet of flower seeds and grow something meaningful!</li>
-                    <li>
-                      Show us how you&apos;re celebrating Earth Day this year—share your photos with us at{' '}
-                      <a href="mailto:symphonycommunityalliance@symphonyinfra.com">symphonycommunityalliance@symphonyinfra.com</a>.
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              */}
-              {/* Card 4 — Person to Person Coat Drive (uncomment when ready)
-              <div className="card even-card">
-                <img src={img4} alt="Food Drive" className="card-image" />
-                <div className="card-text">
-                  <h2>Person to Person Coat Drive</h2>
-                  <ul>
-                    <li>Thank you to our volunteers who joined us for the Person to Person coat drive in Darien, CT! Your kindness keeps our community warm.</li>
-                  </ul>
-                </div>
-              </div>
-              */}
-              {/* Card 5 */}
-              <div className="card odd-card">
-                <img src={img3} alt="Marketing Updates" className="card-image" />
-                <div className="card-text">
-                  <h2>Marketing Updates</h2>
-                  <ul>
-                    <li>We're excited to share that our company logo has been updated as part of our ongoing brand refresh.
-                      To support this update, we've created a shared folder with updated logo files, templates, and brand collateral for your use. This folder will continue to be updated as additional materials become available.
-                      If you have any questions or need assistance, please feel free to reach out to Justin or Arwa.
-                      Thank you for helping us maintain a consistent and professional brand presence.</li>
-                    <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">New Symphony Branding</a>
-                    </li>
-                    <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
-                    <li>
-                      <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
-                    </li>
-                    <li>
-                      <a href="https://www.youtube.com/watch?v=AUj_-d7XSPI" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
-                    </li>
-                  </ul>       
-                </div>
-              </div>  
-              {/* Card 6 — Employee Appreciation Day (uncomment when ready)
-              <div className="card even-card">
-                <img
-                  src={img10}
-                  srcSet={`${img10Sm} 480w, ${img10Md} 900w, ${img10} 1200w`}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  alt="Employee Appreciation Day Celebration"
-                  className="card-image employee-appreciation-image"
-                />
-                <div className="card-text">
-                  <h2>Employee Appreciation Day Celebration</h2>
-                  <ul>
-                    <li>Thank you to every team member for your dedication, positive energy, and hard work - your contributions are the reason our Employee Appreciation Day was such a success.</li>
-                  </ul>
-                </div>
-              </div>
-              */}
-            </div>
-            )}
-
-            <section className="salesforce-panel">
-              <div className="salesforce-panel-header">
-                <h2>Closed Rent (#)</h2>
-              </div>
-              {salesforceLoading ? (
-                <p>Loading Salesforce data...</p>
-              ) : salesforceError ? (
-                <p className="salesforce-error">{salesforceError}</p>
               ) : (
-                <div className="closed-rent-gauge" role="img" aria-label={`Closed Rent count is ${closedRentCount} out of ${CLOSED_RENT_MAX}, goal ${CLOSED_RENT_GOAL}`}>
-                  <svg viewBox="0 0 220 130" className="closed-rent-gauge-svg">
-                    <path
-                      className="closed-rent-gauge-track"
-                      d="M 20 110 A 90 90 0 0 1 200 110"
-                      pathLength="100"
-                    />
-                    <path
-                      className="closed-rent-gauge-fill"
-                      d="M 20 110 A 90 90 0 0 1 200 110"
-                      pathLength="100"
-                      style={{ strokeDasharray: `${gaugePercent} 100` }}
-                    />
-                    <line
-                      className="closed-rent-gauge-goal"
-                      x1={goalInner.x}
-                      y1={goalInner.y}
-                      x2={goalOuter.x}
-                      y2={goalOuter.y}
-                    />
-                    <text
-                      className="closed-rent-gauge-goal-text"
-                      x={goalOuter.x - 12}
-                      y={goalOuter.y - 8}
-                    >
-                      {CLOSED_RENT_GOAL}
-                    </text>
-                  </svg>
-                  <div className="closed-rent-gauge-value">{closedRentCount}</div>
-                  <div className="closed-rent-gauge-scale">
-                    <span>0</span>
-                    <span>{CLOSED_RENT_MAX}</span>
+                <div
+                  style={{ 
+                    width: '100%', 
+                    height: '425px', 
+                    margin: '-42px 0 0 0', 
+                    padding: '20px', 
+                    background: '#fff', 
+                    border: 'none', 
+                    borderRadius: '10px', 
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.07)', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}
+                >
+                  <div>
+                    <h3>📊 Power BI Report</h3>
+                    <p>This report requires a Power BI license to view.</p>
+                    <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+                      Contact your administrator to request Power BI access.
+                    </p>
                   </div>
                 </div>
               )}
-            </section>
+              <div className="salesforce-gauge-row">
+                <section className="salesforce-panel">
+                  <div className="salesforce-panel-header">
+                    <h2>Closed Rent (#)</h2>
+                  </div>
+                  {salesforceLoading ? (
+                    <div className="salesforce-status">Loading Salesforce data...</div>
+                  ) : salesforceError ? (
+                    <div className="salesforce-error">{salesforceError}</div>
+                  ) : (
+                    <div className="closed-rent-gauge">
+                      <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Closed Rent count ${closedRentCount} out of ${CLOSED_RENT_MAX}`}>
+                        <path
+                          className="closed-rent-gauge-track"
+                          d="M 30 150 A 120 120 0 0 1 270 150"
+                          pathLength={100}
+                        />
+                        <path
+                          className="closed-rent-gauge-fill"
+                          d="M 30 150 A 120 120 0 0 1 270 150"
+                          pathLength={100}
+                          strokeDasharray={`${closedRentPercent} 100`}
+                        />
+                        <line
+                          className="closed-rent-gauge-goal"
+                          x1={goalInnerPoint.x}
+                          y1={goalInnerPoint.y}
+                          x2={goalOuterPoint.x}
+                          y2={goalOuterPoint.y}
+                        />
+                        <text
+                          className="closed-rent-gauge-goal-text"
+                          x={goalLabelX}
+                          y={goalLabelY}
+                          textAnchor="end"
+                        >
+                          {CLOSED_RENT_GOAL}
+                        </text>
+                      </svg>
+                      <div className="closed-rent-gauge-value">{closedRentCount}</div>
+                      <div className="closed-rent-gauge-scale">
+                        <span>0</span>
+                        <span>{CLOSED_RENT_MAX}</span>
+                      </div>
+                    </div>
+                  )}
+                </section>
 
-            <aside className="sidebar">
-              <section className="quick-links">
-                <button className="home-button" onClick={() => window.open('mailto:Symphony_Tech@symphonywireless.com', '_self')}>Report Technology Issue</button>
-              </section>
-              <section className="updates">
-                <h2>IT Updates</h2>
-                <p>Do not click any phishing links</p>
-              </section>
-              <section className="quick-links">
-                <h2>Quick Links</h2>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>Salesforce</button>
-                <button className="home-button" onClick={() => window.open('https://symphonyinfra.my.salesforce.com/', '_blank')}>SiteTracker</button>
-                <button className="home-button" onClick={() => window.open('https://symphonysitesearch.app/', '_blank')}>Synaptek AI Search</button>
-                <button className="home-button" onClick={() => window.open('https://intranet.symphonywireless.com/technology', '_blank')}>Reports</button>
-                <button className="home-button" onClick={() => window.open('https://identity.trinet.com/', '_blank')}>Trinet</button>
-                <button className="home-button" onClick={() => window.open('https://www.concursolutions.com/', '_blank')}>Concur</button>
-                <button className="home-button" onClick={() => window.open('https://system.netsuite.com/app/center/card.nl?c=8089687', '_blank')}>Netsuite</button>
-                <button className="home-button" onClick={() => window.open('https://outlook.office.com/', '_blank')}>Outlook</button>
-              </section>
-              <section className="updates">
-                <h2>Exciting News</h2>
-                <p>Palistar Capital combines Symphony Wireless with CTI Towers to form Symphony Towers Infrastructure (Symphony Towers). Read the <a href="https://www.prnewswire.com/news-releases/palistar-capital-announces-combination-of-us-wireless-assets-302350144.html" target="_blank" rel="noopener noreferrer">Press Release</a>.</p> 
-              </section>
-              <section className="updates">
-                <h2>2025 Holiday Party Photos</h2>
-                <p>Linked below are the photos from our annual Holiday Party! Please browse when you have some time!</p>
-                <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FHoliday%20Party%202025&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd&CT=1765897007566&OR=OWA%2DNT%2DMail&CID=3f303088%2D887e%2D5f5d%2Dc796%2D8c05e6dfe58c&csf=1&web=1&e=KiM4Nf&FolderCTID=0x012000AAC1A88E36691940A87DC692E832396C" target="_blank" rel="noopener noreferrer">Holiday Party 2025</a>
-              </section>
-            </aside>
+                <section className="salesforce-panel">
+                  <div className="salesforce-panel-header">
+                    <h2>Capital Deployed</h2>
+                  </div>
+                  {salesforceLoading ? (
+                    <div className="salesforce-status">Loading Salesforce data...</div>
+                  ) : salesforceError ? (
+                    <div className="salesforce-error">{salesforceError}</div>
+                  ) : (
+                    <div className="closed-rent-gauge">
+                      <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Capital Deployed ${formatMillions(capitalDeployed)} out of ${formatMillions(CAPITAL_DEPLOYED_MAX)}`}>
+                        <path
+                          className="closed-rent-gauge-track"
+                          d="M 30 150 A 120 120 0 0 1 270 150"
+                          pathLength={100}
+                        />
+                        <path
+                          className="closed-rent-gauge-fill"
+                          d="M 30 150 A 120 120 0 0 1 270 150"
+                          pathLength={100}
+                          strokeDasharray={`${capitalDeployedPercent} 100`}
+                        />
+                        <line
+                          className="closed-rent-gauge-goal"
+                          x1={capitalGoalInnerPoint.x}
+                          y1={capitalGoalInnerPoint.y}
+                          x2={capitalGoalOuterPoint.x}
+                          y2={capitalGoalOuterPoint.y}
+                        />
+                        <text
+                          className="closed-rent-gauge-goal-text"
+                          x={capitalGoalLabelX}
+                          y={capitalGoalLabelY}
+                          textAnchor="end"
+                        >
+                          {formatMillions(CAPITAL_DEPLOYED_GOAL)}
+                        </text>
+                      </svg>
+                      <div className="closed-rent-gauge-value">{formatMillions(capitalDeployed)}</div>
+                      <div className="closed-rent-gauge-scale">
+                        <span>$0M</span>
+                        <span>{formatMillions(CAPITAL_DEPLOYED_MAX)}</span>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                <div className="salesforce-summary-stack">
+                  <section className="salesforce-summary-card">
+                    <div className="salesforce-summary-header">GCF Acquired</div>
+                    {salesforceLoading ? (
+                      <div className="salesforce-summary-status">Loading...</div>
+                    ) : salesforceError ? (
+                      <div className="salesforce-summary-error">Unavailable</div>
+                    ) : (
+                      <div className="salesforce-summary-value">{formatMillionsPrecise(gcfAcquired)}</div>
+                    )}
+                  </section>
+
+                  <section className="salesforce-summary-card">
+                    <div className="salesforce-summary-header">Capital Deployed</div>
+                    {salesforceLoading ? (
+                      <div className="salesforce-summary-status">Loading...</div>
+                    ) : salesforceError ? (
+                      <div className="salesforce-summary-error">Unavailable</div>
+                    ) : (
+                      <div className="salesforce-summary-value">{formatMillionsPrecise(capitalDeployed)}</div>
+                    )}
+                  </section>
+                </div>
+              </div>
+            </div>
           </div>
-        </>
-      ) : (
-        <div className="unauthenticated-message">
-          <h2>Welcome to the Symphony Towers Infrastructure Intranet!</h2>
-          <p>Please log in to access more features and content.</p>
         </div>
-      )}
-      <footer className="footer">
+      <footer className="footer" style={{ marginTop: '10px' }}>
         <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
       </footer>
     </div>

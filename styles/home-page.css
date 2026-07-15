@@ -7,8 +7,8 @@
 .home-page.authenticated {
   background: #ffffff;
   margin-top: 0;
-  overflow: hidden;
-  max-height: 100vh;
+  min-height: 100vh;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
@@ -31,8 +31,8 @@
 
 .company-progress-header {
   align-items: center;
-  background: #005b99;
-  border: 1px solid #0073a8;
+  background: #004E7C;
+  border: 1px solid #004E7C;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: 1fr 1.2fr 1fr;
@@ -60,7 +60,7 @@
 }
 
 .company-progress-year {
-  background: #005b99;
+  background: #004E7C;
   border-radius: 10px 10px 4px 4px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
   color: #ffffff;
@@ -79,7 +79,7 @@
 }
 
 .company-progress-year-select {
-  background: #0a6fa8;
+  background: #004E7C;
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 2px;
   font-size: 0.66rem;
@@ -152,18 +152,35 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
 }
 
+.salesforce-gauge-row {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+  width: 100%;
+}
+
 .salesforce-panel {
   background-color: #ffffff;
-  border: 1px solid #d6d6d6;
+  border: 1px solid #333333;
   border-radius: 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  margin: 0;
+  max-width: calc(100% - 32px);
   overflow: hidden;
   padding: 0;
+  width: 370px;
 }
 
 .salesforce-panel-header {
   align-items: center;
-  background-color: #005b99;
+  background-color: #004E7C;
   display: flex;
   justify-content: center;
   margin-bottom: 0;
@@ -178,16 +195,108 @@
   margin: 0;
 }
 
+.salesforce-summary-stack {
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+  justify-content: space-between;
+  width: 360px;
+  max-width: calc(100% - 32px);
+}
+
+.salesforce-summary-card {
+  background-color: #ffffff;
+  border: 1px solid #333333;
+  box-sizing: border-box;
+  min-height: 112px;
+  width: 100%;
+}
+
+.salesforce-summary-header {
+  background-color: #004E7C;
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  padding: 5px 12px;
+  text-align: center;
+}
+
+.salesforce-summary-value,
+.salesforce-summary-status,
+.salesforce-summary-error {
+  align-items: center;
+  color: #2b2b2b;
+  display: flex;
+  font-size: 3.6rem;
+  font-weight: 400;
+  justify-content: center;
+  line-height: 1;
+  min-height: 75px;
+  padding: 6px 12px 10px;
+  text-align: center;
+}
+
+.salesforce-summary-status {
+  color: #666666;
+  font-size: 1rem;
+}
+
+.salesforce-summary-error {
+  color: #b00020;
+  font-size: 1rem;
+}
+
 .salesforce-error {
   color: #b00020;
   padding: 20px;
+}
+
+.salesforce-status {
+  color: #666666;
+  padding: 20px;
+  text-align: center;
+}
+
+.salesforce-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.salesforce-table {
+  border-collapse: collapse;
+  color: #333333;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.salesforce-table th,
+.salesforce-table td {
+  border-bottom: 1px solid #e4e4e4;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.salesforce-table th {
+  background-color: #f4f8fb;
+  color: #004E7C;
+  font-weight: 700;
+}
+
+.salesforce-table tbody tr:nth-child(even) {
+  background-color: #f9fbfd;
+}
+
+.salesforce-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .closed-rent-gauge {
   align-items: center;
   display: flex;
   flex-direction: column;
-  padding: 16px 0 12px;
+  padding: 14px 18px 12px;
   position: relative;
 }
 
@@ -213,14 +322,14 @@
 }
 
 .closed-rent-gauge-goal {
-  stroke: #283ab3;
+  stroke: #2636b8;
   stroke-linecap: round;
-  stroke-width: 3;
+  stroke-width: 2.5;
 }
 
 .closed-rent-gauge-goal-text {
   fill: #666666;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -229,7 +338,7 @@
   font-size: 3rem;
   font-weight: 500;
   line-height: 1;
-  margin-top: -44px;
+  margin-top: -98px;
 }
 
 .closed-rent-gauge-scale {
@@ -238,7 +347,7 @@
   font-size: 1.05rem;
   font-weight: 700;
   justify-content: space-between;
-  margin-top: -2px;
+  margin-top: 10px;
   max-width: 310px;
   width: 96%;
 }
@@ -307,7 +416,7 @@
 
 
 .sidebar .quick-links button {
-  background-color: #005b99; /* Rich blue for buttons */
+  background-color: #004E7C; /* Company blue for buttons */
   color: #ffffff;
   border: none;
   padding: 10px;
@@ -348,7 +457,7 @@
 }
 
 .home-page.authenticated .footer {
-  margin-top: 100vh;
+  margin-top: 24px;
 }
 
 .home-page.unauthenticated .footer {
