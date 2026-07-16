@@ -190,7 +190,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
             <div className="main-content" style={{ flex: 1, width: '100%' }}>
               
-              {/* Power BI Report Embed - Only show if user has Power BI license */}
+              {/* Power BI Report Embed - temporarily disabled
               {userInfo.hasPowerBILicense ? (
                 <div
                   ref={powerbiContainerRef}
@@ -265,6 +265,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   </div>
                 </div>
               )}
+              */}
               <div className="salesforce-gauge-row">
                 <section className="salesforce-panel">
                   <div className="salesforce-panel-header">
