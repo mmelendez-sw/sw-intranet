@@ -50,7 +50,7 @@ body {
   width: 100%; /* Extend to full width */
   margin: 0;
   padding: 0;
-  padding-top: 60px; /* Increased padding to account for fixed header */
+  padding-top: 72px; /* Match fixed header height */
 }
 
 .quick-links-section {

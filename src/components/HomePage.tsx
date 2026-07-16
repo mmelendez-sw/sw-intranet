@@ -438,9 +438,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
             </div>
           </div>
         </div>
-      <footer className="footer" style={{ marginTop: '10px' }}>
-        <p>&copy; 2025 Symphony Towers Infrastructure. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

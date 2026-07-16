@@ -164,8 +164,12 @@
   width: fit-content;
 }
 
+.home-page.authenticated .main-content {
+  padding-top: 0;
+}
+
 .home-page.authenticated .main-content > .company-progress-box:first-of-type {
-  margin-top: -8px;
+  margin-top: 20px;
 }
 
 .company-progress-box + .company-progress-box {
@@ -248,7 +252,7 @@
   flex-direction: column;
   height: 280px;
   justify-content: space-between;
-  width: 360px;
+  width: 370px;
   max-width: calc(100% - 32px);
 }
 
