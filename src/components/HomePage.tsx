@@ -52,6 +52,175 @@ const toNumber = (value?: number | null) => {
 const formatMillions = (value: number) => `$${Math.round(value / 1_000_000)}M`;
 const formatMillionsPrecise = (value: number) => `$${(value / 1_000_000).toFixed(2)}M`;
 
+const getProgressMetrics = (
+  rows: SalesforceInvestmentRecord[],
+  closedRentGoal: number,
+  capitalDeployedGoal: number
+) => {
+  const closedRentCount = rows.length;
+  const closedRentPercent = Math.min((closedRentCount / CLOSED_RENT_MAX) * 100, 100);
+  const goalInnerPoint = getGaugePoint(closedRentGoal, CLOSED_RENT_MAX, 97);
+  const goalOuterPoint = getGaugePoint(closedRentGoal, CLOSED_RENT_MAX, 143);
+  const capitalDeployed = rows.reduce(
+    (total, row) => total + toNumber(row.All_In_Purchase_Price__c),
+    0
+  );
+  const capitalDeployedPercent = Math.min((capitalDeployed / CAPITAL_DEPLOYED_MAX) * 100, 100);
+  const capitalGoalInnerPoint = getGaugePoint(capitalDeployedGoal, CAPITAL_DEPLOYED_MAX, 97);
+  const capitalGoalOuterPoint = getGaugePoint(capitalDeployedGoal, CAPITAL_DEPLOYED_MAX, 143);
+  const gcfAcquired = rows.reduce(
+    (total, row) => total + toNumber(row.Annual_Rent__c),
+    0
+  );
+
+  return {
+    closedRentCount,
+    closedRentPercent,
+    closedRentGoal,
+    goalInnerPoint,
+    goalOuterPoint,
+    capitalDeployed,
+    capitalDeployedPercent,
+    capitalDeployedGoal,
+    capitalGoalInnerPoint,
+    capitalGoalOuterPoint,
+    gcfAcquired,
+  };
+};
+
+interface ProgressSectionProps {
+  title: string;
+  rows: SalesforceInvestmentRecord[];
+  loading: boolean;
+  error: string | null;
+  closedRentGoal?: number;
+  capitalDeployedGoal?: number;
+}
+
+const ProgressSection: React.FC<ProgressSectionProps> = ({
+  title,
+  rows,
+  loading,
+  error,
+  closedRentGoal = CLOSED_RENT_GOAL,
+  capitalDeployedGoal = CAPITAL_DEPLOYED_GOAL,
+}) => {
+  const metrics = getProgressMetrics(rows, closedRentGoal, capitalDeployedGoal);
+
+  return (
+    <section className="company-progress-box">
+      <div className="company-progress-box-header">
+        <h2>{title}</h2>
+      </div>
+      <div className="salesforce-gauge-row">
+        <section className="salesforce-panel">
+          <div className="salesforce-panel-header">
+            <h2>Closed Rent (#)</h2>
+          </div>
+          {loading ? (
+            <div className="salesforce-status">Loading Salesforce data...</div>
+          ) : error ? (
+            <div className="salesforce-error">{error}</div>
+          ) : (
+            <div className="closed-rent-gauge">
+              <div className="salesforce-panel-goal">Goal : {metrics.closedRentGoal}</div>
+              <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Closed Rent count ${metrics.closedRentCount} out of ${CLOSED_RENT_MAX}`}>
+                <path
+                  className="closed-rent-gauge-track"
+                  d="M 30 150 A 120 120 0 0 1 270 150"
+                  pathLength={100}
+                />
+                <path
+                  className="closed-rent-gauge-fill"
+                  d="M 30 150 A 120 120 0 0 1 270 150"
+                  pathLength={100}
+                  strokeDasharray={`${metrics.closedRentPercent} 100`}
+                />
+                <line
+                  className="closed-rent-gauge-goal"
+                  x1={metrics.goalInnerPoint.x}
+                  y1={metrics.goalInnerPoint.y}
+                  x2={metrics.goalOuterPoint.x}
+                  y2={metrics.goalOuterPoint.y}
+                />
+              </svg>
+              <div className="closed-rent-gauge-value">{metrics.closedRentCount}</div>
+              <div className="closed-rent-gauge-scale">
+                <span>0</span>
+                <span>{CLOSED_RENT_MAX}</span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="salesforce-panel">
+          <div className="salesforce-panel-header">
+            <h2>Capital Deployed</h2>
+          </div>
+          {loading ? (
+            <div className="salesforce-status">Loading Salesforce data...</div>
+          ) : error ? (
+            <div className="salesforce-error">{error}</div>
+          ) : (
+            <div className="closed-rent-gauge">
+              <div className="salesforce-panel-goal">Goal : {formatMillions(metrics.capitalDeployedGoal)}</div>
+              <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Capital Deployed ${formatMillions(metrics.capitalDeployed)} out of ${formatMillions(CAPITAL_DEPLOYED_MAX)}`}>
+                <path
+                  className="closed-rent-gauge-track"
+                  d="M 30 150 A 120 120 0 0 1 270 150"
+                  pathLength={100}
+                />
+                <path
+                  className="closed-rent-gauge-fill"
+                  d="M 30 150 A 120 120 0 0 1 270 150"
+                  pathLength={100}
+                  strokeDasharray={`${metrics.capitalDeployedPercent} 100`}
+                />
+                <line
+                  className="closed-rent-gauge-goal"
+                  x1={metrics.capitalGoalInnerPoint.x}
+                  y1={metrics.capitalGoalInnerPoint.y}
+                  x2={metrics.capitalGoalOuterPoint.x}
+                  y2={metrics.capitalGoalOuterPoint.y}
+                />
+              </svg>
+              <div className="closed-rent-gauge-value">{formatMillions(metrics.capitalDeployed)}</div>
+              <div className="closed-rent-gauge-scale">
+                <span>$0M</span>
+                <span>{formatMillions(CAPITAL_DEPLOYED_MAX)}</span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <div className="salesforce-summary-stack">
+          <section className="salesforce-summary-card">
+            <div className="salesforce-summary-header">GCF Acquired</div>
+            {loading ? (
+              <div className="salesforce-summary-status">Loading...</div>
+            ) : error ? (
+              <div className="salesforce-summary-error">Unavailable</div>
+            ) : (
+              <div className="salesforce-summary-value">{formatMillionsPrecise(metrics.gcfAcquired)}</div>
+            )}
+          </section>
+
+          <section className="salesforce-summary-card">
+            <div className="salesforce-summary-header">Capital Deployed</div>
+            {loading ? (
+              <div className="salesforce-summary-status">Loading...</div>
+            ) : error ? (
+              <div className="salesforce-summary-error">Unavailable</div>
+            ) : (
+              <div className="salesforce-summary-value">{formatMillionsPrecise(metrics.capitalDeployed)}</div>
+            )}
+          </section>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
@@ -163,24 +332,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     };
   }, []);
 
-  const closedRentCount = salesforceRows.length;
-  const closedRentPercent = Math.min((closedRentCount / CLOSED_RENT_MAX) * 100, 100);
-  const goalInnerPoint = getGaugePoint(CLOSED_RENT_GOAL, CLOSED_RENT_MAX, 97);
-  const goalOuterPoint = getGaugePoint(CLOSED_RENT_GOAL, CLOSED_RENT_MAX, 143);
-  const goalLabelX = goalInnerPoint.x - 6;
-  const goalLabelY = goalOuterPoint.y - 12;
-  const capitalDeployed = salesforceRows.reduce(
-    (total, row) => total + toNumber(row.All_In_Purchase_Price__c),
-    0
-  );
-  const capitalDeployedPercent = Math.min((capitalDeployed / CAPITAL_DEPLOYED_MAX) * 100, 100);
-  const capitalGoalInnerPoint = getGaugePoint(CAPITAL_DEPLOYED_GOAL, CAPITAL_DEPLOYED_MAX, 97);
-  const capitalGoalOuterPoint = getGaugePoint(CAPITAL_DEPLOYED_GOAL, CAPITAL_DEPLOYED_MAX, 143);
-  const capitalGoalLabelX = capitalGoalInnerPoint.x - 6;
-  const capitalGoalLabelY = capitalGoalOuterPoint.y - 12;
-  const gcfAcquired = salesforceRows.reduce(
-    (total, row) => total + toNumber(row.Annual_Rent__c),
-    0
+  const proprietaryRows = salesforceRows.filter(
+    (row) => (row.Source_Type__c || '').trim().toLowerCase() === 'proprietary'
   );
 
   return (
@@ -266,125 +419,22 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               )}
               */}
-              <div className="salesforce-gauge-row">
-                <section className="salesforce-panel">
-                  <div className="salesforce-panel-header">
-                    <h2>Closed Rent (#)</h2>
-                  </div>
-                  {salesforceLoading ? (
-                    <div className="salesforce-status">Loading Salesforce data...</div>
-                  ) : salesforceError ? (
-                    <div className="salesforce-error">{salesforceError}</div>
-                  ) : (
-                    <div className="closed-rent-gauge">
-                      <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Closed Rent count ${closedRentCount} out of ${CLOSED_RENT_MAX}`}>
-                        <path
-                          className="closed-rent-gauge-track"
-                          d="M 30 150 A 120 120 0 0 1 270 150"
-                          pathLength={100}
-                        />
-                        <path
-                          className="closed-rent-gauge-fill"
-                          d="M 30 150 A 120 120 0 0 1 270 150"
-                          pathLength={100}
-                          strokeDasharray={`${closedRentPercent} 100`}
-                        />
-                        <line
-                          className="closed-rent-gauge-goal"
-                          x1={goalInnerPoint.x}
-                          y1={goalInnerPoint.y}
-                          x2={goalOuterPoint.x}
-                          y2={goalOuterPoint.y}
-                        />
-                        <text
-                          className="closed-rent-gauge-goal-text"
-                          x={goalLabelX}
-                          y={goalLabelY}
-                          textAnchor="end"
-                        >
-                          {CLOSED_RENT_GOAL}
-                        </text>
-                      </svg>
-                      <div className="closed-rent-gauge-value">{closedRentCount}</div>
-                      <div className="closed-rent-gauge-scale">
-                        <span>0</span>
-                        <span>{CLOSED_RENT_MAX}</span>
-                      </div>
-                    </div>
-                  )}
-                </section>
-
-                <section className="salesforce-panel">
-                  <div className="salesforce-panel-header">
-                    <h2>Capital Deployed</h2>
-                  </div>
-                  {salesforceLoading ? (
-                    <div className="salesforce-status">Loading Salesforce data...</div>
-                  ) : salesforceError ? (
-                    <div className="salesforce-error">{salesforceError}</div>
-                  ) : (
-                    <div className="closed-rent-gauge">
-                      <svg className="closed-rent-gauge-svg" viewBox="0 -28 300 218" role="img" aria-label={`Capital Deployed ${formatMillions(capitalDeployed)} out of ${formatMillions(CAPITAL_DEPLOYED_MAX)}`}>
-                        <path
-                          className="closed-rent-gauge-track"
-                          d="M 30 150 A 120 120 0 0 1 270 150"
-                          pathLength={100}
-                        />
-                        <path
-                          className="closed-rent-gauge-fill"
-                          d="M 30 150 A 120 120 0 0 1 270 150"
-                          pathLength={100}
-                          strokeDasharray={`${capitalDeployedPercent} 100`}
-                        />
-                        <line
-                          className="closed-rent-gauge-goal"
-                          x1={capitalGoalInnerPoint.x}
-                          y1={capitalGoalInnerPoint.y}
-                          x2={capitalGoalOuterPoint.x}
-                          y2={capitalGoalOuterPoint.y}
-                        />
-                        <text
-                          className="closed-rent-gauge-goal-text"
-                          x={capitalGoalLabelX}
-                          y={capitalGoalLabelY}
-                          textAnchor="end"
-                        >
-                          {formatMillions(CAPITAL_DEPLOYED_GOAL)}
-                        </text>
-                      </svg>
-                      <div className="closed-rent-gauge-value">{formatMillions(capitalDeployed)}</div>
-                      <div className="closed-rent-gauge-scale">
-                        <span>$0M</span>
-                        <span>{formatMillions(CAPITAL_DEPLOYED_MAX)}</span>
-                      </div>
-                    </div>
-                  )}
-                </section>
-
-                <div className="salesforce-summary-stack">
-                  <section className="salesforce-summary-card">
-                    <div className="salesforce-summary-header">GCF Acquired</div>
-                    {salesforceLoading ? (
-                      <div className="salesforce-summary-status">Loading...</div>
-                    ) : salesforceError ? (
-                      <div className="salesforce-summary-error">Unavailable</div>
-                    ) : (
-                      <div className="salesforce-summary-value">{formatMillionsPrecise(gcfAcquired)}</div>
-                    )}
-                  </section>
-
-                  <section className="salesforce-summary-card">
-                    <div className="salesforce-summary-header">Capital Deployed</div>
-                    {salesforceLoading ? (
-                      <div className="salesforce-summary-status">Loading...</div>
-                    ) : salesforceError ? (
-                      <div className="salesforce-summary-error">Unavailable</div>
-                    ) : (
-                      <div className="salesforce-summary-value">{formatMillionsPrecise(capitalDeployed)}</div>
-                    )}
-                  </section>
-                </div>
-              </div>
+              <ProgressSection
+                title="Company Progress"
+                rows={salesforceRows}
+                loading={salesforceLoading}
+                error={salesforceError}
+                closedRentGoal={241}
+                capitalDeployedGoal={175_000_000}
+              />
+              <ProgressSection
+                title="Acquisition Team Progress"
+                rows={proprietaryRows}
+                loading={salesforceLoading}
+                error={salesforceError}
+                closedRentGoal={111}
+                capitalDeployedGoal={72_000_000}
+              />
             </div>
           </div>
         </div>

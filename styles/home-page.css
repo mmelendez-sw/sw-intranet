@@ -152,13 +152,50 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deepen shadow on hover */
 }
 
+.company-progress-box {
+  background-color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: calc(100% - 32px);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.home-page.authenticated .main-content > .company-progress-box:first-of-type {
+  margin-top: -8px;
+}
+
+.company-progress-box + .company-progress-box {
+  margin-top: 28px;
+}
+
+.company-progress-box-header {
+  align-items: center;
+  background-color: #004E7C;
+  display: flex;
+  justify-content: center;
+  padding: 6px 16px;
+}
+
+.company-progress-box-header h2 {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.25;
+  margin: 0;
+}
+
 .salesforce-gauge-row {
   align-items: stretch;
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 0;
+  padding: 20px;
   width: 100%;
 }
 
@@ -175,6 +212,7 @@
   max-width: calc(100% - 32px);
   overflow: hidden;
   padding: 0;
+  position: relative;
   width: 370px;
 }
 
@@ -193,6 +231,16 @@
   font-weight: 500;
   line-height: 1.25;
   margin: 0;
+}
+
+.salesforce-panel-goal {
+  color: #666666;
+  font-size: 0.95rem;
+  font-weight: 700;
+  position: absolute;
+  right: 14px;
+  top: 8px;
+  z-index: 2;
 }
 
 .salesforce-summary-stack {
@@ -296,6 +344,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
+  overflow: visible;
   padding: 14px 18px 12px;
   position: relative;
 }
@@ -303,6 +352,7 @@
 .closed-rent-gauge-svg {
   display: block;
   max-width: 330px;
+  overflow: visible;
   width: 100%;
 }
 

@@ -13,7 +13,6 @@ const Header: React.FC<HeaderProps> = () => {
   return (
     <header className="header" style={{ zIndex: 5000 }}>
       <img src={logo} alt="Symphony Towers" className="header-logo" />
-      <div className="header-title">Company Progress</div>
     </header>
   );
 };

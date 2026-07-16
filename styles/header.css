@@ -4,9 +4,9 @@
     background-color: #004E7C; /* Header background color */
     color: #ffffff; /* Text color */
     min-height: 52px;
-    padding: 5px 10px;
+    padding: 5px 20px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     position: fixed; /* Fixes header at the top */
     top: 0;
@@ -16,8 +16,6 @@
 
 /* Logo */
 .header-logo {
-    position: absolute;
-    left: 20px;
     height: 36px;
     width: auto;
     max-width: 260px;
