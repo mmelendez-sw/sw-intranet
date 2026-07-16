@@ -168,12 +168,98 @@
   padding-top: 0;
 }
 
+.home-page-progress {
+  min-height: 100vh;
+}
+
+.home-page-progress-layout {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100vh - 72px);
+  width: 100%;
+}
+
+.home-page-progress-container {
+  align-items: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  max-width: none;
+  padding: 0;
+  width: 100%;
+}
+
+.home-page-progress-main {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  width: 100%;
+}
+
 .home-page.authenticated .main-content > .company-progress-box:first-of-type {
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .company-progress-box + .company-progress-box {
   margin-top: 28px;
+}
+
+.company-progress-box--featured .company-progress-box-header {
+  padding: 10px 20px;
+}
+
+.company-progress-box--featured .company-progress-box-header h2 {
+  font-size: 1.85rem;
+}
+
+.company-progress-box--featured .salesforce-gauge-row {
+  gap: 28px;
+  padding: 28px;
+}
+
+.company-progress-box--featured .salesforce-panel {
+  height: 350px;
+  width: 460px;
+}
+
+.company-progress-box--featured .salesforce-panel h2,
+.company-progress-box--featured .salesforce-summary-header {
+  font-size: 1.5rem;
+}
+
+.company-progress-box--featured .salesforce-panel-goal {
+  font-size: 1.1rem;
+}
+
+.company-progress-box--featured .salesforce-summary-stack {
+  height: 350px;
+  width: 460px;
+}
+
+.company-progress-box--featured .salesforce-summary-value {
+  font-size: 4.4rem;
+  min-height: 95px;
+}
+
+.company-progress-box--featured .closed-rent-gauge-svg {
+  max-width: 410px;
+}
+
+.company-progress-box--featured .closed-rent-gauge-value {
+  font-size: 3.75rem;
+  margin-top: -118px;
+}
+
+.company-progress-box--featured .closed-rent-gauge-scale {
+  font-size: 1.2rem;
+  margin-top: 12px;
+  max-width: 390px;
 }
 
 .company-progress-box-header {

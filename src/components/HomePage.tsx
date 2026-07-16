@@ -95,6 +95,7 @@ interface ProgressSectionProps {
   error: string | null;
   closedRentGoal?: number;
   capitalDeployedGoal?: number;
+  featured?: boolean;
 }
 
 const ProgressSection: React.FC<ProgressSectionProps> = ({
@@ -104,11 +105,12 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
   error,
   closedRentGoal = CLOSED_RENT_GOAL,
   capitalDeployedGoal = CAPITAL_DEPLOYED_GOAL,
+  featured = false,
 }) => {
   const metrics = getProgressMetrics(rows, closedRentGoal, capitalDeployedGoal);
 
   return (
-    <section className="company-progress-box">
+    <section className={`company-progress-box${featured ? ' company-progress-box--featured' : ''}`}>
       <div className="company-progress-box-header">
         <h2>{title}</h2>
       </div>
@@ -337,11 +339,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   );
 
   return (
-    <div className="home-page authenticated">
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', width: '100%' }}>
-          {/* Main Content White Box */}
-          <div className="content-container" style={{ border: 'none', borderRadius: '0', background: 'transparent', boxShadow: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, width: '100%', maxWidth: 'none' }}>
-            <div className="main-content" style={{ flex: 1, width: '100%' }}>
+    <div className="home-page authenticated home-page-progress">
+        <div className="home-page-progress-layout">
+          <div className="content-container home-page-progress-container">
+            <div className="main-content home-page-progress-main">
               
               {/* Power BI Report Embed - temporarily disabled
               {userInfo.hasPowerBILicense ? (
@@ -426,7 +427,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 error={salesforceError}
                 closedRentGoal={241}
                 capitalDeployedGoal={175_000_000}
+                featured
               />
+              {/* Acquisition Team Progress - temporarily disabled
               <ProgressSection
                 title="Acquisition Team Progress"
                 rows={proprietaryRows}
@@ -435,6 +438,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 closedRentGoal={111}
                 capitalDeployedGoal={72_000_000}
               />
+              */}
             </div>
           </div>
         </div>
