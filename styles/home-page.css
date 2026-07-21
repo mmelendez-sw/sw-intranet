@@ -242,6 +242,10 @@
   width: 550px;
 }
 
+.company-progress-box--featured .salesforce-summary-card {
+  min-height: 200px;
+}
+
 .company-progress-box--featured .salesforce-summary-value {
   font-size: 5.2rem;
   min-height: 115px;
