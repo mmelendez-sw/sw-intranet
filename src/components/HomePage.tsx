@@ -2,6 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 import { PowerbiService } from '../services/powerbiService';
+import img2 from '../../images/site_2.jpg';
+import img3 from '../../images/site_3.jpg';
+import img11 from '../../images/wider_app.png';
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -342,6 +345,64 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     <div className="home-page authenticated home-page-progress">
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
+            <div className="homepage-cards-section" style={{ width: '100%', maxWidth: '1520px', margin: '0 auto 28px', padding: '24px 16px 0', boxSizing: 'border-box' }}>
+              <div className="grid-layout">
+                {/* Card 1 */}
+                <div className="card odd-card">
+                  <img src={img2} alt="Important Dates" className="card-image" />
+                  <div className="card-text">
+                    <h2>Important Dates</h2>
+                    <ul>
+                      <li>July - Q2 Performance Reviews</li>
+                      <li>9/7: Labor Day</li>
+                      <li>11/26: Thanksgiving Day</li>
+                      <li>11/27: Day After Thanksgiving</li>
+                      <li>12/25: Christmas Day </li>
+                    </ul>
+                  </div>
+                </div>
+                {/* Card 2 */}
+                <div className="card even-card">
+                  <img src={img11} alt="Bowling 2025" className="card-image" />
+                  <div className="card-text">
+                    <h2>New Employee Leads App</h2>
+                    <ul>
+                      <li>Our goal is to collect 2 leads per month per employee.</li>
+                      <li>This initiative is a part of our company-wide goals for the year.</li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn more about our 2 leads initiative.
+                      </li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to download the app.
+                      </li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/:w:/r/sites/SymphonyWirelessTeam/Shared%20Documents/Marketing/Mobile%20Application/Lead%20Generation%20on%20Desktop.docx?d=w8c75eaf79afe4fbd80c32c0f5b2ada4f&csf=1&web=1&e=0mifAu" target="_blank" rel="noopener noreferrer">CLICK HERE</a> to learn how to submit the leads from desktop browser.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                {/* Card 3 */}
+                <div className="card odd-card">
+                  <img src={img3} alt="Marketing Updates" className="card-image" />
+                  <div className="card-text">
+                    <h2>Marketing Updates</h2>
+                    <ul>
+                      <li>Please reference our shared company folder for branded collateral. This folder will continue to be updated as additional materials become available. If you have any questions or need assistance, please feel free to reach out to the marketing team. Thank you for helping us maintain a consistent and professional brand presence. </li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Symphony Branded Assets</a>
+                      </li>
+                      <li>Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.</li>
+                      <li>
+                        <a href="https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd" target="_blank" rel="noopener noreferrer">Inside Towers Market Reports</a>
+                      </li>
+                      <li>
+                        <a href="https://www.youtube.com/watch?v=Mpg0MAu7JNQ" target="_blank" rel="noopener noreferrer">Inside Towers Quarterly Briefing</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div className="main-content home-page-progress-main">
               
               {/* Power BI Report Embed - temporarily disabled
