@@ -397,7 +397,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </li>
                     </ul>
                   </div>
-                </div>
+                </div> 
               </div>
             </div>
             <div className="main-content home-page-progress-main" style={{ order: 1 }}>
@@ -478,6 +478,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               )}
               */}
+              {/* Company Progress graph - temporarily disabled
               <ProgressSection
                 title="Company Progress"
                 rows={salesforceRows}
@@ -487,6 +488,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 capitalDeployedGoal={175_000_000}
                 featured
               />
+              */}
               {/* Acquisition Team Progress - temporarily disabled
               <ProgressSection
                 title="Acquisition Team Progress"
