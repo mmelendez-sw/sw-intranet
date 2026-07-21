@@ -345,7 +345,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     <div className="home-page authenticated home-page-progress">
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
-            <div className="homepage-cards-section" style={{ width: '100%', maxWidth: '1520px', margin: '0 auto 28px', padding: '24px 16px 0', boxSizing: 'border-box' }}>
+            <div className="homepage-cards-section" style={{ order: 2, width: '100%', maxWidth: 'none', margin: '8px auto 0', padding: '4px 16px 0', boxSizing: 'border-box' }}>
               <div className="grid-layout">
                 {/* Card 1 */}
                 <div className="card odd-card">
@@ -403,7 +403,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               </div>
             </div>
-            <div className="main-content home-page-progress-main">
+            <div className="main-content home-page-progress-main" style={{ order: 1 }}>
               
               {/* Power BI Report Embed - temporarily disabled
               {userInfo.hasPowerBILicense ? (
