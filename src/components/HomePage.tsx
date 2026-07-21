@@ -114,9 +114,6 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
 
   return (
     <section className={`company-progress-box${featured ? ' company-progress-box--featured' : ''}`}>
-      <div className="company-progress-box-header">
-        <h2>{title}</h2>
-      </div>
       <div className="salesforce-gauge-row">
         <section className="salesforce-panel">
           <div className="salesforce-panel-header">
