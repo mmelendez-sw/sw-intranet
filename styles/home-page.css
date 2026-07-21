@@ -215,51 +215,51 @@
 }
 
 .company-progress-box--featured .company-progress-box-header h2 {
-  font-size: 1.85rem;
+  font-size: 2.15rem;
 }
 
 .company-progress-box--featured .salesforce-gauge-row {
-  gap: 28px;
-  padding: 28px;
+  gap: 32px;
+  padding: 34px;
 }
 
 .company-progress-box--featured .salesforce-panel {
-  height: 350px;
-  width: 460px;
+  height: 420px;
+  width: 550px;
 }
 
 .company-progress-box--featured .salesforce-panel h2,
 .company-progress-box--featured .salesforce-summary-header {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
 }
 
 .company-progress-box--featured .salesforce-panel-goal {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
 .company-progress-box--featured .salesforce-summary-stack {
-  height: 350px;
-  width: 460px;
+  height: 420px;
+  width: 550px;
 }
 
 .company-progress-box--featured .salesforce-summary-value {
-  font-size: 4.4rem;
-  min-height: 95px;
+  font-size: 5.2rem;
+  min-height: 115px;
 }
 
 .company-progress-box--featured .closed-rent-gauge-svg {
-  max-width: 410px;
+  max-width: 490px;
 }
 
 .company-progress-box--featured .closed-rent-gauge-value {
-  font-size: 3.75rem;
-  margin-top: -118px;
+  font-size: 4.4rem;
+  margin-top: -140px;
 }
 
 .company-progress-box--featured .closed-rent-gauge-scale {
-  font-size: 1.2rem;
-  margin-top: 12px;
-  max-width: 390px;
+  font-size: 1.4rem;
+  margin-top: 14px;
+  max-width: 470px;
 }
 
 .company-progress-box-header {
