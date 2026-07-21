@@ -1,0 +1,14 @@
+.acquisitions {
+  padding: 20px;
+  background-color: var(--light-gray);
+  border-radius: 5px;
+}
+
+.acquisitions h1 {
+  color: var(--symphony-blue);
+}
+  
+.acquisitions ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}

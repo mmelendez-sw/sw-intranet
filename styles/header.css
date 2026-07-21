@@ -3,7 +3,8 @@
     width: 100%;
     background-color: #004E7C; /* Header background color */
     color: #ffffff; /* Text color */
-    padding: 5px 10px;
+    min-height: 72px;
+    padding: 10px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -14,8 +15,34 @@
 }
 
 /* Logo */
-.logo-image {
-    max-height: 40px; /* Limits logo height */
+.header-logo {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+}
+
+.header-datetime {
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.header-time {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+}
+
+.header-date {
+    font-size: 13px;
+    color: #cce7f5;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
 }
 
 /* Navigation Bar */
@@ -39,6 +66,13 @@
     color: #e0e0e0; /* Link hover color */
 }
 
+.header-title {
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 500;
+    text-align: center;
+}
+
 /* User Section */
 .user {
     display: flex;
@@ -59,6 +93,13 @@
     color: #ffffff; /* Matches header text */
     font-size: 1rem;
     margin-right: 15px;
+}
+
+.user-name {
+    color: #ffffff; /* Matches header text */
+    font-size: 1rem;
+    margin-right: 15px;
+    cursor: pointer;
 }
 
 /* Buttons */

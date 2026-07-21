@@ -7,6 +7,7 @@
     padding-right: 1%;
     padding-bottom: 1em;
     justify-content: space-between;
+    margin-top: 60px; /* Add margin to account for fixed header */
 }
 
 .reports-content-container {

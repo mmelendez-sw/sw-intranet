@@ -35,7 +35,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       filename: 'index.html',
-      favicon: './favicon.ico',
+      favicon: './public/favicon.ico',
     }),
   ],
   devServer: {
@@ -46,6 +46,12 @@ module.exports = {
     open: true,
     hot: true,
     historyApiFallback: true,
+    proxy: {
+      '/api/salesforce': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   mode: 'development',
 };
