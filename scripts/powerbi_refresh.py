@@ -45,7 +45,15 @@ WORKSPACE_ID = (os.getenv("POWERBI_WORKSPACE_ID") or "").strip()
 REPORT_ID = os.getenv("POWERBI_REPORT_ID", "e091da31-91dd-42c2-9b17-099d2e07c492")
 DATASET_ID = (os.getenv("POWERBI_DATASET_ID") or "").strip()
 
-SCOPE = ["https://analysis.windows.net/powerbi/api/.default"]
+# Refresh requires Dataset.ReadWrite.All.
+# Workspace.Read.All helps locate datasets that live outside My Workspace.
+# Add these as delegated permissions on the app registration and grant admin consent.
+SCOPE = [
+    "https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All",
+    "https://analysis.windows.net/powerbi/api/Dataset.Read.All",
+    "https://analysis.windows.net/powerbi/api/Report.Read.All",
+    "https://analysis.windows.net/powerbi/api/Workspace.Read.All",
+]
 API = "https://api.powerbi.com/v1.0/myorg"
 
 
@@ -135,16 +143,53 @@ def find_report(token: str, report_id: str) -> tuple[str, dict]:
     )
 
 
+def find_dataset_workspace(token: str, dataset_id: str) -> str:
+    """Find which workspace hosts the dataset. Returns 'me' or a group id."""
+    # My Workspace
+    response = api_request(token, "GET", f"/datasets/{dataset_id}")
+    if response.ok:
+        return "me"
+
+    # Shared workspaces (needs Workspace.Read.All)
+    groups_response = api_request(token, "GET", "/groups")
+    if not groups_response.ok:
+        raise SystemExit(
+            f"Dataset {dataset_id} is not in My Workspace, and listing workspaces failed "
+            f"({groups_response.status_code}).\n"
+            "The report is visible, but this account does not own/manage the semantic model.\n"
+            "Fix options:\n"
+            "  1) In Power BI, open the dataset (not just the report) as Salesforceautomation "
+            "and confirm you can click Refresh.\n"
+            "  2) Move the dataset into a shared workspace and grant this account Member access.\n"
+            "  3) Add delegated Workspace.Read.All on the app, grant admin consent, then re-run."
+        )
+
+    for group in groups_response.json().get("value", []):
+        group_id = group["id"]
+        response = api_request(token, "GET", f"/groups/{group_id}/datasets/{dataset_id}")
+        if response.ok:
+            print(f"Found dataset in workspace: {group.get('name')} ({group_id})")
+            return group_id
+
+    raise SystemExit(
+        f"Dataset {dataset_id} was not found in My Workspace or any accessible group.\n"
+        "The report can be viewed, but this identity cannot refresh its semantic model."
+    )
+
+
 def resolve_dataset_and_workspace(token: str) -> tuple[str, str]:
     if DATASET_ID:
-        workspace = WORKSPACE_ID if WORKSPACE_ID else "me"
+        workspace = find_dataset_workspace(token, DATASET_ID)
         return workspace, DATASET_ID
 
     workspace_id, report = find_report(token, require(REPORT_ID, "POWERBI_REPORT_ID"))
     dataset_id = report.get("datasetId")
     if not dataset_id:
         raise SystemExit("Report response did not include datasetId; set POWERBI_DATASET_ID.")
-    return workspace_id, dataset_id
+
+    # Report workspace is not always the dataset workspace (shared models).
+    dataset_workspace = find_dataset_workspace(token, dataset_id)
+    return dataset_workspace, dataset_id
 
 
 def trigger_refresh(token: str, workspace_id: str, dataset_id: str) -> None:
@@ -159,7 +204,15 @@ def trigger_refresh(token: str, workspace_id: str, dataset_id: str) -> None:
         print(f"Refresh already in progress for dataset {dataset_id}")
         return
 
-    raise SystemExit(f"Refresh failed ({response.status_code}): {response.text}")
+    hint = ""
+    if response.status_code == 401:
+        hint = (
+            "\nHint: 401 usually means the app token is missing Dataset.ReadWrite.All. "
+            "In Azure Portal → App registration → API permissions → Power BI Service → "
+            "add delegated Dataset.ReadWrite.All, then Grant admin consent. Re-run this script."
+        )
+
+    raise SystemExit(f"Refresh failed ({response.status_code}): {response.text}{hint}")
 
 
 def discover(token: str) -> None:
@@ -170,7 +223,15 @@ def discover(token: str) -> None:
         print(f"  {report.get('name')} | report={report.get('id')} | dataset={report.get('datasetId')}{marker}")
 
     print("\n=== Workspaces ===")
-    groups = api_get(token, "/groups").get("value", [])
+    groups_response = api_request(token, "GET", "/groups")
+    if not groups_response.ok:
+        print(
+            f"Skipping shared workspaces ({groups_response.status_code}). "
+            "My Workspace access is enough for this report."
+        )
+        return
+
+    groups = groups_response.json().get("value", [])
     for group in groups:
         print(f"\nWorkspace: {group.get('name')} ({group.get('id')})")
         reports = api_get(token, f"/groups/{group['id']}/reports").get("value", [])

@@ -1,8 +1,15 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { service, factories, models } from 'powerbi-client';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
-import { PowerbiService } from '../services/powerbiService';
+import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
 import howBanner from '../../images/H.O.W.-banner.png';
+
+const powerbiEmbedService = new service.Service(
+  factories.hpmFactory,
+  factories.wpmpFactory,
+  factories.routerFactory
+);
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -228,7 +235,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
   const chartOverlayRef = useRef<HTMLDivElement>(null);
-  const [powerbiConfig, setPowerbiConfig] = useState<{ embedUrl: string } | null>(null);
+  const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
   const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
   const [salesforceLoading, setSalesforceLoading] = useState(true);
   const [salesforceError, setSalesforceError] = useState<string | null>(null);
@@ -249,7 +256,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       container.removeEventListener('gesturestart', preventZoom as EventListener);
       container.removeEventListener('gesturechange', preventZoom as EventListener);
     };
-  }, [powerbiConfig]);
+  }, [embedConfig]);
 
   useEffect(() => {
     const overlay = chartOverlayRef.current;
@@ -267,21 +274,52 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       overlay.removeEventListener('gesturestart', preventZoom as EventListener);
       overlay.removeEventListener('gesturechange', preventZoom as EventListener);
     };
-  }, [powerbiConfig]);
+  }, [embedConfig]);
+
+  // API signs in as Salesforceautomation — no TV keyboard / Sign in button
+  useEffect(() => {
+    let isActive = true;
+
+    const loadEmbed = async () => {
+      try {
+        const config = await PowerbiService.getInstance().generateEmbedToken();
+        if (isActive) setEmbedConfig(config);
+      } catch (error) {
+        console.error('Failed to load Power BI embed config:', error);
+      }
+    };
+
+    if (userInfo.isAuthenticated) {
+      loadEmbed();
+    }
+
+    return () => {
+      isActive = false;
+    };
+  }, [userInfo.isAuthenticated]);
 
   useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
+    const container = powerbiContainerRef.current;
+    if (!container || !embedConfig) return;
 
-    try {
-      const powerbiService = PowerbiService.getInstance();
-      if (!powerbiService.validateConfiguration()) return;
-      powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492').then((config) => {
-        setPowerbiConfig({ embedUrl: config.embedUrl });
-      });
-    } catch (error) {
-      console.error('Failed to load PowerBI configuration:', error);
-    }
-  }, [userInfo.isAuthenticated]);
+    powerbiEmbedService.embed(container, {
+      type: 'report',
+      id: embedConfig.reportId,
+      embedUrl: embedConfig.embedUrl,
+      accessToken: embedConfig.token,
+      tokenType:
+        embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
+      settings: {
+        filterPaneEnabled: false,
+        navContentPaneEnabled: false,
+        background: models.BackgroundType.Transparent,
+      },
+    });
+
+    return () => {
+      powerbiEmbedService.reset(container);
+    };
+  }, [embedConfig]);
 
   useEffect(() => {
     let isActive = true;
@@ -346,24 +384,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               </section>
 
-              {/* Power BI Report Embed */}
+              {/* Power BI — API auto-sign-in (no keyboard / Sign in on TV) */}
               {userInfo.isAuthenticated ? (
                 <div
-                  ref={powerbiContainerRef}
                   className="powerbi-embed-container"
                   style={{ width: '100%', maxWidth: '1400px', height: '425px', margin: '0 auto', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
                 >
-                  {powerbiConfig ? (
+                  {embedConfig ? (
                     <>
-                      <iframe
-                        title="Company Progress"
-                        width="100%"
-                        height="425"
-                        src={powerbiConfig.embedUrl}
-                        frameBorder="0"
-                        allowFullScreen={false}
-                        style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                        sandbox="allow-scripts allow-same-origin allow-popups"
+                      <div
+                        ref={powerbiContainerRef}
+                        style={{ width: '100%', height: '425px', border: 'none', borderRadius: '8px', background: '#fff' }}
                       />
                       <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
                     </>

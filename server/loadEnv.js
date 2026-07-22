@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.join(__dirname, '.env');
+function loadEnvFile(envPath) {
+  if (!fs.existsSync(envPath)) return;
 
-if (fs.existsSync(envPath)) {
   for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
@@ -16,3 +16,7 @@ if (fs.existsSync(envPath)) {
     if (key && !process.env[key]) process.env[key] = value;
   }
 }
+
+// Prefer server/.env, then fall back to scripts/.env (shared Power BI credentials)
+loadEnvFile(path.join(__dirname, '.env'));
+loadEnvFile(path.join(__dirname, '..', 'scripts', '.env'));
