@@ -1,6 +1,158 @@
 /* General Layout */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 .home-page {
+  --home-banner-top-gap: 12px;
   margin-top: -50px; /* Cancel out the main-content padding-top added for the fixed header */
+}
+
+/* H.O.W. hero banner (from serena-dev) */
+.homepage-hero {
+  position: relative;
+  width: 100%;
+  height: clamp(180px, 20vw, 330px);
+  margin: var(--home-banner-top-gap) 0 12px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.homepage-hero-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.homepage-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 clamp(18px, 4.8vw, 72px);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 44, 78, 0.35) 0%,
+    rgba(0, 44, 78, 0.2) 45%,
+    rgba(0, 44, 78, 0.1) 100%
+  );
+}
+
+.homepage-hero .homepage-hero-title {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  max-width: min(90%, 900px);
+  text-align: left;
+  align-self: center;
+  position: relative;
+  left: -6vw;
+  top: 2px;
+  transform: none;
+}
+
+.homepage-hero-line {
+  display: grid;
+  grid-template-columns: clamp(0.9em, 0.95em, 1em) auto;
+  column-gap: 1px;
+  align-items: baseline;
+  margin: 0;
+  padding: 0;
+  text-indent: 0;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.homepage-hero-acronym {
+  font-weight: 700;
+  color: #ffffff;
+  display: block;
+  text-align: center;
+  line-height: 1;
+}
+
+.homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+  position: relative;
+  left: -0.065em;
+  transform: scaleX(0.7);
+  transform-origin: center center;
+}
+
+.homepage-hero-rest {
+  font-size: 1em;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1;
+  min-width: 0;
+}
+
+@media (min-width: 1400px) {
+  .homepage-hero {
+    height: clamp(250px, 16vw, 360px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(2.6rem, 3.4vw, 4.6rem);
+  }
+}
+
+@media (max-width: 1200px) {
+  .homepage-hero {
+    height: clamp(180px, 24vw, 280px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+    max-width: 95%;
+    left: -4.5vw;
+    top: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-hero {
+    height: clamp(150px, 34vw, 220px);
+  }
+
+  .homepage-hero-overlay {
+    padding: 14px 16px;
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1.18rem, 6.4vw, 2rem);
+    line-height: 1.08;
+    left: -2vw;
+    top: 4px;
+  }
+
+  .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+    left: -0.056em;
+    transform: scaleX(0.62);
+  }
+}
+
+@media (max-width: 480px) {
+  .homepage-hero {
+    height: clamp(135px, 38vw, 170px);
+  }
+
+  .homepage-hero-title {
+    font-size: clamp(1rem, 6vw, 1.6rem);
+    left: -1vw;
+    top: 2px;
+  }
+
+  .homepage-hero-line:nth-child(3) .homepage-hero-acronym {
+    left: -0.048em;
+    transform: scaleX(0.56);
+  }
 }
 
 /* TV display (fully-vertical-cards): cards only, sidebar pushed off-screen */
@@ -173,7 +325,7 @@
 }
 
 .home-page-progress-layout {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   justify-content: center;
   min-height: calc(100vh - 72px);
@@ -195,11 +347,16 @@
 }
 
 .home-page-progress-main {
-  align-items: center;
+  align-items: stretch;
   display: flex;
   flex: 1;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 clamp(8px, 1.2vw, 16px);
+  box-sizing: border-box;
 }
 
 .home-page.authenticated .main-content > .company-progress-box:first-of-type {

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 import { PowerbiService } from '../services/powerbiService';
+import howBanner from '../../images/H.O.W.-banner.png';
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -329,13 +330,28 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
             <div className="main-content home-page-progress-main">
-              
+              {/* H.O.W. Hero Banner */}
+              <section className="homepage-hero" aria-label="Homepage banner">
+                <img
+                  src={howBanner}
+                  alt="Homepage banner"
+                  className="homepage-hero-image"
+                />
+                <div className="homepage-hero-overlay">
+                  <h1 className="homepage-hero-title">
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
+                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
+                  </h1>
+                </div>
+              </section>
+
               {/* Power BI Report Embed */}
               {userInfo.isAuthenticated ? (
                 <div
                   ref={powerbiContainerRef}
                   className="powerbi-embed-container"
-                  style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
+                  style={{ width: '100%', maxWidth: '1400px', height: '425px', margin: '0 auto', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
                 >
                   {powerbiConfig ? (
                     <>
@@ -366,9 +382,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               ) : (
                 <div
                   style={{ 
-                    width: '100%', 
-                    height: '425px', 
-                    margin: '-42px 0 0 0', 
+                    width: '100%',
+                    maxWidth: '1400px',
+                    height: '425px',
+                    margin: '0 auto',
                     padding: '20px', 
                     background: '#fff', 
                     border: 'none', 
