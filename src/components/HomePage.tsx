@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 import { PowerbiService } from '../services/powerbiService';
+
 interface HomePageProps {
   userInfo: UserInfo;
 }
@@ -226,8 +227,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
   const chartOverlayRef = useRef<HTMLDivElement>(null);
-  const [powerbiConfig, setPowerbiConfig] = useState<any>(null);
-  const [powerbiError, setPowerbiError] = useState<string | null>(null);
+  const [powerbiConfig, setPowerbiConfig] = useState<{ embedUrl: string } | null>(null);
   const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
   const [salesforceLoading, setSalesforceLoading] = useState(true);
   const [salesforceError, setSalesforceError] = useState<string | null>(null);
@@ -248,7 +248,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       container.removeEventListener('gesturestart', preventZoom as EventListener);
       container.removeEventListener('gesturechange', preventZoom as EventListener);
     };
-  }, []);
+  }, [powerbiConfig]);
 
   useEffect(() => {
     const overlay = chartOverlayRef.current;
@@ -266,34 +266,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       overlay.removeEventListener('gesturestart', preventZoom as EventListener);
       overlay.removeEventListener('gesturechange', preventZoom as EventListener);
     };
-  }, []);
+  }, [powerbiConfig]);
 
-  // Load PowerBI configuration - Only if user has Power BI license
   useEffect(() => {
-    const loadPowerbiConfig = async () => {
-      try {
-        const powerbiService = PowerbiService.getInstance();
-        
-        // Validate configuration first
-        if (!powerbiService.validateConfiguration()) {
-          setPowerbiError('PowerBI configuration is invalid. Please check POWERBI_SETUP.md');
-          return;
-        }
+    if (!userInfo.isAuthenticated) return;
 
-        // Generate embed token for the report
-        const embedToken = await powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492');
-        setPowerbiConfig(embedToken);
-        setPowerbiError(null);
-      } catch (error) {
-        console.error('Failed to load PowerBI configuration:', error);
-        setPowerbiError('Failed to load PowerBI report. Please check configuration.');
-      }
-    };
-
-    if (userInfo.isAuthenticated && userInfo.hasPowerBILicense) {
-      loadPowerbiConfig();
+    try {
+      const powerbiService = PowerbiService.getInstance();
+      if (!powerbiService.validateConfiguration()) return;
+      powerbiService.generateEmbedToken('e091da31-91dd-42c2-9b17-099d2e07c492').then((config) => {
+        setPowerbiConfig({ embedUrl: config.embedUrl });
+      });
+    } catch (error) {
+      console.error('Failed to load PowerBI configuration:', error);
     }
-  }, [userInfo.isAuthenticated, userInfo.hasPowerBILicense]);
+  }, [userInfo.isAuthenticated]);
 
   useEffect(() => {
     let isActive = true;
@@ -343,42 +330,27 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           <div className="content-container home-page-progress-container">
             <div className="main-content home-page-progress-main">
               
-              {/* Power BI Report Embed - temporarily disabled
-              {userInfo.hasPowerBILicense ? (
+              {/* Power BI Report Embed */}
+              {userInfo.isAuthenticated ? (
                 <div
                   ref={powerbiContainerRef}
                   className="powerbi-embed-container"
                   style={{ width: '100%', height: '425px', margin: '-42px 0 0 0', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
                 >
-                  {powerbiError ? (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      height: '100%', 
-                      color: '#d32f2f',
-                      textAlign: 'center',
-                      padding: '20px'
-                    }}>
-                      <div>
-                        <h3>⚠️ PowerBI Configuration Error</h3>
-                        <p>{powerbiError}</p>
-                        <p style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                          Please follow the setup guide in <strong>POWERBI_SETUP.md</strong>
-                        </p>
-                      </div>
-                    </div>
-                  ) : powerbiConfig ? (
-                    <iframe
-                      title="Company Progress"
-                      width="100%"
-                      height="425"
-                      src={powerbiConfig.token ? `${powerbiConfig.embedUrl}&embedToken=${powerbiConfig.token}` : powerbiConfig.embedUrl}
-                      frameBorder="0"
-                      allowFullScreen={false}
-                      style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
-                      sandbox="allow-scripts allow-same-origin allow-popups"
-                    />
+                  {powerbiConfig ? (
+                    <>
+                      <iframe
+                        title="Company Progress"
+                        width="100%"
+                        height="425"
+                        src={powerbiConfig.embedUrl}
+                        frameBorder="0"
+                        allowFullScreen={false}
+                        style={{ border: 'none', borderRadius: '8px', background: '#fff', display: 'block', transform: 'scale(1.9) translate(-0.25%, 1%)', transformOrigin: 'center center' }}
+                        sandbox="allow-scripts allow-same-origin allow-popups"
+                      />
+                      <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
+                    </>
                   ) : (
                     <div style={{ 
                       display: 'flex', 
@@ -390,7 +362,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <div>Loading PowerBI report...</div>
                     </div>
                   )}
-                  <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
                 </div>
               ) : (
                 <div
@@ -411,14 +382,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 >
                   <div>
                     <h3>📊 Power BI Report</h3>
-                    <p>This report requires a Power BI license to view.</p>
-                    <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
-                      Contact your administrator to request Power BI access.
-                    </p>
+                    <p>Sign in to view the Company Progress report.</p>
                   </div>
                 </div>
               )}
-              */}
+              {/* Company Progress graph - temporarily disabled
               <ProgressSection
                 title="Company Progress"
                 rows={salesforceRows}
@@ -428,6 +396,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 capitalDeployedGoal={175_000_000}
                 featured
               />
+              */}
               {/* Acquisition Team Progress - temporarily disabled
               <ProgressSection
                 title="Acquisition Team Progress"

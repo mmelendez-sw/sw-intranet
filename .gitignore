@@ -25,3 +25,5 @@ Thumbs.db
 
 # Environment variables
 .env
+server/.env
+scripts/.env

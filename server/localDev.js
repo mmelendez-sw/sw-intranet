@@ -1,5 +1,6 @@
 const http = require('http');
 const { getCurrentInvestments } = require('./salesforce');
+const { getEmbedConfig } = require('./powerbi');
 
 const PORT = Number(process.env.API_PORT || process.env.TV_API_PORT || 3001);
 
@@ -36,6 +37,13 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (url.pathname === '/api/powerbi/embed-token') {
+      const reportId = url.searchParams.get('reportId') || undefined;
+      const data = await getEmbedConfig(reportId);
+      sendJson(res, 200, data);
+      return;
+    }
+
     sendJson(res, 404, { error: 'Not found' });
   } catch (err) {
     console.error('[api]', err);
@@ -48,4 +56,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Local API listening on http://localhost:${PORT}`);
   console.log('  GET /api/salesforce/current-investments');
+  console.log('  GET /api/powerbi/embed-token');
 });

@@ -51,6 +51,10 @@ module.exports = {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
+      '/api/powerbi': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
     },
   },
   mode: 'development',
