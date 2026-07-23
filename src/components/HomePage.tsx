@@ -1,15 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { service, factories, models } from 'powerbi-client';
+import React, { useEffect, useState } from 'react';
+// import { service, factories, models } from 'powerbi-client';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
-import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
+// import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
 import howBanner from '../../images/H.O.W.-banner.png';
+import companyProgressImage from '../../images/companyprog.png';
 
-const powerbiEmbedService = new service.Service(
-  factories.hpmFactory,
-  factories.wpmpFactory,
-  factories.routerFactory
-);
+// const powerbiEmbedService = new service.Service(
+//   factories.hpmFactory,
+//   factories.wpmpFactory,
+//   factories.routerFactory
+// );
 
 interface HomePageProps {
   userInfo: UserInfo;
@@ -233,93 +234,88 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
-  const powerbiContainerRef = useRef<HTMLDivElement>(null);
-  const chartOverlayRef = useRef<HTMLDivElement>(null);
-  const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
+  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  // const chartOverlayRef = useRef<HTMLDivElement>(null);
+  // const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
   const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
   const [salesforceLoading, setSalesforceLoading] = useState(true);
   const [salesforceError, setSalesforceError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const container = powerbiContainerRef.current;
-    if (!container) return;
-    const preventZoom: EventListener = (e) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    container.addEventListener('wheel', preventZoom, { passive: false });
-    container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      container.removeEventListener('wheel', preventZoom);
-      container.removeEventListener('gesturestart', preventZoom as EventListener);
-      container.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, [embedConfig]);
+  // Power BI embed — temporarily disabled (static image below)
+  // useEffect(() => {
+  //   const container = powerbiContainerRef.current;
+  //   if (!container) return;
+  //   const preventZoom: EventListener = (e) => {
+  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   container.addEventListener('wheel', preventZoom, { passive: false });
+  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+  //   return () => {
+  //     container.removeEventListener('wheel', preventZoom);
+  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
+  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
+  //   };
+  // }, [embedConfig]);
 
-  useEffect(() => {
-    const overlay = chartOverlayRef.current;
-    if (!overlay) return;
-    const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    overlay.addEventListener('wheel', preventZoom, { passive: false });
-    overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      overlay.removeEventListener('wheel', preventZoom);
-      overlay.removeEventListener('gesturestart', preventZoom as EventListener);
-      overlay.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, [embedConfig]);
+  // useEffect(() => {
+  //   const overlay = chartOverlayRef.current;
+  //   if (!overlay) return;
+  //   const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
+  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   overlay.addEventListener('wheel', preventZoom, { passive: false });
+  //   overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+  //   overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+  //   return () => {
+  //     overlay.removeEventListener('wheel', preventZoom);
+  //     overlay.removeEventListener('gesturestart', preventZoom as EventListener);
+  //     overlay.removeEventListener('gesturechange', preventZoom as EventListener);
+  //   };
+  // }, [embedConfig]);
 
-  // API signs in as Salesforceautomation — no TV keyboard / Sign in button
-  useEffect(() => {
-    let isActive = true;
+  // useEffect(() => {
+  //   let isActive = true;
+  //   const loadEmbed = async () => {
+  //     try {
+  //       const config = await PowerbiService.getInstance().generateEmbedToken();
+  //       if (isActive) setEmbedConfig(config);
+  //     } catch (error) {
+  //       console.error('Failed to load Power BI embed config:', error);
+  //     }
+  //   };
+  //   if (userInfo.isAuthenticated) {
+  //     loadEmbed();
+  //   }
+  //   return () => {
+  //     isActive = false;
+  //   };
+  // }, [userInfo.isAuthenticated]);
 
-    const loadEmbed = async () => {
-      try {
-        const config = await PowerbiService.getInstance().generateEmbedToken();
-        if (isActive) setEmbedConfig(config);
-      } catch (error) {
-        console.error('Failed to load Power BI embed config:', error);
-      }
-    };
-
-    if (userInfo.isAuthenticated) {
-      loadEmbed();
-    }
-
-    return () => {
-      isActive = false;
-    };
-  }, [userInfo.isAuthenticated]);
-
-  useEffect(() => {
-    const container = powerbiContainerRef.current;
-    if (!container || !embedConfig) return;
-
-    powerbiEmbedService.embed(container, {
-      type: 'report',
-      id: embedConfig.reportId,
-      embedUrl: embedConfig.embedUrl,
-      accessToken: embedConfig.token,
-      tokenType:
-        embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
-      settings: {
-        filterPaneEnabled: false,
-        navContentPaneEnabled: false,
-        background: models.BackgroundType.Transparent,
-      },
-    });
-
-    return () => {
-      powerbiEmbedService.reset(container);
-    };
-  }, [embedConfig]);
+  // useEffect(() => {
+  //   const container = powerbiContainerRef.current;
+  //   if (!container || !embedConfig) return;
+  //   powerbiEmbedService.embed(container, {
+  //     type: 'report',
+  //     id: embedConfig.reportId,
+  //     embedUrl: embedConfig.embedUrl,
+  //     accessToken: embedConfig.token,
+  //     tokenType:
+  //       embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
+  //     settings: {
+  //       filterPaneEnabled: false,
+  //       navContentPaneEnabled: false,
+  //       background: models.BackgroundType.Transparent,
+  //     },
+  //   });
+  //   return () => {
+  //     powerbiEmbedService.reset(container);
+  //   };
+  // }, [embedConfig]);
 
   useEffect(() => {
     let isActive = true;
@@ -384,7 +380,18 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               </section>
 
-              {/* Power BI — API auto-sign-in (no keyboard / Sign in on TV) */}
+              {/* Company Progress (static image — Power BI embed commented out below) */}
+              <div
+                className="powerbi-embed-container"
+                style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: 0, background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}
+              >
+                <img
+                  src={companyProgressImage}
+                  alt="Company Progress"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </div>
+              {/* Power BI — API auto-sign-in (temporarily disabled)
               {userInfo.isAuthenticated ? (
                 <div
                   className="powerbi-embed-container"
@@ -399,41 +406,20 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
                     </>
                   ) : (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      height: '100%', 
-                      color: '#666'
-                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666' }}>
                       <div>Loading PowerBI report...</div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div
-                  style={{ 
-                    width: '100%',
-                    maxWidth: '1400px',
-                    height: '425px',
-                    margin: '0 auto',
-                    padding: '20px', 
-                    background: '#fff', 
-                    border: 'none', 
-                    borderRadius: '10px', 
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.07)', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center',
-                    textAlign: 'center'
-                  }}
-                >
+                <div style={{ width: '100%', maxWidth: '1400px', height: '425px', margin: '0 auto', padding: '20px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                   <div>
-                    <h3>📊 Power BI Report</h3>
+                    <h3>Power BI Report</h3>
                     <p>Sign in to view the Company Progress report.</p>
                   </div>
                 </div>
               )}
+              */}
               {/* Company Progress graph - temporarily disabled
               <ProgressSection
                 title="Company Progress"
