@@ -4,7 +4,7 @@ import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 // import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
 import howBanner from '../../images/H.O.W.-banner.png';
-import companyProgressImage from '../../images/companyprog.png';
+import companyProgressImage from '../../images/companyprog7/27.png';
 
 // const powerbiEmbedService = new service.Service(
 //   factories.hpmFactory,
