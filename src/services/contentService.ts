@@ -29,6 +29,10 @@
  * Card images are stored in:
  *   Shared Documents/General/intranet/images
  *
+ * Default card fallback images live in:
+ *   Shared Documents/General/intranet/Default Images
+ * (all image files in the folder; cards cycle through them by display order)
+ *
  * Department page content (updates, resources, FAQ) is stored as:
  *   General/intranet/departments/{slug}.json  (e.g. it.json, hr.json)
  *
@@ -43,6 +47,7 @@ import {
   SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_SITE_PATH,
   IMAGE_SHAREPOINT_FOLDER_PATH,
+  DEFAULT_IMAGES_FOLDER_PATH,
   INTRANET_CONTENT_FOLDER_PATH,
   CARDS_DATA_FILENAME,
   REPORTS_DATA_FILENAME,
@@ -53,6 +58,8 @@ import {
   SIDEBAR_LAYOUT_DATA_FILENAME,
   HOMEPAGE_LAYOUT_DATA_FILENAME,
   DEPARTMENTS_CONTENT_FOLDER_PATH,
+  TV_SHAREPOINT_DRIVE_ID,
+  TV_HOMEPAGE_CARDS_ITEM_ID,
 } from '../authConfig';
 import { acquireSharePointToken } from '../utils/msalToken';
 // import seedCards from '../data/homepage-cards.seed.json';
@@ -131,12 +138,204 @@ export interface CardContent {
   title: string;
   /** Each string in this array renders as one <li>. HTML is allowed (e.g. <a> tags). */
   bullets: string[];
-  /** Public image URL.  Empty string → component falls back to its bundled default. */
+  /** Public image URL. Empty string → Default Images folder (cycled by card display position). */
   imageUrl: string;
-  /** Index into LOCAL_IMAGES (1-6) for fallback image. Assigned at creation, persists with card during reorder. */
+  /** Optional legacy field; defaults cycle by display position over the Default Images folder. */
   imageIndex?: number;
   createdBy?: string;
   editedBy?: string;
+}
+
+/** Drive item from Graph Default Images folder listing. */
+export interface DriveItem {
+  id: string;
+  name: string;
+  webUrl: string;
+  file?: { mimeType: string };
+}
+
+export type CardWithResolvedImage = CardContent & { resolvedImageUrl: string | null };
+
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
+
+let cachedDefaultImages: DriveItem[] | null = null;
+let cachedDefaultImagesPending: Promise<DriveItem[]> | null = null;
+
+function encodeDriveRelativePath(path: string): string {
+  return path
+    .split('/')
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+/** Build a SharePoint webUrl under Shared Documents for a drive-relative path. */
+export function buildSharePointDocumentUrl(driveRelativePath: string): string {
+  return `https://${SHAREPOINT_HOST}${SHAREPOINT_SITE_PATH}/Shared%20Documents/${encodeDriveRelativePath(driveRelativePath)}`;
+}
+
+/**
+ * List image files in Default Images (sorted by name). Cached per session.
+ * Low-level: siteId + token (matches Graph listing used by /api/images proxy).
+ */
+export async function fetchDefaultFallbackImages(
+  siteId: string,
+  token: string,
+  folderPath: string = DEFAULT_IMAGES_FOLDER_PATH
+): Promise<DriveItem[]> {
+  if (cachedDefaultImages) return cachedDefaultImages;
+  if (cachedDefaultImagesPending) return cachedDefaultImagesPending;
+
+  cachedDefaultImagesPending = (async () => {
+    const path = encodeDriveRelativePath(folderPath);
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${path}:/children?$select=id,name,webUrl,file&$top=200`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (!res.ok) {
+      throw new Error(
+        `Failed to list default images folder: ${res.status} ${await res.text()}`
+      );
+    }
+
+    const data = await res.json();
+    const items: DriveItem[] = (data.value ?? []).map(
+      (item: { id?: string; name?: string; webUrl?: string; file?: { mimeType?: string } }) => ({
+        id: item.id || '',
+        name: item.name || '',
+        webUrl: item.webUrl || '',
+        file: item.file?.mimeType ? { mimeType: item.file.mimeType } : item.file ? { mimeType: '' } : undefined,
+      })
+    );
+
+    const images = items
+      .filter((item) => {
+        if (!item.id || !item.file) return false;
+        const ext = item.name.split('.').pop()?.toLowerCase() ?? '';
+        return IMAGE_EXTENSIONS.has(ext);
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+    cachedDefaultImages = images;
+    return images;
+  })();
+
+  try {
+    return await cachedDefaultImagesPending;
+  } finally {
+    cachedDefaultImagesPending = null;
+  }
+}
+
+/**
+ * List Default Images via MSAL (homepage / signed-in TV fallback).
+ * Returns DriveItem[] (id, name, webUrl) — not raw string URLs.
+ */
+export async function fetchDefaultFallbackImageUrls(msalInstance: any): Promise<DriveItem[]> {
+  try {
+    const token = await getToken(msalInstance);
+    if (!token) return [];
+    const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    return await fetchDefaultFallbackImages(siteId, token);
+  } catch (err) {
+    console.warn('[contentService] Default Images folder list error:', err);
+    return [];
+  }
+}
+
+/** Current folder size (0 until first successful list); bundled count when folder empty. */
+export const DEFAULT_FALLBACK_IMAGE_COUNT = (): number =>
+  cachedDefaultImages?.length || BUNDLED_DEFAULT_CARD_IMAGES.length;
+
+/**
+ * Empty imageUrl → cycle Default Images by display position.
+ * Returns YOUR proxy URL `/api/images/{id}`, not a raw SharePoint URL.
+ * Falls back to bundled SPA assets when the SharePoint folder list is empty.
+ */
+export function getDefaultFallbackImageUrl(
+  cardPosition: number,
+  images: DriveItem[]
+): string | null {
+  if (images.length === 0) return getBundledDefaultFallbackImageUrl(cardPosition);
+  const file = images[((cardPosition % images.length) + images.length) % images.length];
+  if (!file?.id) return getBundledDefaultFallbackImageUrl(cardPosition);
+  return `/api/images/${encodeURIComponent(file.id)}`;
+}
+
+/** Webpack-bundled defaults — work on /tv with no login and no TV API. */
+export function getBundledDefaultFallbackImageUrl(cardPosition: number): string | null {
+  const images = BUNDLED_DEFAULT_CARD_IMAGES;
+  if (images.length === 0) return null;
+  return images[((cardPosition % images.length) + images.length) % images.length] || null;
+}
+
+/** @deprecated Prefer getDefaultFallbackImageUrl — kept for existing call sites. */
+export function pickDefaultFallbackImageUrl(
+  images: DriveItem[],
+  cardIndex: number
+): string {
+  return getDefaultFallbackImageUrl(cardIndex, images) || '';
+}
+
+/**
+ * Display src for UI: SharePoint webUrl when listed, else bundled static asset.
+ * Use getDefaultFallbackImageUrl only when a TV image proxy is available.
+ */
+export function getDefaultFallbackImageDisplaySrc(
+  cardPosition: number,
+  images: DriveItem[]
+): string | null {
+  if (images.length > 0) {
+    const file = images[((cardPosition % images.length) + images.length) % images.length];
+    if (file?.webUrl) return file.webUrl;
+  }
+  return getBundledDefaultFallbackImageUrl(cardPosition);
+}
+
+/** Clear cache and re-list Default Images. */
+export async function refreshDefaultFallbackImages(msalInstance: any): Promise<DriveItem[]> {
+  cachedDefaultImages = null;
+  cachedDefaultImagesPending = null;
+  return fetchDefaultFallbackImageUrls(msalInstance);
+}
+
+/** Clear cached Default Images list without fetching. */
+export function clearDefaultFallbackImageUrlCache(): void {
+  cachedDefaultImages = null;
+  cachedDefaultImagesPending = null;
+}
+
+/**
+ * Attach resolvedImageUrl: custom imageUrl when set, else `/api/images/{id}` by position.
+ */
+export async function resolveCardImages(
+  cards: CardContent[],
+  msalInstance: any
+): Promise<CardWithResolvedImage[]> {
+  const defaultImages = await fetchDefaultFallbackImageUrls(msalInstance);
+  return cards.map((card, index) => {
+    if (card.imageUrl && card.imageUrl.trim() !== '') {
+      return { ...card, resolvedImageUrl: card.imageUrl };
+    }
+    const fallback = getDefaultFallbackImageUrl(index, defaultImages);
+    return { ...card, resolvedImageUrl: fallback };
+  });
+}
+
+export function resolveCardImagesSync(
+  cards: CardContent[],
+  defaultImages: DriveItem[]
+): CardWithResolvedImage[] {
+  return cards.map((card, index) => {
+    if (card.imageUrl && card.imageUrl.trim() !== '') {
+      return { ...card, resolvedImageUrl: card.imageUrl };
+    }
+    return {
+      ...card,
+      resolvedImageUrl: getDefaultFallbackImageUrl(index, defaultImages),
+    };
+  });
 }
 
 // ─── Editor email tracking in JSON files ─────────────────────────────────────
@@ -147,7 +346,6 @@ export interface CardContent {
 //
 // Files: homepage-cards.json (cards), homepage-sidebar.json (sections),
 //        reports.json (reports), announcements.json (announcements)
-
 export interface EditorActivity {
   lastEditedAt: string;
 }
@@ -979,8 +1177,10 @@ async function fetchSharePointImageBlob(msalInstance: any, webUrl: string): Prom
   const drivePath = webUrlToDrivePath(webUrl);
   if (drivePath) {
     const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    // Encode each segment (e.g. "Default Images") — raw spaces break Graph /content
+    const encodedPath = encodeDriveRelativePath(drivePath);
     const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${drivePath}:/content`,
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodedPath}:/content`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     if (res.ok) return res.blob();
@@ -1050,7 +1250,11 @@ export function collectHomepageImageUrls(): string[] {
 export async function warmHomepageImageCache(msalInstance: any): Promise<void> {
   if (!BYPASS_AUTH && msalInstance.getAllAccounts().length === 0) return;
 
-  const urls = collectHomepageImageUrls();
+  const defaultImages = await fetchDefaultFallbackImageUrls(msalInstance);
+  const urls = [
+    ...defaultImages.map((item) => item.webUrl).filter(Boolean),
+    ...collectHomepageImageUrls(),
+  ];
   const uncached = urls.filter((url) => !getCachedSharePointImageUrl(url));
   if (uncached.length === 0) return;
 
@@ -1180,6 +1384,138 @@ async function readContentFromSharePointDrive<T>(
   const text = await res.text();
   if (!text.trim()) return null;
   return JSON.parse(text) as T;
+}
+
+/**
+ * Direct Graph read for /tv — fetches homepage-cards.json via drive ID (+ optional item ID).
+ * Matches: GET /drives/{driveId}/items/{itemId}/content
+ * Falls back to drive path when TV_HOMEPAGE_CARDS_ITEM_ID is not set.
+ */
+export async function fetchTvHomepageCardsRaw(msalInstance: any): Promise<unknown | null> {
+  if (BYPASS_AUTH) {
+    return readLocalContent(HOMEPAGE_CARDS_KEY);
+  }
+
+  const token = await getToken(msalInstance);
+  if (!token) return null;
+
+  const driveId = encodeURIComponent(TV_SHAREPOINT_DRIVE_ID);
+  const url = TV_HOMEPAGE_CARDS_ITEM_ID
+    ? `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${TV_HOMEPAGE_CARDS_ITEM_ID}/content`
+    : `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${INTRANET_CONTENT_FOLDER_PATH}/${CARDS_DATA_FILENAME}:/content`;
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.warn(`[contentService] fetchTvHomepageCardsRaw failed: ${res.status} ${err}`);
+    return null;
+  }
+
+  const text = await res.text();
+  if (!text.trim()) return null;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.warn('[contentService] fetchTvHomepageCardsRaw: invalid JSON', err);
+    return null;
+  }
+}
+
+/**
+ * Absolute `/api/images/...` (and other `/api/...`) URLs against the TV cards API origin.
+ * Relative paths break when the SPA (e.g. :3000) and tv-api (:3001) differ.
+ */
+export function resolveTvMediaUrl(url: string, cardsApiUrl: string = ''): string {
+  const trimmed = (url || '').trim();
+  if (!trimmed.startsWith('/api/')) return trimmed;
+  const base = (cardsApiUrl || '').trim();
+  if (!base || base.startsWith('/')) return trimmed;
+  try {
+    return new URL(trimmed, new URL(base).origin).href;
+  } catch {
+    return trimmed;
+  }
+}
+
+/** Fetch homepage cards from the public TV API (client-credentials backend). */
+export async function fetchTvHomepageCardsFromApi(apiUrl: string): Promise<unknown | null> {
+  if (!apiUrl) return null;
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      console.warn(`[contentService] fetchTvHomepageCardsFromApi failed: ${res.status} ${err}`);
+      return null;
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn('[contentService] fetchTvHomepageCardsFromApi error:', err);
+    return null;
+  }
+}
+
+export interface TvHomepageCardsMeta {
+  eTag: string | null;
+  cTag: string | null;
+  lastModifiedDateTime: string | null;
+}
+
+export function tvHomepageCardsMetaFingerprint(meta: TvHomepageCardsMeta): string {
+  return `${meta.eTag || meta.cTag || ''}|${meta.lastModifiedDateTime || ''}`;
+}
+
+/** Lightweight metadata poll via TV API — no card body download. */
+export async function fetchTvHomepageCardsMetaFromApi(
+  cardsApiUrl: string
+): Promise<TvHomepageCardsMeta | null> {
+  if (!cardsApiUrl) return null;
+  const metaUrl = cardsApiUrl.replace(/\/?$/, '') + '/meta';
+  try {
+    const res = await fetch(metaUrl);
+    if (!res.ok) {
+      const err = await res.text().catch(() => '');
+      console.warn(`[contentService] fetchTvHomepageCardsMetaFromApi failed: ${res.status} ${err}`);
+      return null;
+    }
+    return (await res.json()) as TvHomepageCardsMeta;
+  } catch (err) {
+    console.warn('[contentService] fetchTvHomepageCardsMetaFromApi error:', err);
+    return null;
+  }
+}
+
+/** Lightweight Graph metadata for homepage-cards.json (authenticated). */
+export async function fetchTvHomepageCardsMeta(
+  msalInstance: any
+): Promise<TvHomepageCardsMeta | null> {
+  if (BYPASS_AUTH) return null;
+
+  const token = await getToken(msalInstance);
+  if (!token || !TV_HOMEPAGE_CARDS_ITEM_ID) return null;
+
+  const driveId = encodeURIComponent(TV_SHAREPOINT_DRIVE_ID);
+  const url =
+    `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${TV_HOMEPAGE_CARDS_ITEM_ID}` +
+    `?$select=eTag,cTag,lastModifiedDateTime`;
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    console.warn(`[contentService] fetchTvHomepageCardsMeta failed: ${res.status} ${err}`);
+    return null;
+  }
+
+  const data = (await res.json()) as {
+    eTag?: string;
+    cTag?: string;
+    lastModifiedDateTime?: string;
+  };
+
+  return {
+    eTag: data.eTag ?? null,
+    cTag: data.cTag ?? null,
+    lastModifiedDateTime: data.lastModifiedDateTime ?? null,
+  };
 }
 
 async function getDriveItemByPath(
