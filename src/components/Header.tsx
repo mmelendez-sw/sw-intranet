@@ -251,7 +251,10 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           {userInfo.isEditor && (
             <button
               type="button"
-              onClick={toggleEditMode}
+              onClick={() => {
+                toggleEditMode();
+                closeDropdown();
+              }}
               className={`dropdown-item dropdown-edit-toggle${isEditMode ? ' active' : ''}`}
               aria-pressed={isEditMode}
             >

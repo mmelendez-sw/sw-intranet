@@ -61,7 +61,7 @@ import {
   TV_SHAREPOINT_DRIVE_ID,
   TV_HOMEPAGE_CARDS_ITEM_ID,
 } from '../authConfig';
-import { BUNDLED_DEFAULT_CARD_IMAGES } from '../data/bundledDefaultCardImages';
+import { acquireSharePointToken } from '../utils/msalToken';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
@@ -855,30 +855,7 @@ async function resolveContentJsonFieldName(siteId: string, listId: string, token
 
 async function getToken(msalInstance: any): Promise<string | null> {
   try {
-    const accounts = msalInstance.getAllAccounts();
-    if (!accounts.length) return null;
-
-    const tokenRequest = {
-      scopes: ['Sites.ReadWrite.All', 'Files.ReadWrite.All'],
-      account: accounts[0],
-    };
-
-    try {
-      const result = await msalInstance.acquireTokenSilent(tokenRequest);
-      return result.accessToken;
-    } catch (silentError) {
-      console.warn('[contentService] acquireTokenSilent failed, trying popup fallback', silentError);
-      if (typeof msalInstance.acquireTokenPopup === 'function') {
-        try {
-          const result = await msalInstance.acquireTokenPopup(tokenRequest);
-          return result.accessToken;
-        } catch (popupError) {
-          console.error('[contentService] acquireTokenPopup failed:', popupError);
-          return null;
-        }
-      }
-      return null;
-    }
+    return await acquireSharePointToken(msalInstance);
   } catch (err) {
     console.error('[contentService] getToken failed:', err);
     return null;
