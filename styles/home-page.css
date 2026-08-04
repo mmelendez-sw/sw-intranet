@@ -353,7 +353,7 @@
   flex-direction: column;
   justify-content: flex-start;
   width: 100%;
-  max-width: 1800px;
+  max-width: 2200px;
   margin: 0 auto;
   padding: 0 clamp(8px, 1.2vw, 16px);
   box-sizing: border-box;

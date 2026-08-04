@@ -383,7 +383,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               {/* Company Progress (static image — Power BI embed commented out below) */}
               <div
                 className="powerbi-embed-container"
-                style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: 0, background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}
+                style={{ width: '100%', maxWidth: 'none', margin: '0 auto', padding: 0, background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}
               >
                 <img
                   src={companyProgressImage}
