@@ -11,7 +11,7 @@
   position: relative;
   width: 100%;
   height: clamp(180px, 20vw, 330px);
-  margin: var(--home-banner-top-gap) 0 12px;
+  margin: var(--home-banner-top-gap) 0 0;
   overflow: hidden;
   border-radius: 2px;
 }
