@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
+// import '../../styles/company-progress.css';
 import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -33,6 +34,8 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+// Company Progress (Power BI + Salesforce gauges) — enable after Lambda API is live
+// import CompanyProgress from './CompanyProgress';
 // import { useTvLayout } from '../hooks/useTvLayout';
 
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -852,6 +855,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   </button>
                 )}
               </section>
+
+              {/* Company Progress — re-enable after Lambda + amplify /api rewrite are live
+              <CompanyProgress userInfo={userInfo} />
+              */}
 
               {/* ── Announcements ── */}
               {(activeAnnouncements.length > 0 || (canEdit && inactiveAnnouncements.length > 0) || canEdit) && (

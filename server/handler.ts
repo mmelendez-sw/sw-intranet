@@ -1,17 +1,19 @@
 /**
- * AWS Lambda / API Gateway handler for /tv kiosk APIs.
+ * AWS Lambda / API Gateway (or Function URL) handler for intranet APIs.
  *
  * Routes:
- *   GET /api/tv-cards        — homepage cards (empty imageUrl → /api/images/{id})
- *   GET /api/tv-cards/meta   — eTag / lastModified only (cheap change detection)
- *   GET /api/images/:id      — proxy SharePoint drive item bytes
- *   GET /api/images/by-url?url= — proxy SharePoint webUrl bytes (app credentials)
+ *   GET /api/tv-cards              — homepage cards (SharePoint)
+ *   GET /api/tv-cards/meta         — eTag / lastModified only
+ *   GET /api/images/:id            — proxy SharePoint drive item bytes
+ *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
+ *   GET /api/salesforce/current-investments
+ *   GET /api/powerbi/embed-token?reportId=
  *
- * Required env vars:
- *   TENANT_ID, CLIENT_ID, CLIENT_SECRET
- *
- * App registration needs application permission Files.Read.All or Sites.Read.All
- * (admin consent).
+ * Env vars (set on the Lambda — never in the Amplify frontend build):
+ *   Graph/TV:      TENANT_ID, CLIENT_ID, CLIENT_SECRET
+ *   Salesforce:    SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN?, SF_DOMAIN?
+ *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
+ *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
  */
 
 import { getGraphToken, getHomepageCardsMeta } from './tvHomepageCards';
@@ -21,6 +23,8 @@ import {
   getDriveImageContentByWebUrl,
   clearDefaultImagesCache,
 } from './tvImages';
+import { getCurrentInvestments } from './salesforce';
+import { getEmbedConfig } from './powerbi';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -84,18 +88,28 @@ function isCardsPath(path: string): boolean {
   );
 }
 
+function isSalesforceInvestmentsPath(path: string): boolean {
+  return /\/api\/salesforce\/current-investments\/?$/i.test(path);
+}
+
+function isPowerbiEmbedTokenPath(path: string): boolean {
+  return /\/api\/powerbi\/embed-token\/?$/i.test(path);
+}
+
+type LambdaResult = {
+  statusCode: number;
+  headers: Record<string, string>;
+  body: string;
+  isBase64Encoded?: boolean;
+};
+
 export async function handler(event?: {
   httpMethod?: string;
   path?: string;
   rawPath?: string;
   queryStringParameters?: Record<string, string | undefined> | null;
   requestContext?: { http?: { path?: string; method?: string } };
-}): Promise<{
-  statusCode: number;
-  headers: Record<string, string>;
-  body: string;
-  isBase64Encoded?: boolean;
-}> {
+}): Promise<LambdaResult> {
   const method = event?.httpMethod || event?.requestContext?.http?.method || 'GET';
   if (method === 'OPTIONS') {
     return { statusCode: 204, headers: JSON_HEADERS, body: '' };
@@ -103,12 +117,33 @@ export async function handler(event?: {
 
   const path = getPath(event);
   const query = getQuery(event);
-  const imageItemId = matchImageProxy(path);
 
   try {
+    // ── Salesforce (no Graph credentials required) ──
+    if (isSalesforceInvestmentsPath(path)) {
+      const data = await getCurrentInvestments();
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(data),
+      };
+    }
+
+    // ── Power BI embed token (no Graph credentials required) ──
+    if (isPowerbiEmbedTokenPath(path)) {
+      const data = await getEmbedConfig(query.reportId || undefined);
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(data),
+      };
+    }
+
+    // ── TV / SharePoint routes below need Graph app credentials ──
     const tenantId = requireEnv('TENANT_ID');
     const clientId = requireEnv('CLIENT_ID');
     const clientSecret = requireEnv('CLIENT_SECRET');
+    const imageItemId = matchImageProxy(path);
 
     if (isImageByUrlPath(path)) {
       const webUrl = (query.url || '').trim();
@@ -176,7 +211,6 @@ export async function handler(event?: {
       };
     }
 
-    // Full cards payload — bust Default Images list cache so edits show up soon
     clearDefaultImagesCache();
     const cards = await getHomepageCardsWithImages(tenantId, clientId, clientSecret);
     return {
@@ -188,12 +222,12 @@ export async function handler(event?: {
       body: JSON.stringify(cards),
     };
   } catch (err) {
-    console.error('[tv-api]', err);
+    console.error('[intranet-api]', err);
     return {
       statusCode: 500,
       headers: JSON_HEADERS,
       body: JSON.stringify({
-        error: err instanceof Error ? err.message : 'TV API request failed',
+        error: err instanceof Error ? err.message : 'API request failed',
       }),
     };
   }

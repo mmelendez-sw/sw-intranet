@@ -75,14 +75,19 @@ module.exports = {
     // Array form is more reliable on webpack-dev-server v4 than object-key paths.
     proxy: [
       {
-        context: ['/api/tv-cards', '/api/images'],
+        context: [
+          '/api/tv-cards',
+          '/api/images',
+          '/api/salesforce',
+          '/api/powerbi',
+        ],
         target: 'http://localhost:3001',
         changeOrigin: true,
         onError: (err, _req, res) => {
           console.warn('[webpack] /api proxy error (is tv-api running?):', err.message);
           if (res && !res.headersSent) {
             res.writeHead(502, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'TV API unavailable. Run npm run tv-api.' }));
+            res.end(JSON.stringify({ error: 'Intranet API unavailable. Run npm run tv-api.' }));
           }
         },
       },

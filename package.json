@@ -7,7 +7,9 @@
         "start": "webpack serve --open --mode development",
         "build": "webpack --mode production",
         "build:tv-api": "tsc -p server/tsconfig.json",
-        "tv-api": "npm run build:tv-api && node -r ./server/loadEnv.js server/dist/localDev.js"
+        "tv-api": "npm run build:tv-api && node -r ./server/loadEnv.js server/dist/localDev.js",
+        "api": "npm run tv-api",
+        "deploy:lambda": "powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api"
     },
     "dependencies": {
         "@azure/msal-browser": "^3.27.0",
@@ -16,6 +18,7 @@
         "@types/react-calendar": "^4.1.0",
         "exifr": "^7.1.3",
         "moment": "^2.30.1",
+        "powerbi-client": "^2.24.1",
         "react": "^18.2.0",
         "react-big-calendar": "^1.15.0",
         "react-calendar": "^5.1.0",

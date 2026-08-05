@@ -62,6 +62,7 @@ import {
   TV_HOMEPAGE_CARDS_ITEM_ID,
 } from '../authConfig';
 import { acquireSharePointToken } from '../utils/msalToken';
+import { BUNDLED_DEFAULT_CARD_IMAGES } from '../data/bundledDefaultCardImages';
 // import seedCards from '../data/homepage-cards.seed.json';
 
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
