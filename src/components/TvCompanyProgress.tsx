@@ -93,6 +93,7 @@ const TvCompanyProgress: React.FC = () => {
         filterPaneEnabled: false,
         navContentPaneEnabled: false,
         background: models.BackgroundType.Transparent,
+        zoomLevel: 1.5,
       },
     });
     return () => {
@@ -129,8 +130,8 @@ const TvCompanyProgress: React.FC = () => {
               className="powerbi-embed-container"
               style={{
                 width: '100%',
-                maxWidth: '1400px',
-                height: '425px',
+                maxWidth: 'none',
+                height: '620px',
                 margin: '0 auto',
                 padding: 0,
                 background: '#fff',
@@ -149,7 +150,7 @@ const TvCompanyProgress: React.FC = () => {
                     ref={powerbiContainerRef}
                     style={{
                       width: '100%',
-                      height: '425px',
+                      height: '620px',
                       border: 'none',
                       borderRadius: '8px',
                       background: '#fff',
@@ -159,10 +160,10 @@ const TvCompanyProgress: React.FC = () => {
                     ref={chartOverlayRef}
                     style={{
                       position: 'absolute',
-                      top: '220px',
+                      top: '320px',
                       left: 0,
                       width: '100%',
-                      height: '205px',
+                      height: '300px',
                       zIndex: 2,
                       background: 'transparent',
                       pointerEvents: 'none',
