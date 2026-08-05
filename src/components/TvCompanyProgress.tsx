@@ -82,7 +82,10 @@ const TvCompanyProgress: React.FC = () => {
   useEffect(() => {
     const container = powerbiContainerRef.current;
     if (!container || !embedConfig) return;
-    powerbiEmbedService.embed(container, {
+
+    const ZOOM_LEVEL = 1.5;
+
+    const report = powerbiEmbedService.embed(container, {
       type: 'report',
       id: embedConfig.reportId,
       embedUrl: embedConfig.embedUrl,
@@ -93,10 +96,33 @@ const TvCompanyProgress: React.FC = () => {
         filterPaneEnabled: false,
         navContentPaneEnabled: false,
         background: models.BackgroundType.Transparent,
-        zoomLevel: 1.5,
+        layoutType: models.LayoutType.Custom,
+        customLayout: {
+          displayOption: models.DisplayOption.FitToPage,
+        },
+        zoomLevel: ZOOM_LEVEL,
       },
     });
+
+    // Keep the zoomed canvas centered in the clipped viewport (no scroll API).
+    const applyCenteredZoom = () => {
+      const iframe = container.querySelector('iframe');
+      if (!iframe) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const overflowX = width * (ZOOM_LEVEL - 1);
+      const overflowY = height * (ZOOM_LEVEL - 1) * 1.5;
+      iframe.style.width = `calc(100% + ${overflowX}px)`;
+      iframe.style.height = `calc(100% + ${overflowY}px)`;
+      iframe.style.transform = `translate(${-overflowX / 2}px, ${-overflowY / 2}px)`;
+    };
+
+    report.on('loaded', applyCenteredZoom);
+    report.on('rendered', applyCenteredZoom);
+    window.addEventListener('resize', applyCenteredZoom);
+
     return () => {
+      window.removeEventListener('resize', applyCenteredZoom);
       powerbiEmbedService.reset(container);
     };
   }, [embedConfig]);
