@@ -17,6 +17,9 @@ frontend:
         - key: 'Cache-Control'
           value: 'public, max-age=0, must-revalidate'
   customRules:
+    - source: '/api/<*>'
+      target: 'https://coc6leb5vo5ljujvoqcjozkocy0ihyan.lambda-url.us-east-2.on.aws/api/<*>'
+      status: '200'
     - source: '/<*>'
       target: '/index.html'
       status: '200'

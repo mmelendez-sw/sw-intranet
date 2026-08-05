@@ -241,7 +241,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [salesforceLoading, setSalesforceLoading] = useState(true);
   const [salesforceError, setSalesforceError] = useState<string | null>(null);
 
-  // Power BI embed — temporarily disabled (static image below)
+  // Power BI embed ΓÇö temporarily disabled (static image below)
   // useEffect(() => {
   //   const container = powerbiContainerRef.current;
   //   if (!container) return;
@@ -380,7 +380,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                 </div>
               </section>
 
-              {/* Company Progress (static image — Power BI embed commented out below) */}
+              {/* Company Progress (static image ΓÇö Power BI embed commented out below) */}
               <div
                 className="powerbi-embed-container"
                 style={{ width: '100%', maxWidth: 'none', margin: '0 auto', padding: 0, background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}
@@ -391,7 +391,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   style={{ width: '100%', height: 'auto', display: 'block' }}
                 />
               </div>
-              {/* Power BI — API auto-sign-in (temporarily disabled)
+              {/* Power BI ΓÇö API auto-sign-in (temporarily disabled)
               {userInfo.isAuthenticated ? (
                 <div
                   className="powerbi-embed-container"
