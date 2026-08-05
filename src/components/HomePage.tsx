@@ -317,43 +317,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   //   };
   // }, [embedConfig]);
 
-  useEffect(() => {
-    let isActive = true;
-
-    const loadSalesforceRows = async () => {
-      try {
-        setSalesforceLoading(true);
-        setSalesforceError(null);
-
-        const response = await fetch(SALESFORCE_CURRENT_INVESTMENTS_URL);
-        const data: SalesforceInvestmentResponse & { error?: string } = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || `Salesforce request failed (${response.status})`);
-        }
-
-        if (isActive) {
-          setSalesforceRows(data.records || []);
-        }
-      } catch (error) {
-        console.error('Failed to load Salesforce investments:', error);
-        if (isActive) {
-          setSalesforceError(error instanceof Error ? error.message : 'Failed to load Salesforce data.');
-          setSalesforceRows([]);
-        }
-      } finally {
-        if (isActive) {
-          setSalesforceLoading(false);
-        }
-      }
-    };
-
-    loadSalesforceRows();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  // Salesforce fetch disabled on this branch (static lobby TV image only)
+  // useEffect(() => {
+  //   let isActive = true;
+  //   const loadSalesforceRows = async () => { ... };
+  //   loadSalesforceRows();
+  //   return () => { isActive = false; };
+  // }, []);
 
   const proprietaryRows = salesforceRows.filter(
     (row) => (row.Source_Type__c || '').trim().toLowerCase() === 'proprietary'

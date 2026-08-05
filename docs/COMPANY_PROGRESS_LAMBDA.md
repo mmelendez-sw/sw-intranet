@@ -14,7 +14,7 @@ How this branch is wired after Lambda creation, and what to do next.
 | Amplify `/api/*` rewrite | In `amplify.yml` → Function URL |
 | Frontend Power BI URL | Relative `/api/powerbi/embed-token` in prod (not localhost) |
 | Office TV `/` | **Static** company progress image (unchanged) |
-| Live Power BI + Salesforce gauges | **`/tv`** route (`TvCompanyProgress.tsx`) |
+| Live Power BI embed | **`/tv`** route (`TvCompanyProgress.tsx`) — Salesforce gauges disabled |
 | Azure ROPC | Same app + automation account; runs in Lambda |
 
 ## Route map (do not break the lobby TV)
@@ -22,7 +22,7 @@ How this branch is wired after Lambda creation, and what to do next.
 | URL | What it shows |
 |-----|----------------|
 | `/` | Hardcoded report imagery — keep this for the office TV |
-| `/tv` | Live Power BI embed + Salesforce gauges via Lambda |
+| `/tv` | Live Power BI embed via Lambda (Salesforce disabled on this branch) |
 
 ## Frontend pointing at the API (step 3 — done)
 

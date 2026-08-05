@@ -15,7 +15,7 @@ const companyProgressUser: UserInfo = {
 /**
  * serena-tv-dev:
  *   /    — current lobby TV experience (hardcoded company progress image)
- *   /tv  — live Power BI embed + Salesforce gauges (Lambda-backed)
+ *   /tv  — live Power BI embed (Lambda-backed; Salesforce gauges disabled)
  */
 const App: React.FC = () => {
   return (

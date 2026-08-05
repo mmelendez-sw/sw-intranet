@@ -1,4 +1,4 @@
-const { getCurrentInvestments } = require('./salesforce');
+// const { getCurrentInvestments } = require('./salesforce'); // disabled on this branch
 const { getEmbedConfig } = require('./powerbi');
 
 const JSON_HEADERS = {
@@ -46,10 +46,11 @@ exports.handler = async (event = {}) => {
   const query = getQuery(event);
 
   try {
-    if (/\/api\/salesforce\/current-investments\/?$/i.test(path)) {
-      const data = await getCurrentInvestments();
-      return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify(data) };
-    }
+    // Salesforce disabled on serena-tv-dev
+    // if (/\/api\/salesforce\/current-investments\/?$/i.test(path)) {
+    //   const data = await getCurrentInvestments();
+    //   return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify(data) };
+    // }
 
     if (/\/api\/powerbi\/embed-token\/?$/i.test(path)) {
       const data = await getEmbedConfig(query.reportId || undefined);
