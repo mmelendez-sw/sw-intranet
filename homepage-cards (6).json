@@ -1,0 +1,58 @@
+{
+  "cards": [
+    {
+      "order": 1,
+      "title": "Important Dates",
+      "bullets": [
+        "July - Q2 Performance Reviews",
+        "9/7: Labor Day",
+        "11/26: Thanksgiving Day",
+        "11/27: Day After Thanksgiving",
+        "12/25: Christmas Day "
+      ],
+      "imageUrl": "",
+      "imageIndex": 1,
+      "editedBy": "shuang@symphonyinfra.com"
+    },
+    {
+      "order": 2,
+      "title": "New Employee Leads App",
+      "bullets": [
+        "Our goal is to collect 2 leads per month per employee.",
+        "This initiative is a part of our company-wide goals for the year.",
+        "<a href=\"https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared+Documents%2FMarketing%2FMobile+Application%2FSymphony+Towers+Employee+Leads+App+Promo.mp4&startedResponseCatch=true&referrer=StreamWebApp.Web&referrerScenario=AddressBarCopied.view.6ed79924-e884-4365-b062-18e93c0a0912\" target=\"_blank\" rel=\"noopener noreferrer\">CLICK HERE</a> to learn more about our 2 leads initiative.",
+        "<a href=\"https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/_layouts/15/stream.aspx?id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FMobile%20Application%2FEmployee%20Leads%20App%20%2D%20Download%20Instructional%20Demo%20Video%2Emp4&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2Eb252ef14%2Dee35%2D474b%2D8a55%2D7418b4c2f0c0\" target=\"_blank\" rel=\"noopener noreferrer\">CLICK HERE</a> to learn how to download the app.",
+        "<a href=\"https://symphonyinfrastructure.sharepoint.com/:w:/r/sites/SymphonyWirelessTeam/Shared%20Documents/Marketing/Mobile%20Application/Lead%20Generation%20on%20Desktop.docx?d=w8c75eaf79afe4fbd80c32c0f5b2ada4f&csf=1&web=1&e=0mifAu\" target=\"_blank\" rel=\"noopener noreferrer\">CLICK HERE</a> to learn how to submit the leads from desktop browser."
+      ],
+      "imageUrl": "",
+      "imageIndex": 2,
+      "editedBy": "shuang@symphonyinfra.com"
+    },
+    {
+      "order": 3,
+      "title": "Marketing Updates",
+      "bullets": [
+        "Please reference our shared company folder for branded collateral. This folder will continue to be updated as additional materials become available. If you have any questions or need assistance, please feel free to reach out to the marketing team. Thank you for helping us maintain a consistent and professional brand presence. ",
+        "<a href=\"https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd\" target=\"_blank\" rel=\"noopener noreferrer\">Symphony Branded Assets</a>",
+        "Additionally, linked below are marketing reports from our Inside Towers company subscription and a link to their most recent quarterly briefing.",
+        "<a href=\"https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/Forms/AllItems.aspx?csf=1&web=1&e=XUzv8z&ovuser=63fbe43e%2D8963%2D4cb6%2D8f87%2D2ecc3cd029b4&id=%2Fsites%2FSymphonyWirelessTeam%2FShared%20Documents%2FMarketing%2FInside%20Towers%20Market%20Reports&viewid=3b4a3ca3%2D1062%2D4eb5%2Dbf26%2Db84eea8abbcd\" target=\"_blank\" rel=\"noopener noreferrer\">Inside Towers Market Reports</a>",
+        "<a href=\"https://www.youtube.com/watch?v=Mpg0MAu7JNQ\" target=\"_blank\" rel=\"noopener noreferrer\">Inside Towers Quarterly Briefing</a> "
+      ],
+      "imageUrl": "https://symphonyinfrastructure.sharepoint.com/sites/SymphonyWirelessTeam/Shared%20Documents/General/intranet/Images/1783973152721-site_5.jpg",
+      "imageIndex": 3,
+      "editedBy": "jpeterson@symphonywireless.com"
+    }
+  ],
+  "shuang@symphonyinfra.com": {
+    "lastEditedAt": "2026-07-14T13:53:37.000Z"
+  },
+  "mmelendez@symphonyinfra.com": {
+    "lastEditedAt": "2026-07-13T20:50:16.920Z"
+  },
+  "sraffington@symphonyinfra.com": {
+    "lastEditedAt": "2026-07-09T14:19:16.137Z"
+  },
+  "jpeterson@symphonywireless.com": {
+    "lastEditedAt": "2026-07-21T13:37:50.708Z"
+  }
+}
