@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/employee-directory.css';
+import { acquireTokenSilentOnly, DIRECTORY_SCOPES } from '../utils/msalToken';
 
 interface GraphUser {
   id: string;
@@ -17,7 +18,6 @@ interface GraphUser {
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
 
-const DIRECTORY_SCOPES = ['User.Read.All'];
 const ALLOWED_EMAIL_SUFFIX = '@symphonyinfra.com';
 const ALLOWED_COMPANY = 'symphony';
 
@@ -58,36 +58,7 @@ function isConsultant(user: GraphUser): boolean {
 }
 
 async function getGraphToken(msalInstance: any): Promise<string | null> {
-  const accounts = msalInstance.getAllAccounts();
-  if (!accounts.length) return null;
-
-  const account = accounts[0];
-  const tokenRequest = { scopes: DIRECTORY_SCOPES, account };
-
-  try {
-    const result = await msalInstance.acquireTokenSilent(tokenRequest);
-    return result.accessToken;
-  } catch (silentError) {
-    console.warn('[EmployeeDirectory] acquireTokenSilent failed, refreshing token', silentError);
-  }
-
-  try {
-    const result = await msalInstance.acquireTokenSilent({ ...tokenRequest, forceRefresh: true });
-    return result.accessToken;
-  } catch (refreshError) {
-    console.warn('[EmployeeDirectory] forceRefresh failed, trying popup', refreshError);
-  }
-
-  try {
-    if (typeof msalInstance.acquireTokenPopup === 'function') {
-      const result = await msalInstance.acquireTokenPopup(tokenRequest);
-      return result.accessToken;
-    }
-  } catch (popupError) {
-    console.error('[EmployeeDirectory] acquireTokenPopup failed:', popupError);
-  }
-
-  return null;
+  return acquireTokenSilentOnly(msalInstance, DIRECTORY_SCOPES);
 }
 
 async function fetchUsers(token: string): Promise<GraphUser[]> {

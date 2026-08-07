@@ -1,4 +1,5 @@
 import { UserInfo } from './types/user';
+import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
 export const BYPASS_AUTH = false;
@@ -76,7 +77,34 @@ export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';
 export const IMAGE_SHAREPOINT_SITE_PATH = SHAREPOINT_SITE_PATH;
 export const INTRANET_CONTENT_FOLDER_PATH = 'General/intranet';
 export const IMAGE_SHAREPOINT_FOLDER_PATH = 'General/intranet/images';
+/** Card fallback images when imageUrl is empty — listed from this folder at runtime. */
+export const DEFAULT_IMAGES_FOLDER_PATH = 'General/intranet/Default Images';
 export const CARDS_DATA_FILENAME = 'homepage-cards.json';
+/** SharePoint drive ID for direct Graph reads on /tv (kiosk displays). */
+export const TV_SHAREPOINT_DRIVE_ID =
+  'b!PRZFjpqB2U6dHC5-1xRK-ckNeOcC0b9OuYzaxCUuqlF98qlI6Tz8RYjJa1ViXSq_';
+/** homepage-cards.json item ID for GET /drives/{driveId}/items/{itemId}/content */
+export const TV_HOMEPAGE_CARDS_ITEM_ID = '01UIS5FCXU77HFE7F73JAI4TKRF5NURVFT';
+
+/**
+ * Public TV cards API (client-credentials Lambda). Empty = SPA-only /tv
+ * (seed/cache + bundled images; no login, no API).
+ * Set in production when the kiosk API is deployed, e.g.:
+ *   window.TV_CARDS_API_URL = 'https://….amazonaws.com/api/tv-cards'
+ * Local: defaults to /api/tv-cards (webpack → npm run tv-api on :3001).
+ */
+export const TV_CARDS_API_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
+  if (typeof injected === 'string' && injected.trim()) return injected.trim();
+  const host = window.location.hostname;
+  // Hit tv-api directly — webpack proxy to :3001 is easy to miss in local,
+  // and the API already sends Access-Control-Allow-Origin: *.
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001/api/tv-cards';
+  }
+  return '';
+})();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
 export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';
@@ -94,26 +122,16 @@ const checkGroupMembership = async (msalInstance: any, groupId: string): Promise
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) return false;
 
-    const activeAccount = accounts[0];
-    const graphScopes = ["User.Read", "GroupMember.Read.All"];
+    const graphScopes = GRAPH_GROUP_SCOPES;
 
-    // Silent only: popup races with Lead Generation's Mail.Send popup.
-    let accessToken;
-    try {
-      accessToken = await msalInstance.acquireTokenSilent({
-        scopes: graphScopes,
-        account: activeAccount,
-      });
-    } catch {
-      return false;
-    }
-
-    if (!accessToken?.accessToken) return false;
+    // Silent only — interactive login is handled by the header Login button.
+    const accessToken = await acquireTokenSilentOnly(msalInstance, graphScopes);
+    if (!accessToken) return false;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     const graphHeaders = {
-      Authorization: `Bearer ${accessToken.accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     };
 

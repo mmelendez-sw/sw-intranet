@@ -251,7 +251,10 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           {userInfo.isEditor && (
             <button
               type="button"
-              onClick={toggleEditMode}
+              onClick={() => {
+                toggleEditMode();
+                closeDropdown();
+              }}
               className={`dropdown-item dropdown-edit-toggle${isEditMode ? ' active' : ''}`}
               aria-pressed={isEditMode}
             >
@@ -288,7 +291,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
         {userInfo.isAuthenticated && (
           <>
-            <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
+            {/* <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link> */}
             <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
             <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
             <div className="nav-dropdown" ref={departmentsRef}>
