@@ -27,6 +27,7 @@ const persistEditMode = (enabled: boolean): void => {
 
 export const EditMenuProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isEditMode, setIsEditMode] = useState(readPersistedEditMode);
+
   const toggleEditMode = useCallback(() => {
     setIsEditMode((v) => {
       const next = !v;

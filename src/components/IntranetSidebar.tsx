@@ -170,6 +170,7 @@ const syncSidebarLayout = (
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
+  const isNetSuiteAdmin = !!userInfo.isNetSuiteAdmin;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
@@ -210,7 +211,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       ]);
       const sectionsData = remoteSections ? parseSidebarContent(remoteSections) : [];
       if (sectionsData.length) setSections(sectionsData);
-      if (remoteLinks) setQuickLinks(remoteLinks);
+      if (remoteLinks) {
+        setQuickLinks(
+          remoteLinks.map((link) => ({
+            ...link,
+            isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly,
+          }))
+        );
+      }
       if (remoteConfig) setSiteConfig(remoteConfig);
       setBlocks(syncSidebarLayout(remoteLayout?.blocks, sectionsData));
     })();
@@ -327,7 +335,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   // ── Quick link handlers ──
   const openLinkEdit = useCallback((link: QuickLink, isNew = false) => {
     setEditingLink(link);
-    setEditLinkDraft({ ...link });
+    setEditLinkDraft({ ...link, isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly });
     setIsNewLink(isNew);
   }, []);
 
@@ -364,6 +372,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       label: 'New Link',
       url: '',
       order: quickLinks.length > 0 ? Math.max(...quickLinks.map(l => l.order)) + 1 : 1,
+      isNetSuiteAdminOnly: false,
     };
     openLinkEdit(newLink, true);
   };
@@ -392,6 +401,9 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   };
 
   const sortedLinks = [...quickLinks].sort((a, b) => a.order - b.order);
+  const isLinkVisible = (link: QuickLink) =>
+    !link.isNetSuiteAdminOnly || isNetSuiteAdmin;
+  const visibleLinks = canEdit ? sortedLinks : sortedLinks.filter(isLinkVisible);
 
   const renderBlockReorder = (blockIdx: number, compact = false) => (
     <div
@@ -491,7 +503,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             return (
               <section key="quick-links-block" className="quick-links editable-wrapper">
                 <h2>Quick Links</h2>
-                {sortedLinks.map((link, lIdx) => (
+                {visibleLinks.map((link, lIdx) => (
                   <div key={link.id} style={{ marginBottom: canEdit ? 6 : 0 }}>
                     <button
                       className="home-button"
@@ -513,7 +525,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                           type="button"
                           className="card-reorder-btn"
                           onClick={() => moveLink(link.id, 'down')}
-                          disabled={lIdx === sortedLinks.length - 1}
+                          disabled={lIdx === visibleLinks.length - 1}
                           title="Move link down"
                         >↓</button>
                         <button
@@ -680,6 +692,18 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               placeholder="https://..."
               required
             />
+          </div>
+          <div className="edit-checkbox-row">
+            <input
+              type="checkbox"
+              id="netsuite-admin-only"
+              checked={!!editLinkDraft.isNetSuiteAdminOnly}
+              onChange={e => setEditLinkDraft({
+                ...editLinkDraft,
+                isNetSuiteAdminOnly: e.target.checked,
+              })}
+            />
+            <label htmlFor="netsuite-admin-only">NetSuite Admin only</label>
           </div>
         </EditModal>
       )}
