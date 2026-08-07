@@ -11,7 +11,7 @@ import HomePage from './components/HomePage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
-import TvDisplay from './components/TvDisplay';
+// import TvDisplay from './components/TvDisplay';
 import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
@@ -446,8 +446,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* ── Standalone TV / kiosk display — no header, no nav ── */}
+        {/* ── Standalone TV / kiosk display — disabled on this branch
         <Route path="/tv" element={<TvDisplay />} />
+        */}
 
         {/* ── All standard routes — wrapped with header + alert banner ── */}
         <Route

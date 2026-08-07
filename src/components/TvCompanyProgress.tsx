@@ -1,105 +1,106 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { service, factories, models } from 'powerbi-client';
+import React from 'react';
 import '../../styles/home-page.css';
-import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
 import howBanner from '../../images/H.O.W.-banner.png';
 
+// Power BI embed — disabled for /tv
+// import { service, factories, models } from 'powerbi-client';
+// import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
+
 /**
- * Live Company Progress for /tv — Power BI embed only (Lambda ROPC).
+ * Company Progress for /tv — Power BI embed commented out.
  * Salesforce gauges are intentionally disabled on this branch.
- * Root `/` keeps the static office-TV imagery.
  */
 
-const powerbiEmbedService = new service.Service(
-  factories.hpmFactory,
-  factories.wpmpFactory,
-  factories.routerFactory
-);
+// const powerbiEmbedService = new service.Service(
+//   factories.hpmFactory,
+//   factories.wpmpFactory,
+//   factories.routerFactory
+// );
 
 const TvCompanyProgress: React.FC = () => {
-  const powerbiContainerRef = useRef<HTMLDivElement>(null);
-  const chartOverlayRef = useRef<HTMLDivElement>(null);
-  const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
-  const [embedError, setEmbedError] = useState<string | null>(null);
+  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  // const chartOverlayRef = useRef<HTMLDivElement>(null);
+  // const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
+  // const [embedError, setEmbedError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const container = powerbiContainerRef.current;
-    if (!container) return;
-    const preventZoom: EventListener = (e) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    container.addEventListener('wheel', preventZoom, { passive: false });
-    container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      container.removeEventListener('wheel', preventZoom);
-      container.removeEventListener('gesturestart', preventZoom as EventListener);
-      container.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, [embedConfig]);
+  // useEffect(() => {
+  //   const container = powerbiContainerRef.current;
+  //   if (!container) return;
+  //   const preventZoom: EventListener = (e) => {
+  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   container.addEventListener('wheel', preventZoom, { passive: false });
+  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+  //   return () => {
+  //     container.removeEventListener('wheel', preventZoom);
+  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
+  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
+  //   };
+  // }, [embedConfig]);
 
-  useEffect(() => {
-    const overlay = chartOverlayRef.current;
-    if (!overlay) return;
-    const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
-      if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-        e.preventDefault();
-      }
-    };
-    overlay.addEventListener('wheel', preventZoom, { passive: false });
-    overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-    overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-    return () => {
-      overlay.removeEventListener('wheel', preventZoom);
-      overlay.removeEventListener('gesturestart', preventZoom as EventListener);
-      overlay.removeEventListener('gesturechange', preventZoom as EventListener);
-    };
-  }, [embedConfig]);
+  // useEffect(() => {
+  //   const overlay = chartOverlayRef.current;
+  //   if (!overlay) return;
+  //   const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
+  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
+  //       e.preventDefault();
+  //     }
+  //   };
+  //   overlay.addEventListener('wheel', preventZoom, { passive: false });
+  //   overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
+  //   overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
+  //   return () => {
+  //     overlay.removeEventListener('wheel', preventZoom);
+  //     overlay.removeEventListener('gesturestart', preventZoom as EventListener);
+  //     overlay.removeEventListener('gesturechange', preventZoom as EventListener);
+  //   };
+  // }, [embedConfig]);
 
-  useEffect(() => {
-    let isActive = true;
-    const loadEmbed = async () => {
-      try {
-        setEmbedError(null);
-        const config = await PowerbiService.getInstance().generateEmbedToken();
-        if (isActive) setEmbedConfig(config);
-      } catch (error) {
-        console.error('Failed to load Power BI embed config:', error);
-        if (isActive) {
-          setEmbedError(error instanceof Error ? error.message : 'Failed to load Power BI report.');
-          setEmbedConfig(null);
-        }
-      }
-    };
-    loadEmbed();
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   let isActive = true;
+  //   const loadEmbed = async () => {
+  //     try {
+  //       setEmbedError(null);
+  //       const config = await PowerbiService.getInstance().generateEmbedToken();
+  //       if (isActive) setEmbedConfig(config);
+  //     } catch (error) {
+  //       console.error('Failed to load Power BI embed config:', error);
+  //       if (isActive) {
+  //         setEmbedError(error instanceof Error ? error.message : 'Failed to load Power BI report.');
+  //         setEmbedConfig(null);
+  //       }
+  //     }
+  //   };
+  //   loadEmbed();
+  //   return () => {
+  //     isActive = false;
+  //   };
+  // }, []);
 
-  useEffect(() => {
-    const container = powerbiContainerRef.current;
-    if (!container || !embedConfig) return;
-    powerbiEmbedService.embed(container, {
-      type: 'report',
-      id: embedConfig.reportId,
-      embedUrl: embedConfig.embedUrl,
-      accessToken: embedConfig.token,
-      tokenType:
-        embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
-      settings: {
-        filterPaneEnabled: false,
-        navContentPaneEnabled: false,
-        background: models.BackgroundType.Transparent,
-        zoomLevel: 1.5,
-      },
-    });
-    return () => {
-      powerbiEmbedService.reset(container);
-    };
-  }, [embedConfig]);
+  // useEffect(() => {
+  //   const container = powerbiContainerRef.current;
+  //   if (!container || !embedConfig) return;
+  //   powerbiEmbedService.embed(container, {
+  //     type: 'report',
+  //     id: embedConfig.reportId,
+  //     embedUrl: embedConfig.embedUrl,
+  //     accessToken: embedConfig.token,
+  //     tokenType:
+  //       embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
+  //     settings: {
+  //       filterPaneEnabled: false,
+  //       navContentPaneEnabled: false,
+  //       background: models.BackgroundType.Transparent,
+  //       zoomLevel: 1.5,
+  //     },
+  //   });
+  //   return () => {
+  //     powerbiEmbedService.reset(container);
+  //   };
+  // }, [embedConfig]);
 
   return (
     <div className="home-page authenticated home-page-progress">
@@ -126,6 +127,7 @@ const TvCompanyProgress: React.FC = () => {
               </div>
             </section>
 
+            {/* Power BI embed — disabled
             <div
               className="powerbi-embed-container"
               style={{
@@ -176,6 +178,7 @@ const TvCompanyProgress: React.FC = () => {
                 </div>
               )}
             </div>
+            */}
 
             {/* Salesforce gauges — disabled on this branch
             <ProgressSection ... />
