@@ -10,7 +10,7 @@ export function editSaveStatusFromResult(result: SetContentResult): EditSaveStat
   return result.storage === 'sharepoint' ? 'saved' : 'saved-local';
 }
 
-/** Show status; auto-close only after a real SharePoint save. */
+/** Show status; auto-close only after a real SharePoint save. Keeps the editor open on local-only or failed saves. */
 export async function finishEditSave(
   result: SetContentResult,
   setStatus: (status: EditSaveStatus) => void,
@@ -23,7 +23,13 @@ export async function finishEditSave(
     onClose();
     return true;
   }
-  return result.ok;
+  // Local-only or error: stay in edit so the user can retry.
+  return false;
+}
+
+/** True only when SharePoint accepted the write (or there was nothing to persist). */
+export function canLeaveEditAfterSave(status: EditSaveStatus): boolean {
+  return status === 'saved' || status === 'idle';
 }
 
 export const EditSaveStatusText: React.FC<{ status: EditSaveStatus }> = ({ status }) => {

@@ -57,6 +57,8 @@ interface EditModalProps {
   children: React.ReactNode;
   autoSave?: boolean;
   saveStatus?: EditSaveStatus;
+  /** Autosave "Done" — defaults to onClose. Use to block leave until SharePoint save succeeds. */
+  onDone?: () => void | Promise<void>;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -68,6 +70,7 @@ const EditModal: React.FC<EditModalProps> = ({
   children,
   autoSave = false,
   saveStatus = 'idle',
+  onDone,
 }) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -97,7 +100,13 @@ const EditModal: React.FC<EditModalProps> = ({
                 ) : (
                   <EditSaveStatusText status={saveStatus} />
                 )}
-                <button className="edit-btn-save" onClick={onClose} disabled={saveStatus === 'saving'}>Done</button>
+                <button
+                  className="edit-btn-save"
+                  onClick={() => { void (onDone ?? onClose)(); }}
+                  disabled={saveStatus === 'saving'}
+                >
+                  Done
+                </button>
               </>
             ) : (
               <>
@@ -284,8 +293,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const hasFetchedCardsRef = useRef(false);
   const preloadedImageUrlsRef = useRef(new Set<string>());
   const cardsLoadingStartedRef = useRef(Date.now());
+  const cardSaveStatusRef = useRef<EditSaveStatus>('idle');
+  cardSaveStatusRef.current = cardSaveStatus;
 
-  const persistCardsToSharePoint = useCallback(async (updated: CardContent[]): Promise<boolean> => {
+  const persistCardsToSharePoint = useCallback(async (updated: CardContent[]) => {
     setCardSaveStatus('saving');
     const sanitized = updated.map((c) => ({ ...c, bullets: sanitizeBullets(c.bullets) }));
     const file = buildHomepageCardsFile(sanitized, userInfo.email, getCachedContent(CARDS_CONTENT_KEY));
@@ -295,17 +306,17 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       lastLocalCardSaveRef.current = Date.now();
       userModifiedCardsRef.current = true;
       setCardSaveStatus(result.storage === 'sharepoint' ? 'saved' : 'saved-local');
-      return true;
+      return result;
     }
     setCardSaveStatus('error');
-    return false;
+    return result;
   }, [instance, userInfo.email]);
 
   const applyCardOrderChange = useCallback(async (withNewOrders: CardContent[]) => {
     userModifiedCardsRef.current = true;
     lastLocalCardSaveRef.current = Date.now();
     setCards(withNewOrders);
-    return persistCardsToSharePoint(withNewOrders);
+    return (await persistCardsToSharePoint(withNewOrders)).ok;
   }, [persistCardsToSharePoint]);
 
   // ── Load Default Images folder listing (size drives cycle length) ──
@@ -497,9 +508,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     []
   );
 
-  const flushCardDraftSave = useCallback(async () => {
+  const flushCardDraftSave = useCallback(async (): Promise<EditSaveStatus> => {
     const draft = editCardDraftRef.current;
-    if (!draft || !canEdit) return;
+    if (!draft || !canEdit) return 'idle';
 
     const pendingFile = pendingImageFileRef.current;
     let finalDraft = { ...draft };
@@ -540,13 +551,15 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       isNewCardRef.current
     );
     if (!pendingFile && cardsMatch(updated, cardsRef.current)) {
-      return;
+      return cardSaveStatusRef.current === 'saved-local' || cardSaveStatusRef.current === 'error'
+        ? cardSaveStatusRef.current
+        : 'idle';
     }
 
     setSavingCard(true);
     try {
-      const ok = await persistCardsToSharePoint(updated);
-      if (ok) {
+      const result = await persistCardsToSharePoint(updated);
+      if (result.ok) {
         if (isNewCardRef.current) setIsNewCard(false);
         const draftJson = JSON.stringify(finalDraft);
         const currentJson = JSON.stringify(editCardDraftRef.current);
@@ -556,9 +569,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           editCardDraftRef.current = finalDraft;
         }
       }
+      return result.ok
+        ? (result.storage === 'sharepoint' ? 'saved' : 'saved-local')
+        : 'error';
     } catch (err) {
       console.error('[HomePage] autosave card failed:', err);
       setCardSaveStatus('error');
+      return 'error';
     } finally {
       setSavingCard(false);
       setUploadingImage(false);
@@ -613,7 +630,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const closeCardEdit = useCallback(async () => {
     if (editCardDraftRef.current && canEdit) {
-      await flushCardDraftSave();
+      const status = await flushCardDraftSave();
+      if (status === 'error' || status === 'saved-local') {
+        // Stay in the card editor so the user can retry a SharePoint save.
+        return;
+      }
     }
     resetCardEditState();
   }, [canEdit, flushCardDraftSave, resetCardEditState]);
@@ -626,17 +647,23 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       cardAutosaveTimerRef.current = null;
     }
     skipNextAutosaveRef.current = true;
-    editCardDraftRef.current = null;
 
     setSavingCard(true);
+    const previousCards = cardsRef.current;
     const updated = renumberCards(
-      sortCardsByOrder(cardsRef.current).filter((c) => c.order !== order)
+      sortCardsByOrder(previousCards).filter((c) => c.order !== order)
     );
     cardsRef.current = updated;
-    const ok = await persistCardsToSharePoint(updated);
-    if (!ok) {
+    const result = await persistCardsToSharePoint(updated);
+    if (!result.ok || result.storage !== 'sharepoint') {
+      cardsRef.current = previousCards;
+      setCards(previousCards);
       const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (remoteCards) setCards(normalizeCards(parseHomepageCardsContent(remoteCards)));
+      setSavingCard(false);
+      setCardSaveStatus(result.ok ? 'saved-local' : 'error');
+      // Stay in the card editor when delete did not land on SharePoint.
+      return;
     }
     setSavingCard(false);
     resetCardEditState();
@@ -1092,7 +1119,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {editCardDraft && (
         <EditModal
           title={isNewCard ? 'New Card' : `Edit Card: ${editCardDraft.title}`}
-          onClose={() => { void closeCardEdit(); }}
+          onClose={resetCardEditState}
+          onDone={closeCardEdit}
           isSaving={cardSaveStatus === 'saving'}
           onDelete={isNewCard ? undefined : deleteCard}
           autoSave
