@@ -152,8 +152,14 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
 
   const isReportVisible = useCallback((report: ReportItemContent) => {
     if (report.isEliteOnly && !userInfo.isEliteGroup) return false;
-    if (report.excludedEmails?.length && userInfo.email) {
-      return !report.excludedEmails.map((e) => e.toLowerCase()).includes(userInfo.email.toLowerCase());
+    const email = userInfo.email?.toLowerCase();
+    if (report.includedEmails?.length) {
+      if (!email || !report.includedEmails.map((e) => e.toLowerCase()).includes(email)) {
+        return false;
+      }
+    }
+    if (report.excludedEmails?.length && email) {
+      return !report.excludedEmails.map((e) => e.toLowerCase()).includes(email);
     }
     return true;
   }, [userInfo.isEliteGroup, userInfo.email]);
@@ -180,7 +186,11 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   // ── Editing ──
   const openEdit = useCallback((report: ReportItemContent) => {
     setEditingReport(report);
-    setEditDraft({ ...report, excludedEmails: [...report.excludedEmails] });
+    setEditDraft({
+      ...report,
+      excludedEmails: [...(report.excludedEmails || [])],
+      includedEmails: [...(report.includedEmails || [])],
+    });
   }, []);
 
   const saveReport = async () => {
@@ -210,6 +220,7 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
       link: '',
       isEliteOnly: false,
       excludedEmails: [],
+      includedEmails: [],
     };
     const stamped = stampReportEditor(newReport, userInfo.email, true);
     const updated = [...allReports, stamped];
@@ -422,11 +433,24 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
             <label htmlFor="elite-only">Elite group only</label>
           </div>
           <div className="edit-field-group">
+            <label>Included Emails</label>
+            <input
+              type="text"
+              placeholder="user@example.com, user2@example.com"
+              value={(editDraft.includedEmails || []).join(', ')}
+              onChange={e => setEditDraft({
+                ...editDraft,
+                includedEmails: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+              })}
+            />
+            <span className="edit-field-hint">Comma-separated. Leave blank for everyone (subject to Elite / Excluded). If set, only these users see the report.</span>
+          </div>
+          <div className="edit-field-group">
             <label>Excluded Emails</label>
             <input
               type="text"
               placeholder="user@example.com, user2@example.com"
-              value={editDraft.excludedEmails.join(', ')}
+              value={(editDraft.excludedEmails || []).join(', ')}
               onChange={e => setEditDraft({
                 ...editDraft,
                 excludedEmails: e.target.value.split(',').map(s => s.trim()).filter(Boolean),

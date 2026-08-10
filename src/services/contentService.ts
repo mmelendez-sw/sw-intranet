@@ -539,6 +539,8 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
+  /** When non-empty, only these emails can see the report (still subject to excludedEmails / elite). */
+  includedEmails: string[];
   createdBy?: string;
   editedBy?: string;
 }
@@ -667,12 +669,17 @@ export function parseSidebarContent(raw: unknown): SidebarSection[] {
 
 /** Read reports from a bare array or a wrapped { reports: [...] } file. */
 export function parseReportsContent(raw: unknown): ReportItemContent[] {
+  let reports: ReportItemContent[] = [];
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw as ReportItemContent[];
-  if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
-    return (raw as { reports: ReportItemContent[] }).reports;
+  if (Array.isArray(raw)) reports = raw as ReportItemContent[];
+  else if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
+    reports = (raw as { reports: ReportItemContent[] }).reports;
   }
-  return [];
+  return reports.map((report) => ({
+    ...report,
+    excludedEmails: Array.isArray(report.excludedEmails) ? report.excludedEmails : [],
+    includedEmails: Array.isArray(report.includedEmails) ? report.includedEmails : [],
+  }));
 }
 
 /** Read announcements from a bare array or a wrapped { announcements: [...] } file. */
