@@ -8,6 +8,7 @@ export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
   isEliteGroup: true,
   isEditor: true,
+  isNetSuiteAdmin: true,
   email: 'dev@symphonywireless.com',
   name: 'Dev User',
 };
@@ -69,6 +70,20 @@ export const isEditAllowlisted = (email?: string): boolean => {
 
 export const resolveIsEditor = (isGroupMember: boolean, email?: string): boolean =>
   isGroupMember || isEditAllowlisted(email);
+
+/** Emails granted NetSuite Admin access (add/remove as needed). */
+export const NETSUITE_ADMIN_ALLOWLIST = new Set([
+  'bgoyal@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+  'izheng@symphonyinfra.com',
+  'mmelendez@symphonyinfra.com',
+  'shuang@symphonyinfra.com'
+]);
+
+export const isNetSuiteAdminAllowlisted = (email?: string): boolean => {
+  if (!email) return false;
+  return NETSUITE_ADMIN_ALLOWLIST.has(email.toLowerCase());
+};
 
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';

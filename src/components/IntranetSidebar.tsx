@@ -5,6 +5,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
   setContent,
+  setContentDetailed,
   SidebarSection,
   QuickLink,
   SiteConfig,
@@ -19,6 +20,11 @@ import {
   stampSidebarSectionEditor,
 } from '../services/contentService';
 import '../../styles/edit-mode.css';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 
@@ -37,9 +43,18 @@ interface EditModalProps {
   isSaving: boolean;
   onDelete?: () => Promise<void>;
   children: React.ReactNode;
+  saveStatus?: EditSaveStatus;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, onDelete, children }) => {
+const EditModal: React.FC<EditModalProps> = ({
+  title,
+  onClose,
+  onSave,
+  isSaving,
+  onDelete,
+  children,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
@@ -59,7 +74,7 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
             <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>🗑 Delete</button>
           )}
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
             <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
             <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
           </div>
@@ -170,6 +185,7 @@ const syncSidebarLayout = (
 const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }) => {
   const { instance } = useMsal();
   const isEditor = userInfo.isEditor;
+  const isNetSuiteAdmin = !!userInfo.isNetSuiteAdmin;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
@@ -183,6 +199,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
   const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
   const [savingSection, setSavingSection] = useState(false);
+  const [sectionSaveStatus, setSectionSaveStatus] = useState<EditSaveStatus>('idle');
   const [linkInsertUrl, setLinkInsertUrl] = useState('');
   const [linkInsertLabel, setLinkInsertLabel] = useState('');
   const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
@@ -191,12 +208,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [editingLink, setEditingLink] = useState<QuickLink | null>(null);
   const [editLinkDraft, setEditLinkDraft] = useState<QuickLink | null>(null);
   const [savingLink, setSavingLink] = useState(false);
+  const [linkSaveStatus, setLinkSaveStatus] = useState<EditSaveStatus>('idle');
   const [isNewLink, setIsNewLink] = useState(false);
 
   // ── Site config edit state ──
   const [editingConfig, setEditingConfig] = useState(false);
   const [configDraft, setConfigDraft] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [savingConfig, setSavingConfig] = useState(false);
+  const [configSaveStatus, setConfigSaveStatus] = useState<EditSaveStatus>('idle');
 
   // ── Load from SharePoint ──
   useEffect(() => {
@@ -210,7 +229,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       ]);
       const sectionsData = remoteSections ? parseSidebarContent(remoteSections) : [];
       if (sectionsData.length) setSections(sectionsData);
-      if (remoteLinks) setQuickLinks(remoteLinks);
+      if (remoteLinks) {
+        setQuickLinks(
+          remoteLinks.map((link) => ({
+            ...link,
+            isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly,
+          }))
+        );
+      }
       if (remoteConfig) setSiteConfig(remoteConfig);
       setBlocks(syncSidebarLayout(remoteLayout?.blocks, sectionsData));
     })();
@@ -224,12 +250,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
 
   const closeSectionEdit = useCallback(() => {
     setEditingSection(null);
+    setSectionSaveStatus('idle');
     resetSectionLinkInsert();
   }, [resetSectionLinkInsert]);
 
   // ── Section handlers ──
   const openSectionEdit = useCallback((section: SidebarSection) => {
     setEditingSection(section);
+    setSectionSaveStatus('idle');
     setEditSectionDraft({ ...section });
     resetSectionLinkInsert();
   }, [resetSectionLinkInsert]);
@@ -260,9 +288,9 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
 
   const persistSidebarSections = async (updated: SidebarSection[]) => {
     const file = buildSidebarContentFile(updated, userInfo.email, getCachedContent(SIDEBAR_CONTENT_KEY));
-    const ok = await setContent(instance, SIDEBAR_CONTENT_KEY, file);
-    if (ok) setSections(updated);
-    return ok;
+    const result = await setContentDetailed(instance, SIDEBAR_CONTENT_KEY, file);
+    if (result.ok) setSections(updated);
+    return result;
   };
 
   const saveSection = async () => {
@@ -273,26 +301,28 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       return;
     }
     setSavingSection(true);
+    setSectionSaveStatus('saving');
     const isNewSection = !sections.some((s) => s.key === editSectionDraft.key);
     const stamped = stampSidebarSectionEditor(editSectionDraft, userInfo.email, isNewSection);
     const updated = isNewSection
       ? [...sections, stamped]
       : sections.map((s) => (s.key === editSectionDraft.key ? stamped : s));
-    const ok = await persistSidebarSections(updated);
+    const result = await persistSidebarSections(updated);
     setSavingSection(false);
-    if (ok) closeSectionEdit();
+    await finishEditSave(result, setSectionSaveStatus, closeSectionEdit);
   };
 
   const deleteSection = async () => {
     if (!editSectionDraft) return;
     setSavingSection(true);
+    setSectionSaveStatus('saving');
     const updated = sections.filter(s => s.key !== editSectionDraft.key);
-    const ok = await persistSidebarSections(updated);
-    if (ok) {
+    const result = await persistSidebarSections(updated);
+    if (result.ok) {
       await persistSidebarLayout(blocks.filter(b => b.type !== 'section' || b.key !== editSectionDraft.key));
     }
     setSavingSection(false);
-    closeSectionEdit();
+    await finishEditSave(result, setSectionSaveStatus, closeSectionEdit);
   };
 
   const addSection = async () => {
@@ -310,7 +340,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       ? [...blocks.slice(0, quickLinksIdx), newBlock, ...blocks.slice(quickLinksIdx)]
       : [...blocks, newBlock];
     const ok = await persistSidebarSections(updated);
-    if (ok) {
+    if (ok.ok) {
       await persistSidebarLayout(newBlocks);
       openSectionEdit(stamped);
     }
@@ -327,8 +357,14 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   // ── Quick link handlers ──
   const openLinkEdit = useCallback((link: QuickLink, isNew = false) => {
     setEditingLink(link);
-    setEditLinkDraft({ ...link });
+    setLinkSaveStatus('idle');
+    setEditLinkDraft({ ...link, isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly });
     setIsNewLink(isNew);
+  }, []);
+
+  const closeLinkEdit = useCallback(() => {
+    setEditingLink(null);
+    setLinkSaveStatus('idle');
   }, []);
 
   const saveLink = async () => {
@@ -339,23 +375,25 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       return;
     }
     setSavingLink(true);
+    setLinkSaveStatus('saving');
     const updated = isNewLink
       ? [...quickLinks, editLinkDraft]
       : quickLinks.map(l => l.id === editLinkDraft.id ? editLinkDraft : l);
-    const ok = await setContent(instance, 'quick-links', updated);
-    if (ok) setQuickLinks(updated);
+    const result = await setContentDetailed(instance, 'quick-links', updated);
+    if (result.ok) setQuickLinks(updated);
     setSavingLink(false);
-    setEditingLink(null);
+    await finishEditSave(result, setLinkSaveStatus, closeLinkEdit);
   };
 
   const deleteLink = async () => {
     if (!editLinkDraft) return;
     setSavingLink(true);
+    setLinkSaveStatus('saving');
     const updated = quickLinks.filter(l => l.id !== editLinkDraft.id);
-    const ok = await setContent(instance, 'quick-links', updated);
-    if (ok) setQuickLinks(updated);
+    const result = await setContentDetailed(instance, 'quick-links', updated);
+    if (result.ok) setQuickLinks(updated);
     setSavingLink(false);
-    setEditingLink(null);
+    await finishEditSave(result, setLinkSaveStatus, closeLinkEdit);
   };
 
   const addLink = () => {
@@ -364,6 +402,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       label: 'New Link',
       url: '',
       order: quickLinks.length > 0 ? Math.max(...quickLinks.map(l => l.order)) + 1 : 1,
+      isNetSuiteAdminOnly: false,
     };
     openLinkEdit(newLink, true);
   };
@@ -381,17 +420,30 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   };
 
   // ── Site config handlers ──
-  const openConfigEdit = () => { setConfigDraft({ ...siteConfig }); setEditingConfig(true); };
+  const openConfigEdit = () => {
+    setConfigDraft({ ...siteConfig });
+    setConfigSaveStatus('idle');
+    setEditingConfig(true);
+  };
+
+  const closeConfigEdit = () => {
+    setEditingConfig(false);
+    setConfigSaveStatus('idle');
+  };
 
   const saveConfig = async () => {
     setSavingConfig(true);
-    const ok = await setContent(instance, 'site-config', configDraft);
-    if (ok) setSiteConfig(configDraft);
+    setConfigSaveStatus('saving');
+    const result = await setContentDetailed(instance, 'site-config', configDraft);
+    if (result.ok) setSiteConfig(configDraft);
     setSavingConfig(false);
-    setEditingConfig(false);
+    await finishEditSave(result, setConfigSaveStatus, closeConfigEdit);
   };
 
   const sortedLinks = [...quickLinks].sort((a, b) => a.order - b.order);
+  const isLinkVisible = (link: QuickLink) =>
+    !link.isNetSuiteAdminOnly || isNetSuiteAdmin;
+  const visibleLinks = canEdit ? sortedLinks : sortedLinks.filter(isLinkVisible);
 
   const renderBlockReorder = (blockIdx: number, compact = false) => (
     <div
@@ -491,7 +543,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             return (
               <section key="quick-links-block" className="quick-links editable-wrapper">
                 <h2>Quick Links</h2>
-                {sortedLinks.map((link, lIdx) => (
+                {visibleLinks.map((link, lIdx) => (
                   <div key={link.id} style={{ marginBottom: canEdit ? 6 : 0 }}>
                     <button
                       className="home-button"
@@ -513,7 +565,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                           type="button"
                           className="card-reorder-btn"
                           onClick={() => moveLink(link.id, 'down')}
-                          disabled={lIdx === sortedLinks.length - 1}
+                          disabled={lIdx === visibleLinks.length - 1}
                           title="Move link down"
                         >↓</button>
                         <button
@@ -561,6 +613,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           onClose={closeSectionEdit}
           onSave={saveSection}
           isSaving={savingSection}
+          saveStatus={sectionSaveStatus}
           onDelete={deleteSection}
         >
           <div className="edit-field-group">
@@ -657,9 +710,10 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       {editingLink && editLinkDraft && (
         <EditModal
           title={isNewLink ? 'New Quick Link' : `Edit Link: ${editLinkDraft.label}`}
-          onClose={() => setEditingLink(null)}
+          onClose={closeLinkEdit}
           onSave={saveLink}
           isSaving={savingLink}
+          saveStatus={linkSaveStatus}
           onDelete={isNewLink ? undefined : deleteLink}
         >
           <div className="edit-field-group">
@@ -681,6 +735,18 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
               required
             />
           </div>
+          <div className="edit-checkbox-row">
+            <input
+              type="checkbox"
+              id="netsuite-admin-only"
+              checked={!!editLinkDraft.isNetSuiteAdminOnly}
+              onChange={e => setEditLinkDraft({
+                ...editLinkDraft,
+                isNetSuiteAdminOnly: e.target.checked,
+              })}
+            />
+            <label htmlFor="netsuite-admin-only">NetSuite Admin only</label>
+          </div>
         </EditModal>
       )}
 
@@ -688,9 +754,10 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       {editingConfig && (
         <EditModal
           title="Site Settings"
-          onClose={() => setEditingConfig(false)}
+          onClose={closeConfigEdit}
           onSave={saveConfig}
           isSaving={savingConfig}
+          saveStatus={configSaveStatus}
         >
           <div className="edit-field-group">
             <label>Support Email ("Report IT Issue" button)</label>

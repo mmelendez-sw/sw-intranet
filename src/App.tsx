@@ -11,8 +11,8 @@ import HomePage from './components/HomePage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import EmployeeDirectory from './components/EmployeeDirectory';
-import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor } from './authConfig';
+// import TvDisplay from './components/TvDisplay';
+import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
@@ -27,6 +27,7 @@ const App: React.FC = () => {
           isAuthenticated: false,
           isEliteGroup: false,
           isEditor: false,
+          isNetSuiteAdmin: false,
         }
   );
 
@@ -67,6 +68,7 @@ const App: React.FC = () => {
         cachedEditorStatus && editorCacheValid ? cachedEditorStatus === 'true' : false,
         email
       );
+      const isNetSuiteAdmin = isNetSuiteAdminAllowlisted(email);
 
       if (cachedEliteStatus && cacheValid) {
         isElite = cachedEliteStatus === 'true';
@@ -76,6 +78,7 @@ const App: React.FC = () => {
           isAuthenticated: true,
           isEliteGroup: isElite,
           isEditor,
+          isNetSuiteAdmin,
           email: email,
           name: account.name,
         });
@@ -101,6 +104,7 @@ const App: React.FC = () => {
           isAuthenticated: true,
           isEliteGroup: false,
           isEditor,
+          isNetSuiteAdmin,
           email: email,
           name: account.name,
         });
@@ -156,6 +160,7 @@ const App: React.FC = () => {
         isAuthenticated: false,
         isEliteGroup: false,
         isEditor: false,
+        isNetSuiteAdmin: false,
       });
     }
   };
@@ -174,6 +179,7 @@ const App: React.FC = () => {
         isAuthenticated: true,
         email,
         name: account.name || prev.name,
+        isNetSuiteAdmin: isNetSuiteAdminAllowlisted(email),
       };
     });
   }, [instance]);
@@ -233,6 +239,7 @@ const App: React.FC = () => {
             ...prev,
             isAuthenticated: true,
             isEliteGroup: isElite,
+            isNetSuiteAdmin: isNetSuiteAdminAllowlisted(email),
             email: email,
             name: account.name,
           }));
@@ -252,6 +259,7 @@ const App: React.FC = () => {
               ...prev,
               isAuthenticated: true,
               isEliteGroup: isElite,
+              isNetSuiteAdmin: isNetSuiteAdminAllowlisted(email),
               email: email,
               name: account.name,
             }));
@@ -438,8 +446,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* ── Standalone TV / kiosk display — no header, no nav ── */}
+        {/* ── Standalone TV / kiosk display — disabled on this branch
         <Route path="/tv" element={<TvDisplay />} />
+        */}
 
         {/* ── All standard routes — wrapped with header + alert banner ── */}
         <Route

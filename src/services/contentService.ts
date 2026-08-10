@@ -539,6 +539,8 @@ export interface ReportItemContent {
   link: string;
   isEliteOnly: boolean;
   excludedEmails: string[];
+  /** When non-empty, only these emails can see the report (still subject to excludedEmails / elite). */
+  includedEmails: string[];
   createdBy?: string;
   editedBy?: string;
 }
@@ -667,12 +669,17 @@ export function parseSidebarContent(raw: unknown): SidebarSection[] {
 
 /** Read reports from a bare array or a wrapped { reports: [...] } file. */
 export function parseReportsContent(raw: unknown): ReportItemContent[] {
+  let reports: ReportItemContent[] = [];
   if (!raw) return [];
-  if (Array.isArray(raw)) return raw as ReportItemContent[];
-  if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
-    return (raw as { reports: ReportItemContent[] }).reports;
+  if (Array.isArray(raw)) reports = raw as ReportItemContent[];
+  else if (typeof raw === 'object' && Array.isArray((raw as { reports?: ReportItemContent[] }).reports)) {
+    reports = (raw as { reports: ReportItemContent[] }).reports;
   }
-  return [];
+  return reports.map((report) => ({
+    ...report,
+    excludedEmails: Array.isArray(report.excludedEmails) ? report.excludedEmails : [],
+    includedEmails: Array.isArray(report.includedEmails) ? report.includedEmails : [],
+  }));
 }
 
 /** Read announcements from a bare array or a wrapped { announcements: [...] } file. */
@@ -696,6 +703,8 @@ export interface QuickLink {
   label: string;
   url: string;
   order: number;
+  /** When true, only NetSuite Admin allowlisted users see this link. */
+  isNetSuiteAdminOnly?: boolean;
 }
 
 /** Ordered sidebar blocks — sections and the quick-links group can be interleaved. */
@@ -1876,9 +1885,20 @@ export async function setDepartmentContent(
   data: DepartmentPageContent,
   options?: ContentSyncOptions
 ): Promise<boolean> {
+  const result = await setDepartmentContentDetailed(msalInstance, slug, data, options);
+  return result.ok;
+}
+
+export async function setDepartmentContentDetailed(
+  msalInstance: any,
+  slug: string,
+  data: DepartmentPageContent,
+  options?: ContentSyncOptions
+): Promise<SetContentResult> {
   const key = departmentCacheKey(slug);
   if (BYPASS_AUTH) {
-    return writeLocalContent(key, data);
+    const ok = writeLocalContent(key, data);
+    return { ok, storage: ok ? 'local' : 'none' };
   }
 
   try {
@@ -1895,7 +1915,7 @@ export async function setDepartmentContent(
     );
     if (driveOk) {
       writeLocalContent(key, data);
-      return true;
+      return { ok: true, storage: 'sharepoint' };
     }
   } catch (err) {
     console.error(`[contentService] setDepartmentContent("${slug}") failed:`, err);
@@ -1907,8 +1927,8 @@ export async function setDepartmentContent(
       console.warn(
         `[contentService] setDepartmentContent("${slug}") saved to browser storage (SharePoint write failed)`
       );
-      return true;
+      return { ok: true, storage: 'local' };
     }
   }
-  return false;
+  return { ok: false, storage: 'none' };
 }

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { Navigate } from 'react-router-dom';
-import * as exifr from 'exifr';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const exifr = require('exifr');
 import { BYPASS_AUTH } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { getContent, SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';

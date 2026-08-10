@@ -2,9 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/alert-banner.css';
 import '../../styles/edit-mode.css';
-import { getContent, setContent, SiteAlert, DEFAULT_ALERT } from '../services/contentService';
+import { getContent, setContentDetailed, SiteAlert, DEFAULT_ALERT } from '../services/contentService';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 
 interface AlertBannerProps {
   userInfo: UserInfo;
@@ -24,9 +29,17 @@ interface EditModalProps {
   onSave: () => Promise<void>;
   onClose: () => void;
   isSaving: boolean;
+  saveStatus?: EditSaveStatus;
 }
 
-const AlertEditModal: React.FC<EditModalProps> = ({ draft, onChange, onSave, onClose, isSaving }) => {
+const AlertEditModal: React.FC<EditModalProps> = ({
+  draft,
+  onChange,
+  onSave,
+  onClose,
+  isSaving,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
@@ -76,7 +89,7 @@ const AlertEditModal: React.FC<EditModalProps> = ({ draft, onChange, onSave, onC
         </div>
         <div className="edit-modal-footer">
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
             <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
             <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
           </div>
@@ -97,6 +110,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<SiteAlert>(DEFAULT_ALERT);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
 
   // Load alert from SharePoint
   useEffect(() => {
@@ -112,18 +126,28 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
     })();
   }, [userInfo.isAuthenticated, instance]);
 
-  const openEdit = useCallback(() => { setDraft({ ...alert }); setEditing(true); }, [alert]);
+  const openEdit = useCallback(() => {
+    setDraft({ ...alert });
+    setSaveStatus('idle');
+    setEditing(true);
+  }, [alert]);
+
+  const closeEdit = useCallback(() => {
+    setEditing(false);
+    setSaveStatus('idle');
+  }, []);
 
   const saveAlert = async () => {
     setSaving(true);
-    const ok = await setContent(instance, 'site-alert', draft);
-    if (ok) {
+    setSaveStatus('saving');
+    const result = await setContentDetailed(instance, 'site-alert', draft);
+    if (result.ok) {
       setAlert(draft);
       setDismissed(false);
       sessionStorage.removeItem('alert-dismissed');
     }
     setSaving(false);
-    setEditing(false);
+    await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const dismiss = () => {
@@ -170,8 +194,9 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
           draft={draft}
           onChange={setDraft}
           onSave={saveAlert}
-          onClose={() => setEditing(false)}
+          onClose={closeEdit}
           isSaving={saving}
+          saveStatus={saveStatus}
         />
       )}
     </>
