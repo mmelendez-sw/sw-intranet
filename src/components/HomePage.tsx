@@ -33,6 +33,11 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 // import { useTvLayout } from '../hooks/useTvLayout';
 
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -51,7 +56,7 @@ interface EditModalProps {
   onDelete?: () => Promise<void>;
   children: React.ReactNode;
   autoSave?: boolean;
-  saveStatus?: 'idle' | 'saving' | 'saved' | 'saved-local' | 'error';
+  saveStatus?: EditSaveStatus;
 }
 
 const EditModal: React.FC<EditModalProps> = ({
@@ -87,22 +92,16 @@ const EditModal: React.FC<EditModalProps> = ({
           <div className="edit-modal-footer-right">
             {autoSave ? (
               <>
-                {saveStatus === 'saving' ? (
-                  <span className="edit-saving-indicator">Saving…</span>
-                ) : saveStatus === 'saved' ? (
-                  <span className="edit-saving-indicator" style={{ color: '#198754' }}>Saved to SharePoint</span>
-                ) : saveStatus === 'saved-local' ? (
-                  <span className="edit-saving-indicator" style={{ color: '#b45309' }}>Saved on this device only</span>
-                ) : saveStatus === 'error' ? (
-                  <span className="edit-saving-indicator" style={{ color: '#dc3545' }}>Could not save — try again</span>
-                ) : (
+                {saveStatus === 'idle' ? (
                   <span className="edit-saving-indicator" style={{ color: '#6c757d' }}>Edits save automatically</span>
+                ) : (
+                  <EditSaveStatusText status={saveStatus} />
                 )}
                 <button className="edit-btn-save" onClick={onClose} disabled={saveStatus === 'saving'}>Done</button>
               </>
             ) : (
               <>
-                {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+                <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
                 <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
                 <button className="edit-btn-save" onClick={onSave} disabled={isSaving || !onSave}>Save</button>
               </>
@@ -240,6 +239,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
   const [editAnnouncementDraft, setEditAnnouncementDraft] = useState<Announcement | null>(null);
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
+  const [announcementSaveStatus, setAnnouncementSaveStatus] = useState<EditSaveStatus>('idle');
   const [announcementsExpanded, setAnnouncementsExpanded] = useState(false);
 
   // ── Card edit state ──
@@ -256,11 +256,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [editingHero, setEditingHero] = useState(false);
   const [heroDraft, setHeroDraft] = useState('');
   const [savingHero, setSavingHero] = useState(false);
+  const [heroSaveStatus, setHeroSaveStatus] = useState<EditSaveStatus>('idle');
 
   // ── Card drag-and-drop reorder state ──
   const [draggingCardIdx, setDraggingCardIdx] = useState<number | null>(null);
   const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
-  const [cardSaveStatus, setCardSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'saved-local' | 'error'>('idle');
+  const [cardSaveStatus, setCardSaveStatus] = useState<EditSaveStatus>('idle');
   const [linkInsertUrl, setLinkInsertUrl] = useState('');
   const [linkInsertLabel, setLinkInsertLabel] = useState('');
   const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
@@ -705,7 +706,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   // ── Announcement editing ──
   const openAnnouncementEdit = useCallback((ann: Announcement) => {
     setEditingAnnouncement(ann);
+    setAnnouncementSaveStatus('idle');
     setEditAnnouncementDraft({ ...ann });
+  }, []);
+
+  const closeAnnouncementEdit = useCallback(() => {
+    setEditingAnnouncement(null);
+    setAnnouncementSaveStatus('idle');
   }, []);
 
   const persistAnnouncements = useCallback(async (updated: Announcement[]) => {
@@ -714,31 +721,33 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       userInfo.email,
       getCachedContent(ANNOUNCEMENTS_CONTENT_KEY)
     );
-    const ok = await setContent(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
-    if (ok) setAnnouncements(updated);
-    return ok;
+    const result = await setContentDetailed(instance, ANNOUNCEMENTS_CONTENT_KEY, file);
+    if (result.ok) setAnnouncements(updated);
+    return result;
   }, [instance, userInfo.email]);
 
   const saveAnnouncement = async () => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
+    setAnnouncementSaveStatus('saving');
     const isNew = !announcements.some((a) => a.id === editAnnouncementDraft.id);
     const stamped = stampAnnouncementEditor(editAnnouncementDraft, userInfo.email, isNew);
     const updated = isNew
       ? [...announcements, stamped]
       : announcements.map((a) => (a.id === editAnnouncementDraft.id ? stamped : a));
-    await persistAnnouncements(updated);
+    const result = await persistAnnouncements(updated);
     setSavingAnnouncement(false);
-    setEditingAnnouncement(null);
+    await finishEditSave(result, setAnnouncementSaveStatus, closeAnnouncementEdit);
   };
 
   const deleteAnnouncement = async () => {
     if (!editAnnouncementDraft) return;
     setSavingAnnouncement(true);
+    setAnnouncementSaveStatus('saving');
     const updated = announcements.filter(a => a.id !== editAnnouncementDraft.id);
-    await persistAnnouncements(updated);
+    const result = await persistAnnouncements(updated);
     setSavingAnnouncement(false);
-    setEditingAnnouncement(null);
+    await finishEditSave(result, setAnnouncementSaveStatus, closeAnnouncementEdit);
   };
 
   const makeAnnouncementVisible = async (ann: Announcement) => {
@@ -779,14 +788,24 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
 
   // ── Hero editing ──
-  const openHeroEdit = () => { setHeroDraft(heroImageUrl); setEditingHero(true); };
+  const openHeroEdit = () => {
+    setHeroDraft(heroImageUrl);
+    setHeroSaveStatus('idle');
+    setEditingHero(true);
+  };
+
+  const closeHeroEdit = useCallback(() => {
+    setEditingHero(false);
+    setHeroSaveStatus('idle');
+  }, []);
 
   const saveHero = async () => {
     setSavingHero(true);
-    const ok = await setContent(instance, 'homepage-hero', heroDraft);
-    if (ok) setHeroImageUrl(heroDraft);
+    setHeroSaveStatus('saving');
+    const result = await setContentDetailed(instance, 'homepage-hero', heroDraft);
+    if (result.ok) setHeroImageUrl(heroDraft);
     setSavingHero(false);
-    setEditingHero(false);
+    await finishEditSave(result, setHeroSaveStatus, closeHeroEdit);
   };
 
   // ── Render helpers ──
@@ -1211,9 +1230,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {editingAnnouncement && editAnnouncementDraft && (
         <EditModal
           title={editingAnnouncement.id.startsWith('ann-') && !announcements.some(a => a.id === editingAnnouncement.id) ? 'New Announcement' : `Edit: ${editAnnouncementDraft.title}`}
-          onClose={() => setEditingAnnouncement(null)}
+          onClose={closeAnnouncementEdit}
           onSave={saveAnnouncement}
           isSaving={savingAnnouncement}
+          saveStatus={announcementSaveStatus}
           onDelete={announcements.some(a => a.id === editAnnouncementDraft.id) ? deleteAnnouncement : undefined}
         >
           <div className="edit-field-group">
@@ -1243,9 +1263,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       {editingHero && (
         <EditModal
           title="Edit Banner Image"
-          onClose={() => setEditingHero(false)}
+          onClose={closeHeroEdit}
           onSave={saveHero}
           isSaving={savingHero}
+          saveStatus={heroSaveStatus}
         >
           <div className="edit-field-group">
             <label>Banner Image URL</label>

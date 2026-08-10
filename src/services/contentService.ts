@@ -1885,9 +1885,20 @@ export async function setDepartmentContent(
   data: DepartmentPageContent,
   options?: ContentSyncOptions
 ): Promise<boolean> {
+  const result = await setDepartmentContentDetailed(msalInstance, slug, data, options);
+  return result.ok;
+}
+
+export async function setDepartmentContentDetailed(
+  msalInstance: any,
+  slug: string,
+  data: DepartmentPageContent,
+  options?: ContentSyncOptions
+): Promise<SetContentResult> {
   const key = departmentCacheKey(slug);
   if (BYPASS_AUTH) {
-    return writeLocalContent(key, data);
+    const ok = writeLocalContent(key, data);
+    return { ok, storage: ok ? 'local' : 'none' };
   }
 
   try {
@@ -1904,7 +1915,7 @@ export async function setDepartmentContent(
     );
     if (driveOk) {
       writeLocalContent(key, data);
-      return true;
+      return { ok: true, storage: 'sharepoint' };
     }
   } catch (err) {
     console.error(`[contentService] setDepartmentContent("${slug}") failed:`, err);
@@ -1916,8 +1927,8 @@ export async function setDepartmentContent(
       console.warn(
         `[contentService] setDepartmentContent("${slug}") saved to browser storage (SharePoint write failed)`
       );
-      return true;
+      return { ok: true, storage: 'local' };
     }
   }
-  return false;
+  return { ok: false, storage: 'none' };
 }

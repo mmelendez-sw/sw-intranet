@@ -5,11 +5,17 @@ import '../../styles/edit-mode.css';
 import {
   getContent,
   setContent,
+  setContentDetailed,
   TickerItem,
   DEFAULT_TICKER_ITEMS,
 } from '../services/contentService';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 
 interface TickerProps {
   userInfo: UserInfo;
@@ -22,9 +28,18 @@ interface EditModalProps {
   isSaving: boolean;
   onDelete?: () => Promise<void>;
   children: React.ReactNode;
+  saveStatus?: EditSaveStatus;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, onDelete, children }) => {
+const EditModal: React.FC<EditModalProps> = ({
+  title,
+  onClose,
+  onSave,
+  isSaving,
+  onDelete,
+  children,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
@@ -44,7 +59,7 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
             <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>🗑 Delete</button>
           )}
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
             <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
             <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
           </div>
@@ -64,6 +79,7 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
   const [editingItem, setEditingItem] = useState<TickerItem | null>(null);
   const [editDraft, setEditDraft] = useState<TickerItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
   const [isNew, setIsNew] = useState(false);
   const [managingTicker, setManagingTicker] = useState(false);
 
@@ -77,30 +93,38 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
 
   const openEdit = useCallback((item: TickerItem, isNewItem = false) => {
     setEditingItem(item);
+    setSaveStatus('idle');
     setEditDraft({ ...item });
     setIsNew(isNewItem);
+  }, []);
+
+  const closeEdit = useCallback(() => {
+    setEditingItem(null);
+    setSaveStatus('idle');
   }, []);
 
   const saveItem = async () => {
     if (!editDraft) return;
     setSaving(true);
+    setSaveStatus('saving');
     const updated = isNew
       ? [...items, editDraft]
       : items.map(i => i.id === editDraft.id ? editDraft : i);
-    const ok = await setContent(instance, 'ticker-items', updated);
-    if (ok) setItems(updated);
+    const result = await setContentDetailed(instance, 'ticker-items', updated);
+    if (result.ok) setItems(updated);
     setSaving(false);
-    setEditingItem(null);
+    await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const deleteItem = async () => {
     if (!editDraft) return;
     setSaving(true);
+    setSaveStatus('saving');
     const updated = items.filter(i => i.id !== editDraft.id);
-    const ok = await setContent(instance, 'ticker-items', updated);
-    if (ok) setItems(updated);
+    const result = await setContentDetailed(instance, 'ticker-items', updated);
+    if (result.ok) setItems(updated);
     setSaving(false);
-    setEditingItem(null);
+    await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const addItem = () => {
@@ -200,9 +224,10 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
       {editingItem && editDraft && (
         <EditModal
           title={isNew ? 'New Ticker Item' : 'Edit Ticker Item'}
-          onClose={() => setEditingItem(null)}
+          onClose={closeEdit}
           onSave={saveItem}
           isSaving={saving}
+          saveStatus={saveStatus}
           onDelete={isNew ? undefined : deleteItem}
         >
           <div className="edit-field-group">

@@ -8,11 +8,16 @@ import {
   DepartmentSectionContent,
   getDepartmentContent,
   normalizeDepartmentContent,
-  setDepartmentContent,
+  setDepartmentContentDetailed,
 } from '../services/contentService';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import IntranetSidebar from './IntranetSidebar';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 
 interface DepartmentPageProps {
   userInfo: UserInfo;
@@ -27,9 +32,17 @@ interface EditModalProps {
   onSave: () => Promise<void>;
   isSaving: boolean;
   children: React.ReactNode;
+  saveStatus?: EditSaveStatus;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, children }) => {
+const EditModal: React.FC<EditModalProps> = ({
+  title,
+  onClose,
+  onSave,
+  isSaving,
+  children,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
@@ -55,7 +68,7 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
         <div className="edit-modal-body">{children}</div>
         <div className="edit-modal-footer">
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
             <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>
               Cancel
             </button>
@@ -103,6 +116,7 @@ const DepartmentPage: React.FC<DepartmentPageProps> = ({ userInfo, department })
   const [linkInsertLabel, setLinkInsertLabel] = useState('');
   const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
 
   useEffect(() => {
     if (!userInfo.isAuthenticated) return;
@@ -126,23 +140,25 @@ const DepartmentPage: React.FC<DepartmentPageProps> = ({ userInfo, department })
     setLinkInsertSuffix('');
   }, []);
 
+  const closeSectionEdit = useCallback(() => {
+    setEditingSection(null);
+    setSaveStatus('idle');
+    setTitleDraft('');
+    setSectionDraft([]);
+    resetLinkInsert();
+  }, [resetLinkInsert]);
+
   const openSectionEdit = useCallback(
     (section: DepartmentSectionKey) => {
       const sectionContent = content[section];
       setEditingSection(section);
+      setSaveStatus('idle');
       setTitleDraft(sectionContent.title);
       setSectionDraft([...sectionContent.items]);
       resetLinkInsert();
     },
     [content, resetLinkInsert]
   );
-
-  const closeSectionEdit = useCallback(() => {
-    setEditingSection(null);
-    setTitleDraft('');
-    setSectionDraft([]);
-    resetLinkInsert();
-  }, [resetLinkInsert]);
 
   const insertClickHereLink = useCallback(() => {
     const url = linkInsertUrl.trim();
@@ -169,6 +185,7 @@ const DepartmentPage: React.FC<DepartmentPageProps> = ({ userInfo, department })
     }
 
     setIsSaving(true);
+    setSaveStatus('saving');
     const updatedSection: DepartmentSectionContent = {
       title: trimmedTitle,
       items: sanitizeBullets(sectionDraft),
@@ -177,10 +194,10 @@ const DepartmentPage: React.FC<DepartmentPageProps> = ({ userInfo, department })
       ...content,
       [editingSection]: updatedSection,
     };
-    const ok = await setDepartmentContent(instance, department.slug, updated);
-    if (ok) setContent(updated);
+    const result = await setDepartmentContentDetailed(instance, department.slug, updated);
+    if (result.ok) setContent(updated);
     setIsSaving(false);
-    closeSectionEdit();
+    await finishEditSave(result, setSaveStatus, closeSectionEdit);
   };
 
   const renderBullets = (items: string[]) => (
@@ -260,6 +277,7 @@ const DepartmentPage: React.FC<DepartmentPageProps> = ({ userInfo, department })
           onClose={closeSectionEdit}
           onSave={saveSection}
           isSaving={isSaving}
+          saveStatus={saveStatus}
         >
           <div className="edit-field-group">
             <label>Section title</label>

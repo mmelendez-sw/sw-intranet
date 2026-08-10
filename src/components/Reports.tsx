@@ -7,7 +7,7 @@ import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
   getContent,
-  setContent,
+  setContentDetailed,
   getCachedContent,
   DEFAULT_REPORTS,
   DEFAULT_SITE_CONFIG,
@@ -18,6 +18,11 @@ import {
   stampReportEditor,
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
+import {
+  EditSaveStatus,
+  EditSaveStatusText,
+  finishEditSave,
+} from './EditSaveStatusText';
 
 interface ReportsProps {
   userInfo: UserInfo;
@@ -32,9 +37,18 @@ interface EditModalProps {
   isSaving: boolean;
   onDelete?: () => Promise<void>;
   children: React.ReactNode;
+  saveStatus?: EditSaveStatus;
 }
 
-const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving, onDelete, children }) => {
+const EditModal: React.FC<EditModalProps> = ({
+  title,
+  onClose,
+  onSave,
+  isSaving,
+  onDelete,
+  children,
+  saveStatus = 'idle',
+}) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -54,7 +68,7 @@ const EditModal: React.FC<EditModalProps> = ({ title, onClose, onSave, isSaving,
             <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>🗑 Delete</button>
           )}
           <div className="edit-modal-footer-right">
-            {isSaving && <span className="edit-saving-indicator">Saving…</span>}
+            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
             <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
             <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
           </div>
@@ -95,6 +109,7 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   const [editingReport, setEditingReport] = useState<ReportItemContent | null>(null);
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [draggingReportIdx, setDraggingReportIdx] = useState<number | null>(null);
   const [dragOverReportIdx, setDragOverReportIdx] = useState<number | null>(null);
@@ -173,19 +188,20 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
 
   const persistReports = useCallback(async (updated: ReportItemContent[]) => {
     const file = buildReportsContentFile(updated, userInfo.email, getCachedContent(REPORTS_CONTENT_KEY));
-    const ok = await setContent(instance, REPORTS_CONTENT_KEY, file);
-    if (ok) setAllReports(updated);
-    return ok;
+    const result = await setContentDetailed(instance, REPORTS_CONTENT_KEY, file);
+    if (result.ok) setAllReports(updated);
+    return result;
   }, [instance, userInfo.email]);
 
   const applyReportOrderChange = useCallback(async (withNewOrders: ReportItemContent[]) => {
     setAllReports(withNewOrders);
-    return persistReports(withNewOrders);
+    return (await persistReports(withNewOrders)).ok;
   }, [persistReports]);
 
   // ── Editing ──
   const openEdit = useCallback((report: ReportItemContent) => {
     setEditingReport(report);
+    setSaveStatus('idle');
     setEditDraft({
       ...report,
       excludedEmails: [...(report.excludedEmails || [])],
@@ -193,23 +209,30 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     });
   }, []);
 
+  const closeEdit = useCallback(() => {
+    setEditingReport(null);
+    setSaveStatus('idle');
+  }, []);
+
   const saveReport = async () => {
     if (!editDraft) return;
     setSaving(true);
+    setSaveStatus('saving');
     const stamped = stampReportEditor(editDraft, userInfo.email, false);
     const updated = allReports.map(r => r.order === editDraft.order ? stamped : r);
-    const ok = await persistReports(updated);
-    if (ok) setEditingReport(null);
+    const result = await persistReports(updated);
     setSaving(false);
+    await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const deleteReport = async () => {
     if (!editDraft) return;
     setSaving(true);
+    setSaveStatus('saving');
     const updated = renumberReports(allReports.filter((r) => r.order !== editDraft.order));
-    const ok = await persistReports(updated);
-    if (ok) setEditingReport(null);
+    const result = await persistReports(updated);
     setSaving(false);
+    await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const addReport = async () => {
@@ -224,8 +247,8 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     };
     const stamped = stampReportEditor(newReport, userInfo.email, true);
     const updated = [...allReports, stamped];
-    const ok = await persistReports(updated);
-    if (ok) { openEdit(stamped); }
+    const result = await persistReports(updated);
+    if (result.ok) { openEdit(stamped); }
   };
 
   // ── Report reordering ──
@@ -393,9 +416,10 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
       {editingReport && editDraft && (
         <EditModal
           title={`Edit Report: ${editDraft.title}`}
-          onClose={() => setEditingReport(null)}
+          onClose={closeEdit}
           onSave={saveReport}
           isSaving={saving}
+          saveStatus={saveStatus}
           onDelete={deleteReport}
         >
           <div className="edit-field-group">

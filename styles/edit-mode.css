@@ -400,6 +400,18 @@ button.ticker-edit-btn:hover,
   gap: 6px;
 }
 
+.edit-save-status-ok {
+  color: #198754;
+}
+
+.edit-save-status-local {
+  color: #b45309;
+}
+
+.edit-save-status-error {
+  color: #dc3545;
+}
+
 /* ── Image preview inside modal ── */
 .edit-image-preview {
   width: 100%;
