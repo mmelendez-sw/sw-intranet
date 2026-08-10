@@ -102,23 +102,70 @@ export const TV_SHAREPOINT_DRIVE_ID =
 export const TV_HOMEPAGE_CARDS_ITEM_ID = '01UIS5FCXU77HFE7F73JAI4TKRF5NURVFT';
 
 /**
- * Public TV cards API (client-credentials Lambda). Empty = SPA-only /tv
- * (seed/cache + bundled images; no login, no API).
- * Set in production when the kiosk API is deployed, e.g.:
- *   window.TV_CARDS_API_URL = 'https://….amazonaws.com/api/tv-cards'
- * Local: defaults to /api/tv-cards (webpack → npm run tv-api on :3001).
+ * Base URL for the intranet Lambda / local API (no trailing slash).
+ * Production: set window.INTRANET_API_BASE_URL to your Function URL or API Gateway
+ * origin (e.g. https://xxxx.lambda-url.us-east-1.on.aws), OR leave empty and use
+ * Amplify rewrites so relative /api/* is proxied to the Lambda.
+ * Local: defaults to http://localhost:3001 (npm run tv-api).
  */
+export const INTRANET_API_BASE_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const w = window as Window & {
+    INTRANET_API_BASE_URL?: string;
+    TV_CARDS_API_URL?: string;
+  };
+  if (typeof w.INTRANET_API_BASE_URL === 'string' && w.INTRANET_API_BASE_URL.trim()) {
+    return w.INTRANET_API_BASE_URL.trim().replace(/\/$/, '');
+  }
+  // Backward compat: if TV_CARDS_API_URL is a full URL, strip the path suffix.
+  if (typeof w.TV_CARDS_API_URL === 'string' && w.TV_CARDS_API_URL.trim()) {
+    const raw = w.TV_CARDS_API_URL.trim();
+    try {
+      const u = new URL(raw);
+      return u.origin;
+    } catch {
+      /* relative — fall through */
+    }
+  }
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  return '';
+})();
+
 export const TV_CARDS_API_URL = (() => {
   if (typeof window === 'undefined') return '';
   const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
-  if (typeof injected === 'string' && injected.trim()) return injected.trim();
-  const host = window.location.hostname;
-  // Hit tv-api directly — webpack proxy to :3001 is easy to miss in local,
-  // and the API already sends Access-Control-Allow-Origin: *.
+  if (typeof injected === 'string' && injected.trim()) {
+    const raw = injected.trim();
+    // If caller already provided a full cards URL, keep it.
+    if (/\/api\/tv-cards\/?$/i.test(raw) || raw.startsWith('http')) return raw.replace(/\/$/, '');
+  }
+  if (INTRANET_API_BASE_URL) return `${INTRANET_API_BASE_URL}/api/tv-cards`;
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
   if (host === 'localhost' || host === '127.0.0.1') {
     return 'http://localhost:3001/api/tv-cards';
   }
   return '';
+})();
+
+/** Salesforce current-investments endpoint (local API or Lambda). */
+export const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
+  if (typeof window === 'undefined') return '/api/salesforce/current-investments';
+  if (INTRANET_API_BASE_URL) {
+    return `${INTRANET_API_BASE_URL}/api/salesforce/current-investments`;
+  }
+  return '/api/salesforce/current-investments';
+})();
+
+/** Power BI embed-token endpoint (local API or Lambda). */
+export const POWERBI_EMBED_TOKEN_URL = (() => {
+  if (typeof window === 'undefined') return '/api/powerbi/embed-token';
+  if (INTRANET_API_BASE_URL) {
+    return `${INTRANET_API_BASE_URL}/api/powerbi/embed-token`;
+  }
+  return '/api/powerbi/embed-token';
 })();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';

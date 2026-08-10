@@ -16,8 +16,11 @@ frontend:
       headers:
         - key: 'Cache-Control'
           value: 'public, max-age=0, must-revalidate'
-  redirects:
-    # SPA: serve index.html for all non-file routes (React Router)
+  customRules:
+    # After the Lambda Function URL exists, add this BEFORE the SPA catch-all:
+    # - source: '/api/<*>'
+    #   target: 'https://YOUR_LAMBDA_ID.lambda-url.REGION.on.aws/api/<*>'
+    #   status: '200'
     - source: '/<*>'
       target: '/index.html'
       status: '200'
