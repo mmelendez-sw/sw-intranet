@@ -6,7 +6,8 @@
     "scripts": {
         "start": "webpack serve --open --mode development",
         "build": "webpack --mode production",
-        "api": "node -r ./server/loadEnv.js server/localDev.js"
+        "api": "node -r ./server/loadEnv.js server/localDev.js",
+        "deploy:lambda": "powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1"
     },
     "dependencies": {
         "@azure/msal-browser": "^3.27.0",

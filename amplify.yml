@@ -6,6 +6,11 @@ frontend:
         - npm ci
     build:
       commands:
+        # Inject Function URL / API origin from Amplify Console env (no hard-coded URL in git).
+        # Set branch env INTRANET_API_BASE_URL = https://xxxx.lambda-url.REGION.on.aws (no trailing slash).
+        # Leave empty to rely on Amplify /api rewrite + relative paths.
+        - |
+          node -e "const fs=require('fs');const v=(process.env.INTRANET_API_BASE_URL||'').trim().replace(/\/$/,'');fs.mkdirSync('public',{recursive:true});fs.writeFileSync('public/api-config.js','window.INTRANET_API_BASE_URL='+JSON.stringify(v)+';\\n');console.log('INTRANET_API_BASE_URL=',v||'(empty — use relative /api or localhost)');"
         - npm run build
   artifacts:
     baseDirectory: dist

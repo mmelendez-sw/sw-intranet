@@ -104,3 +104,51 @@ export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
     return false;
   }
 };
+
+/**
+ * Base URL for the intranet Lambda / local API (no trailing slash).
+ * Production: set Amplify env INTRANET_API_BASE_URL (written to api-config.js),
+ * or set window.INTRANET_API_BASE_URL before the bundle, OR leave empty and use
+ * Amplify rewrites so relative /api/* is proxied to the Lambda.
+ * Local: defaults to http://localhost:3001 when hostname is localhost.
+ */
+export const INTRANET_API_BASE_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const w = window as Window & {
+    INTRANET_API_BASE_URL?: string;
+    TV_CARDS_API_URL?: string;
+  };
+  if (typeof w.INTRANET_API_BASE_URL === 'string' && w.INTRANET_API_BASE_URL.trim()) {
+    return w.INTRANET_API_BASE_URL.trim().replace(/\/$/, '');
+  }
+  if (typeof w.TV_CARDS_API_URL === 'string' && w.TV_CARDS_API_URL.trim()) {
+    const raw = w.TV_CARDS_API_URL.trim();
+    try {
+      return new URL(raw).origin;
+    } catch {
+      /* relative — fall through */
+    }
+  }
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  return '';
+})();
+
+export const TV_CARDS_API_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
+  if (typeof injected === 'string' && injected.trim()) {
+    const raw = injected.trim();
+    if (/\/api\/tv-cards\/?$/i.test(raw) || raw.startsWith('http')) {
+      return raw.replace(/\/$/, '');
+    }
+  }
+  if (INTRANET_API_BASE_URL) return `${INTRANET_API_BASE_URL}/api/tv-cards`;
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001/api/tv-cards';
+  }
+  return '/api/tv-cards';
+})();

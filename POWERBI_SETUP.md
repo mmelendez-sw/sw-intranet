@@ -125,4 +125,9 @@ The key to bypassing individual user permissions is:
 2. **Workspace Membership**: Adding the service principal to the PowerBI workspace
 3. **Application Permissions**: Using `Tenant.Read.All` instead of delegated permissions
 
-This approach allows any authenticated Azure AD user to view the reports without requiring individual PowerBI licenses. 
+This approach allows any authenticated Azure AD user to view the reports without requiring individual PowerBI licenses.
+
+---
+
+For **SharePoint homepage TV cards** on Amplify (Lambda Function URL, `MICROSOFT_*` ROPC, dynamic `INTRANET_API_BASE_URL`), see [docs/MICROSOFT_SETUP.md](docs/MICROSOFT_SETUP.md).
+ 

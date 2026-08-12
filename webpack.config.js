@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -26,7 +27,7 @@ module.exports = {
         test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource',
         generator: {
-          filename: 'images/[name][hash][ext]', // Outputs images to 'dist/images' with original names
+          filename: 'images/[name][hash][ext]',
         },
       },
     ],
@@ -36,6 +37,16 @@ module.exports = {
       template: './public/index.html',
       filename: 'index.html',
       favicon: './public/favicon.ico',
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'public',
+          globOptions: {
+            ignore: ['**/index.html', '**/favicon.ico'],
+          },
+        },
+      ],
     }),
   ],
   devServer: {
@@ -47,7 +58,7 @@ module.exports = {
     hot: true,
     historyApiFallback: true,
     proxy: {
-      '/api/salesforce': {
+      '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
