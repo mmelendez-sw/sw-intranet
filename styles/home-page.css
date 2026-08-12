@@ -169,6 +169,11 @@
   margin-bottom: 0;
 }
 
+.home-page.authenticated .content-container.home-page-progress-container {
+  gap: 6px;
+  padding: 0;
+}
+
 .home-page.authenticated .sidebar {
   margin-top: 100vh;
   margin-bottom: 150vh;
@@ -358,17 +363,24 @@
 }
 
 .home-page-progress-container {
-  align-items: center;
+  align-items: stretch;
   background: transparent;
   border: none;
   box-shadow: none;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 6px;
   margin: 0;
   max-width: none;
   padding: 0;
   width: 100%;
+}
+
+.home-page-progress-container.homepage-cards-section,
+.home-page-progress .homepage-cards-section {
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .home-page-progress-main {

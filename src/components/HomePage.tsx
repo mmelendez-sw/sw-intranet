@@ -299,7 +299,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     <div className="home-page authenticated home-page-progress">
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
-            <div className="homepage-cards-section" style={{ order: 2, width: '100%', maxWidth: 'none', margin: '8px auto 0', padding: '4px 16px 0', boxSizing: 'border-box' }}>
+            <div className="homepage-cards-section" style={{ order: 2, width: '100%', maxWidth: 'none', margin: 0, padding: '0 16px', boxSizing: 'border-box' }}>
               {!cardsReady ? (
                 <div className="home-cards-loading" role="status" aria-label="Loading cards">
                   <div className="app-loading-spinner" aria-hidden="true" />
