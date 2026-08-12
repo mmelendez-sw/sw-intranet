@@ -27,3 +27,7 @@ Thumbs.db
 .env
 server/.env
 scripts/.env
+
+# Local Lambda deploy artifacts
+dist-lambda/
+sw-intranet-api.zip
