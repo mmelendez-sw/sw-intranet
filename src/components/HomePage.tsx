@@ -246,9 +246,8 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
-  const [cards, setCards] = useState<CardContent[]>(() =>
-    parseHomepageCardsContent(seedCards)
-  );
+  const [cards, setCards] = useState<CardContent[]>([]);
+  const [cardsReady, setCardsReady] = useState(false);
 
   const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
@@ -257,23 +256,39 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     return bundled[index % bundled.length];
   };
 
-  const loadSharePointCards = useCallback(async () => {
-    if (!TV_CARDS_API_URL) return;
+  const loadSharePointCards = useCallback(async (isInitial: boolean) => {
+    if (!TV_CARDS_API_URL) {
+      if (isInitial) {
+        setCards(parseHomepageCardsContent(seedCards));
+        setCardsReady(true);
+      }
+      return;
+    }
     const remote = await fetchTvHomepageCardsFromApi(TV_CARDS_API_URL);
-    if (!remote) return;
-    const parsed = parseHomepageCardsContent(remote)
-      .map((card) => ({
-        ...card,
-        imageUrl: resolveTvMediaUrl(card.imageUrl || '', TV_CARDS_API_URL),
-      }))
-      .sort((a, b) => a.order - b.order);
-    if (parsed.length) setCards(parsed);
+    if (remote) {
+      const parsed = parseHomepageCardsContent(remote)
+        .map((card) => ({
+          ...card,
+          imageUrl: resolveTvMediaUrl(card.imageUrl || '', TV_CARDS_API_URL),
+        }))
+        .sort((a, b) => a.order - b.order);
+      if (parsed.length) {
+        setCards(parsed);
+        if (isInitial) setCardsReady(true);
+        return;
+      }
+    }
+    // First load only: fall back to seed if SharePoint is unreachable
+    if (isInitial) {
+      setCards(parseHomepageCardsContent(seedCards));
+      setCardsReady(true);
+    }
   }, []);
 
   useEffect(() => {
-    void loadSharePointCards();
+    void loadSharePointCards(true);
     const id = window.setInterval(() => {
-      void loadSharePointCards();
+      void loadSharePointCards(false);
     }, 60_000);
     return () => window.clearInterval(id);
   }, [loadSharePointCards]);
@@ -285,6 +300,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
             <div className="homepage-cards-section" style={{ order: 2, width: '100%', maxWidth: 'none', margin: '8px auto 0', padding: '4px 16px 0', boxSizing: 'border-box' }}>
+              {!cardsReady ? (
+                <div className="home-cards-loading" role="status" aria-label="Loading cards">
+                  <div className="app-loading-spinner" aria-hidden="true" />
+                </div>
+              ) : (
               <div className="grid-layout">
                 {cards.map((card, index) => {
                   const imageSrc =
@@ -314,6 +334,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   );
                 })}
               </div>
+              )}
             </div>
             <div className="main-content home-page-progress-main" style={{ order: 1 }}>
               {/* H.O.W. Hero Banner */}
