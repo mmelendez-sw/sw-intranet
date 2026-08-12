@@ -1,5 +1,14 @@
+require('./loadEnv');
+
 // const { getCurrentInvestments } = require('./salesforce'); // disabled on this branch
 const { getEmbedConfig } = require('./powerbi');
+const {
+  getHomepageCardsWithImages,
+  getHomepageCardsMeta,
+  getDriveImageContent,
+  getDriveImageContentByWebUrl,
+  isSharePointWebUrl,
+} = require('./sharepoint');
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -55,6 +64,60 @@ exports.handler = async (event = {}) => {
     if (/\/api\/powerbi\/embed-token\/?$/i.test(path)) {
       const data = await getEmbedConfig(query.reportId || undefined);
       return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify(data) };
+    }
+
+    if (/\/api\/tv-cards\/meta\/?$/i.test(path)) {
+      const meta = await getHomepageCardsMeta();
+      return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify(meta) };
+    }
+
+    if (/\/api\/tv-cards\/?$/i.test(path)) {
+      const cards = await getHomepageCardsWithImages();
+      return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ cards }) };
+    }
+
+    const imageById = path.match(/\/api\/images\/([^/]+)\/?$/i);
+    if (imageById && imageById[1] !== 'by-url') {
+      const { body, contentType } = await getDriveImageContent(decodeURIComponent(imageById[1]));
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=300',
+        },
+        body: body.toString('base64'),
+        isBase64Encoded: true,
+      };
+    }
+
+    if (/\/api\/images\/by-url\/?$/i.test(path)) {
+      const target = query.url || '';
+      if (!isSharePointWebUrl(target)) {
+        return {
+          statusCode: 400,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: 'url must be a SharePoint webUrl' }),
+        };
+      }
+      const result = await getDriveImageContentByWebUrl(target);
+      if (!result) {
+        return {
+          statusCode: 404,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: 'Image not found' }),
+        };
+      }
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': result.contentType,
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=300',
+        },
+        body: result.body.toString('base64'),
+        isBase64Encoded: true,
+      };
     }
 
     return {

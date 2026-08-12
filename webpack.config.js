@@ -55,6 +55,14 @@ module.exports = {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
+      '/api/tv-cards': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/api/images': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
     },
   },
   mode: 'development',

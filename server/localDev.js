@@ -1,3 +1,5 @@
+require('./loadEnv');
+
 const http = require('http');
 const { handler } = require('./handler');
 
@@ -17,12 +19,22 @@ const server = http.createServer(async (req, res) => {
     queryStringParameters,
   });
 
-  res.writeHead(result.statusCode, result.headers);
-  res.end(result.body);
+  const headers = { ...(result.headers || {}) };
+  let body = result.body || '';
+
+  if (result.isBase64Encoded && typeof body === 'string') {
+    body = Buffer.from(body, 'base64');
+  }
+
+  res.writeHead(result.statusCode, headers);
+  res.end(body);
 });
 
 server.listen(PORT, () => {
   console.log(`Intranet API listening on http://localhost:${PORT}`);
-  console.log('  GET /api/salesforce/current-investments');
   console.log('  GET /api/powerbi/embed-token?reportId=');
+  console.log('  GET /api/tv-cards');
+  console.log('  GET /api/tv-cards/meta');
+  console.log('  GET /api/images/:driveItemId');
+  console.log('  GET /api/images/by-url?url=');
 });
