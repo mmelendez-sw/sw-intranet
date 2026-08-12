@@ -269,9 +269,11 @@
 
 .card-image {
   width: 100%;
-  height: 300px; /* Standardize the image height */
+  height: 380px; /* Taller images for 3-across lobby layout */
   object-fit: cover; /* Ensures the image scales and crops proportionally */
   margin: 0; /* Removes any extra spacing */
+  display: block;
+  flex-shrink: 0;
 }
 
 .employee-appreciation-image {
