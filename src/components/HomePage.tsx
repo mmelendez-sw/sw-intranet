@@ -1,10 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 // import { service, factories, models } from 'powerbi-client';
 import '../../styles/home-page.css';
 import { UserInfo } from '../types/user';
 // import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
+import { TV_CARDS_API_URL } from '../authConfig';
+import {
+  CardContent,
+  parseHomepageCardsContent,
+  fetchTvHomepageCardsFromApi,
+  getDefaultFallbackImageDisplaySrc,
+  resolveTvMediaUrl,
+} from '../services/tvCardsClient';
+import SharePointImage from './SharePointImage';
+import seedCards from '../data/homepage-cards.seed.json';
 import howBanner from '../../images/H.O.W.-banner.png';
-import companyProgressImage from '../../images/companyprog7/84.png';
+import img2 from '../../images/site_2.jpg';
+import img3 from '../../images/site_3.jpg';
+import img11 from '../../images/wider_app.png';
 
 // const powerbiEmbedService = new service.Service(
 //   factories.hpmFactory,
@@ -234,106 +246,76 @@ const ProgressSection: React.FC<ProgressSectionProps> = ({
 
 const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   console.log('HomePage Render - isAuthenticated:', userInfo.isAuthenticated, 'isEliteGroup:', userInfo.isEliteGroup, 'hasPowerBILicense:', userInfo.hasPowerBILicense);
-  // const powerbiContainerRef = useRef<HTMLDivElement>(null);
-  // const chartOverlayRef = useRef<HTMLDivElement>(null);
-  // const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
-  const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
-  const [salesforceLoading, setSalesforceLoading] = useState(true);
-  const [salesforceError, setSalesforceError] = useState<string | null>(null);
+  const [cards, setCards] = useState<CardContent[]>(() =>
+    parseHomepageCardsContent(seedCards)
+  );
 
-  // Power BI embed ΓÇö temporarily disabled (static image below)
-  // useEffect(() => {
-  //   const container = powerbiContainerRef.current;
-  //   if (!container) return;
-  //   const preventZoom: EventListener = (e) => {
-  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-  //       e.preventDefault();
-  //     }
-  //   };
-  //   container.addEventListener('wheel', preventZoom, { passive: false });
-  //   container.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-  //   container.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-  //   return () => {
-  //     container.removeEventListener('wheel', preventZoom);
-  //     container.removeEventListener('gesturestart', preventZoom as EventListener);
-  //     container.removeEventListener('gesturechange', preventZoom as EventListener);
-  //   };
-  // }, [embedConfig]);
+  const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
 
-  // useEffect(() => {
-  //   const overlay = chartOverlayRef.current;
-  //   if (!overlay) return;
-  //   const preventZoom = (e: WheelEvent | TouchEvent | MouseEvent) => {
-  //     if ((e instanceof WheelEvent && (e.ctrlKey || e.metaKey)) || e.type.startsWith('gesture')) {
-  //       e.preventDefault();
-  //     }
-  //   };
-  //   overlay.addEventListener('wheel', preventZoom, { passive: false });
-  //   overlay.addEventListener('gesturestart', preventZoom as EventListener, { passive: false });
-  //   overlay.addEventListener('gesturechange', preventZoom as EventListener, { passive: false });
-  //   return () => {
-  //     overlay.removeEventListener('wheel', preventZoom);
-  //     overlay.removeEventListener('gesturestart', preventZoom as EventListener);
-  //     overlay.removeEventListener('gesturechange', preventZoom as EventListener);
-  //   };
-  // }, [embedConfig]);
+  const localFallbackImage = (index: number) => {
+    const bundled = [img2, img11, img3];
+    return bundled[index % bundled.length];
+  };
 
-  // useEffect(() => {
-  //   let isActive = true;
-  //   const loadEmbed = async () => {
-  //     try {
-  //       const config = await PowerbiService.getInstance().generateEmbedToken();
-  //       if (isActive) setEmbedConfig(config);
-  //     } catch (error) {
-  //       console.error('Failed to load Power BI embed config:', error);
-  //     }
-  //   };
-  //   if (userInfo.isAuthenticated) {
-  //     loadEmbed();
-  //   }
-  //   return () => {
-  //     isActive = false;
-  //   };
-  // }, [userInfo.isAuthenticated]);
+  const loadSharePointCards = useCallback(async () => {
+    if (!TV_CARDS_API_URL) return;
+    const remote = await fetchTvHomepageCardsFromApi(TV_CARDS_API_URL);
+    if (!remote) return;
+    const parsed = parseHomepageCardsContent(remote)
+      .map((card) => ({
+        ...card,
+        imageUrl: resolveTvMediaUrl(card.imageUrl || '', TV_CARDS_API_URL),
+      }))
+      .sort((a, b) => a.order - b.order);
+    if (parsed.length) setCards(parsed);
+  }, []);
 
-  // useEffect(() => {
-  //   const container = powerbiContainerRef.current;
-  //   if (!container || !embedConfig) return;
-  //   powerbiEmbedService.embed(container, {
-  //     type: 'report',
-  //     id: embedConfig.reportId,
-  //     embedUrl: embedConfig.embedUrl,
-  //     accessToken: embedConfig.token,
-  //     tokenType:
-  //       embedConfig.tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
-  //     settings: {
-  //       filterPaneEnabled: false,
-  //       navContentPaneEnabled: false,
-  //       background: models.BackgroundType.Transparent,
-  //     },
-  //   });
-  //   return () => {
-  //     powerbiEmbedService.reset(container);
-  //   };
-  // }, [embedConfig]);
+  useEffect(() => {
+    void loadSharePointCards();
+    const id = window.setInterval(() => {
+      void loadSharePointCards();
+    }, 60_000);
+    return () => window.clearInterval(id);
+  }, [loadSharePointCards]);
 
   // Salesforce fetch disabled on this branch (static lobby TV image only)
-  // useEffect(() => {
-  //   let isActive = true;
-  //   const loadSalesforceRows = async () => { ... };
-  //   loadSalesforceRows();
-  //   return () => { isActive = false; };
-  // }, []);
-
-  const proprietaryRows = salesforceRows.filter(
-    (row) => (row.Source_Type__c || '').trim().toLowerCase() === 'proprietary'
-  );
 
   return (
     <div className="home-page authenticated home-page-progress">
         <div className="home-page-progress-layout">
           <div className="content-container home-page-progress-container">
-            <div className="main-content home-page-progress-main">
+            <div className="homepage-cards-section" style={{ order: 2, width: '100%', maxWidth: 'none', margin: '8px auto 0', padding: '4px 16px 0', boxSizing: 'border-box' }}>
+              <div className="grid-layout">
+                {cards.map((card, index) => {
+                  const imageSrc =
+                    (card.imageUrl && card.imageUrl.trim()) ||
+                    getDefaultFallbackImageDisplaySrc(index) ||
+                    localFallbackImage(index);
+                  return (
+                    <div
+                      key={`${card.order}-${card.title}`}
+                      className={`card ${index % 2 === 0 ? 'odd-card' : 'even-card'}`}
+                    >
+                      <SharePointImage
+                        src={imageSrc}
+                        placeholderSrc={localFallbackImage(index)}
+                        alt={card.title}
+                        className="card-image"
+                      />
+                      <div className="card-text">
+                        <h2>{card.title}</h2>
+                        <ul>
+                          {sanitizeBullets(card.bullets).map((bullet, bi) => (
+                            <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="main-content home-page-progress-main" style={{ order: 1 }}>
               {/* H.O.W. Hero Banner */}
               <section className="homepage-hero" aria-label="Homepage banner">
                 <img
@@ -349,68 +331,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   </h1>
                 </div>
               </section>
-
-              {/* Company Progress (static image ΓÇö Power BI embed commented out below) */}
-              <div
-                className="powerbi-embed-container"
-                style={{ width: '100%', maxWidth: 'none', margin: '0 auto', padding: 0, background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}
-              >
-                <img
-                  src={companyProgressImage}
-                  alt="Company Progress"
-                  style={{ width: '100%', height: 'auto', display: 'block' }}
-                />
-              </div>
-              {/* Power BI ΓÇö API auto-sign-in (temporarily disabled)
-              {userInfo.isAuthenticated ? (
-                <div
-                  className="powerbi-embed-container"
-                  style={{ width: '100%', maxWidth: '1400px', height: '425px', margin: '0 auto', padding: 0, background: '#fff', border: 'none', borderBottom: 'none', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', position: 'relative', overflow: 'hidden', alignItems: 'center', top: 0 }}
-                >
-                  {embedConfig ? (
-                    <>
-                      <div
-                        ref={powerbiContainerRef}
-                        style={{ width: '100%', height: '425px', border: 'none', borderRadius: '8px', background: '#fff' }}
-                      />
-                      <div ref={chartOverlayRef} style={{ position: 'absolute', top: '220px', left: 0, width: '100%', height: '205px', zIndex: 2, background: 'transparent', pointerEvents: 'none' }}></div>
-                    </>
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666' }}>
-                      <div>Loading PowerBI report...</div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ width: '100%', maxWidth: '1400px', height: '425px', margin: '0 auto', padding: '20px', background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                  <div>
-                    <h3>Power BI Report</h3>
-                    <p>Sign in to view the Company Progress report.</p>
-                  </div>
-                </div>
-              )}
-              */}
-              {/* Company Progress graph - temporarily disabled
-              <ProgressSection
-                title="Company Progress"
-                rows={salesforceRows}
-                loading={salesforceLoading}
-                error={salesforceError}
-                closedRentGoal={241}
-                capitalDeployedGoal={175_000_000}
-                featured
-              />
-              */}
-              {/* Acquisition Team Progress - temporarily disabled
-              <ProgressSection
-                title="Acquisition Team Progress"
-                rows={proprietaryRows}
-                loading={salesforceLoading}
-                error={salesforceError}
-                closedRentGoal={111}
-                capitalDeployedGoal={72_000_000}
-              />
-              */}
             </div>
           </div>
         </div>

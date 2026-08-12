@@ -16,6 +16,21 @@ export const loginRequest = {
   scopes: ["User.Read", "GroupMember.Read.All"], // Added GroupMember.Read.All for RBAC
 };
 
+/** Public TV cards API (SharePoint via server ROPC). Empty = no remote cards. */
+export const TV_CARDS_API_URL = (() => {
+  if (typeof window === 'undefined') return '';
+  const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
+  if (typeof injected === 'string' && injected.trim()) {
+    const raw = injected.trim();
+    if (/\/api\/tv-cards\/?$/i.test(raw) || raw.startsWith('http')) return raw.replace(/\/$/, '');
+  }
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:3001/api/tv-cards';
+  }
+  return '/api/tv-cards';
+})();
+
 // IntranetExecs security group ID
 export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 
