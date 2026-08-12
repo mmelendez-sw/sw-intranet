@@ -10,12 +10,21 @@ const {
   isSharePointWebUrl,
 } = require('./sharepoint');
 
+// Function URL CORS already adds Access-Control-Allow-Origin; duplicating it
+// here produces "*, *" and browsers block the response.
+const IS_LAMBDA = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+const CORS_HEADERS = IS_LAMBDA
+  ? {}
+  : {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
   'Cache-Control': 'no-store',
+  ...CORS_HEADERS,
 };
 
 function getPath(event) {
@@ -83,8 +92,8 @@ exports.handler = async (event = {}) => {
         statusCode: 200,
         headers: {
           'Content-Type': contentType,
-          'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'public, max-age=300',
+          ...CORS_HEADERS,
         },
         body: body.toString('base64'),
         isBase64Encoded: true,
@@ -112,8 +121,8 @@ exports.handler = async (event = {}) => {
         statusCode: 200,
         headers: {
           'Content-Type': result.contentType,
-          'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'public, max-age=300',
+          ...CORS_HEADERS,
         },
         body: result.body.toString('base64'),
         isBase64Encoded: true,
