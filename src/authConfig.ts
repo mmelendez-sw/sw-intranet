@@ -17,6 +17,10 @@ export const loginRequest = {
 };
 
 /** Public TV cards API (SharePoint via server ROPC). Empty = no remote cards. */
+/** Live Function URL for SharePoint cards (Amplify /api rewrite may still hit an older Lambda). */
+const TV_CARDS_LAMBDA_BASE =
+  'https://2lf5urhvjhn6ksozorytd3t33y0ietce.lambda-url.us-east-2.on.aws';
+
 export const TV_CARDS_API_URL = (() => {
   if (typeof window === 'undefined') return '';
   const injected = (window as Window & { TV_CARDS_API_URL?: string }).TV_CARDS_API_URL;
@@ -28,7 +32,8 @@ export const TV_CARDS_API_URL = (() => {
   if (host === 'localhost' || host === '127.0.0.1') {
     return 'http://localhost:3001/api/tv-cards';
   }
-  return '/api/tv-cards';
+  // Call the SharePoint-capable Function URL directly (bypass stale Amplify /api rewrite).
+  return `${TV_CARDS_LAMBDA_BASE}/api/tv-cards`;
 })();
 
 // IntranetExecs security group ID
