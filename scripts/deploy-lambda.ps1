@@ -1,4 +1,4 @@
-# Zips server/handler.js + salesforce.js + powerbi.js and updates Lambda code.
+# Zips server API modules and updates Lambda code (handler.handler).
 param(
   [Parameter(Mandatory = $true)]
   [string]$FunctionName,
@@ -10,8 +10,10 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $serverDir = Join-Path $repoRoot 'server'
 $files = @(
   (Join-Path $serverDir 'handler.js'),
+  (Join-Path $serverDir 'loadEnv.js'),
   (Join-Path $serverDir 'salesforce.js'),
-  (Join-Path $serverDir 'powerbi.js')
+  (Join-Path $serverDir 'powerbi.js'),
+  (Join-Path $serverDir 'sharepoint.js')
 )
 foreach ($f in $files) {
   if (-not (Test-Path $f)) { throw "Required file not found: $f" }
@@ -20,7 +22,7 @@ foreach ($f in $files) {
 $zipPath = Join-Path $env:TEMP 'sw-intranet-api.zip'
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
-Write-Host "Zipping handler.js + salesforce.js + powerbi.js -> $zipPath"
+Write-Host "Zipping handler + loadEnv + salesforce + powerbi + sharepoint -> $zipPath"
 Compress-Archive -Path $files -DestinationPath $zipPath -Force
 
 $awsArgs = @(

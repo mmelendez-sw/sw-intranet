@@ -17,19 +17,26 @@ function requireEnv(...names) {
   throw new Error(`Missing required env var (tried: ${names.join(', ')})`);
 }
 
+/**
+ * Optional absolute API origin (e.g. local http://localhost:3001).
+ * Prefer unset in Lambda so image URLs stay relative `/api/images/...`
+ * and Amplify can rewrite them the same way as `/api/tv-cards`.
+ */
 function getTvApiPublicBase() {
-  return (
-    process.env.TV_API_PUBLIC_BASE ||
-    `http://localhost:${process.env.API_PORT || process.env.TV_API_PORT || 3001}`
-  ).replace(/\/$/, '');
+  const raw = (process.env.TV_API_PUBLIC_BASE || '').trim();
+  return raw.replace(/\/$/, '');
 }
 
 function toPublicImageProxyUrl(driveItemId) {
-  return `${getTvApiPublicBase()}/api/images/${encodeURIComponent(driveItemId)}`;
+  const path = `/api/images/${encodeURIComponent(driveItemId)}`;
+  const base = getTvApiPublicBase();
+  return base ? `${base}${path}` : path;
 }
 
 function toPublicImageByUrlProxy(webUrl) {
-  return `${getTvApiPublicBase()}/api/images/by-url?url=${encodeURIComponent(webUrl)}`;
+  const path = `/api/images/by-url?url=${encodeURIComponent(webUrl)}`;
+  const base = getTvApiPublicBase();
+  return base ? `${base}${path}` : path;
 }
 
 function encodeDrivePath(path) {
