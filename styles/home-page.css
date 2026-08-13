@@ -406,6 +406,39 @@
   font-size: 12px;
 }
 
+.birthdays-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.birthdays-editor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 72px auto;
+  gap: 8px;
+  align-items: end;
+  padding: 10px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.birthdays-editor-remove {
+  padding: 8px 10px;
+  align-self: end;
+}
+
+@media (max-width: 640px) {
+  .birthdays-editor-row {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .birthdays-editor-name {
+    grid-column: 1 / -1;
+  }
+}
+
 .announcement-item {
   background: #fffbeb;
   border: 1px solid #fcd34d;
@@ -445,6 +478,24 @@
   margin-top: 5px;
 }
 
+.announcement-item.birthday-announcement-item {
+  background: #fff0f6;
+  border: 1px solid #f9a8d4;
+  border-left: 4px solid #ec4899;
+}
+
+.announcement-item.birthday-announcement-item .announcement-item-title {
+  color: #9d174d;
+}
+
+.announcement-item.birthday-announcement-item .announcement-item-body {
+  color: #be185d;
+}
+
+.announcement-item.birthday-announcement-item .announcement-item-date {
+  color: #db2777;
+}
+
 .home-announcements-toggle {
   background: none;
   border: none;
@@ -476,6 +527,24 @@
 
   .home-announcements-toggle {
     color: #8ec8ef;
+  }
+
+  .announcement-item.birthday-announcement-item {
+    background: #3a2433;
+    border-color: #9d4b78;
+    border-left-color: #ec4899;
+  }
+
+  .announcement-item.birthday-announcement-item .announcement-item-title {
+    color: #f9a8d4;
+  }
+
+  .announcement-item.birthday-announcement-item .announcement-item-body {
+    color: #fbcfe8;
+  }
+
+  .announcement-item.birthday-announcement-item .announcement-item-date {
+    color: #f472b6;
   }
 }
 

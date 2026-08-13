@@ -13,6 +13,9 @@
  * Announcements are stored as announcements.json in:
  *   Shared Documents/General/intranet
  *
+ * Birthdays are stored as birthdays.json in:
+ *   Shared Documents/General/intranet
+ *
  * Reports metadata is stored as reports.json in:
  *   Shared Documents/General/intranet
  *
@@ -52,6 +55,7 @@ import {
   CARDS_DATA_FILENAME,
   REPORTS_DATA_FILENAME,
   ANNOUNCEMENTS_DATA_FILENAME,
+  BIRTHDAYS_DATA_FILENAME,
   SIDEBAR_DATA_FILENAME,
   QUICK_LINKS_DATA_FILENAME,
   SITE_CONFIG_DATA_FILENAME,
@@ -68,6 +72,7 @@ import { BUNDLED_DEFAULT_CARD_IMAGES } from '../data/bundledDefaultCardImages';
 const HOMEPAGE_CARDS_KEY = 'homepage-cards';
 const HOMEPAGE_HERO_KEY = 'homepage-hero';
 const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
+const BIRTHDAYS_CONTENT_KEY = 'birthdays';
 const REPORTS_CONTENT_KEY = 'reports';
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const QUICK_LINKS_CONTENT_KEY = 'quick-links';
@@ -83,6 +88,9 @@ function getDriveContentConfig(key: string): { folderPath: string; fileName: str
   }
   if (key === ANNOUNCEMENTS_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: ANNOUNCEMENTS_DATA_FILENAME };
+  }
+  if (key === BIRTHDAYS_CONTENT_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: BIRTHDAYS_DATA_FILENAME };
   }
   if (key === REPORTS_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: REPORTS_DATA_FILENAME };
@@ -646,9 +654,17 @@ export interface SiteAlert {
   linkUrl?: string;
 }
 
-export interface BirthdaysMessage {
-  message: string;
-  isActive: boolean;
+export interface BirthdayPerson {
+  id: string;
+  name: string;
+  /** Calendar month 1–12 (year-agnostic). */
+  month: number;
+  /** Calendar day 1–31 (year-agnostic). */
+  day: number;
+}
+
+export interface BirthdaysContent {
+  people: BirthdayPerson[];
 }
 
 export interface Announcement {
@@ -733,10 +749,42 @@ export const DEFAULT_ALERT: SiteAlert = {
   type: 'info',
 };
 
-export const DEFAULT_BIRTHDAYS_MESSAGE: BirthdaysMessage = {
-  message: 'Happy birthday to everyone celebrating this month!',
-  isActive: false,
+export const DEFAULT_BIRTHDAYS: BirthdaysContent = {
+  people: [],
 };
+
+/** Normalize stored birthdays data (supports list or `{ people: [...] }`). */
+export function parseBirthdaysContent(raw: unknown): BirthdaysContent {
+  if (!raw) return { people: [] };
+  const list = Array.isArray(raw)
+    ? raw
+    : (typeof raw === 'object' && Array.isArray((raw as { people?: unknown[] }).people)
+      ? (raw as { people: unknown[] }).people
+      : null);
+  if (!list) return { people: [] };
+
+  const people: BirthdayPerson[] = [];
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') continue;
+    const p = entry as Partial<BirthdayPerson>;
+    const name = typeof p.name === 'string' ? p.name.trim() : '';
+    const month = Number(p.month);
+    const day = Number(p.day);
+    if (!name || !Number.isInteger(month) || !Number.isInteger(day)) continue;
+    if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+    people.push({
+      id: typeof p.id === 'string' && p.id ? p.id : `bday-${people.length + 1}`,
+      name,
+      month,
+      day,
+    });
+  }
+  return { people };
+}
+
+export function isBirthdayToday(person: BirthdayPerson, now: Date = new Date()): boolean {
+  return person.month === now.getMonth() + 1 && person.day === now.getDate();
+}
 
 export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
 

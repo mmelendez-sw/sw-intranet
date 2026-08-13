@@ -168,6 +168,7 @@ export const POWERBI_EMBED_TOKEN_URL = (() => {
   return '/api/powerbi/embed-token';
 })();
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
+export const BIRTHDAYS_DATA_FILENAME = 'birthdays.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
 export const SIDEBAR_DATA_FILENAME = 'homepage-sidebar.json';
 export const QUICK_LINKS_DATA_FILENAME = 'quick-links.json';
