@@ -9,27 +9,65 @@ html, body {
   box-sizing: border-box;
 }
 
+:root {
+  --symphony-blue: #004E7C;
+  --symphony-gray: #73797C;
+  --golden-brown: #A67C2C;
+  --bold-blue: #003C66;
+  --black: #000000;
+  --light-blue: #BFE2F7;
+  --light-gray: #D9D9D9;
+  --light-beige: #ECE5CF;
+  --bright-turquoise: #009ACD;
+
+  /* Semantic theme tokens (light) */
+  --page-bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface-alt: #d9ecf9;
+  --surface-muted: #eef3f8;
+  --text-primary: #333333;
+  --text-heading: #003366;
+  --text-muted: #73797c;
+  --border-subtle: #dddddd;
+  --shadow-soft: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --overlay-menu-bg: #ffffff;
+  --overlay-menu-text: #333333;
+  --overlay-menu-hover: #f0f0f0;
+  --spinner-track: rgba(0, 51, 102, 0.15);
+  --spinner-head: #003366;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #1c2633;
+    --surface: #243041;
+    --surface-alt: #2e3d52;
+    --surface-muted: #283647;
+    --text-primary: #e6edf5;
+    --text-heading: #8ec8ef;
+    --text-muted: #9aadc2;
+    --border-subtle: #3d4f66;
+    --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.45);
+    --overlay-menu-bg: #243041;
+    --overlay-menu-text: #e6edf5;
+    --overlay-menu-hover: #2e3d52;
+    --spinner-track: rgba(142, 200, 239, 0.2);
+    --spinner-head: #8ec8ef;
+    color-scheme: dark;
+  }
+}
+
 body {
   font-family: 'Barlow', sans-serif;
-  background-color: #f5f5f5;
+  background-color: var(--page-bg);
+  color: var(--text-primary);
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   overflow-x: hidden; /* Prevent horizontal scrolling */
-}
-
-:root {
-  --symphony-blue: #004E7C; /* Deeper blue */
-  --symphony-gray: #73797C; /* Darker gray for better contrast */
-  --golden-brown: #A67C2C; /* Richer golden brown */
-  --bold-blue: #003C66; /* Bold and darker blue */
-  --black: #000000;
-  --light-blue: #BFE2F7; /* Deeper light blue */
-  --light-gray: #D9D9D9; /* Slightly darker light gray */
-  --light-beige: #ECE5CF; /* Deeper beige */
-  --bright-turquoise: #009ACD; /* Vibrant turquoise */
 }
 
 * {
@@ -77,7 +115,7 @@ body {
 }
 
 .date {
-  color: black;
+  color: var(--text-primary);
   font-weight: bold;
   text-decoration: underline;
 }
@@ -142,8 +180,8 @@ body.home-tv-mode .main-content {
 .app-loading-spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(0, 51, 102, 0.15);
-  border-top-color: #003366;
+  border: 3px solid var(--spinner-track);
+  border-top-color: var(--spinner-head);
   border-radius: 50%;
   animation: app-loading-spin 0.75s linear infinite;
 }
@@ -159,5 +197,74 @@ body.home-tv-mode .main-content {
 @keyframes app-loading-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Shared dark-mode surfaces used across department / report pages */
+@media (prefers-color-scheme: dark) {
+  .card,
+  .odd-card {
+    background-color: var(--surface) !important;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .even-card,
+  .blue-column {
+    background-color: var(--surface-alt) !important;
+    color: var(--text-primary);
+  }
+
+  .card-text h2,
+  .home-sidebar h2,
+  .text-bar {
+    color: var(--text-heading) !important;
+  }
+
+  .card-text li,
+  .card-text p,
+  .home-sidebar p,
+  .home-sidebar ul {
+    color: var(--text-primary) !important;
+  }
+
+  .dropdown-menu,
+  .dropdown-item {
+    background-color: var(--overlay-menu-bg) !important;
+    color: var(--overlay-menu-text) !important;
+    border-color: var(--border-subtle) !important;
+  }
+
+  .dropdown-item:hover {
+    background-color: var(--overlay-menu-hover) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .home-sidebar,
+  .company-progress-box,
+  .salesforce-panel,
+  .salesforce-summary-card,
+  .directory-card,
+  .directory-panel,
+  .edit-modal,
+  .edit-modal-content,
+  .lead-gen-card,
+  .dept-card,
+  .report-card {
+    background-color: var(--surface) !important;
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
+  }
+
+  .edit-modal-overlay {
+    background: rgba(0, 0, 0, 0.65) !important;
+  }
+
+  input,
+  textarea,
+  select {
+    background-color: var(--surface-muted);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
   }
 }

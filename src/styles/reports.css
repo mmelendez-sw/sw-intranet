@@ -26,11 +26,11 @@
 
 .reports-text-bar {
     grid-column: 1 / -1;
-    color: #003366;
+    color: var(--text-heading);
     text-align: center;
     font-size: 1.2rem;
     font-weight: bold;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-subtle);
     border-bottom: 2px solid #009acb;
     padding: 15px 0;
     line-height: 1;
@@ -39,11 +39,12 @@
 
 .reports-text-bar h2 { 
     margin: 0;
+    color: var(--text-heading);
 }
 
 .elite-access-banner {
-    background-color: #f0f0f0;
-    color: #333;
+    background-color: var(--surface-muted);
+    color: var(--text-primary);
     padding: 8px;
     border-radius: 4px;
     margin-top: 10px;
@@ -69,14 +70,15 @@
 .reports-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #ffffff;
+    background-color: var(--surface);
+    color: var(--text-primary);
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-soft);
     min-width: 620px;
 }
 
 .reports-table th, .reports-table td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-subtle);
     padding: 12px;
     text-align: left;
 }
@@ -87,11 +89,12 @@
 }
 
 .reports-table tr:nth-child(even) {
-    background-color: #d9ecf9;
+    background-color: var(--surface-alt);
 }
 
 .report-description-cell {
     min-height: 55px;
+    color: var(--text-primary);
 }
 
 .report-reorder-cell {
@@ -103,10 +106,11 @@
 .report-drag-handle {
     display: inline-flex;
     padding: 6px 8px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
     border-radius: 6px;
     cursor: grab;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-soft);
     touch-action: none;
 }
 
@@ -174,6 +178,11 @@
 
 .reports-table td .report-button:hover {
     background-color: #0073d6;
+}
+
+.reports-table td .report-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 /* Footer */

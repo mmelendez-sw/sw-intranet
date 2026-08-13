@@ -1,8 +1,8 @@
 .company-progress-box {
-  background-color: #ffffff;
+  background-color: var(--surface);
   border: none;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-soft);
   box-sizing: border-box;
   margin: 0 auto;
   max-width: calc(100% - 32px);

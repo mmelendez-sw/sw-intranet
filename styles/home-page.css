@@ -151,7 +151,7 @@
   max-width: clamp(250px, 20vw, 320px);
   width: 100%;
   box-sizing: border-box;
-  background: #fff;
+  background: var(--surface);
   border: none;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
@@ -205,9 +205,9 @@
   display: flex;
   flex-direction: column; /* Keep vertical stacking of elements */
   justify-content: space-between; /* Ensure space between text and image */
-  background-color: #ffffff;
+  background-color: var(--surface);
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-soft);
   overflow: hidden; /* Ensures the image and content align perfectly */
   min-height: 450px; /* Minimum height for the card */
   height: 100%; /* Stretch card to fill the grid row */
@@ -229,7 +229,7 @@
 
 .card-text h2 {
   font-size: 1.5em;
-  color: #003366;
+  color: var(--text-heading);
   border-bottom: 2px solid #009acb; /* Adds a subtle underline */
   margin-bottom: 10px;
   padding-bottom: 5px;
@@ -245,7 +245,7 @@
   font-size: 0.9em;
   line-height: 1.4; /* Tighter line height */
   margin: 5px 0; /* Uniform margins between paragraphs */
-  color: #333;
+  color: var(--text-primary);
 }
 
 .card:hover {
@@ -255,20 +255,20 @@
 
 /* Alternate card backgrounds every 2 cards */
 .odd-card {
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 
 .even-card {
-  background-color: #d9ecf9; /* Light blue */
+  background-color: var(--surface-alt);
 }
 
 .text-bar {
   grid-column: 1 / -1; /* Span across all columns */
-  color: #003366;
+  color: var(--text-heading);
   text-align: center;
   font-size: 1.2rem;
   font-weight: bold;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid var(--border-subtle);
   border-bottom: 2px solid #009acb;
   padding: 0; /* Reduce vertical padding */
   line-height: 1.2; /* Adjust line height */
@@ -281,7 +281,7 @@
 
 .home-sidebar h2 {
   font-size: 1.5em;
-  color: #003366;
+  color: var(--text-heading);
   border-bottom: 2px solid #009acb; /* Adds a subtle underline */
   margin-bottom: 10px;
   padding-bottom: 5px;
@@ -290,7 +290,7 @@
 .home-sidebar p,
 .home-sidebar ul {
   font-size: 0.9em;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .home-sidebar .home-button {
