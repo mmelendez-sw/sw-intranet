@@ -110,12 +110,12 @@ button.ticker-edit-btn:hover,
 .home-layout-controls-label {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--text-heading);
 }
 
 .edit-segment-group {
   display: inline-flex;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -124,9 +124,9 @@ button.ticker-edit-btn:hover,
   min-width: 40px;
   padding: 6px 12px;
   border: none;
-  border-right: 1px solid #ced4da;
-  background: #fff;
-  color: #333;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -138,7 +138,7 @@ button.ticker-edit-btn:hover,
 }
 
 .edit-segment-btn:hover:not(:disabled) {
-  background: #e9ecef;
+  background: var(--surface-alt);
 }
 
 .edit-segment-btn.active {
@@ -212,7 +212,7 @@ button.ticker-edit-btn:hover,
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--text-heading);
 }
 
 .edit-modal-close {
@@ -221,12 +221,12 @@ button.ticker-edit-btn:hover,
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  color: #666;
+  color: var(--text-muted);
   padding: 0 4px;
 }
 
 .edit-modal-close:hover {
-  color: #222;
+  color: var(--text-primary);
 }
 
 .edit-modal-body {
@@ -245,22 +245,29 @@ button.ticker-edit-btn:hover,
 .edit-field-group label {
   font-size: 13px;
   font-weight: 600;
-  color: #444;
+  color: var(--text-primary);
 }
 
 .edit-field-group input[type="text"],
 .edit-field-group input[type="url"],
+.edit-field-group input[type="date"],
 .edit-field-group textarea,
 .edit-field-group select {
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
   box-sizing: border-box;
   transition: border-color 0.15s;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.edit-field-group input[type="date"] {
+  color-scheme: inherit;
 }
 
 .edit-field-group input:focus,
@@ -272,7 +279,7 @@ button.ticker-edit-btn:hover,
 
 .edit-field-hint {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -283,15 +290,15 @@ button.ticker-edit-btn:hover,
   gap: 8px;
   margin-top: 8px;
   padding: 10px 12px;
-  background: #f4f7fb;
-  border: 1px solid #dde4ee;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
 }
 
 .edit-link-insert-label {
   font-size: 12px;
   font-weight: 600;
-  color: #495057;
+  color: var(--text-primary);
   flex: 0 0 100%;
 }
 
@@ -299,18 +306,22 @@ button.ticker-edit-btn:hover,
   flex: 1 1 180px;
   min-width: 0;
   padding: 6px 10px;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-size: 13px;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .edit-link-insert input[type="text"] {
   flex: 1 1 200px;
   min-width: 0;
   padding: 6px 10px;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--border-subtle);
   border-radius: 4px;
   font-size: 13px;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 .edit-link-insert-btn {
@@ -341,12 +352,12 @@ button.ticker-edit-btn:hover,
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-subtle);
   gap: 10px;
   flex-wrap: wrap;
   position: sticky;
   bottom: 0;
-  background: #fff;
+  background: var(--surface);
 }
 
 .edit-modal-footer-right {
@@ -357,9 +368,9 @@ button.ticker-edit-btn:hover,
 
 .edit-btn-cancel {
   padding: 8px 18px;
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ccc;
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
@@ -368,7 +379,7 @@ button.ticker-edit-btn:hover,
 }
 
 .edit-btn-cancel:hover {
-  background: #e0e0e0;
+  background: var(--surface-alt);
 }
 
 .edit-btn-save {
@@ -395,7 +406,7 @@ button.ticker-edit-btn:hover,
 /* ── Saving spinner ── */
 .edit-saving-indicator {
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -419,7 +430,7 @@ button.ticker-edit-btn:hover,
   max-height: 140px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-subtle);
   margin-top: 6px;
 }
 
@@ -469,12 +480,13 @@ button.ticker-edit-btn:hover,
   flex-direction: column;
   gap: 3px;
   padding: 6px 8px;
-  background: rgba(255,255,255,0.85);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   cursor: grab;
   opacity: 0.85;
   transition: opacity 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-soft);
   touch-action: none;
 }
 
@@ -496,7 +508,7 @@ button.ticker-edit-btn:hover,
   display: block;
   width: 4px;
   height: 4px;
-  background: #666;
+  background: var(--text-muted);
   border-radius: 50%;
 }
 
@@ -583,11 +595,11 @@ button.ticker-edit-btn:hover,
 
 /* ── Image upload area ── */
 .edit-upload-area {
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--border-subtle);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
-  background: #fafafa;
+  background: var(--surface-muted);
   transition: border-color 0.2s, background 0.2s;
   cursor: pointer;
 }
@@ -595,7 +607,7 @@ button.ticker-edit-btn:hover,
 .edit-upload-area:hover,
 .edit-upload-area.dragover {
   border-color: #0d6efd;
-  background: #f0f5ff;
+  background: var(--surface-alt);
 }
 
 .edit-upload-area input[type="file"] {
@@ -623,7 +635,7 @@ button.ticker-edit-btn:hover,
 
 .edit-upload-label {
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   margin-top: 6px;
 }
 
@@ -649,7 +661,7 @@ button.ticker-edit-btn:hover,
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #aaa;
+  color: var(--text-muted);
   font-size: 12px;
   margin: 2px 0;
 }
@@ -659,7 +671,7 @@ button.ticker-edit-btn:hover,
   content: '';
   flex: 1;
   height: 1px;
-  background: #e0e0e0;
+  background: var(--border-subtle);
 }
 
 /* ── Checkbox inside modal ── */
@@ -668,6 +680,7 @@ button.ticker-edit-btn:hover,
   align-items: center;
   gap: 8px;
   font-size: 14px;
+  color: var(--text-primary);
 }
 
 .edit-checkbox-row input[type="checkbox"] {
@@ -693,21 +706,21 @@ button.ticker-edit-btn:hover,
 .home-announcements-inactive {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px dashed #d1d5db;
+  border-top: 1px dashed var(--border-subtle);
 }
 
 .home-announcements-inactive-heading {
   margin: 0 0 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .announcement-inactive-item {
   position: relative;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-left: 4px solid #9ca3af;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--text-muted);
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 10px;
@@ -720,8 +733,8 @@ button.ticker-edit-btn:hover,
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b7280;
-  background: #e5e7eb;
+  color: var(--text-muted);
+  background: var(--surface-alt);
   border-radius: 4px;
   padding: 2px 6px;
   margin-bottom: 6px;
@@ -730,19 +743,19 @@ button.ticker-edit-btn:hover,
 .announcement-inactive-title {
   font-weight: 700;
   font-size: 14px;
-  color: #4b5563;
+  color: var(--text-primary);
   margin-bottom: 3px;
 }
 
 .announcement-inactive-body {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 .announcement-inactive-date {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-top: 5px;
 }
 

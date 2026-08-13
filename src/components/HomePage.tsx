@@ -906,14 +906,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
               {/* ── Announcements ── */}
               {(activeAnnouncements.length > 0 || (canEdit && inactiveAnnouncements.length > 0) || canEdit) && (
-                <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
+                <div className="home-announcements">
+                  <div className="home-announcements-header">
+                    <h2 className="home-announcements-heading">
                       📢 Announcements
                     </h2>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="home-announcements-actions">
                       {canEdit && (
-                        <button className="edit-add-btn" style={{ margin: 0, padding: '5px 14px', fontSize: 12 }} onClick={addAnnouncement}>
+                        <button className="edit-add-btn home-announcements-add-btn" onClick={addAnnouncement}>
                           + Add
                         </button>
                       )}
@@ -921,12 +921,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   </div>
 
                   {visibleAnnouncements.map(ann => (
-                    <div key={ann.id} className="editable-wrapper" style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderLeft: '4px solid #f59e0b', borderRadius: 8, padding: '12px 14px', marginBottom: 10 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: '#92400e', marginBottom: 3 }}>{ann.title}</div>
-                          <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>{ann.content}</div>
-                          <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
+                    <div key={ann.id} className="editable-wrapper announcement-item">
+                      <div className="announcement-item-inner">
+                        <div className="announcement-item-content">
+                          <div className="announcement-item-title">{ann.title}</div>
+                          <div className="announcement-item-body">{ann.content}</div>
+                          <div className="announcement-item-date">
                             {formatAnnouncementDate(ann.date)}
                           </div>
                         </div>
@@ -939,8 +939,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
                   {activeAnnouncements.length > 2 && (
                     <button
+                      type="button"
+                      className="home-announcements-toggle"
                       onClick={() => setAnnouncementsExpanded(e => !e)}
-                      style={{ background: 'none', border: 'none', color: '#0d6efd', cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: 0 }}
                     >
                       {announcementsExpanded ? '▲ Show fewer' : `▼ Show all ${activeAnnouncements.length} announcements`}
                     </button>

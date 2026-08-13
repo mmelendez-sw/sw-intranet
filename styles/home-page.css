@@ -376,6 +376,109 @@
   margin-top: auto;
 }
 
+/* ── Announcements ── */
+.home-announcements {
+  margin: 16px 0 8px;
+}
+
+.home-announcements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.home-announcements-heading {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.home-announcements-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.home-announcements-add-btn {
+  margin: 0;
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+.announcement-item {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.announcement-item-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.announcement-item-content {
+  flex: 1;
+}
+
+.announcement-item-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #92400e;
+  margin-bottom: 3px;
+}
+
+.announcement-item-body {
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+.announcement-item-date {
+  font-size: 11px;
+  color: #b45309;
+  margin-top: 5px;
+}
+
+.home-announcements-toggle {
+  background: none;
+  border: none;
+  color: #0d6efd;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .announcement-item {
+    background: #3a3220;
+    border-color: #8a6a2a;
+    border-left-color: #f59e0b;
+  }
+
+  .announcement-item-title {
+    color: #fbbf24;
+  }
+
+  .announcement-item-body {
+    color: #fde68a;
+  }
+
+  .announcement-item-date {
+    color: #f59e0b;
+  }
+
+  .home-announcements-toggle {
+    color: #8ec8ef;
+  }
+}
+
 /*
  * Homepage TV / kiosk layout — disabled.
  *

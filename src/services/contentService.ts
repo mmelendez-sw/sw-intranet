@@ -646,6 +646,11 @@ export interface SiteAlert {
   linkUrl?: string;
 }
 
+export interface BirthdaysMessage {
+  message: string;
+  isActive: boolean;
+}
+
 export interface Announcement {
   id: string;
   title: string;
@@ -726,6 +731,11 @@ export const DEFAULT_ALERT: SiteAlert = {
   message: '',
   isActive: false,
   type: 'info',
+};
+
+export const DEFAULT_BIRTHDAYS_MESSAGE: BirthdaysMessage = {
+  message: 'Happy birthday to everyone celebrating this month!',
+  isActive: false,
 };
 
 export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
