@@ -1,108 +1,404 @@
+/* ICEMAN — aligned with Lead Generation / Reports intranet styling */
+
 .iceman-page {
-  min-height: calc(100vh - 120px);
-  background: #f4f7fb;
-  padding: 24px 16px 48px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px 20px 48px;
+  min-height: calc(100vh - 80px);
+  background: #f0f2f5;
+  width: 100%;
 }
 
 .iceman-container {
-  max-width: 880px;
+  width: 100%;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.iceman-header h1 {
-  margin: 0 0 8px;
-  color: #004e7c;
-  font-size: 2rem;
-}
-
-.iceman-header p {
-  margin: 0 0 20px;
-  color: #334155;
-  line-height: 1.5;
-}
-
-.iceman-card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 20px;
+.iceman-header {
   margin-bottom: 20px;
+  text-align: center;
 }
 
-.iceman-label {
-  display: block;
+.iceman-kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
   font-weight: 600;
-  color: #1e293b;
-  margin: 12px 0 6px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #009acd;
 }
 
-.iceman-card input[type='file'],
-.iceman-card input[type='number'] {
-  width: 100%;
-  max-width: 420px;
-  padding: 8px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
+.iceman-header h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.iceman-subtitle {
+  margin: 0 auto;
+  max-width: 620px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: #666;
+}
+
+.iceman-signed-in {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.iceman-text-bar {
+  color: #003366;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: bold;
+  border-top: 1px solid #ddd;
+  border-bottom: 2px solid #009acb;
+  padding: 14px 0;
+  margin: 0 0 24px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.iceman-text-bar h2 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* Alerts — same vocabulary as Lead Generation */
+.iceman-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
   font-size: 14px;
+  line-height: 1.5;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.iceman-alert i {
+  font-size: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.iceman-alert strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.iceman-alert p {
+  margin: 0;
+}
+
+.iceman-alert-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #7f1d1d;
+}
+
+.iceman-alert-error i {
+  color: #dc2626;
+}
+
+.iceman-alert-success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.iceman-alert-success i {
+  color: #059669;
+}
+
+/* Panels */
+.iceman-panel {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 22px 24px 24px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.iceman-panel-header {
+  margin-bottom: 16px;
+}
+
+.iceman-panel-header h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #003366;
+}
+
+.iceman-panel-header p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.iceman-panel-header code {
+  font-size: 0.9em;
+  background: #f1f5f9;
+  color: #004e7c;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Dropzone */
+.iceman-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 168px;
+  padding: 28px 20px;
+  border: 2px dashed #9ec9e0;
+  border-radius: 8px;
+  background: #f7fbfe;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.iceman-dropzone:hover,
+.iceman-dropzone:focus-visible {
+  border-color: #009acd;
+  background: #eef7fc;
+  outline: none;
+}
+
+.iceman-dropzone.is-dragover {
+  border-color: #004e7c;
+  background: #e3f2fa;
+  box-shadow: inset 0 0 0 1px #004e7c;
+}
+
+.iceman-dropzone.has-file {
+  border-style: solid;
+  border-color: #004e7c;
+  background: #fff;
+}
+
+.iceman-dropzone.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.iceman-dropzone > i {
+  font-size: 28px;
+  color: #004e7c;
+}
+
+.iceman-dropzone-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.iceman-dropzone-hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.iceman-file-selected {
+  max-width: 100%;
 }
 
 .iceman-file-name {
-  margin: 8px 0 0;
-  color: #475569;
-  font-size: 14px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #003366;
+  word-break: break-all;
 }
 
-.iceman-submit {
-  margin-top: 16px;
+.iceman-file-meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.iceman-file-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.iceman-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.iceman-btn-primary,
+.iceman-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.15s ease;
+}
+
+.iceman-btn-primary {
   background: #004e7c;
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
+  padding: 12px 22px;
+  min-width: 180px;
 }
 
-.iceman-submit:disabled {
-  opacity: 0.6;
+.iceman-btn-primary:hover:not(:disabled) {
+  background: #003c66;
+}
+
+.iceman-btn-primary:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.iceman-status {
-  margin-top: 12px;
-  color: #0f766e;
-  font-size: 14px;
-}
-
-.iceman-error {
-  margin-top: 12px;
-  color: #b91c1c;
-  font-size: 14px;
-}
-
-.iceman-help {
+.iceman-btn-secondary {
   background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 18px 20px;
+  color: #004e7c;
+  border: 1px solid #cbd5e1;
+  padding: 8px 14px;
+  font-size: 13px;
 }
 
-.iceman-help h2 {
-  margin: 0 0 10px;
-  font-size: 1.1rem;
-  color: #0f172a;
+.iceman-btn-secondary:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #009acd;
 }
 
-.iceman-help ul {
-  margin: 0;
-  padding-left: 20px;
-  color: #334155;
-  line-height: 1.6;
+.iceman-btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.iceman-help code {
-  background: #f1f5f9;
-  padding: 1px 4px;
+.iceman-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: iceman-spin 0.7s linear infinite;
+}
+
+@keyframes iceman-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Guide */
+.iceman-guide {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  padding: 22px 24px 24px;
+  margin-bottom: 8px;
+}
+
+.iceman-guide h3 {
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #003366;
+}
+
+.iceman-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.iceman-guide-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: #f7fbfe;
+  border: 1px solid #e2eef5;
+  border-radius: 8px;
+}
+
+.iceman-guide-num {
+  flex-shrink: 0;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 4px;
+  background: #003366;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.iceman-guide-item strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+.iceman-guide-item p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #666;
+}
+
+@media (max-width: 700px) {
+  .iceman-page {
+    padding: 20px 14px 36px;
+  }
+
+  .iceman-header h1 {
+    font-size: 24px;
+  }
+
+  .iceman-panel,
+  .iceman-guide {
+    padding: 18px 16px 20px;
+  }
+
+  .iceman-guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .iceman-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .iceman-btn-primary {
+    width: 100%;
+  }
 }
