@@ -1,0 +1,108 @@
+.iceman-page {
+  min-height: calc(100vh - 120px);
+  background: #f4f7fb;
+  padding: 24px 16px 48px;
+}
+
+.iceman-container {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.iceman-header h1 {
+  margin: 0 0 8px;
+  color: #004e7c;
+  font-size: 2rem;
+}
+
+.iceman-header p {
+  margin: 0 0 20px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.iceman-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.iceman-label {
+  display: block;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 12px 0 6px;
+}
+
+.iceman-card input[type='file'],
+.iceman-card input[type='number'] {
+  width: 100%;
+  max-width: 420px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.iceman-file-name {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.iceman-submit {
+  margin-top: 16px;
+  background: #004e7c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.iceman-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.iceman-status {
+  margin-top: 12px;
+  color: #0f766e;
+  font-size: 14px;
+}
+
+.iceman-error {
+  margin-top: 12px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.iceman-help {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 18px 20px;
+}
+
+.iceman-help h2 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.iceman-help ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.iceman-help code {
+  background: #f1f5f9;
+  padding: 1px 4px;
+  border-radius: 4px;
+}

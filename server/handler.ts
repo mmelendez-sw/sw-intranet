@@ -8,12 +8,14 @@
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/current-investments
  *   GET /api/powerbi/embed-token?reportId=
+ *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file)
  *
  * Env vars (set on the Lambda — never in the Amplify frontend build):
  *   Graph/TV:      TENANT_ID, CLIENT_ID, CLIENT_SECRET
  *   Salesforce:    SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN?, SF_DOMAIN?
  *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
+ *   ICEMAN:        NEARMAP_API_KEY
  */
 
 import { getGraphToken, getHomepageCardsMeta } from './tvHomepageCards';
@@ -25,11 +27,13 @@ import {
 } from './tvImages';
 import { getCurrentInvestments } from './salesforce';
 import { getEmbedConfig } from './powerbi';
+import { parseMultipart } from './multipart';
+import { generateIcemanWorkbook } from './iceman';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
@@ -96,6 +100,22 @@ function isPowerbiEmbedTokenPath(path: string): boolean {
   return /\/api\/powerbi\/embed-token\/?$/i.test(path);
 }
 
+function isIcemanGeneratePath(path: string): boolean {
+  return /\/api\/iceman\/generate\/?$/i.test(path);
+}
+
+function getHeader(
+  headers: Record<string, string | undefined> | undefined,
+  name: string
+): string | undefined {
+  if (!headers) return undefined;
+  const lower = name.toLowerCase();
+  for (const [k, v] of Object.entries(headers)) {
+    if (k.toLowerCase() === lower) return v;
+  }
+  return undefined;
+}
+
 type LambdaResult = {
   statusCode: number;
   headers: Record<string, string>;
@@ -107,6 +127,9 @@ export async function handler(event?: {
   httpMethod?: string;
   path?: string;
   rawPath?: string;
+  body?: string;
+  isBase64Encoded?: boolean;
+  headers?: Record<string, string | undefined>;
   queryStringParameters?: Record<string, string | undefined> | null;
   requestContext?: { http?: { path?: string; method?: string } };
 }): Promise<LambdaResult> {
@@ -119,6 +142,65 @@ export async function handler(event?: {
   const query = getQuery(event);
 
   try {
+    // ── ICEMAN Nearmap batch (no Graph credentials required) ──
+    if (isIcemanGeneratePath(path)) {
+      if (method !== 'POST') {
+        return {
+          statusCode: 405,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: 'Method not allowed. Use POST.' }),
+        };
+      }
+
+      try {
+        const contentType = getHeader(event?.headers, 'content-type');
+        const parsed = await parseMultipart(
+          event?.body,
+          contentType,
+          event?.isBase64Encoded
+        );
+
+        if (!parsed.file?.buffer?.length) {
+          return {
+            statusCode: 400,
+            headers: JSON_HEADERS,
+            body: JSON.stringify({ error: 'Missing file upload. Use multipart field name "file".' }),
+          };
+        }
+
+        const maxRowsRaw = Number(query.max_rows || parsed.fields.max_rows || '500');
+        const maxRows = Math.min(Math.max(1, Number.isFinite(maxRowsRaw) ? maxRowsRaw : 500), 500);
+
+        const { buffer, filename } = await generateIcemanWorkbook(
+          parsed.file.buffer,
+          parsed.file.filename,
+          maxRows
+        );
+
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'no-store',
+          },
+          body: buffer.toString('base64'),
+          isBase64Encoded: true,
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'ICEMAN request failed';
+        const clientError =
+          /missing|unsupported|no valid|no data rows|latitude\/longitude/i.test(msg);
+        console.error('[iceman]', err);
+        return {
+          statusCode: clientError ? 400 : 500,
+          headers: JSON_HEADERS,
+          body: JSON.stringify({ error: msg }),
+        };
+      }
+    }
+
     // ── Salesforce (no Graph credentials required) ──
     if (isSalesforceInvestmentsPath(path)) {
       const data = await getCurrentInvestments();

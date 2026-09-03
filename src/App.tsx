@@ -10,9 +10,10 @@ import HomePage from './components/HomePage';
 // import { DEPARTMENTS } from './config/departments';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
+import Iceman from './components/Iceman';
 import EmployeeDirectory from './components/EmployeeDirectory';
 // import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted } from './authConfig';
+import { BYPASS_AUTH, DEV_USER_INFO, loginRequest, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
@@ -466,6 +467,14 @@ const App: React.FC = () => {
                   <Route
                     path="/lead-generation"
                     element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
+                  />
+                  <Route
+                    path="/iceman"
+                    element={
+                      (userInfo.isAuthenticated || hasSignedInAccount) && isIcemanAllowlisted(userInfo.email)
+                        ? <Iceman userInfo={userInfo} />
+                        : <Navigate to="/" replace />
+                    }
                   />
                   {userInfo.isAuthenticated && (
                     <>

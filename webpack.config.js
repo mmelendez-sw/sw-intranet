@@ -80,6 +80,7 @@ module.exports = {
           '/api/images',
           '/api/salesforce',
           '/api/powerbi',
+          '/api/iceman',
         ],
         target: 'http://localhost:3001',
         changeOrigin: true,

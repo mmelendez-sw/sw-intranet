@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { BYPASS_AUTH, loginRequest } from '../authConfig';
+import { BYPASS_AUTH, isIcemanAllowlisted, loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -294,6 +294,12 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
             <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
             <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
+            {isIcemanAllowlisted(userInfo.email) && (
+              <>
+                <i className="fa-solid fa-satellite"></i> <Link to="/iceman">ICEMAN</Link>
+              </>
+            )}
+            {/* Departments dropdown hidden until pages are ready
             <div className="nav-dropdown" ref={departmentsRef}>
               <button
                 type="button"
@@ -314,10 +320,11 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 </span>
               </button>
             </div>
+            */}
           </>
         )}
       </nav>
-      <DepartmentsMenu />
+      {/* <DepartmentsMenu /> */}
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
           <div className="user-dropdown">

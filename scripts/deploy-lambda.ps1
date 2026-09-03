@@ -37,9 +37,37 @@ if (-not (Test-Path (Join-Path $distDir 'handler.js'))) {
 $zipPath = Join-Path $env:TEMP 'sw-intranet-api.zip'
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
-Write-Host "Zipping $distDir -> $zipPath"
-# Zip contents at archive root so Lambda resolves handler.handler
-Compress-Archive -Path (Join-Path $distDir '*') -DestinationPath $zipPath -Force
+$stageDir = Join-Path $env:TEMP ("sw-intranet-lambda-" + [guid]::NewGuid().ToString('n'))
+New-Item -ItemType Directory -Path $stageDir | Out-Null
+Copy-Item -Path (Join-Path $distDir '*') -Destination $stageDir -Recurse
+
+$lambdaPackageJson = @'
+{
+  "name": "sw-intranet-api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "busboy": "^1.6.0",
+    "exceljs": "^4.4.0",
+    "jimp": "^0.22.12",
+    "xlsx": "^0.18.5"
+  }
+}
+'@
+Set-Content -Path (Join-Path $stageDir 'package.json') -Value $lambdaPackageJson -Encoding UTF8
+
+Write-Host "Installing Lambda production dependencies in staging folder..."
+Push-Location $stageDir
+try {
+  npm install --omit=dev --no-package-lock
+  if ($LASTEXITCODE -ne 0) { throw "npm install in Lambda stage failed (exit $LASTEXITCODE)" }
+} finally {
+  Pop-Location
+}
+
+Write-Host "Zipping $stageDir -> $zipPath"
+Compress-Archive -Path (Join-Path $stageDir '*') -DestinationPath $zipPath -Force
+Remove-Item $stageDir -Recurse -Force
 
 $awsArgs = @(
   'lambda', 'update-function-code',
@@ -62,4 +90,4 @@ if ($LASTEXITCODE -ne 0) { throw "aws lambda update-function-code failed (exit $
 
 Write-Host "Deploy complete." -ForegroundColor Green
 Write-Host "Handler: handler.handler"
-Write-Host "Remember to set Lambda env vars (SF_*, POWERBI_*, TENANT_ID/CLIENT_ID/CLIENT_SECRET)."
+Write-Host "Remember to set Lambda env vars (SF_*, POWERBI_*, TENANT_ID/CLIENT_ID/CLIENT_SECRET, NEARMAP_API_KEY)."
