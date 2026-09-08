@@ -2,6 +2,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { isIcemanAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
+import closeObliqueExample from '../../images/iceman/north-oblique-close-example.jpg';
+import farObliqueExample from '../../images/iceman/north-oblique-far-example.jpg';
 import '../../styles/iceman.css';
 
 interface IcemanProps {
@@ -268,6 +270,13 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
 
           <div className="iceman-range-grid">
             <label className="iceman-range-control" htmlFor="iceman-close-m">
+              <div className="iceman-range-example">
+                <img
+                  src={closeObliqueExample}
+                  alt="Example north oblique at about 30 meters"
+                />
+                <span className="iceman-range-example-caption">Example · ~30 m</span>
+              </div>
               <div className="iceman-range-top">
                 <span>Close oblique</span>
                 <strong>{closeMeters} m</strong>
@@ -289,6 +298,13 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             </label>
 
             <label className="iceman-range-control" htmlFor="iceman-far-m">
+              <div className="iceman-range-example">
+                <img
+                  src={farObliqueExample}
+                  alt="Example north oblique at about 300 meters"
+                />
+                <span className="iceman-range-example-caption">Example · ~300 m</span>
+              </div>
               <div className="iceman-range-top">
                 <span>Far oblique</span>
                 <strong>{farMeters} m</strong>
