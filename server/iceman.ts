@@ -2,6 +2,10 @@
  * ICEMAN — batch Nearmap imagery → XLSX with embedded thumbnails.
  *
  * Env: NEARMAP_API_KEY
+ *
+ * Output images (north oblique):
+ *   - Close range: 15–50 m ground coverage (default 35 m)
+ *   - Far range:   200–500 m ground coverage (default 300 m)
  */
 
 import ExcelJS from 'exceljs';
@@ -15,13 +19,33 @@ const THUMB_WIDTH = 160;
 const THUMB_HEIGHT = 120;
 const DEFAULT_MAX_ROWS = 500;
 
+/** Approximate tile ground width (m) → Web Mercator zoom. */
+const EARTH_CIRCUMFERENCE_M = 40075016.686;
+
+export const CLOSE_OBLIQUE_MIN_M = 15;
+export const CLOSE_OBLIQUE_MAX_M = 50;
+export const CLOSE_OBLIQUE_DEFAULT_M = 35;
+
+export const FAR_OBLIQUE_MIN_M = 200;
+export const FAR_OBLIQUE_MAX_M = 500;
+export const FAR_OBLIQUE_DEFAULT_M = 300;
+
 export type IcemanRow = {
   lat: number;
   lng: number;
   passThrough: Record<string, string | number | boolean | null>;
 };
 
-export type IcemanImageKind = 'vert250' | 'vert50' | 'north';
+export type IcemanImageOptions = {
+  closeObliqueMeters?: number;
+  farObliqueMeters?: number;
+};
+
+type ObliqueShot = {
+  key: 'close' | 'far';
+  meters: number;
+  label: string;
+};
 
 type ImageFetchResult = {
   buffer: Buffer | null;
@@ -40,6 +64,26 @@ function requireNearmapKey(): string {
   const key = process.env.NEARMAP_API_KEY?.trim();
   if (!key) throw new Error('Missing required env var: NEARMAP_API_KEY');
   return key;
+}
+
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+export function normalizeIcemanImageOptions(raw?: IcemanImageOptions): {
+  closeObliqueMeters: number;
+  farObliqueMeters: number;
+} {
+  const closeRaw = Number(raw?.closeObliqueMeters);
+  const farRaw = Number(raw?.farObliqueMeters);
+  return {
+    closeObliqueMeters: Number.isFinite(closeRaw)
+      ? Math.round(clamp(closeRaw, CLOSE_OBLIQUE_MIN_M, CLOSE_OBLIQUE_MAX_M))
+      : CLOSE_OBLIQUE_DEFAULT_M,
+    farObliqueMeters: Number.isFinite(farRaw)
+      ? Math.round(clamp(farRaw, FAR_OBLIQUE_MIN_M, FAR_OBLIQUE_MAX_M))
+      : FAR_OBLIQUE_DEFAULT_M,
+  };
 }
 
 function normalizeHeader(value: string): string {
@@ -71,6 +115,31 @@ function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: n
     ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
   );
   return { x, y };
+}
+
+/** Ground width of one 256px Web Mercator tile at latitude / zoom. */
+function tileGroundWidthMeters(lat: number, zoom: number): number {
+  const cosLat = Math.cos((lat * Math.PI) / 180);
+  return (EARTH_CIRCUMFERENCE_M * Math.max(0.01, cosLat)) / 2 ** zoom;
+}
+
+/**
+ * Pick integer zoom whose tile ground width is closest to the requested meters.
+ * Nearmap typically tops out around zoom 21 for high-res surveys.
+ */
+function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number {
+  const target = Math.max(1, targetMeters);
+  let bestZoom = 19;
+  let bestDiff = Number.POSITIVE_INFINITY;
+  for (let z = 14; z <= 21; z++) {
+    const width = tileGroundWidthMeters(lat, z);
+    const diff = Math.abs(width - target);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestZoom = z;
+    }
+  }
+  return bestZoom;
 }
 
 async function getLatestSurveyId(
@@ -107,33 +176,17 @@ async function getLatestSurveyId(
   }
 }
 
-function tileResourceType(kind: IcemanImageKind): string {
-  if (kind === 'north') return 'North';
-  return 'Vert';
-}
-
-function zoomForKind(kind: IcemanImageKind): number {
-  if (kind === 'vert250') return 17;
-  if (kind === 'vert50') return 19;
-  return 19;
-}
-
-function imageLabel(kind: IcemanImageKind): string {
-  if (kind === 'vert250') return 'Vertical ~250m';
-  if (kind === 'vert50') return 'Vertical ~50m';
-  return 'North Oblique';
-}
-
-async function fetchNearmapTile(
+async function fetchNorthObliqueTile(
   lat: number,
   lng: number,
-  kind: IcemanImageKind,
+  meters: number,
+  label: string,
   apiKey: string,
   surveyId: string | null
 ): Promise<ImageFetchResult> {
-  const zoom = zoomForKind(kind);
+  const zoom = zoomForGroundCoverageMeters(lat, meters);
   const { x, y } = latLngToTile(lat, lng, zoom);
-  const contentType = tileResourceType(kind);
+  const contentType = 'North';
 
   const path = surveyId
     ? `surveys/${surveyId}/${contentType}/${zoom}/${x}/${y}.jpg`
@@ -144,22 +197,23 @@ async function fetchNearmapTile(
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      return { buffer: null, note: `${imageLabel(kind)} ${res.status}` };
+      return { buffer: null, note: `${label} ${res.status}` };
     }
     const arrayBuf = await res.arrayBuffer();
     const raw = Buffer.from(arrayBuf);
     if (!raw.length) {
-      return { buffer: null, note: `${imageLabel(kind)} empty` };
+      return { buffer: null, note: `${label} empty` };
     }
 
     const image = await Jimp.read(raw);
+    // Nearmap panorama tiles display correctly at 256×192 (foreshortening).
     image.cover(THUMB_WIDTH, THUMB_HEIGHT);
     const thumb = await image.getBufferAsync(Jimp.MIME_JPEG);
     return { buffer: thumb };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Tile fetch failed';
-    console.error('[iceman] tile error', kind, lat, lng, msg);
-    return { buffer: null, note: `${imageLabel(kind)}: ${msg}` };
+    console.error('[iceman] tile error', label, lat, lng, msg);
+    return { buffer: null, note: `${label}: ${msg}` };
   }
 }
 
@@ -235,7 +289,8 @@ function parseWorkbookRows(buffer: Buffer, filename: string): {
 export async function generateIcemanWorkbook(
   fileBuffer: Buffer,
   filename: string,
-  maxRows = DEFAULT_MAX_ROWS
+  maxRows = DEFAULT_MAX_ROWS,
+  imageOptions?: IcemanImageOptions
 ): Promise<{ buffer: Buffer; filename: string }> {
   const apiKey = requireNearmapKey();
   const parsed = parseWorkbookRows(fileBuffer, filename);
@@ -243,9 +298,22 @@ export async function generateIcemanWorkbook(
     throw new Error(parsed.error);
   }
 
+  const opts = normalizeIcemanImageOptions(imageOptions);
   const rows = parsed.rows.slice(0, maxRows);
   const passThroughHeaders = parsed.passThroughHeaders;
-  const imageKinds: IcemanImageKind[] = ['vert250', 'vert50', 'north'];
+
+  const shots: ObliqueShot[] = [
+    {
+      key: 'close',
+      meters: opts.closeObliqueMeters,
+      label: `North Oblique ~${opts.closeObliqueMeters}m`,
+    },
+    {
+      key: 'far',
+      meters: opts.farObliqueMeters,
+      label: `North Oblique ~${opts.farObliqueMeters}m`,
+    },
+  ];
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('ICEMAN');
@@ -261,7 +329,7 @@ export async function generateIcemanWorkbook(
     'Latitude',
     'Longitude',
     ...passThroughHeaders,
-    ...imageKinds.map(imageLabel),
+    ...shots.map((s) => s.label),
     'Status',
   ];
 
@@ -278,10 +346,10 @@ export async function generateIcemanWorkbook(
     ws.getColumn(3 + i).width = 18;
   }
   const imageColStart = 3 + passThroughHeaders.length;
-  for (let i = 0; i < imageKinds.length; i++) {
+  for (let i = 0; i < shots.length; i++) {
     ws.getColumn(imageColStart + i).width = 24;
   }
-  ws.getColumn(imageColStart + imageKinds.length).width = 36;
+  ws.getColumn(imageColStart + shots.length).width = 36;
 
   const surveyCache = new Map<string, string | null>();
 
@@ -294,9 +362,7 @@ export async function generateIcemanWorkbook(
       row.lat,
       row.lng,
       ...passThroughHeaders.map((h) => row.passThrough[h] ?? ''),
-      '',
-      '',
-      '',
+      ...shots.map(() => ''),
       '',
     ];
     ws.addRow(dataCells);
@@ -312,9 +378,16 @@ export async function generateIcemanWorkbook(
       await sleep(REQUEST_DELAY_MS);
     }
 
-    for (let imgIdx = 0; imgIdx < imageKinds.length; imgIdx++) {
-      const kind = imageKinds[imgIdx];
-      const result = await fetchNearmapTile(row.lat, row.lng, kind, apiKey, surveyId);
+    for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
+      const shot = shots[imgIdx];
+      const result = await fetchNorthObliqueTile(
+        row.lat,
+        row.lng,
+        shot.meters,
+        shot.label,
+        apiKey,
+        surveyId
+      );
       await sleep(REQUEST_DELAY_MS);
 
       if (result.note) statusNotes.push(result.note);
@@ -332,7 +405,7 @@ export async function generateIcemanWorkbook(
       });
     }
 
-    const statusCol = imageColStart + imageKinds.length;
+    const statusCol = imageColStart + shots.length;
     ws.getCell(excelRowNum, statusCol).value = statusNotes.length
       ? [...new Set(statusNotes)].join('; ')
       : 'OK';

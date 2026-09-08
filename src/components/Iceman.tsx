@@ -10,6 +10,14 @@ interface IcemanProps {
 
 const DEFAULT_MAX_ROWS = 500;
 
+const CLOSE_OBLIQUE_MIN_M = 15;
+const CLOSE_OBLIQUE_MAX_M = 50;
+const CLOSE_OBLIQUE_DEFAULT_M = 35;
+
+const FAR_OBLIQUE_MIN_M = 200;
+const FAR_OBLIQUE_MAX_M = 500;
+const FAR_OBLIQUE_DEFAULT_M = 300;
+
 const ICEMAN_API_URL = (() => {
   if (typeof window === 'undefined') return '/api/iceman/generate';
   const host = window.location.hostname;
@@ -24,10 +32,14 @@ const isAcceptedFile = (name: string) => {
   return lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.xls');
 };
 
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
+
 const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [closeMeters, setCloseMeters] = useState(CLOSE_OBLIQUE_DEFAULT_M);
+  const [farMeters, setFarMeters] = useState(FAR_OBLIQUE_DEFAULT_M);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -74,15 +86,25 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       return;
     }
 
+    const closeM = Math.round(clamp(closeMeters, CLOSE_OBLIQUE_MIN_M, CLOSE_OBLIQUE_MAX_M));
+    const farM = Math.round(clamp(farMeters, FAR_OBLIQUE_MIN_M, FAR_OBLIQUE_MAX_M));
+
     setLoading(true);
     setError(null);
-    setStatus('Fetching Nearmap imagery and building workbook…');
+    setStatus(
+      `Fetching north oblique imagery (~${closeM}m and ~${farM}m) and building workbook…`
+    );
 
     try {
       const form = new FormData();
       form.append('file', file);
+      form.append('close_m', String(closeM));
+      form.append('far_m', String(farM));
 
-      const url = `${ICEMAN_API_URL}?max_rows=${DEFAULT_MAX_ROWS}`;
+      const url =
+        `${ICEMAN_API_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
+        `&close_m=${encodeURIComponent(String(closeM))}` +
+        `&far_m=${encodeURIComponent(String(farM))}`;
       const res = await fetch(url, { method: 'POST', body: form });
 
       if (!res.ok) {
@@ -127,8 +149,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <p className="iceman-kicker">Site imagery toolkit</p>
           <h1>ICEMAN</h1>
           <p className="iceman-subtitle">
-            Upload coordinates and download an Excel workbook with Nearmap thumbnails for each
-            location — vertical (~250m), vertical (~50m), and north oblique.
+            Upload coordinates and download an Excel workbook with two north-oblique Nearmap
+            thumbnails per location — a close view and a wider context view.
           </p>
           {userInfo.email && (
             <p className="iceman-signed-in">Signed in as {userInfo.email}</p>
@@ -162,7 +184,9 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
         <section className="iceman-panel" aria-labelledby="iceman-upload-heading">
           <div className="iceman-panel-header">
             <h3 id="iceman-upload-heading">1. Upload coordinates</h3>
-            <p>CSV or Excel with <code>lat</code>/<code>lng</code> (or latitude/longitude) columns.</p>
+            <p>
+              CSV or Excel with <code>lat</code>/<code>lng</code> (or latitude/longitude) columns.
+            </p>
           </div>
 
           <div
@@ -221,16 +245,75 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
 
           {file && (
             <div className="iceman-file-actions">
-              <button type="button" className="iceman-btn-secondary" onClick={clearFile} disabled={loading}>
+              <button
+                type="button"
+                className="iceman-btn-secondary"
+                onClick={clearFile}
+                disabled={loading}
+              >
                 Clear file
               </button>
             </div>
           )}
         </section>
 
+        <section className="iceman-panel" aria-labelledby="iceman-range-heading">
+          <div className="iceman-panel-header">
+            <h3 id="iceman-range-heading">2. Set oblique distances</h3>
+            <p>
+              Choose approximate ground coverage for each north-oblique thumbnail. Defaults are
+              35&nbsp;m (close) and 300&nbsp;m (context).
+            </p>
+          </div>
+
+          <div className="iceman-range-grid">
+            <label className="iceman-range-control" htmlFor="iceman-close-m">
+              <div className="iceman-range-top">
+                <span>Close oblique</span>
+                <strong>{closeMeters} m</strong>
+              </div>
+              <input
+                id="iceman-close-m"
+                type="range"
+                min={CLOSE_OBLIQUE_MIN_M}
+                max={CLOSE_OBLIQUE_MAX_M}
+                step={1}
+                value={closeMeters}
+                disabled={loading}
+                onChange={(e) => setCloseMeters(Number(e.target.value))}
+              />
+              <div className="iceman-range-bounds">
+                <span>{CLOSE_OBLIQUE_MIN_M} m</span>
+                <span>{CLOSE_OBLIQUE_MAX_M} m</span>
+              </div>
+            </label>
+
+            <label className="iceman-range-control" htmlFor="iceman-far-m">
+              <div className="iceman-range-top">
+                <span>Far oblique</span>
+                <strong>{farMeters} m</strong>
+              </div>
+              <input
+                id="iceman-far-m"
+                type="range"
+                min={FAR_OBLIQUE_MIN_M}
+                max={FAR_OBLIQUE_MAX_M}
+                step={5}
+                value={farMeters}
+                disabled={loading}
+                onChange={(e) => setFarMeters(Number(e.target.value))}
+              />
+              <div className="iceman-range-bounds">
+                <span>{FAR_OBLIQUE_MIN_M} m</span>
+                <span>{FAR_OBLIQUE_MAX_M} m</span>
+              </div>
+            </label>
+          </div>
+        </section>
+
         <section className="iceman-panel" aria-labelledby="iceman-generate-heading">
           <div className="iceman-panel-header">
-            <h3 id="iceman-generate-heading">2. Generate &amp; download</h3>
+            <h3 id="iceman-generate-heading">3. Generate &amp; download</h3>
             <p>
               Nearmap imagery is fetched for each row. Large files take longer; keep the tab open
               until the download starts.
@@ -279,8 +362,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             <div className="iceman-guide-item">
               <span className="iceman-guide-num">Img</span>
               <div>
-                <strong>Three thumbnails</strong>
-                <p>Vertical ~250m, vertical ~50m, north oblique</p>
+                <strong>Two north obliques</strong>
+                <p>
+                  Close ({CLOSE_OBLIQUE_MIN_M}–{CLOSE_OBLIQUE_MAX_M} m) and far (
+                  {FAR_OBLIQUE_MIN_M}–{FAR_OBLIQUE_MAX_M} m)
+                </p>
               </div>
             </div>
             <div className="iceman-guide-item">

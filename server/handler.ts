@@ -171,10 +171,21 @@ export async function handler(event?: {
         const maxRowsRaw = Number(query.max_rows || parsed.fields.max_rows || '500');
         const maxRows = Math.min(Math.max(1, Number.isFinite(maxRowsRaw) ? maxRowsRaw : 500), 500);
 
+        const closeObliqueMeters = Number(
+          query.close_m || parsed.fields.close_m || parsed.fields.closeObliqueMeters
+        );
+        const farObliqueMeters = Number(
+          query.far_m || parsed.fields.far_m || parsed.fields.farObliqueMeters
+        );
+
         const { buffer, filename } = await generateIcemanWorkbook(
           parsed.file.buffer,
           parsed.file.filename,
-          maxRows
+          maxRows,
+          {
+            closeObliqueMeters: Number.isFinite(closeObliqueMeters) ? closeObliqueMeters : undefined,
+            farObliqueMeters: Number.isFinite(farObliqueMeters) ? farObliqueMeters : undefined,
+          }
         );
 
         return {
