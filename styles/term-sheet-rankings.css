@@ -1,21 +1,59 @@
-.home-sidebar-stack {
-  display: flex;
+/* /dev layout: HOW banner + rankings share a top row; cards + sidebar keep prior widths */
+
+.home-layout--dev {
   flex-direction: column;
+  align-items: stretch;
   gap: 12px;
-  flex: 0 0 clamp(300px, 26vw, 400px);
-  max-width: clamp(300px, 26vw, 400px);
-  width: 100%;
-  align-self: start;
-  min-width: 0;
-  box-sizing: border-box;
-  margin: 40px 0 0;
 }
 
-.home-sidebar-stack .home-sidebar {
-  margin: 0 !important;
-  flex: none;
-  max-width: none;
+.home-dev-top {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
   width: 100%;
+  margin-top: var(--home-banner-top-gap, 12px);
+  box-sizing: border-box;
+}
+
+.home-dev-top .homepage-hero {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  height: auto;
+  min-height: clamp(180px, 20vw, 330px);
+  align-self: stretch;
+}
+
+.home-dev-top .term-sheet-rankings {
+  flex: 0 0 clamp(300px, 26vw, 400px);
+  width: clamp(300px, 26vw, 400px);
+  max-width: clamp(300px, 26vw, 400px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.home-dev-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.home-dev-body .home-content-container {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.home-dev-body .home-sidebar {
+  /* Previous sidebar size (before rankings widen) */
+  flex: 0 0 clamp(250px, 20vw, 320px);
+  max-width: clamp(250px, 20vw, 320px);
+  width: 100%;
+  margin: 0 !important;
 }
 
 .term-sheet-rankings {
@@ -74,6 +112,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1 1 auto;
 }
 
 .term-sheet-rankings-row {
@@ -145,9 +184,22 @@
 }
 
 @media (max-width: 900px) {
-  .home-sidebar-stack {
-    max-width: none;
+  .home-dev-top {
+    flex-direction: column;
+  }
+
+  .home-dev-top .term-sheet-rankings {
     flex: 1 1 auto;
-    margin-top: 16px;
+    width: 100%;
+    max-width: none;
+  }
+
+  .home-dev-body {
+    flex-direction: column;
+  }
+
+  .home-dev-body .home-sidebar {
+    flex: 1 1 auto;
+    max-width: none;
   }
 }

@@ -895,32 +895,36 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
         DEV homepage — WIP features for testing and sign-off (does not change /)
       </div>
       {showHomeContent ? (
-        <div className="home-layout">
-          {/* ── Main Content ── */}
+        <div className="home-layout home-layout--dev">
+          {/* ── Top: HOW banner + Term Sheet Rankings (same row, wider chart) ── */}
+          <div className="home-dev-top">
+            <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
+              <SharePointImage
+                src={heroImageUrl || howBanner}
+                placeholderSrc={howBanner}
+                alt="Homepage banner"
+                className="homepage-hero-image"
+              />
+              <div className="homepage-hero-overlay">
+                <h1 className="homepage-hero-title">
+                  <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
+                  <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
+                  <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
+                </h1>
+              </div>
+              {canEdit && (
+                <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
+                  ✏ Edit Banner
+                </button>
+              )}
+            </section>
+            <TermSheetRankings />
+          </div>
+
+          {/* ── Body: cards (previous width) + sidebar (previous width) ── */}
+          <div className="home-dev-body">
           <div className="home-content-container">
             <div className="main-content home-main-content">
-
-              {/* ── Hero Banner ── */}
-              <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
-                <SharePointImage
-                  src={heroImageUrl || howBanner}
-                  placeholderSrc={howBanner}
-                  alt="Homepage banner"
-                  className="homepage-hero-image"
-                />
-                <div className="homepage-hero-overlay">
-                  <h1 className="homepage-hero-title">
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
-                  </h1>
-                </div>
-                {canEdit && (
-                  <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
-                    ✏ Edit Banner
-                  </button>
-                )}
-              </section>
 
               {/* Company Progress — re-enable after Lambda + amplify /api rewrite are live
               <CompanyProgress userInfo={userInfo} />
@@ -1126,10 +1130,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
             </div>
           </div>
 
-          {/* ── Sidebar + Monthly Term Sheet Rankings ── */}
-          <div className="home-sidebar-stack">
-            <TermSheetRankings />
-            <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
+          <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
           </div>
         </div>
       ) : (
