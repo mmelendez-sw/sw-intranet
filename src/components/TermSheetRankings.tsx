@@ -35,12 +35,8 @@ function tierForCount(count: number): TermSheetTier {
   return 3;
 }
 
-function countLabelForTier(tier: TermSheetTier, counts: number[]): string {
-  if (tier === 3) {
-    const unique = Array.from(new Set(counts)).sort((a, b) => b - a);
-    if (unique.length === 1) return String(unique[0]);
-    return '3+';
-  }
+function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
+  if (tier === 3) return '3+';
   return String(tier);
 }
 
