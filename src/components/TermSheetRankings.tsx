@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import '../../styles/term-sheet-rankings.css';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
@@ -40,20 +41,24 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
   return String(tier);
 }
 
-/**
- * Spoofed THIS_MONTH counts from sample Salesforce Opportunity rows
- * (Deal_Source_Individual__c / Id) — replace with live API when ready.
- */
-const SPOOF_COUNTS: SpoofPerson[] = [
-  { email: 'NBocchi@symphonyinfra.com', displayName: 'Nick Bocchi', matchKey: 'Bocchi', count: 3 },
-  { email: 'BSeidenberg@symphonyinfra.com', displayName: 'Brandon Seidenberg', matchKey: 'Seidenberg', count: 2 },
-  { email: 'esanandaji@symphonyinfra.com', displayName: 'Ethan Sanandaji', matchKey: 'Sanandaji', count: 2 },
-  { email: 'mkossak@symphonyinfra.com', displayName: 'Michael Kossak', matchKey: 'Kossak', count: 2 },
-  { email: 'DKing@symphonyinfra.com', displayName: 'Dylan King', matchKey: 'King', count: 1 },
-  { email: 'scasey@symphonyinfra.com', displayName: 'Shawn Casey', matchKey: 'Casey', count: 1 },
-  { email: 'CPolidoro@symphonyinfra.com', displayName: 'Chris Polidoro', matchKey: 'Polidoro', count: 0 },
-  { email: 'SSchamberg@symphonyinfra.com', displayName: 'Steve Schamberg', matchKey: 'Schamberg', count: 0 },
-];
+/** Spoofed THIS_MONTH counts keyed by matchKey — replace with live API when ready. */
+const SPOOF_COUNT_BY_KEY: Record<string, number> = {
+  Bocchi: 3,
+  Seidenberg: 2,
+  Sanandaji: 2,
+  Kossak: 2,
+  King: 1,
+  Casey: 1,
+  Polidoro: 0,
+  Schamberg: 0,
+};
+
+const SPOOF_COUNTS: SpoofPerson[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
+  email: entry.email,
+  displayName: entry.displayName,
+  matchKey: entry.matchKey,
+  count: SPOOF_COUNT_BY_KEY[entry.matchKey] ?? 0,
+}));
 
 function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
   const byTier = new Map<TermSheetTier, SpoofPerson[]>();
@@ -84,8 +89,8 @@ function currentMonthLabel(date = new Date()): string {
 }
 
 /**
- * Monthly Term Sheet Rankings — spoofed sample metrics for /dev sidebar sign-off.
- * People with the same tier (0 / 1 / 2 / 3+) share one row.
+ * Monthly Term Sheet Rankings — spoofed sample metrics for /dev WIP only.
+ * When promoting to `/`, gate with isTermSheetRankingsAllowlisted (AM roster).
  */
 const TermSheetRankings: React.FC = () => {
   const groups = useMemo(() => buildTierGroups(SPOOF_COUNTS), []);

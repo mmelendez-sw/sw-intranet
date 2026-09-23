@@ -1,5 +1,6 @@
 import { UserInfo } from './types/user';
 import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
+// import { TERM_SHEET_RANKINGS_ALLOWLIST } from './data/termSheetRankingsRoster';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
 export const BYPASS_AUTH = false;
@@ -107,6 +108,13 @@ export const isDevHomepageAllowlisted = (email?: string): boolean => {
   if (!email) return false;
   return DEV_HOMEPAGE_ALLOWLIST.has(email.toLowerCase());
 };
+
+/** Account Managers who can see Monthly Term Sheet Rankings once promoted off /dev. */
+// export const isTermSheetRankingsAllowlisted = (email?: string): boolean => {
+//   if (!email) return false;
+//   return TERM_SHEET_RANKINGS_ALLOWLIST.has(email.toLowerCase());
+// };
+
 
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';

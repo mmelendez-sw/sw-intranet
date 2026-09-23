@@ -1,59 +1,79 @@
-/* /dev layout: HOW banner + rankings share a top row; cards + sidebar keep prior widths */
+/* /dev: 2-column grid so banner↔cards and chart↔sidebar share widths and gaps */
 
-.home-layout--dev {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 12px;
-}
-
-.home-dev-top {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 12px;
-  width: 100%;
+.home-layout.home-layout--dev {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 30vw, 460px);
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 12px;
+  align-items: start;
   margin-top: var(--home-banner-top-gap, 12px);
-  box-sizing: border-box;
 }
 
-.home-dev-top .homepage-hero {
-  flex: 1 1 auto;
-  min-width: 0;
+/* Flatten wrappers so hero/chart/cards/sidebar are direct grid items */
+.home-layout--dev .home-dev-top,
+.home-layout--dev .home-dev-body {
+  display: contents;
+}
+
+/* OG homepage: wrapper must not break the classic flex row layout */
+.home-layout > .home-og-body {
+  display: contents;
+}
+
+.home-layout--dev .homepage-hero {
+  grid-column: 1;
+  grid-row: 1;
   margin: 0;
   height: auto;
   min-height: clamp(180px, 20vw, 330px);
+  width: 100%;
   align-self: stretch;
 }
 
-.home-dev-top .term-sheet-rankings {
-  flex: 0 0 clamp(300px, 26vw, 400px);
-  width: clamp(300px, 26vw, 400px);
-  max-width: clamp(300px, 26vw, 400px);
+.home-layout--dev .term-sheet-rankings {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  align-self: stretch;
 }
 
-.home-dev-body {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
+.home-layout--dev .home-content-container {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+  padding: 0;
   width: 100%;
-  box-sizing: border-box;
-}
-
-.home-dev-body .home-content-container {
-  flex: 1 1 auto;
   min-width: 0;
 }
 
-.home-dev-body .home-sidebar {
-  /* Previous sidebar size (before rankings widen) */
-  flex: 0 0 clamp(250px, 20vw, 320px);
-  max-width: clamp(250px, 20vw, 320px);
+.home-layout--dev .home-sidebar {
+  grid-column: 2;
+  grid-row: 2;
   width: 100%;
+  max-width: none;
+  flex: none;
   margin: 0 !important;
+  align-self: start;
+}
+
+/* Match card column spacing to the shared 12px grid gap (no extra top cushion) */
+.home-layout--dev .home-main-content {
+  margin: 0;
+  padding: 0;
+}
+
+.home-layout--dev .home-announcements {
+  margin: 0 0 8px !important;
+}
+
+.home-layout--dev .home-grid-layout {
+  margin: 0;
+  width: 100%;
 }
 
 .term-sheet-rankings {
@@ -184,22 +204,16 @@
 }
 
 @media (max-width: 900px) {
-  .home-dev-top {
-    flex-direction: column;
+  .home-layout.home-layout--dev {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 
-  .home-dev-top .term-sheet-rankings {
-    flex: 1 1 auto;
-    width: 100%;
-    max-width: none;
-  }
-
-  .home-dev-body {
-    flex-direction: column;
-  }
-
-  .home-dev-body .home-sidebar {
-    flex: 1 1 auto;
-    max-width: none;
+  .home-layout--dev .homepage-hero,
+  .home-layout--dev .term-sheet-rankings,
+  .home-layout--dev .home-content-container,
+  .home-layout--dev .home-sidebar {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
