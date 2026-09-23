@@ -1,19 +1,11 @@
-/* /dev: 2-column grid so banner↔cards and chart↔sidebar share widths and gaps */
+/* /dev: top row keeps a wide chart; body row uses a narrower sidebar so cards expand */
 
 .home-layout.home-layout--dev {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(360px, 30vw, 460px);
-  grid-template-rows: auto auto;
-  column-gap: 12px;
-  row-gap: 12px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   margin-top: var(--home-banner-top-gap, 12px);
-}
-
-/* Flatten wrappers so hero/chart/cards/sidebar are direct grid items */
-.home-layout--dev .home-dev-top,
-.home-layout--dev .home-dev-body {
-  display: contents;
 }
 
 /* OG homepage: wrapper must not break the classic flex row layout */
@@ -21,47 +13,60 @@
   display: contents;
 }
 
+.home-layout--dev .home-dev-top {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .home-layout--dev .homepage-hero {
-  grid-column: 1;
-  grid-row: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   height: auto;
   min-height: clamp(180px, 20vw, 330px);
-  width: 100%;
   align-self: stretch;
 }
 
 .home-layout--dev .term-sheet-rankings {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
-  max-width: none;
+  flex: 0 0 clamp(360px, 30vw, 460px);
+  width: clamp(360px, 30vw, 460px);
+  max-width: clamp(360px, 30vw, 460px);
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-self: stretch;
+}
+
+.home-layout--dev .home-dev-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .home-layout--dev .home-content-container {
-  grid-column: 1;
-  grid-row: 2;
+  flex: 1 1 auto;
   margin: 0;
   padding: 0;
   width: 100%;
   min-width: 0;
 }
 
+/* ~30% narrower than the chart column so cards expand into the freed space */
 .home-layout--dev .home-sidebar {
-  grid-column: 2;
-  grid-row: 2;
-  width: 100%;
-  max-width: none;
-  flex: none;
+  flex: 0 0 clamp(250px, 21vw, 320px);
+  width: clamp(250px, 21vw, 320px);
+  max-width: clamp(250px, 21vw, 320px);
   margin: 0 !important;
   align-self: start;
 }
 
-/* Match card column spacing to the shared 12px grid gap (no extra top cushion) */
+/* Match card column spacing to the shared 12px gap (no extra top cushion) */
 .home-layout--dev .home-main-content {
   margin: 0;
   padding: 0;
@@ -204,16 +209,15 @@
 }
 
 @media (max-width: 900px) {
-  .home-layout.home-layout--dev {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
+  .home-layout--dev .home-dev-top,
+  .home-layout--dev .home-dev-body {
+    flex-direction: column;
   }
 
-  .home-layout--dev .homepage-hero,
   .home-layout--dev .term-sheet-rankings,
-  .home-layout--dev .home-content-container,
   .home-layout--dev .home-sidebar {
-    grid-column: 1;
-    grid-row: auto;
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
   }
 }
