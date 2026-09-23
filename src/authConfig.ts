@@ -2,7 +2,7 @@ import { UserInfo } from './types/user';
 import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
-export const BYPASS_AUTH = false;
+export const BYPASS_AUTH = true;
 
 export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
@@ -91,6 +91,7 @@ export const ICEMAN_ALLOWLIST = new Set([
 ]);
 
 export const isIcemanAllowlisted = (email?: string): boolean => {
+  if (BYPASS_AUTH) return true;
   if (!email) return false;
   return ICEMAN_ALLOWLIST.has(email.toLowerCase());
 };
