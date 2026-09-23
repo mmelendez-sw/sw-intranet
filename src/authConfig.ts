@@ -1,16 +1,17 @@
 import { UserInfo } from './types/user';
 import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
 
-/** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
+/** Dev-only: skip MSAL login gates and grant full UI access. Keep false on main. */
 export const BYPASS_AUTH = true;
 
+/** Spoofed signed-in identity used when BYPASS_AUTH is true. */
 export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
   isEliteGroup: true,
   isEditor: true,
   isNetSuiteAdmin: true,
-  email: 'dev@symphonywireless.com',
-  name: 'Dev User',
+  email: 'mmelendez@symphonyinfra.com',
+  name: 'Miguel Melendez',
 };
 
 const appOrigin =

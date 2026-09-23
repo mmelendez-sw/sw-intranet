@@ -360,6 +360,17 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
               ></i>
             </span>
             <DropdownMenu />
+            {BYPASS_AUTH && !accounts[0] && (
+              <button
+                type="button"
+                onClick={handleLogin}
+                className="login-button"
+                style={{ marginLeft: 10 }}
+                title="Connect Microsoft account for SharePoint assets"
+              >
+                Connect Microsoft
+              </button>
+            )}
           </div>
         ) : (
           <button onClick={handleLogin} className="login-button">

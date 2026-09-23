@@ -35,6 +35,15 @@ const App: React.FC = () => {
   const checkAuthentication = async () => {
     if (BYPASS_AUTH) {
       setUserInfo(DEV_USER_INFO);
+      // SharePoint/Graph assets still need a real MSAL session. Soft-prompt login
+      // once so tokens exist while the UI stays spoofed as DEV_USER_INFO.
+      if (instance.getAllAccounts().length === 0) {
+        try {
+          await instance.loginRedirect(loginRequest);
+        } catch (err) {
+          console.warn('[bypass-auth] loginRedirect for Graph tokens failed:', err);
+        }
+      }
       return;
     }
 
