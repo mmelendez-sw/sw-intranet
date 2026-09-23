@@ -3,12 +3,17 @@ import '../../styles/term-sheet-rankings.css';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
 
-export type TermSheetRankingRow = {
+type SpoofPerson = {
   email: string;
   displayName: string;
   matchKey: string;
   count: number;
+};
+
+type TierGroup = {
   tier: TermSheetTier;
+  countLabel: string;
+  names: string[];
 };
 
 const TIER_META: Record<
@@ -21,6 +26,8 @@ const TIER_META: Record<
   3: { icon: '🐐', label: '3+ term sheets — Jordan', className: 'tier-3' },
 };
 
+const TIER_ORDER: TermSheetTier[] = [3, 2, 1, 0];
+
 function tierForCount(count: number): TermSheetTier {
   if (count <= 0) return 0;
   if (count === 1) return 1;
@@ -28,32 +35,52 @@ function tierForCount(count: number): TermSheetTier {
   return 3;
 }
 
+function countLabelForTier(tier: TermSheetTier, counts: number[]): string {
+  if (tier === 3) {
+    const unique = Array.from(new Set(counts)).sort((a, b) => b - a);
+    if (unique.length === 1) return String(unique[0]);
+    return '3+';
+  }
+  return String(tier);
+}
+
 /**
  * Spoofed THIS_MONTH counts from sample Salesforce Opportunity rows
  * (Deal_Source_Individual__c / Id) — replace with live API when ready.
  */
-const SPOOF_COUNTS: Array<{
-  email: string;
-  displayName: string;
-  matchKey: string;
-  count: number;
-}> = [
+const SPOOF_COUNTS: SpoofPerson[] = [
   { email: 'NBocchi@symphonyinfra.com', displayName: 'Nick Bocchi', matchKey: 'Bocchi', count: 3 },
   { email: 'BSeidenberg@symphonyinfra.com', displayName: 'Brandon Seidenberg', matchKey: 'Seidenberg', count: 2 },
   { email: 'esanandaji@symphonyinfra.com', displayName: 'Ethan Sanandaji', matchKey: 'Sanandaji', count: 2 },
   { email: 'mkossak@symphonyinfra.com', displayName: 'Michael Kossak', matchKey: 'Kossak', count: 2 },
   { email: 'DKing@symphonyinfra.com', displayName: 'Dylan King', matchKey: 'King', count: 1 },
   { email: 'scasey@symphonyinfra.com', displayName: 'Shawn Casey', matchKey: 'Casey', count: 1 },
-  { email: 'CPolidoro@symphonyinfra.com', displayName: 'C. Polidoro', matchKey: 'Polidoro', count: 0 },
-  { email: 'DHall@symphonyinfra.com', displayName: 'D. Hall', matchKey: 'Hall', count: 0 },
-  { email: 'SSchamberg@symphonyinfra.com', displayName: 'S. Schamberg', matchKey: 'Schamberg', count: 0 },
+  { email: 'CPolidoro@symphonyinfra.com', displayName: 'Chris Polidoro', matchKey: 'Polidoro', count: 0 },
+  { email: 'SSchamberg@symphonyinfra.com', displayName: 'Steve Schamberg', matchKey: 'Schamberg', count: 0 },
 ];
 
-function buildSpoofRankings(): TermSheetRankingRow[] {
-  return SPOOF_COUNTS.map((row) => ({
-    ...row,
-    tier: tierForCount(row.count),
-  })).sort((a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName));
+function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
+  const byTier = new Map<TermSheetTier, SpoofPerson[]>();
+  for (const person of people) {
+    const tier = tierForCount(person.count);
+    const list = byTier.get(tier) || [];
+    list.push(person);
+    byTier.set(tier, list);
+  }
+
+  return TIER_ORDER.filter((tier) => byTier.has(tier)).map((tier) => {
+    const members = (byTier.get(tier) || []).sort((a, b) =>
+      a.displayName.localeCompare(b.displayName)
+    );
+    return {
+      tier,
+      countLabel: countLabelForTier(
+        tier,
+        members.map((m) => m.count)
+      ),
+      names: members.map((m) => m.displayName),
+    };
+  });
 }
 
 function currentMonthLabel(date = new Date()): string {
@@ -62,10 +89,10 @@ function currentMonthLabel(date = new Date()): string {
 
 /**
  * Monthly Term Sheet Rankings — spoofed sample metrics for /dev sidebar sign-off.
- * Month label always tracks the current calendar month (e.g. September 2026).
+ * People with the same tier (0 / 1 / 2 / 3+) share one row.
  */
 const TermSheetRankings: React.FC = () => {
-  const rankings = useMemo(() => buildSpoofRankings(), []);
+  const groups = useMemo(() => buildTierGroups(SPOOF_COUNTS), []);
   const monthLabel = useMemo(() => currentMonthLabel(), []);
 
   return (
@@ -80,19 +107,25 @@ const TermSheetRankings: React.FC = () => {
       </header>
 
       <ul className="term-sheet-rankings-list">
-        {rankings.map((row) => {
-          const tier = TIER_META[row.tier];
+        {groups.map((group) => {
+          const tier = TIER_META[group.tier];
           return (
-            <li key={row.email} className={`term-sheet-rankings-row ${tier.className}`}>
+            <li key={group.tier} className={`term-sheet-rankings-row ${tier.className}`}>
               <span className="term-sheet-rankings-icon" title={tier.label} aria-label={tier.label}>
                 {tier.icon}
               </span>
-              <span className="term-sheet-rankings-identity">
-                <span className="term-sheet-rankings-name">{row.displayName}</span>
-                <span className="term-sheet-rankings-email">{row.email}</span>
+              <span className="term-sheet-rankings-names">
+                {group.names.map((name) => (
+                  <span key={name} className="term-sheet-rankings-name">
+                    {name}
+                  </span>
+                ))}
               </span>
-              <span className="term-sheet-rankings-count" title={`${row.count} signed this month`}>
-                {row.count}
+              <span
+                className="term-sheet-rankings-count"
+                title={`${group.countLabel} term sheet${group.countLabel === '1' ? '' : 's'} this month`}
+              >
+                {group.countLabel}
               </span>
             </li>
           );

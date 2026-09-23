@@ -113,15 +113,14 @@ export const TERM_SHEET_RANKING_ROSTER: Array<{
   matchKey: string;
   displayName: string;
 }> = [
-  { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'B. Seidenberg' },
-  { email: 'CPolidoro@symphonyinfra.com', matchKey: 'Polidoro', displayName: 'C. Polidoro' },
-  { email: 'DHall@symphonyinfra.com', matchKey: 'Hall', displayName: 'D. Hall' },
-  { email: 'DKing@symphonyinfra.com', matchKey: 'King', displayName: 'D. King' },
-  { email: 'esanandaji@symphonyinfra.com', matchKey: 'Sanandaji', displayName: 'E. Sanandaji' },
-  { email: 'mkossak@symphonyinfra.com', matchKey: 'Kossak', displayName: 'M. Kossak' },
-  { email: 'NBocchi@symphonyinfra.com', matchKey: 'Bocchi', displayName: 'N. Bocchi' },
-  { email: 'scasey@symphonyinfra.com', matchKey: 'Casey', displayName: 'S. Casey' },
-  { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'S. Schamberg' },
+  { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'Brandon Seidenberg' },
+  { email: 'CPolidoro@symphonyinfra.com', matchKey: 'Polidoro', displayName: 'Chris Polidoro' },
+  { email: 'DKing@symphonyinfra.com', matchKey: 'King', displayName: 'Dylan King' },
+  { email: 'esanandaji@symphonyinfra.com', matchKey: 'Sanandaji', displayName: 'Ethan Sanandaji' },
+  { email: 'mkossak@symphonyinfra.com', matchKey: 'Kossak', displayName: 'Michael Kossak' },
+  { email: 'NBocchi@symphonyinfra.com', matchKey: 'Bocchi', displayName: 'Nick Bocchi' },
+  { email: 'scasey@symphonyinfra.com', matchKey: 'Casey', displayName: 'Shawn Casey' },
+  { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'Steve Schamberg' },
 ];
 
 const TERM_SHEET_RANKINGS_QUERY = `
@@ -132,7 +131,6 @@ AND Deal_Source_Individual_Internal__c != null
 AND (
     Deal_Source_Individual__c LIKE '%Seidenberg%'
     OR Deal_Source_Individual__c LIKE '%Polidoro%'
-    OR Deal_Source_Individual__c LIKE '%Hall%'
     OR Deal_Source_Individual__c LIKE '%King%'
     OR Deal_Source_Individual__c LIKE '%Sanandaji%'
     OR Deal_Source_Individual__c LIKE '%Kossak%'
