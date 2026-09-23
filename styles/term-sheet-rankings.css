@@ -1,0 +1,144 @@
+.home-sidebar-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 clamp(250px, 20vw, 320px);
+  max-width: clamp(250px, 20vw, 320px);
+  width: 100%;
+  align-self: start;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 40px 0 0;
+}
+
+.home-sidebar-stack .home-sidebar {
+  margin: 0 !important;
+  flex: none;
+  max-width: none;
+  width: 100%;
+}
+
+.term-sheet-rankings {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 16px 14px 12px;
+  box-sizing: border-box;
+}
+
+.term-sheet-rankings-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #003366;
+  line-height: 1.25;
+}
+
+.term-sheet-rankings-month {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.term-sheet-rankings-status,
+.term-sheet-rankings-error {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.term-sheet-rankings-error {
+  color: #b91c1c;
+}
+
+.term-sheet-rankings-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.term-sheet-rankings-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.term-sheet-rankings-row.tier-0 {
+  background: #fef2f2;
+}
+
+.term-sheet-rankings-row.tier-1 {
+  background: #fff7ed;
+}
+
+.term-sheet-rankings-row.tier-2 {
+  background: #eff6ff;
+}
+
+.term-sheet-rankings-row.tier-3 {
+  background: #ecfdf5;
+}
+
+.term-sheet-rankings-icon {
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+}
+
+.term-sheet-rankings-identity {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.term-sheet-rankings-name {
+  font-size: 12px;
+  font-weight: 650;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.term-sheet-rankings-email {
+  font-size: 10px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.term-sheet-rankings-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #003366;
+  min-width: 1.25em;
+  text-align: right;
+}
+
+.term-sheet-rankings-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
+  .home-sidebar-stack {
+    max-width: none;
+    flex: 1 1 auto;
+    margin-top: 16px;
+  }
+}

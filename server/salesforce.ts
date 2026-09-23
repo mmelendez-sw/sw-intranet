@@ -106,3 +106,116 @@ async function runSalesforceQuery(soql: string): Promise<unknown> {
 export async function getCurrentInvestments(): Promise<unknown> {
   return runSalesforceQuery(CURRENT_INVESTMENTS_QUERY);
 }
+
+/** Fixed AM roster for Monthly Term Sheet Rankings (match key → email). */
+export const TERM_SHEET_RANKING_ROSTER: Array<{
+  email: string;
+  matchKey: string;
+  displayName: string;
+}> = [
+  { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'B. Seidenberg' },
+  { email: 'CPolidoro@symphonyinfra.com', matchKey: 'Polidoro', displayName: 'C. Polidoro' },
+  { email: 'DHall@symphonyinfra.com', matchKey: 'Hall', displayName: 'D. Hall' },
+  { email: 'DKing@symphonyinfra.com', matchKey: 'King', displayName: 'D. King' },
+  { email: 'esanandaji@symphonyinfra.com', matchKey: 'Sanandaji', displayName: 'E. Sanandaji' },
+  { email: 'mkossak@symphonyinfra.com', matchKey: 'Kossak', displayName: 'M. Kossak' },
+  { email: 'NBocchi@symphonyinfra.com', matchKey: 'Bocchi', displayName: 'N. Bocchi' },
+  { email: 'scasey@symphonyinfra.com', matchKey: 'Casey', displayName: 'S. Casey' },
+  { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'S. Schamberg' },
+];
+
+const TERM_SHEET_RANKINGS_QUERY = `
+SELECT Deal_Source_Individual__c, Id
+FROM Opportunity
+WHERE Term_Sheet_Signed_Date__c = THIS_MONTH
+AND Deal_Source_Individual_Internal__c != null
+AND (
+    Deal_Source_Individual__c LIKE '%Seidenberg%'
+    OR Deal_Source_Individual__c LIKE '%Polidoro%'
+    OR Deal_Source_Individual__c LIKE '%Hall%'
+    OR Deal_Source_Individual__c LIKE '%King%'
+    OR Deal_Source_Individual__c LIKE '%Sanandaji%'
+    OR Deal_Source_Individual__c LIKE '%Kossak%'
+    OR Deal_Source_Individual__c LIKE '%Bocchi%'
+    OR Deal_Source_Individual__c LIKE '%Casey%'
+    OR Deal_Source_Individual__c LIKE '%Schamberg%'
+)
+`;
+
+export type TermSheetTier = 0 | 1 | 2 | 3;
+
+export type TermSheetRankingRow = {
+  email: string;
+  displayName: string;
+  matchKey: string;
+  count: number;
+  tier: TermSheetTier;
+  dealSourceLabel: string | null;
+};
+
+function tierForCount(count: number): TermSheetTier {
+  if (count <= 0) return 0;
+  if (count === 1) return 1;
+  if (count === 2) return 2;
+  return 3;
+}
+
+function matchRosterEntry(dealSource: string) {
+  const normalized = dealSource.toLowerCase();
+  // Prefer longer / more specific keys first to avoid accidental overlaps.
+  const sorted = [...TERM_SHEET_RANKING_ROSTER].sort(
+    (a, b) => b.matchKey.length - a.matchKey.length
+  );
+  return sorted.find((entry) => normalized.includes(entry.matchKey.toLowerCase())) || null;
+}
+
+type SalesforceQueryResult = {
+  records?: Array<{
+    Id?: string;
+    Deal_Source_Individual__c?: string | null;
+  }>;
+  totalSize?: number;
+};
+
+/**
+ * Monthly Term Sheet Rankings: count THIS_MONTH signed term sheets per AM,
+ * always returning the full fixed roster (zeros included).
+ */
+export async function getTermSheetRankings(): Promise<{
+  monthLabel: string;
+  rankings: TermSheetRankingRow[];
+}> {
+  const data = (await runSalesforceQuery(TERM_SHEET_RANKINGS_QUERY)) as SalesforceQueryResult;
+  const counts = new Map<string, { count: number; dealSourceLabel: string | null }>();
+
+  for (const entry of TERM_SHEET_RANKING_ROSTER) {
+    counts.set(entry.matchKey, { count: 0, dealSourceLabel: null });
+  }
+
+  for (const record of data.records || []) {
+    const label = (record.Deal_Source_Individual__c || '').trim();
+    if (!label) continue;
+    const matched = matchRosterEntry(label);
+    if (!matched) continue;
+    const prev = counts.get(matched.matchKey) || { count: 0, dealSourceLabel: null };
+    counts.set(matched.matchKey, {
+      count: prev.count + 1,
+      dealSourceLabel: prev.dealSourceLabel || label,
+    });
+  }
+
+  const rankings = TERM_SHEET_RANKING_ROSTER.map((entry) => {
+    const stats = counts.get(entry.matchKey) || { count: 0, dealSourceLabel: null };
+    return {
+      email: entry.email,
+      displayName: entry.displayName,
+      matchKey: entry.matchKey,
+      count: stats.count,
+      tier: tierForCount(stats.count),
+      dealSourceLabel: stats.dealSourceLabel,
+    };
+  }).sort((a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName));
+
+  const monthLabel = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  return { monthLabel, rankings };
+}

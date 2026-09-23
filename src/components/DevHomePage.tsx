@@ -7,6 +7,7 @@ import { Navigate } from 'react-router-dom';
 import { isDevHomepageAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import TermSheetRankings from './TermSheetRankings';
 import {
   getContent,
   setContent,
@@ -1125,8 +1126,11 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
             </div>
           </div>
 
-          {/* ── Sidebar ── */}
-          <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
+          {/* ── Sidebar + Monthly Term Sheet Rankings ── */}
+          <div className="home-sidebar-stack">
+            <TermSheetRankings />
+            <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
+          </div>
         </div>
       ) : (
         <div className="unauthenticated-message">

@@ -182,6 +182,15 @@ export const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
   return '/api/salesforce/current-investments';
 })();
 
+/** Salesforce monthly term-sheet rankings endpoint (local API or Lambda). */
+export const SALESFORCE_TERM_SHEET_RANKINGS_URL = (() => {
+  if (typeof window === 'undefined') return '/api/salesforce/term-sheet-rankings';
+  if (INTRANET_API_BASE_URL) {
+    return `${INTRANET_API_BASE_URL}/api/salesforce/term-sheet-rankings`;
+  }
+  return '/api/salesforce/term-sheet-rankings';
+})();
+
 /** Power BI embed-token endpoint (local API or Lambda). */
 export const POWERBI_EMBED_TOKEN_URL = (() => {
   if (typeof window === 'undefined') return '/api/powerbi/embed-token';

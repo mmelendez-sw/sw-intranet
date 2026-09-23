@@ -7,6 +7,7 @@
  *   GET /api/images/:id            — proxy SharePoint drive item bytes
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/current-investments
+ *   GET /api/salesforce/term-sheet-rankings
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file)
  *
@@ -25,7 +26,7 @@ import {
   getDriveImageContentByWebUrl,
   clearDefaultImagesCache,
 } from './tvImages';
-import { getCurrentInvestments } from './salesforce';
+import { getCurrentInvestments, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { parseMultipart } from './multipart';
 import { generateIcemanWorkbook } from './iceman';
@@ -94,6 +95,10 @@ function isCardsPath(path: string): boolean {
 
 function isSalesforceInvestmentsPath(path: string): boolean {
   return /\/api\/salesforce\/current-investments\/?$/i.test(path);
+}
+
+function isSalesforceTermSheetRankingsPath(path: string): boolean {
+  return /\/api\/salesforce\/term-sheet-rankings\/?$/i.test(path);
 }
 
 function isPowerbiEmbedTokenPath(path: string): boolean {
@@ -215,6 +220,15 @@ export async function handler(event?: {
     // ── Salesforce (no Graph credentials required) ──
     if (isSalesforceInvestmentsPath(path)) {
       const data = await getCurrentInvestments();
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(data),
+      };
+    }
+
+    if (isSalesforceTermSheetRankingsPath(path)) {
+      const data = await getTermSheetRankings();
       return {
         statusCode: 200,
         headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
