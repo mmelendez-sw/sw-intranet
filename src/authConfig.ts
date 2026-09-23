@@ -200,88 +200,77 @@ export const HOMEPAGE_LAYOUT_DATA_FILENAME = 'homepage-layout.json';
 /** Per-department page content: General/intranet/departments/{slug}.json */
 export const DEPARTMENTS_CONTENT_FOLDER_PATH = 'General/intranet/departments';
 
+/**
+ * Returns a definitive membership boolean.
+ * Throws on indeterminate failures (no token yet, network/timeout, non-OK Graph)
+ * so callers do not cache false and hide elite/editor UI on transient errors.
+ */
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
   if (BYPASS_AUTH) return true;
 
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length === 0) return false;
+
+  const graphScopes = GRAPH_GROUP_SCOPES;
+
+  // Silent only — interactive login is handled by the header Login button.
+  const accessToken = await acquireTokenSilentOnly(msalInstance, graphScopes);
+  if (!accessToken) {
+    throw new Error('Graph token unavailable for group membership check');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const graphHeaders = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  };
+
   try {
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length === 0) return false;
+    const checkRes = await fetch('https://graph.microsoft.com/v1.0/me/checkMemberGroups', {
+      method: 'POST',
+      headers: graphHeaders,
+      body: JSON.stringify({ groupIds: [groupId] }),
+      signal: controller.signal,
+    });
 
-    const graphScopes = GRAPH_GROUP_SCOPES;
+    if (checkRes.ok) {
+      const body = await checkRes.json();
+      return Array.isArray(body.value) && body.value.includes(groupId);
+    }
 
-    // Silent only — interactive login is handled by the header Login button.
-    const accessToken = await acquireTokenSilentOnly(msalInstance, graphScopes);
-    if (!accessToken) return false;
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    const graphHeaders = {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
+    type MemberOfPage = {
+      value?: Array<{ id?: string }>;
+      ['@odata.nextLink']?: string;
     };
-
-    try {
-      const checkRes = await fetch('https://graph.microsoft.com/v1.0/me/checkMemberGroups', {
-        method: 'POST',
+    let memberOfUrl: string | null = 'https://graph.microsoft.com/v1.0/me/memberOf';
+    while (memberOfUrl) {
+      const memberRes: Response = await fetch(memberOfUrl, {
         headers: graphHeaders,
-        body: JSON.stringify({ groupIds: [groupId] }),
         signal: controller.signal,
       });
-
-      if (checkRes.ok) {
-        const body = await checkRes.json();
-        clearTimeout(timeoutId);
-        return Array.isArray(body.value) && body.value.includes(groupId);
+      if (!memberRes.ok) {
+        throw new Error(`Graph memberOf failed (${memberRes.status})`);
       }
-
-      type MemberOfPage = {
-        value?: Array<{ id?: string }>;
-        ['@odata.nextLink']?: string;
-      };
-      let memberOfUrl: string | null = 'https://graph.microsoft.com/v1.0/me/memberOf';
-      while (memberOfUrl) {
-        const memberRes: Response = await fetch(memberOfUrl, {
-          headers: graphHeaders,
-          signal: controller.signal,
-        });
-        if (!memberRes.ok) {
-          clearTimeout(timeoutId);
-          return false;
-        }
-        const memberPage: MemberOfPage = await memberRes.json();
-        if (memberPage.value?.some((group) => group.id === groupId)) {
-          clearTimeout(timeoutId);
-          return true;
-        }
-        memberOfUrl = memberPage['@odata.nextLink'] ?? null;
+      const memberPage: MemberOfPage = await memberRes.json();
+      if (memberPage.value?.some((group) => group.id === groupId)) {
+        return true;
       }
-      clearTimeout(timeoutId);
-      return false;
-    } catch (fetchError: any) {
-      clearTimeout(timeoutId);
-      if (fetchError.name !== 'AbortError') console.error('Graph API fetch error:', fetchError);
-      return false;
+      memberOfUrl = memberPage['@odata.nextLink'] ?? null;
     }
-  } catch (error) {
-    console.error('Error checking group membership:', error);
     return false;
+  } catch (fetchError: any) {
+    if (fetchError?.name === 'AbortError') {
+      throw new Error('Graph group membership check timed out');
+    }
+    throw fetchError;
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 
-export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> => {
-  try {
-    return await checkGroupMembership(msalInstance, INTRANET_EXECS_GROUP_ID);
-  } catch (error) {
-    console.error('Error checking elite group membership:', error);
-    return false;
-  }
-};
+export const isEliteGroupMember = async (msalInstance: any): Promise<boolean> =>
+  checkGroupMembership(msalInstance, INTRANET_EXECS_GROUP_ID);
 
-export const isEditorGroupMember = async (msalInstance: any): Promise<boolean> => {
-  try {
-    return await checkGroupMembership(msalInstance, INTRANET_EDITORS_GROUP_ID);
-  } catch (error) {
-    console.error('Error checking editor group membership:', error);
-    return false;
-  }
-};
+export const isEditorGroupMember = async (msalInstance: any): Promise<boolean> =>
+  checkGroupMembership(msalInstance, INTRANET_EDITORS_GROUP_ID);

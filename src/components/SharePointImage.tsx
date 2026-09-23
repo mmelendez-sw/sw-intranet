@@ -31,12 +31,16 @@ function resolveDisplaySrc(src: string, placeholderSrc?: string): string {
  * Renders images stored in SharePoint using a Graph-authenticated fetch so they
  * load for signed-in users even without SharePoint browser cookies (e.g. incognito).
  * When unsigned but TV_CARDS_API_URL is set, uses the TV API image proxy instead.
+ *
+ * Cache path: in-memory object URL → IndexedDB blob → Graph fetch.
  */
 const SharePointImage: React.FC<SharePointImageProps> = ({
   src,
   placeholderSrc,
   alt,
   className,
+  loading = 'lazy',
+  decoding = 'async',
   ...rest
 }) => {
   const { instance } = useMsal();
@@ -71,8 +75,8 @@ const SharePointImage: React.FC<SharePointImageProps> = ({
 
     let cancelled = false;
     void (async () => {
-      const dataUrl = await getSharePointImageBlobUrl(instance, src);
-      if (!cancelled && dataUrl) setResolvedSrc(dataUrl);
+      const objectUrl = await getSharePointImageBlobUrl(instance, src);
+      if (!cancelled && objectUrl) setResolvedSrc(objectUrl);
     })();
 
     return () => {
@@ -84,7 +88,16 @@ const SharePointImage: React.FC<SharePointImageProps> = ({
     return null;
   }
 
-  return <img src={resolvedSrc} alt={alt ?? ''} className={className} {...rest} />;
+  return (
+    <img
+      src={resolvedSrc}
+      alt={alt ?? ''}
+      className={className}
+      loading={loading}
+      decoding={decoding}
+      {...rest}
+    />
+  );
 };
 
 export default SharePointImage;

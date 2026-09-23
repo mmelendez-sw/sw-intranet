@@ -7,6 +7,7 @@ import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./authConfig";
 import { warmHomepageImageCache } from './services/contentService';
 import { preloadBundledHomepageImages } from './utils/homepageImageWarmup';
+import { clearLegacyLocalStorageImageCache } from './utils/sharePointImageIdb';
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -15,6 +16,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 // render the app before MSAL has processed the auth response in the URL
 // hash, causing the user to appear unauthenticated after successful login.
 const renderApp = async () => {
+  clearLegacyLocalStorageImageCache();
   preloadBundledHomepageImages();
 
   await msalInstance.initialize();
@@ -29,6 +31,7 @@ const renderApp = async () => {
     console.error(e);
   }
 
+  // Warm IndexedDB/object-URL cache without blocking first paint.
   void warmHomepageImageCache(msalInstance);
 
   ReactDOM.render(
