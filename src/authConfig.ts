@@ -95,6 +95,19 @@ export const isIcemanAllowlisted = (email?: string): boolean => {
   return ICEMAN_ALLOWLIST.has(email.toLowerCase());
 };
 
+/**
+ * /dev homepage sandbox — real login required; UI work happens here before
+ * promoting changes to `/`.
+ */
+export const DEV_HOMEPAGE_ALLOWLIST = new Set([
+  'mmelendez@symphonyinfra.com',
+]);
+
+export const isDevHomepageAllowlisted = (email?: string): boolean => {
+  if (!email) return false;
+  return DEV_HOMEPAGE_ALLOWLIST.has(email.toLowerCase());
+};
+
 // SharePoint site where editable content is stored
 export const SHAREPOINT_HOST = 'symphonyinfrastructure.sharepoint.com';
 export const SHAREPOINT_SITE_PATH = '/sites/SymphonyWirelessTeam';

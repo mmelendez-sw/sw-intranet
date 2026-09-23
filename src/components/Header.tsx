@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { BYPASS_AUTH, isIcemanAllowlisted, loginRequest } from '../authConfig';
+import { BYPASS_AUTH, isIcemanAllowlisted, isDevHomepageAllowlisted, loginRequest } from '../authConfig';
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -291,6 +291,11 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
         <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
         {userInfo.isAuthenticated && (
           <>
+            {isDevHomepageAllowlisted(userInfo.email) && (
+              <>
+                <i className="fa-solid fa-flask"></i> <Link to="/dev">Dev</Link>
+              </>
+            )}
             <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
             <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
             <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
