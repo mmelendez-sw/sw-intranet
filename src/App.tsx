@@ -237,7 +237,7 @@ const App: React.FC = () => {
         <Route
           path="/*"
           element={
-            <ThemeProvider email={isDevHomepageAllowlisted(userInfo.email) ? userInfo.email : undefined}>
+            <ThemeProvider email={userInfo.isAuthenticated ? userInfo.email : undefined}>
             <EditMenuProvider>
               <Header userInfo={userInfo} />
               {/* <div className="below-header">

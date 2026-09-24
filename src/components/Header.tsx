@@ -263,19 +263,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
               ✏ Edit{isEditMode ? ' (on)' : ''}
             </button>
           )}
-          {canToggleTheme && (
-            <button
-              type="button"
-              onClick={() => {
-                toggleTheme();
-                closeDropdown();
-              }}
-              className="dropdown-item"
-              aria-pressed={theme === 'dark'}
-            >
-              {theme === 'dark' ? '☀ Light mode' : '🌙 Dark mode'}
-            </button>
-          )}
           <button
             type="button"
             onClick={handleLogout}
@@ -347,6 +334,22 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       {/* <DepartmentsMenu /> */}
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
+          <>
+          {canToggleTheme && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label="Dark mode"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={`theme-toggle${theme === 'dark' ? ' is-dark' : ''}`}
+              onClick={toggleTheme}
+            >
+              <span className="theme-toggle-track" aria-hidden="true">
+                <span className="theme-toggle-thumb">{theme === 'dark' ? '🌙' : '☀'}</span>
+              </span>
+            </button>
+          )}
           <div className="user-dropdown">
             <span
               onClick={toggleDropdown}
@@ -381,6 +384,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             </span>
             <DropdownMenu />
           </div>
+          </>
         ) : (
           <button onClick={handleLogin} className="login-button">
             Login

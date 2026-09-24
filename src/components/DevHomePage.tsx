@@ -48,7 +48,6 @@ import {
   editSaveStatusFromResult,
   finishEditSave,
 } from './EditSaveStatusText';
-import { useTheme } from '../context/ThemeContext';
 // import { useTvLayout } from '../hooks/useTvLayout';
 
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -260,7 +259,6 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
-  const { theme, toggleTheme } = useTheme();
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
@@ -1017,31 +1015,9 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
           fontSize: 13,
           fontWeight: 600,
           letterSpacing: '0.02em',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
         }}
       >
         DEV homepage — WIP features for testing and sign-off (does not change /)
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-pressed={theme === 'dark'}
-          style={{
-            background: 'transparent',
-            color: 'inherit',
-            border: '1px solid rgba(230, 244, 255, 0.6)',
-            borderRadius: 999,
-            padding: '2px 12px',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          {theme === 'dark' ? '☀ Light mode' : '🌙 Dark mode'}
-        </button>
       </div>
       {showHomeContent ? (
         <div className="home-layout home-layout--dev">

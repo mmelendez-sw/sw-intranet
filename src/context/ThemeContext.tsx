@@ -4,7 +4,7 @@ export type UserTheme = 'light' | 'dark';
 
 interface ThemeContextValue {
   theme: UserTheme;
-  /** False for users who can't opt in yet (dark mode is still gated to the /dev allowlist). */
+  /** False when no user is signed in (the preference is stored per account). */
   canToggle: boolean;
   toggleTheme: () => void;
 }
@@ -28,7 +28,7 @@ const readTheme = (email?: string): UserTheme => {
 
 /**
  * Per-user light/dark preference, stored per signed-in account (not the OS setting).
- * Pass `email` only for users allowed to opt in; everyone else always renders light.
+ * Pass the signed-in user's email; with no email the site always renders light.
  * Sets `data-theme="dark"` on <html>, which activates styles/dark-theme.css site-wide.
  */
 export const ThemeProvider: React.FC<{ email?: string; children: React.ReactNode }> = ({
