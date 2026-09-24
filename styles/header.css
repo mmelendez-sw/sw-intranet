@@ -351,3 +351,54 @@
 .test-popup-button:hover {
     background-color: #002e4c;
 }
+
+/* Dark mode switch (left of "Welcome, …!") */
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-right: 14px;
+    cursor: pointer;
+}
+
+.theme-toggle-track {
+    position: relative;
+    width: 46px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: background-color 0.2s ease;
+}
+
+.theme-toggle-thumb {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle.is-dark .theme-toggle-track {
+    background: #2e3d52;
+}
+
+.theme-toggle.is-dark .theme-toggle-thumb {
+    transform: translateX(22px);
+    background: #0f1b29;
+}
+
+.theme-toggle:focus-visible .theme-toggle-track {
+    outline: 2px solid #8ec8ef;
+    outline-offset: 2px;
+}

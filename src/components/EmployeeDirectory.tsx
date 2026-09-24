@@ -1,100 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/employee-directory.css';
-import { acquireTokenSilentOnly, DIRECTORY_SCOPES } from '../utils/msalToken';
-
-interface GraphUser {
-  id: string;
-  displayName: string;
-  givenName?: string | null;
-  surname?: string | null;
-  jobTitle: string | null;
-  department: string | null;
-  companyName?: string | null;
-  mail: string | null;
-  accountEnabled?: boolean;
-  photoUrl?: string; // resolved client-side
-}
+import { BYPASS_AUTH } from '../authConfig';
+import { MOCK_DIRECTORY_USERS } from '../data/mockContent';
+import { GraphUser, fetchDirectoryUsers, getDirectoryToken } from '../services/directoryService';
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
-
-const ALLOWED_EMAIL_SUFFIX = '@symphonyinfra.com';
-const ALLOWED_COMPANY = 'symphony';
-
-const ACTIVE_USERS_URL =
-  'https://graph.microsoft.com/v1.0/users' +
-  '?$filter=accountEnabled%20eq%20true' +
-  '&$count=true' +
-  '&$top=999' +
-  '&$select=id,displayName,givenName,surname,mail,jobTitle,department,companyName,accountEnabled';
-
-function hasAllowedEmail(mail: string | null | undefined): boolean {
-  return !!mail && mail.toLowerCase().endsWith(ALLOWED_EMAIL_SUFFIX);
-}
-
-function hasFirstAndLastName(user: GraphUser): boolean {
-  const given = user.givenName?.trim();
-  const family = user.surname?.trim();
-  if (given && family) return true;
-
-  const parts = user.displayName.trim().split(/\s+/).filter((p) => p.length > 0);
-  return parts.length >= 2;
-}
-
-function isRoomResource(user: GraphUser): boolean {
-  return user.displayName.trim().toLowerCase().startsWith('room -');
-}
-
-function hasAllowedCompany(user: GraphUser): boolean {
-  return user.companyName?.trim().toLowerCase() === ALLOWED_COMPANY;
-}
-
-function hasJobTitle(user: GraphUser): boolean {
-  return !!user.jobTitle?.trim();
-}
-
-function isConsultant(user: GraphUser): boolean {
-  return (user.jobTitle ?? '').toLowerCase().includes('(consultant)');
-}
-
-async function getGraphToken(msalInstance: any): Promise<string | null> {
-  return acquireTokenSilentOnly(msalInstance, DIRECTORY_SCOPES);
-}
-
-async function fetchUsers(token: string): Promise<GraphUser[]> {
-  const users: GraphUser[] = [];
-  let url: string | null = ACTIVE_USERS_URL;
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    ConsistencyLevel: 'eventual',
-  };
-
-  while (url) {
-    const res: Response = await fetch(url, { headers });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`/users failed: ${res.status}${body ? ` — ${body.slice(0, 240)}` : ''}`);
-    }
-    const data: { value?: GraphUser[]; '@odata.nextLink'?: string } = await res.json();
-    users.push(...(data.value ?? []));
-    url = data['@odata.nextLink'] ?? null;
-  }
-
-  return users
-    .filter(
-      (u) =>
-        u.displayName &&
-        // hasAllowedEmail(u.mail) &&
-        u.accountEnabled !== false &&
-        hasFirstAndLastName(u) &&
-        !isRoomResource(u) &&
-        hasAllowedCompany(u) &&
-        hasJobTitle(u) &&
-        !isConsultant(u)
-        
-    )
-    .sort((a, b) => a.displayName.localeCompare(b.displayName));
-}
 
 async function fetchPhoto(token: string, userId: string): Promise<string | null> {
   try {
@@ -150,14 +61,19 @@ const EmployeeDirectory: React.FC = () => {
   const loadDirectory = useCallback(async () => {
     setLoading(true);
     setError(null);
+    if (BYPASS_AUTH) {
+      setUsers(MOCK_DIRECTORY_USERS);
+      setLoading(false);
+      return;
+    }
     try {
-      const token = await getGraphToken(instance);
+      const token = await getDirectoryToken(instance);
       if (!token) {
         setError('Unable to load directory permissions. If prompted, approve access — you do not need to sign out. Otherwise ask IT to grant User.Read.All for this app.');
         return;
       }
 
-      const rawUsers = await fetchUsers(token);
+      const rawUsers = await fetchDirectoryUsers(token);
       setUsers(rawUsers);
       setLoading(false);
 

@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import '../styles/global.css';
+// After App + global.css so its :where()-scoped rules win cascade ties; inert unless data-theme="dark".
+import '../styles/dark-theme.css';
 import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
 import { msalConfig } from "./authConfig";

@@ -18,7 +18,17 @@ import {
   parseSidebarContent,
   buildSidebarContentFile,
   stampSidebarSectionEditor,
+  BirthdaysContent,
+  parseBirthdaysContent,
+  birthdaysOrDefault,
 } from '../services/contentService';
+import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
+import {
+  BIRTHDAYS_UPDATED_EVENT,
+  MONTH_NAMES,
+  birthdaysInMonth,
+  filterActiveBirthdays,
+} from '../utils/birthdays';
 import '../../styles/edit-mode.css';
 import {
   EditSaveStatus,
@@ -27,6 +37,11 @@ import {
 } from './EditSaveStatusText';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
+const BIRTHDAYS_CONTENT_KEY = 'birthdays';
+
+/** The HR section hosts the Current Month Birthdays list. */
+const isHrSection = (section: SidebarSection): boolean =>
+  section.key === 'hr-updates' || /hr/i.test(section.title ?? '');
 
 interface IntranetSidebarProps {
   userInfo: UserInfo;
@@ -160,7 +175,7 @@ const syncSidebarLayout = (
       }
       continue;
     }
-    if (sectionKeys.has(block.key) && !seen.has(block.key)) {
+    if (block.type === 'section' && sectionKeys.has(block.key) && !seen.has(block.key)) {
       synced.push(block);
       seen.add(block.key);
     }
@@ -216,6 +231,31 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [configDraft, setConfigDraft] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSaveStatus, setConfigSaveStatus] = useState<EditSaveStatus>('idle');
+  const [birthdays, setBirthdays] = useState<BirthdaysContent>(() =>
+    birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY))
+  );
+  const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
+
+  useEffect(() => {
+    if (!userInfo.isAuthenticated) return;
+    let cancelled = false;
+    const load = async () => {
+      const remote = await getContent<unknown>(instance, BIRTHDAYS_CONTENT_KEY);
+      if (!cancelled && remote) setBirthdays(parseBirthdaysContent(remote));
+    };
+    const onUpdated = () => setBirthdays(birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY)));
+    void load();
+    window.addEventListener(BIRTHDAYS_UPDATED_EVENT, onUpdated);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(BIRTHDAYS_UPDATED_EVENT, onUpdated);
+    };
+  }, [userInfo.isAuthenticated, instance]);
+
+  const currentMonth = new Date().getMonth() + 1;
+  const monthBirthdays = directoryUsers === undefined
+    ? []
+    : birthdaysInMonth(filterActiveBirthdays(birthdays.people, directoryUsers), currentMonth);
 
   // ── Load from SharePoint ──
   useEffect(() => {
@@ -521,6 +561,21 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                   <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
                     {section.buttonLabel}
                   </button>
+                )}
+                {isHrSection(section) && monthBirthdays.length > 0 && (
+                  <div className="sidebar-birthdays">
+                    <h3 className="sidebar-birthdays-heading">🎂 Current Month Birthdays</h3>
+                    <ul className="sidebar-birthdays-list">
+                      {monthBirthdays.map((person) => (
+                        <li key={person.id}>
+                          <span className="sidebar-birthdays-date">
+                            {MONTH_NAMES[person.month - 1].slice(0, 3)} {person.day}
+                          </span>
+                          <span className="sidebar-birthdays-name">{person.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 {canEdit && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>

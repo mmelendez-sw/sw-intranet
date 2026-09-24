@@ -30,3 +30,5 @@ server/.env.example
 
 # Server build output
 server/dist/
+dist-lambda/
+sw-intranet-api.zip

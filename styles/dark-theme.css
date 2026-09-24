@@ -1,0 +1,863 @@
+/*
+ * Per-user dark theme. Every rule is scoped to :root[data-theme="dark"], so
+ * nothing here applies unless ThemeProvider sets it for a user who opted in.
+ * :where() keeps selector specificity identical to the light rules being overridden.
+ */
+
+/* ── global.css ── */
+:root[data-theme="dark"] {
+  --page-bg: #1c2633;
+  --surface: #243041;
+  --surface-alt: #2e3d52;
+  --surface-muted: #283647;
+  --text-primary: #e6edf5;
+  --text-heading: #8ec8ef;
+  --text-muted: #9aadc2;
+  --border-subtle: #3d4f66;
+  --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --overlay-menu-bg: #243041;
+  --overlay-menu-text: #e6edf5;
+  --overlay-menu-hover: #2e3d52;
+  --spinner-track: rgba(142, 200, 239, 0.2);
+  --spinner-head: #8ec8ef;
+  color-scheme: dark;
+}
+
+:where(:root[data-theme="dark"]) body {
+  background-color: var(--page-bg);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .date {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .app-loading-spinner {
+  border: 3px solid var(--spinner-track);
+  border-top-color: var(--spinner-head);
+}
+
+:where(:root[data-theme="dark"]) .card,
+:where(:root[data-theme="dark"]) .odd-card {
+  background-color: var(--surface) !important;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .even-card,
+:where(:root[data-theme="dark"]) .blue-column {
+  background-color: var(--surface-alt) !important;
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2,
+:where(:root[data-theme="dark"]) .home-sidebar h2,
+:where(:root[data-theme="dark"]) .text-bar {
+  color: var(--text-heading) !important;
+}
+
+:where(:root[data-theme="dark"]) .card-text li,
+:where(:root[data-theme="dark"]) .card-text p,
+:where(:root[data-theme="dark"]) .home-sidebar p,
+:where(:root[data-theme="dark"]) .home-sidebar ul {
+  color: var(--text-primary) !important;
+}
+
+:where(:root[data-theme="dark"]) .dropdown-menu,
+:where(:root[data-theme="dark"]) .dropdown-item {
+  background-color: var(--overlay-menu-bg) !important;
+  color: var(--overlay-menu-text) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item:hover {
+  background-color: var(--overlay-menu-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar,
+:where(:root[data-theme="dark"]) .company-progress-box,
+:where(:root[data-theme="dark"]) .salesforce-panel,
+:where(:root[data-theme="dark"]) .salesforce-summary-card,
+:where(:root[data-theme="dark"]) .directory-card,
+:where(:root[data-theme="dark"]) .directory-panel,
+:where(:root[data-theme="dark"]) .edit-modal,
+:where(:root[data-theme="dark"]) .edit-modal-content,
+:where(:root[data-theme="dark"]) .lead-gen-card,
+:where(:root[data-theme="dark"]) .dept-card,
+:where(:root[data-theme="dark"]) .report-card {
+  background-color: var(--surface) !important;
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-overlay {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+
+:where(:root[data-theme="dark"]) input,
+:where(:root[data-theme="dark"]) textarea,
+:where(:root[data-theme="dark"]) select {
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+/* ── header.css ── */
+:where(:root[data-theme="dark"]) .dropdown-menu {
+  background-color: var(--overlay-menu-bg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item {
+  background-color: var(--overlay-menu-bg);
+  color: var(--overlay-menu-text);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item:hover {
+  background-color: var(--overlay-menu-hover);
+  color: var(--text-primary);
+}
+
+/* ── home-page.css ── */
+:where(:root[data-theme="dark"]) .home-sidebar {
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .card {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .card-text li {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .odd-card {
+  background-color: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .even-card {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .text-bar {
+  color: var(--text-heading);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar p,
+:where(:root[data-theme="dark"]) .home-sidebar ul {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-heading {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .announcement-item {
+  background: #3a3220;
+  border-color: #8a6a2a;
+  border-left-color: #f59e0b;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-title {
+  color: #fbbf24;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-body {
+  color: #fde68a;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-date {
+  color: #f59e0b;
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-toggle {
+  color: #8ec8ef;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item {
+  background: #3a2433;
+  border-color: #9d4b78;
+  border-left-color: #ec4899;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-title {
+  color: #f9a8d4;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-body {
+  color: #fbcfe8;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-date {
+  color: #f472b6;
+}
+
+/* ── edit-mode.css ── */
+:where(:root[data-theme="dark"]) .home-layout-controls-label {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-group {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-btn {
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-btn:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-header h3 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-close {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-close:hover {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-group label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-group input[type="text"],
+:where(:root[data-theme="dark"]) .edit-field-group input[type="url"],
+:where(:root[data-theme="dark"]) .edit-field-group input[type="date"],
+:where(:root[data-theme="dark"]) .edit-field-group textarea,
+:where(:root[data-theme="dark"]) .edit-field-group select {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-hint {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert-label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert input[type="url"] {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert input[type="text"] {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .edit-btn-cancel {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-btn-cancel:hover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-saving-indicator {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-preview {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .card-drag-handle {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .drag-dots span {
+  background: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-area {
+  border: 2px dashed var(--border-subtle);
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-area:hover,
+:where(:root[data-theme="dark"]) .edit-upload-area.dragover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-label {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-divider {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-divider::before,
+:where(:root[data-theme="dark"]) .edit-image-divider::after {
+  background: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-checkbox-row {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-inactive {
+  border-top: 1px dashed var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-inactive-heading {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-item {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-badge {
+  color: var(--text-muted);
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-title {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-body {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-date {
+  color: var(--text-muted);
+}
+
+/* ── company-progress.css ── */
+:where(:root[data-theme="dark"]) .company-progress-box {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ── department-page.css ── */
+:where(:root[data-theme="dark"]) .card {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2 {
+  color: var(--text-heading);
+}
+
+/* ── employee-directory.css ── */
+:where(:root[data-theme="dark"]) .directory-header h1 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-header p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-search-bar input {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-search-icon {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-stats {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-name {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-title {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-dept {
+  background: rgba(142, 200, 239, 0.15);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-email {
+  color: #7eb6ff;
+}
+
+:where(:root[data-theme="dark"]) .directory-avatar,
+:where(:root[data-theme="dark"]) .directory-avatar-placeholder {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .directory-skeleton-card {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty strong {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty strong {
+  color: var(--text-heading);
+}
+
+/* ── reports.css ── */
+:where(:root[data-theme="dark"]) .reports-text-bar {
+  color: var(--text-heading);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .reports-text-bar h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .elite-access-banner {
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .reports-table {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .reports-table th,
+:where(:root[data-theme="dark"]) .reports-table td {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .reports-table tr:nth-child(even) {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .report-description-cell {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .report-drag-handle {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Site-wide coverage beyond serena-dev: header, footer, ticker, alerts,
+ * Salesforce panels, Lead Generation, Iceman, calendar.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  --header-bg: #0f1b29;
+  --header-menu-bg: #17263a;
+  --tint-info-bg: rgba(59, 130, 246, 0.16);
+  --tint-info-text: #bfdbfe;
+  --tint-warn-bg: rgba(245, 158, 11, 0.16);
+  --tint-warn-text: #fde68a;
+  --tint-success-bg: rgba(34, 197, 94, 0.16);
+  --tint-success-text: #bbf7d0;
+  --tint-error-bg: rgba(239, 68, 68, 0.16);
+  --tint-error-text: #fecaca;
+  --link: #7eb6ff;
+}
+
+/* ── Header ── */
+:where(:root[data-theme="dark"]) .header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .nav-dropdown-menu {
+  background-color: var(--header-menu-bg);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .nav-bar .nav-dropdown-menu a.nav-dropdown-item:hover {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .logout-button,
+:where(:root[data-theme="dark"]) .test-popup-button {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-edit-toggle {
+  border-bottom-color: var(--border-subtle);
+}
+
+/* ── Page chrome ── */
+:where(:root[data-theme="dark"]) .footer {
+  background-color: var(--header-bg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .dev-homepage-banner {
+  background: var(--header-menu-bg) !important;
+  color: var(--text-heading) !important;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .card-text a,
+:where(:root[data-theme="dark"]) .home-sidebar a:not(.home-button):not(.link-button),
+:where(:root[data-theme="dark"]) .announcement-item-body a,
+:where(:root[data-theme="dark"]) .card-reorder-btn,
+:where(:root[data-theme="dark"]) .sidebar-reorder-btn,
+:where(:root[data-theme="dark"]) .edit-upload-filename,
+:where(:root[data-theme="dark"]) .edit-upload-progress {
+  color: var(--link);
+}
+
+/* ── Ticker + alert banner ── */
+:where(:root[data-theme="dark"]) .ticker-wrap {
+  background-color: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .ticker__item {
+  color: #ff8a8a;
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-info {
+  background: var(--tint-info-bg);
+  border-color: #1d4ed8;
+  color: var(--tint-info-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-warning {
+  background: var(--tint-warn-bg);
+  border-color: #b45309;
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-success {
+  background: var(--tint-success-bg);
+  border-color: #15803d;
+  color: var(--tint-success-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-error {
+  background: var(--tint-error-bg);
+  border-color: #b91c1c;
+  color: var(--tint-error-text);
+}
+
+/* ── Company progress / Salesforce panels ── */
+:where(:root[data-theme="dark"]) .salesforce-panel,
+:where(:root[data-theme="dark"]) .salesforce-summary-card,
+:where(:root[data-theme="dark"]) .powerbi-embed-container {
+  background-color: var(--surface) !important;
+}
+
+:where(:root[data-theme="dark"]) .salesforce-summary-value,
+:where(:root[data-theme="dark"]) .salesforce-table {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-panel-goal,
+:where(:root[data-theme="dark"]) .salesforce-summary-status,
+:where(:root[data-theme="dark"]) .salesforce-status,
+:where(:root[data-theme="dark"]) .closed-rent-gauge-value,
+:where(:root[data-theme="dark"]) .closed-rent-gauge-scale {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-summary-error,
+:where(:root[data-theme="dark"]) .salesforce-error {
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table th,
+:where(:root[data-theme="dark"]) .salesforce-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table th {
+  background-color: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table tbody tr:nth-child(even) {
+  background-color: var(--surface-muted);
+}
+
+/* ── Employee directory leftovers ── */
+:where(:root[data-theme="dark"]) .directory-avatar,
+:where(:root[data-theme="dark"]) .skeleton-circle,
+:where(:root[data-theme="dark"]) .skeleton-line {
+  background: var(--surface-alt);
+}
+
+/* ── Lead Generation ── */
+:where(:root[data-theme="dark"]) .lead-generation-page {
+  background: var(--page-bg);
+}
+
+:where(:root[data-theme="dark"]) .lead-generation-header h1,
+:where(:root[data-theme="dark"]) .lead-form-section h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .lead-generation-header p,
+:where(:root[data-theme="dark"]) .lead-signed-in,
+:where(:root[data-theme="dark"]) .lead-location-hint,
+:where(:root[data-theme="dark"]) .lead-file-name {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .lead-form {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-section {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-group label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-group input,
+:where(:root[data-theme="dark"]) .lead-form-group select,
+:where(:root[data-theme="dark"]) .lead-form-group textarea,
+:where(:root[data-theme="dark"]) .lead-photo-remove,
+:where(:root[data-theme="dark"]) .lead-file-input,
+:where(:root[data-theme="dark"]) .lead-photo-item,
+:where(:root[data-theme="dark"]) .lead-form-actions {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-file-input:hover,
+:where(:root[data-theme="dark"]) .lead-photo-remove:hover:not(:disabled),
+:where(:root[data-theme="dark"]) .lead-reset-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-photo-preview {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-reset-btn {
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-tag-badge {
+  background: var(--tint-info-bg);
+  border-color: #3730a3;
+  color: #c7d2fe;
+}
+
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer {
+  background: var(--tint-warn-bg);
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer p,
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer strong {
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-success {
+  background: var(--tint-success-bg);
+  color: var(--tint-success-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-sending {
+  background: var(--tint-info-bg);
+  color: var(--tint-info-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-error {
+  background: var(--tint-error-bg);
+  color: var(--tint-error-text);
+}
+
+/* ── Iceman ── */
+:where(:root[data-theme="dark"]) .iceman-page {
+  background: var(--page-bg);
+}
+
+:where(:root[data-theme="dark"]) .iceman-header h1,
+:where(:root[data-theme="dark"]) .iceman-dropzone-title,
+:where(:root[data-theme="dark"]) .iceman-guide-item strong,
+:where(:root[data-theme="dark"]) .iceman-range-top {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .iceman-panel-header h3,
+:where(:root[data-theme="dark"]) .iceman-guide h3,
+:where(:root[data-theme="dark"]) .iceman-file-name,
+:where(:root[data-theme="dark"]) .iceman-range-top strong,
+:where(:root[data-theme="dark"]) .iceman-text-bar,
+:where(:root[data-theme="dark"]) .iceman-dropzone > i {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-subtitle,
+:where(:root[data-theme="dark"]) .iceman-signed-in,
+:where(:root[data-theme="dark"]) .iceman-panel-header p,
+:where(:root[data-theme="dark"]) .iceman-dropzone-hint,
+:where(:root[data-theme="dark"]) .iceman-file-meta,
+:where(:root[data-theme="dark"]) .iceman-range-bounds,
+:where(:root[data-theme="dark"]) .iceman-guide-item p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-text-bar,
+:where(:root[data-theme="dark"]) .iceman-alert,
+:where(:root[data-theme="dark"]) .iceman-panel,
+:where(:root[data-theme="dark"]) .iceman-guide,
+:where(:root[data-theme="dark"]) .iceman-dropzone.has-file {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-panel-header code {
+  background: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-dropzone,
+:where(:root[data-theme="dark"]) .iceman-range-control,
+:where(:root[data-theme="dark"]) .iceman-guide-item {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-dropzone:hover,
+:where(:root[data-theme="dark"]) .iceman-dropzone:focus-visible,
+:where(:root[data-theme="dark"]) .iceman-dropzone.is-dragover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-range-example {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-btn-secondary {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-alert-error {
+  background: var(--tint-error-bg);
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .iceman-alert-success {
+  background: var(--tint-success-bg);
+  color: var(--tint-success-text);
+}
+
+/* ── Calendar (react-calendar) ── */
+:where(:root[data-theme="dark"]) .react-calendar,
+:where(:root[data-theme="dark"]) .react-calendar__navigation button {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .react-calendar__tile {
+  color: var(--text-primary);
+}
+
+/* ── Birthdays: sidebar list + editor ── */
+:where(:root[data-theme="dark"]) .sidebar-birthdays {
+  background: #3a2433;
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-heading {
+  color: #f9a8d4;
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-list li {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-date {
+  color: #f472b6;
+}
+
+:where(:root[data-theme="dark"]) .birthday-status {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .birthday-status.is-active {
+  color: #86efac;
+}
+
+:where(:root[data-theme="dark"]) .birthday-status.is-hidden {
+  color: #fcd34d;
+}
+
+:where(:root[data-theme="dark"]) .birthdays-import {
+  border-color: var(--border-subtle);
+}

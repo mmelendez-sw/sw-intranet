@@ -8,6 +8,7 @@ import { BYPASS_AUTH, isIcemanAllowlisted, isDevHomepageAllowlisted, loginReques
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import { useTheme } from '../context/ThemeContext';
 import { DEPARTMENTS } from '../config/departments';
 
 interface HeaderProps {
@@ -74,6 +75,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const { isEditMode, toggleEditMode } = useEditMode();
+  const { theme, canToggle: canToggleTheme, toggleTheme } = useTheme();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
@@ -332,6 +334,22 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       {/* <DepartmentsMenu /> */}
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
+          <>
+          {canToggleTheme && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label="Dark mode"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={`theme-toggle${theme === 'dark' ? ' is-dark' : ''}`}
+              onClick={toggleTheme}
+            >
+              <span className="theme-toggle-track" aria-hidden="true">
+                <span className="theme-toggle-thumb">{theme === 'dark' ? '🌙' : '☀'}</span>
+              </span>
+            </button>
+          )}
           <div className="user-dropdown">
             <span
               onClick={toggleDropdown}
@@ -366,6 +384,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             </span>
             <DropdownMenu />
           </div>
+          </>
         ) : (
           <button onClick={handleLogin} className="login-button">
             Login

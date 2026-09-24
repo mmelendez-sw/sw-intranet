@@ -1,10 +1,14 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
+import '../../styles/announcements.css';
 // import '../../styles/company-progress.css';
 import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
+import { BIRTHDAYS_UPDATED_EVENT, filterActiveBirthdays } from '../utils/birthdays';
+import { BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
   getContent,
   setContent,
@@ -22,11 +26,16 @@ import {
   DriveItem,
   CardContent,
   Announcement,
+  BirthdayPerson,
+  BirthdaysContent,
   HomepageLayout,
   HomepageCardsPerRow,
   normalizeHomepageLayout,
   parseHomepageCardsContent,
   parseAnnouncementsContent,
+  parseBirthdaysContent,
+  birthdaysOrDefault,
+  isBirthdayToday,
   buildHomepageCardsFile,
   buildAnnouncementsContentFile,
   stampCardEditor,
@@ -37,6 +46,7 @@ import SharePointImage from './SharePointImage';
 import {
   EditSaveStatus,
   EditSaveStatusText,
+  editSaveStatusFromResult,
   finishEditSave,
 } from './EditSaveStatusText';
 // import { useTvLayout } from '../hooks/useTvLayout';
@@ -126,7 +136,22 @@ const EditModal: React.FC<EditModalProps> = ({
 const CARDS_CONTENT_KEY = 'homepage-cards';
 const HERO_CONTENT_KEY = 'homepage-hero';
 const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
+const BIRTHDAYS_CONTENT_KEY = 'birthdays';
 const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
+const MONTH_OPTIONS = [
+  { value: 1, label: 'January' },
+  { value: 2, label: 'February' },
+  { value: 3, label: 'March' },
+  { value: 4, label: 'April' },
+  { value: 5, label: 'May' },
+  { value: 6, label: 'June' },
+  { value: 7, label: 'July' },
+  { value: 8, label: 'August' },
+  { value: 9, label: 'September' },
+  { value: 10, label: 'October' },
+  { value: 11, label: 'November' },
+  { value: 12, label: 'December' },
+];
 const CARD_POLL = { remoteOnly: true } as const;
 const CARD_AUTOSAVE_MS = 800;
 const CARD_POLL_MS = 20_000;
@@ -193,6 +218,16 @@ const getInitialAnnouncements = (): Announcement[] => {
   return parsed.length ? parsed : DEFAULT_ANNOUNCEMENTS;
 };
 
+const getInitialBirthdays = (): BirthdaysContent => {
+  return birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY));
+};
+
+const daysInMonth = (month: number): number => {
+  if (month === 2) return 29;
+  if ([4, 6, 9, 11].includes(month)) return 30;
+  return 31;
+};
+
 /** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
 const isOddCardFor4Columns = (index: number): boolean => {
   let isOdd = true;
@@ -221,6 +256,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
+  const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
@@ -235,6 +271,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
   );
   const [announcements, setAnnouncements] = useState<Announcement[]>(getInitialAnnouncements);
+  const [birthdays, setBirthdays] = useState<BirthdaysContent>(getInitialBirthdays);
   const [heroImageUrl, setHeroImageUrl] = useState(
     () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
   );
@@ -251,6 +288,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
   const [announcementSaveStatus, setAnnouncementSaveStatus] = useState<EditSaveStatus>('idle');
   const [announcementsExpanded, setAnnouncementsExpanded] = useState(false);
+  const [editingBirthdays, setEditingBirthdays] = useState(false);
+  const [birthdaysDraft, setBirthdaysDraft] = useState<BirthdaysContent | null>(null);
+  const [savingBirthdays, setSavingBirthdays] = useState(false);
+  const [birthdaysSaveStatus, setBirthdaysSaveStatus] = useState<EditSaveStatus>('idle');
+  const [birthdaysValidationError, setBirthdaysValidationError] = useState('');
 
   // ── Card edit state ──
   const [editingCard, setEditingCard] = useState<CardContent | null>(null);
@@ -395,9 +437,10 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       if (cancelled) return;
 
       try {
-        const [remoteHero, remoteAnnouncements, remoteLayout] = await Promise.all([
+        const [remoteHero, remoteAnnouncements, remoteBirthdays, remoteLayout] = await Promise.all([
           getContent<string>(instance, HERO_CONTENT_KEY),
           getContent<unknown>(instance, ANNOUNCEMENTS_CONTENT_KEY),
+          getContent<unknown>(instance, BIRTHDAYS_CONTENT_KEY),
           getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
         ]);
         if (cancelled) return;
@@ -405,6 +448,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         if (remoteAnnouncements) {
           const parsed = parseAnnouncementsContent(remoteAnnouncements);
           if (parsed.length) setAnnouncements(parsed);
+        }
+        if (remoteBirthdays) {
+          setBirthdays(parseBirthdaysContent(remoteBirthdays));
         }
         if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
       } catch (err) {
@@ -808,12 +854,97 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     openAnnouncementEdit(newAnn);
   };
 
+  const openBirthdaysEdit = useCallback(() => {
+    setBirthdaysDraft({
+      people: birthdays.people.map((p) => ({ ...p })),
+    });
+    setBirthdaysSaveStatus('idle');
+    setBirthdaysValidationError('');
+    setEditingBirthdays(true);
+  }, [birthdays]);
+
+  const closeBirthdaysEdit = useCallback(() => {
+    setEditingBirthdays(false);
+    setBirthdaysDraft(null);
+    setBirthdaysSaveStatus('idle');
+    setBirthdaysValidationError('');
+  }, []);
+
+  const updateBirthdayDraftPerson = (id: string, patch: Partial<BirthdayPerson>) => {
+    setBirthdaysValidationError('');
+    setBirthdaysDraft((prev) => {
+      if (!prev) return prev;
+      return {
+        people: prev.people.map((p) => {
+          if (p.id !== id) return p;
+          const next = { ...p, ...patch };
+          const maxDay = daysInMonth(next.month);
+          if (next.day > maxDay) next.day = maxDay;
+          return next;
+        }),
+      };
+    });
+  };
+
+  const addBirthdayPerson = () => {
+    setBirthdaysDraft((prev) => {
+      if (!prev) return prev;
+      const person: BirthdayPerson = {
+        id: `bday-${Date.now()}`,
+        name: '',
+        month: new Date().getMonth() + 1,
+        day: new Date().getDate(),
+      };
+      return { people: [...prev.people, person] };
+    });
+  };
+
+  const removeBirthdayPerson = (id: string) => {
+    setBirthdaysDraft((prev) => {
+      if (!prev) return prev;
+      return { people: prev.people.filter((p) => p.id !== id) };
+    });
+  };
+
+  const saveBirthdays = async () => {
+    if (!birthdaysDraft) return;
+    const missingName = birthdaysDraft.people.some((p) => !p.name.trim());
+    if (missingName) {
+      setBirthdaysValidationError('Each person needs a name before saving.');
+      setBirthdaysSaveStatus('error');
+      return;
+    }
+    const cleaned: BirthdaysContent = {
+      people: birthdaysDraft.people.map((p) => ({
+        ...p,
+        name: p.name.trim(),
+      })),
+    };
+    setBirthdaysValidationError('');
+    setSavingBirthdays(true);
+    setBirthdaysSaveStatus('saving');
+    const result = await setContentDetailed(instance, BIRTHDAYS_CONTENT_KEY, cleaned);
+    if (result.ok) {
+      setBirthdays(cleaned);
+      setBirthdaysDraft(cleaned);
+      window.dispatchEvent(new Event(BIRTHDAYS_UPDATED_EVENT));
+    }
+    setSavingBirthdays(false);
+    setBirthdaysSaveStatus(editSaveStatusFromResult(result));
+  };
+
   const sortAnnouncementsByDate = (list: Announcement[]) =>
     [...list].sort((a, b) => b.date.localeCompare(a.date));
 
   const activeAnnouncements = sortAnnouncementsByDate(announcements.filter(a => a.isActive));
   const inactiveAnnouncements = sortAnnouncementsByDate(announcements.filter(a => !a.isActive));
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
+  const todaysBirthdays = filterActiveBirthdays(birthdays.people, directoryUsers ?? null).filter((p) => isBirthdayToday(p));
+  const showAnnouncementsSection =
+    activeAnnouncements.length > 0 ||
+    todaysBirthdays.length > 0 ||
+    (canEdit && inactiveAnnouncements.length > 0) ||
+    canEdit;
 
   // ── Hero editing ──
   const openHeroEdit = () => {
@@ -905,28 +1036,53 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               */}
 
               {/* ── Announcements ── */}
-              {(activeAnnouncements.length > 0 || (canEdit && inactiveAnnouncements.length > 0) || canEdit) && (
-                <div className="home-announcements" style={{ margin: '16px 0 8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1a1a2e' }}>
+              {showAnnouncementsSection && (
+                <div className="home-announcements">
+                  <div className="home-announcements-header">
+                    <h2 className="home-announcements-heading">
                       📢 Announcements
                     </h2>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="home-announcements-actions">
                       {canEdit && (
-                        <button className="edit-add-btn" style={{ margin: 0, padding: '5px 14px', fontSize: 12 }} onClick={addAnnouncement}>
-                          + Add
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="edit-add-btn home-announcements-add-btn"
+                            onClick={openBirthdaysEdit}
+                          >
+                            ✏ Edit birthdays
+                          </button>
+                          <button className="edit-add-btn home-announcements-add-btn" onClick={addAnnouncement}>
+                            + Add
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
 
+                  {todaysBirthdays.map((person) => (
+                    <div key={person.id} className="announcement-item birthday-announcement-item">
+                      <div className="announcement-item-inner">
+                        <div className="announcement-item-content">
+                          <div className="announcement-item-title">
+                            Happy Birthday {person.name}! 🎂🎉
+                          </div>
+                          <div className="announcement-item-body">
+                            Wishing you a wonderful day!
+                          </div>
+                          <div className="announcement-item-date">Today</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
                   {visibleAnnouncements.map(ann => (
-                    <div key={ann.id} className="editable-wrapper" style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderLeft: '4px solid #f59e0b', borderRadius: 8, padding: '12px 14px', marginBottom: 10 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: '#92400e', marginBottom: 3 }}>{ann.title}</div>
-                          <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.5 }}>{ann.content}</div>
-                          <div style={{ fontSize: 11, color: '#b45309', marginTop: 5 }}>
+                    <div key={ann.id} className="editable-wrapper announcement-item">
+                      <div className="announcement-item-inner">
+                        <div className="announcement-item-content">
+                          <div className="announcement-item-title">{ann.title}</div>
+                          <div className="announcement-item-body">{ann.content}</div>
+                          <div className="announcement-item-date">
                             {formatAnnouncementDate(ann.date)}
                           </div>
                         </div>
@@ -939,8 +1095,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
                   {activeAnnouncements.length > 2 && (
                     <button
+                      type="button"
+                      className="home-announcements-toggle"
                       onClick={() => setAnnouncementsExpanded(e => !e)}
-                      style={{ background: 'none', border: 'none', color: '#0d6efd', cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: 0 }}
                     >
                       {announcementsExpanded ? '▲ Show fewer' : `▼ Show all ${activeAnnouncements.length} announcements`}
                     </button>
@@ -1289,6 +1446,96 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, isActive: e.target.checked })} />
             <label htmlFor="ann-active">Active (visible to all users)</label>
           </div>
+        </EditModal>
+      )}
+
+      {/* Birthdays list edit modal */}
+      {editingBirthdays && birthdaysDraft && (
+        <EditModal
+          title="Edit birthdays"
+          onClose={closeBirthdaysEdit}
+          onSave={saveBirthdays}
+          isSaving={savingBirthdays}
+          saveStatus={birthdaysSaveStatus}
+        >
+          <p className="edit-field-hint" style={{ marginTop: 0 }}>
+            Add names and birth dates. On that day, a Happy Birthday announcement appears automatically.
+            Only people found in the Employee Directory (not contractors or consultants) are shown.
+          </p>
+          <BirthdayImportPanel
+            people={birthdaysDraft.people}
+            users={directoryUsers}
+            disabled={savingBirthdays}
+            onImport={(people) => {
+              setBirthdaysValidationError('');
+              setBirthdaysDraft({ people });
+            }}
+          />
+          {birthdaysDraft.people.length === 0 && (
+            <p className="edit-field-hint">No birthdays yet. Add someone below.</p>
+          )}
+          {birthdaysValidationError && (
+            <p className="edit-saving-indicator edit-save-status-error" role="alert">
+              {birthdaysValidationError}
+            </p>
+          )}
+          <div className="birthdays-editor-list">
+            {birthdaysDraft.people.map((person) => (
+              <div key={person.id} className="birthdays-editor-row">
+                <div className="edit-field-group birthdays-editor-name">
+                  <label>Name <span aria-hidden="true" style={{ color: '#dc3545' }}>*</span></label>
+                  <input
+                    type="text"
+                    value={person.name}
+                    onChange={(e) => updateBirthdayDraftPerson(person.id, { name: e.target.value, email: undefined })}
+                    placeholder="Full name"
+                    required
+                    aria-required="true"
+                  />
+                  <BirthdayStatusBadge person={person} users={directoryUsers} />
+                </div>
+                <div className="edit-field-group birthdays-editor-month">
+                  <label>Month</label>
+                  <select
+                    value={person.month}
+                    onChange={(e) => updateBirthdayDraftPerson(person.id, { month: Number(e.target.value) })}
+                  >
+                    {MONTH_OPTIONS.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="edit-field-group birthdays-editor-day">
+                  <label>Day</label>
+                  <select
+                    value={person.day}
+                    onChange={(e) => updateBirthdayDraftPerson(person.id, { day: Number(e.target.value) })}
+                  >
+                    {Array.from({ length: daysInMonth(person.month) }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  className="edit-delete-btn birthdays-editor-remove"
+                  onClick={() => removeBirthdayPerson(person.id)}
+                  disabled={savingBirthdays}
+                  title={`Remove ${person.name || 'person'}`}
+                >
+                  🗑
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="edit-add-btn"
+            onClick={addBirthdayPerson}
+            disabled={savingBirthdays}
+          >
+            + Add person
+          </button>
         </EditModal>
       )}
 
