@@ -1,0 +1,504 @@
+/*
+ * Per-user dark theme. Every rule is scoped to :root[data-theme="dark"], so
+ * nothing here applies unless useUserTheme() sets that attribute (currently /dev only).
+ * :where() keeps selector specificity identical to the light rules being overridden.
+ */
+
+/* ── global.css ── */
+:root[data-theme="dark"] {
+  --page-bg: #1c2633;
+  --surface: #243041;
+  --surface-alt: #2e3d52;
+  --surface-muted: #283647;
+  --text-primary: #e6edf5;
+  --text-heading: #8ec8ef;
+  --text-muted: #9aadc2;
+  --border-subtle: #3d4f66;
+  --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --overlay-menu-bg: #243041;
+  --overlay-menu-text: #e6edf5;
+  --overlay-menu-hover: #2e3d52;
+  --spinner-track: rgba(142, 200, 239, 0.2);
+  --spinner-head: #8ec8ef;
+  color-scheme: dark;
+}
+
+:where(:root[data-theme="dark"]) body {
+  background-color: var(--page-bg);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .date {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .app-loading-spinner {
+  border: 3px solid var(--spinner-track);
+  border-top-color: var(--spinner-head);
+}
+
+:where(:root[data-theme="dark"]) .card,
+:where(:root[data-theme="dark"]) .odd-card {
+  background-color: var(--surface) !important;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .even-card,
+:where(:root[data-theme="dark"]) .blue-column {
+  background-color: var(--surface-alt) !important;
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2,
+:where(:root[data-theme="dark"]) .home-sidebar h2,
+:where(:root[data-theme="dark"]) .text-bar {
+  color: var(--text-heading) !important;
+}
+
+:where(:root[data-theme="dark"]) .card-text li,
+:where(:root[data-theme="dark"]) .card-text p,
+:where(:root[data-theme="dark"]) .home-sidebar p,
+:where(:root[data-theme="dark"]) .home-sidebar ul {
+  color: var(--text-primary) !important;
+}
+
+:where(:root[data-theme="dark"]) .dropdown-menu,
+:where(:root[data-theme="dark"]) .dropdown-item {
+  background-color: var(--overlay-menu-bg) !important;
+  color: var(--overlay-menu-text) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item:hover {
+  background-color: var(--overlay-menu-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar,
+:where(:root[data-theme="dark"]) .company-progress-box,
+:where(:root[data-theme="dark"]) .salesforce-panel,
+:where(:root[data-theme="dark"]) .salesforce-summary-card,
+:where(:root[data-theme="dark"]) .directory-card,
+:where(:root[data-theme="dark"]) .directory-panel,
+:where(:root[data-theme="dark"]) .edit-modal,
+:where(:root[data-theme="dark"]) .edit-modal-content,
+:where(:root[data-theme="dark"]) .lead-gen-card,
+:where(:root[data-theme="dark"]) .dept-card,
+:where(:root[data-theme="dark"]) .report-card {
+  background-color: var(--surface) !important;
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-overlay {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+
+:where(:root[data-theme="dark"]) input,
+:where(:root[data-theme="dark"]) textarea,
+:where(:root[data-theme="dark"]) select {
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+/* ── header.css ── */
+:where(:root[data-theme="dark"]) .dropdown-menu {
+  background-color: var(--overlay-menu-bg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item {
+  background-color: var(--overlay-menu-bg);
+  color: var(--overlay-menu-text);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-item:hover {
+  background-color: var(--overlay-menu-hover);
+  color: var(--text-primary);
+}
+
+/* ── home-page.css ── */
+:where(:root[data-theme="dark"]) .home-sidebar {
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .card {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .card-text li {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .odd-card {
+  background-color: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .even-card {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .text-bar {
+  color: var(--text-heading);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .home-sidebar p,
+:where(:root[data-theme="dark"]) .home-sidebar ul {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-heading {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .announcement-item {
+  background: #3a3220;
+  border-color: #8a6a2a;
+  border-left-color: #f59e0b;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-title {
+  color: #fbbf24;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-body {
+  color: #fde68a;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item-date {
+  color: #f59e0b;
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-toggle {
+  color: #8ec8ef;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item {
+  background: #3a2433;
+  border-color: #9d4b78;
+  border-left-color: #ec4899;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-title {
+  color: #f9a8d4;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-body {
+  color: #fbcfe8;
+}
+
+:where(:root[data-theme="dark"]) .announcement-item.birthday-announcement-item .announcement-item-date {
+  color: #f472b6;
+}
+
+/* ── edit-mode.css ── */
+:where(:root[data-theme="dark"]) .home-layout-controls-label {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-group {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-btn {
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-segment-btn:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-header {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-header h3 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-close {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-close:hover {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-group label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-group input[type="text"],
+:where(:root[data-theme="dark"]) .edit-field-group input[type="url"],
+:where(:root[data-theme="dark"]) .edit-field-group input[type="date"],
+:where(:root[data-theme="dark"]) .edit-field-group textarea,
+:where(:root[data-theme="dark"]) .edit-field-group select {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-field-hint {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert-label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert input[type="url"] {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-link-insert input[type="text"] {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .edit-modal-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .edit-btn-cancel {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-btn-cancel:hover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-saving-indicator {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-preview {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .card-drag-handle {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .drag-dots span {
+  background: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-area {
+  border: 2px dashed var(--border-subtle);
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-area:hover,
+:where(:root[data-theme="dark"]) .edit-upload-area.dragover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .edit-upload-label {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-divider {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .edit-image-divider::before,
+:where(:root[data-theme="dark"]) .edit-image-divider::after {
+  background: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .edit-checkbox-row {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-inactive {
+  border-top: 1px dashed var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .home-announcements-inactive-heading {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-item {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-badge {
+  color: var(--text-muted);
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-title {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-body {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .announcement-inactive-date {
+  color: var(--text-muted);
+}
+
+/* ── company-progress.css ── */
+:where(:root[data-theme="dark"]) .company-progress-box {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ── department-page.css ── */
+:where(:root[data-theme="dark"]) .card {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .card-text h2 {
+  color: var(--text-heading);
+}
+
+/* ── employee-directory.css ── */
+:where(:root[data-theme="dark"]) .directory-header h1 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-header p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-search-bar input {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-search-icon {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-stats {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-name {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-title {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-dept {
+  background: rgba(142, 200, 239, 0.15);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-card-email {
+  color: #7eb6ff;
+}
+
+:where(:root[data-theme="dark"]) .directory-avatar,
+:where(:root[data-theme="dark"]) .directory-avatar-placeholder {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .directory-skeleton-card {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty strong {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .directory-empty strong {
+  color: var(--text-heading);
+}
+
+/* ── reports.css ── */
+:where(:root[data-theme="dark"]) .reports-text-bar {
+  color: var(--text-heading);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .reports-text-bar h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .elite-access-banner {
+  background-color: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .reports-table {
+  background-color: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .reports-table th,
+:where(:root[data-theme="dark"]) .reports-table td {
+  border: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .reports-table tr:nth-child(even) {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .report-description-cell {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .report-drag-handle {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
+}

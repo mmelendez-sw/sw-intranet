@@ -160,7 +160,7 @@ const syncSidebarLayout = (
       }
       continue;
     }
-    if (sectionKeys.has(block.key) && !seen.has(block.key)) {
+    if (block.type === 'section' && sectionKeys.has(block.key) && !seen.has(block.key)) {
       synced.push(block);
       seen.add(block.key);
     }
