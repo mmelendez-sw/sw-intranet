@@ -3,14 +3,15 @@ import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
 // import { TERM_SHEET_RANKINGS_ALLOWLIST } from './data/termSheetRankingsRoster';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
-export const BYPASS_AUTH = false;
+export const BYPASS_AUTH = true;
 
 export const DEV_USER_INFO: UserInfo = {
   isAuthenticated: true,
   isEliteGroup: true,
   isEditor: true,
   isNetSuiteAdmin: true,
-  email: 'dev@symphonywireless.com',
+  // Allowlisted so /dev and /iceman open under BYPASS_AUTH.
+  email: 'mmelendez@symphonyinfra.com',
   name: 'Dev User',
 };
 
