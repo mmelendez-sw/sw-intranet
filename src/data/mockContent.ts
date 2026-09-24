@@ -18,6 +18,7 @@ import type {
   SiteConfig,
   TickerItem,
 } from '../services/contentService';
+import type { GraphUser } from '../services/directoryService';
 import seedCards from './homepage-cards.seed.json';
 
 const isoDaysAgo = (days: number): string => {
@@ -135,10 +136,15 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 ];
 
 const today = new Date();
+const thisMonth = today.getMonth() + 1;
 const MOCK_BIRTHDAYS: BirthdaysContent = {
   people: [
-    { id: 'bday-mock-1', name: 'Alex Rivera', month: today.getMonth() + 1, day: today.getDate() },
+    { id: 'bday-mock-1', name: 'Alex Rivera', month: thisMonth, day: today.getDate(), email: 'arivera.demo@example.com' },
     { id: 'bday-mock-2', name: 'Jordan Lee', month: 1, day: 15 },
+    { id: 'bday-mock-3', name: 'Casey Morgan', month: thisMonth, day: 3, department: 'Operations' },
+    { id: 'bday-mock-4', name: 'Sam Nguyen', month: thisMonth, day: 27, department: 'Marketing' },
+    // Not in the mock directory — hidden everywhere, flagged in the editor.
+    { id: 'bday-mock-5', name: 'Pat Former', month: thisMonth, day: 12 },
   ],
 };
 
@@ -192,7 +198,7 @@ export function getMockContent<T>(key: string): T | null {
 }
 
 /** Fake directory entries (not real employees) for /directory under BYPASS_AUTH. */
-export const MOCK_DIRECTORY_USERS = [
+export const MOCK_DIRECTORY_USERS: GraphUser[] = [
   { id: 'u1', displayName: 'Alex Rivera', jobTitle: 'Acquisition Advisor', department: 'Acquisitions', mail: 'arivera.demo@example.com' },
   { id: 'u2', displayName: 'Jordan Lee', jobTitle: 'Senior Analyst', department: 'Finance', mail: 'jlee.demo@example.com' },
   { id: 'u3', displayName: 'Casey Morgan', jobTitle: 'Director of Operations', department: 'Operations', mail: 'cmorgan.demo@example.com' },

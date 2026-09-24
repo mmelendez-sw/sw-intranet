@@ -8,6 +8,9 @@ import { Navigate } from 'react-router-dom';
 import { isDevHomepageAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
+import { BIRTHDAYS_UPDATED_EVENT, filterActiveBirthdays } from '../utils/birthdays';
+import { BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import TermSheetRankings from './TermSheetRankings';
 import {
   getContent,
@@ -259,6 +262,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
+  const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
@@ -929,6 +933,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
     if (result.ok) {
       setBirthdays(cleaned);
       setBirthdaysDraft(cleaned);
+      window.dispatchEvent(new Event(BIRTHDAYS_UPDATED_EVENT));
     }
     setSavingBirthdays(false);
     setBirthdaysSaveStatus(editSaveStatusFromResult(result));
@@ -940,7 +945,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const activeAnnouncements = sortAnnouncementsByDate(announcements.filter(a => a.isActive));
   const inactiveAnnouncements = sortAnnouncementsByDate(announcements.filter(a => !a.isActive));
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
-  const todaysBirthdays = birthdays.people.filter((p) => isBirthdayToday(p));
+  const todaysBirthdays = filterActiveBirthdays(birthdays.people, directoryUsers ?? null).filter((p) => isBirthdayToday(p));
   const showAnnouncementsSection =
     activeAnnouncements.length > 0 ||
     todaysBirthdays.length > 0 ||
@@ -1480,7 +1485,17 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
         >
           <p className="edit-field-hint" style={{ marginTop: 0 }}>
             Add names and birth dates. On that day, a Happy Birthday announcement appears automatically.
+            Only people found in the Employee Directory (not contractors or consultants) are shown.
           </p>
+          <BirthdayImportPanel
+            people={birthdaysDraft.people}
+            users={directoryUsers}
+            disabled={savingBirthdays}
+            onImport={(people) => {
+              setBirthdaysValidationError('');
+              setBirthdaysDraft({ people });
+            }}
+          />
           {birthdaysDraft.people.length === 0 && (
             <p className="edit-field-hint">No birthdays yet. Add someone below.</p>
           )}
@@ -1497,11 +1512,12 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
                   <input
                     type="text"
                     value={person.name}
-                    onChange={(e) => updateBirthdayDraftPerson(person.id, { name: e.target.value })}
+                    onChange={(e) => updateBirthdayDraftPerson(person.id, { name: e.target.value, email: undefined })}
                     placeholder="Full name"
                     required
                     aria-required="true"
                   />
+                  <BirthdayStatusBadge person={person} users={directoryUsers} />
                 </div>
                 <div className="edit-field-group birthdays-editor-month">
                   <label>Month</label>

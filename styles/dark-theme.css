@@ -880,3 +880,36 @@
 :where(:root[data-theme="dark"]) .react-calendar__tile {
   color: var(--text-primary);
 }
+
+/* ── Birthdays: sidebar list + editor ── */
+:where(:root[data-theme="dark"]) .sidebar-birthdays {
+  background: #3a2433;
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-heading {
+  color: #f9a8d4;
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-list li {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .sidebar-birthdays-date {
+  color: #f472b6;
+}
+
+:where(:root[data-theme="dark"]) .birthday-status {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .birthday-status.is-active {
+  color: #86efac;
+}
+
+:where(:root[data-theme="dark"]) .birthday-status.is-hidden {
+  color: #fcd34d;
+}
+
+:where(:root[data-theme="dark"]) .birthdays-import {
+  border-color: var(--border-subtle);
+}

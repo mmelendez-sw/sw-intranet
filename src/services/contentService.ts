@@ -672,6 +672,10 @@ export interface BirthdayPerson {
   month: number;
   /** Calendar day 1–31 (year-agnostic). */
   day: number;
+  /** Directory email, set when matched on import — preferred key for the directory cross-reference. */
+  email?: string;
+  /** Team / department from the HR list (informational). */
+  department?: string;
 }
 
 export interface BirthdaysContent {
@@ -788,6 +792,8 @@ export function parseBirthdaysContent(raw: unknown): BirthdaysContent {
       name,
       month,
       day,
+      ...(typeof p.email === 'string' && p.email.trim() ? { email: p.email.trim() } : {}),
+      ...(typeof p.department === 'string' && p.department.trim() ? { department: p.department.trim() } : {}),
     });
   }
   return { people };

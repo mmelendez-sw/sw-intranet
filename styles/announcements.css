@@ -128,3 +128,31 @@
   font-weight: 600;
   padding: 0;
 }
+
+/* ── Birthdays editor: directory match + import ── */
+.birthday-status {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.birthday-status.is-active {
+  color: #198754;
+}
+
+.birthday-status.is-hidden {
+  color: #b45309;
+}
+
+.birthdays-import {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+}
+
+.birthdays-import textarea {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}

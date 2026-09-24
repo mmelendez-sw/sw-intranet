@@ -564,3 +564,39 @@
     transform: scaleX(0.56);
   }
 }
+
+/* ── Sidebar: Current Month Birthdays (inside HR Updates) ── */
+.sidebar-birthdays {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: #fff0f6;
+  border-left: 4px solid #ec4899;
+  border-radius: 6px;
+}
+
+.sidebar-birthdays-heading {
+  margin: 0 0 6px;
+  font-size: 1em;
+  font-weight: 700;
+  color: #9d174d;
+}
+
+.sidebar-birthdays-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.sidebar-birthdays-list li {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  color: #333;
+}
+
+.sidebar-birthdays-date {
+  flex: 0 0 52px;
+  font-weight: 600;
+  color: #be185d;
+}
