@@ -1,6 +1,6 @@
 /*
  * Per-user dark theme. Every rule is scoped to :root[data-theme="dark"], so
- * nothing here applies unless useUserTheme() sets that attribute (currently /dev only).
+ * nothing here applies unless ThemeProvider sets it for a user who opted in.
  * :where() keeps selector specificity identical to the light rules being overridden.
  */
 
@@ -501,4 +501,382 @@
   background: var(--surface);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-soft);
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Site-wide coverage beyond serena-dev: header, /dev top row, ticker, alerts,
+ * Salesforce panels, Lead Generation, Iceman, calendar.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  --header-bg: #0f1b29;
+  --header-menu-bg: #17263a;
+  --tint-info-bg: rgba(59, 130, 246, 0.16);
+  --tint-info-text: #bfdbfe;
+  --tint-warn-bg: rgba(245, 158, 11, 0.16);
+  --tint-warn-text: #fde68a;
+  --tint-success-bg: rgba(34, 197, 94, 0.16);
+  --tint-success-text: #bbf7d0;
+  --tint-error-bg: rgba(239, 68, 68, 0.16);
+  --tint-error-text: #fecaca;
+  --link: #7eb6ff;
+}
+
+/* ── Header ── */
+:where(:root[data-theme="dark"]) .header {
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .nav-dropdown-menu {
+  background-color: var(--header-menu-bg);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .nav-bar .nav-dropdown-menu a.nav-dropdown-item:hover {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .logout-button,
+:where(:root[data-theme="dark"]) .test-popup-button {
+  background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .dropdown-edit-toggle {
+  border-bottom-color: var(--border-subtle);
+}
+
+/* ── Page chrome ── */
+:where(:root[data-theme="dark"]) .footer {
+  background-color: var(--header-bg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .dev-homepage-banner {
+  background: var(--header-menu-bg) !important;
+  color: var(--text-heading) !important;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .card-text a,
+:where(:root[data-theme="dark"]) .home-sidebar a:not(.home-button):not(.link-button),
+:where(:root[data-theme="dark"]) .announcement-item-body a,
+:where(:root[data-theme="dark"]) .card-reorder-btn,
+:where(:root[data-theme="dark"]) .sidebar-reorder-btn,
+:where(:root[data-theme="dark"]) .edit-upload-filename,
+:where(:root[data-theme="dark"]) .edit-upload-progress {
+  color: var(--link);
+}
+
+/* ── Monthly Term Sheet Rankings (/dev top row) ── */
+:where(:root[data-theme="dark"]) .term-sheet-rankings {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-header h2,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-count {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-month,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-reset,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-spoof-note,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-legend {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-month strong,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-name {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-legend {
+  border-top-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row {
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-0 {
+  background: var(--tint-error-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-1 {
+  background: var(--tint-warn-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-2 {
+  background: var(--tint-info-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-3 {
+  background: var(--tint-success-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-error {
+  color: var(--tint-error-text);
+}
+
+/* ── Ticker + alert banner ── */
+:where(:root[data-theme="dark"]) .ticker-wrap {
+  background-color: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .ticker__item {
+  color: #ff8a8a;
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-info {
+  background: var(--tint-info-bg);
+  border-color: #1d4ed8;
+  color: var(--tint-info-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-warning {
+  background: var(--tint-warn-bg);
+  border-color: #b45309;
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-success {
+  background: var(--tint-success-bg);
+  border-color: #15803d;
+  color: var(--tint-success-text);
+}
+
+:where(:root[data-theme="dark"]) .site-alert-banner.alert-error {
+  background: var(--tint-error-bg);
+  border-color: #b91c1c;
+  color: var(--tint-error-text);
+}
+
+/* ── Company progress / Salesforce panels ── */
+:where(:root[data-theme="dark"]) .salesforce-panel,
+:where(:root[data-theme="dark"]) .salesforce-summary-card,
+:where(:root[data-theme="dark"]) .powerbi-embed-container {
+  background-color: var(--surface) !important;
+}
+
+:where(:root[data-theme="dark"]) .salesforce-summary-value,
+:where(:root[data-theme="dark"]) .salesforce-table {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-panel-goal,
+:where(:root[data-theme="dark"]) .salesforce-summary-status,
+:where(:root[data-theme="dark"]) .salesforce-status,
+:where(:root[data-theme="dark"]) .closed-rent-gauge-value,
+:where(:root[data-theme="dark"]) .closed-rent-gauge-scale {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-summary-error,
+:where(:root[data-theme="dark"]) .salesforce-error {
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table th,
+:where(:root[data-theme="dark"]) .salesforce-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table th {
+  background-color: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .salesforce-table tbody tr:nth-child(even) {
+  background-color: var(--surface-muted);
+}
+
+/* ── Employee directory leftovers ── */
+:where(:root[data-theme="dark"]) .directory-avatar,
+:where(:root[data-theme="dark"]) .skeleton-circle,
+:where(:root[data-theme="dark"]) .skeleton-line {
+  background: var(--surface-alt);
+}
+
+/* ── Lead Generation ── */
+:where(:root[data-theme="dark"]) .lead-generation-page {
+  background: var(--page-bg);
+}
+
+:where(:root[data-theme="dark"]) .lead-generation-header h1,
+:where(:root[data-theme="dark"]) .lead-form-section h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .lead-generation-header p,
+:where(:root[data-theme="dark"]) .lead-signed-in,
+:where(:root[data-theme="dark"]) .lead-location-hint,
+:where(:root[data-theme="dark"]) .lead-file-name {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .lead-form {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-section {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-group label {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-form-group input,
+:where(:root[data-theme="dark"]) .lead-form-group select,
+:where(:root[data-theme="dark"]) .lead-form-group textarea,
+:where(:root[data-theme="dark"]) .lead-photo-remove,
+:where(:root[data-theme="dark"]) .lead-file-input,
+:where(:root[data-theme="dark"]) .lead-photo-item,
+:where(:root[data-theme="dark"]) .lead-form-actions {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-file-input:hover,
+:where(:root[data-theme="dark"]) .lead-photo-remove:hover:not(:disabled),
+:where(:root[data-theme="dark"]) .lead-reset-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .lead-photo-preview {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-reset-btn {
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .lead-tag-badge {
+  background: var(--tint-info-bg);
+  border-color: #3730a3;
+  color: #c7d2fe;
+}
+
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer {
+  background: var(--tint-warn-bg);
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer p,
+:where(:root[data-theme="dark"]) .lead-safety-disclaimer strong {
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-success {
+  background: var(--tint-success-bg);
+  color: var(--tint-success-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-sending {
+  background: var(--tint-info-bg);
+  color: var(--tint-info-text);
+}
+
+:where(:root[data-theme="dark"]) .lead-alert-error {
+  background: var(--tint-error-bg);
+  color: var(--tint-error-text);
+}
+
+/* ── Iceman ── */
+:where(:root[data-theme="dark"]) .iceman-page {
+  background: var(--page-bg);
+}
+
+:where(:root[data-theme="dark"]) .iceman-header h1,
+:where(:root[data-theme="dark"]) .iceman-dropzone-title,
+:where(:root[data-theme="dark"]) .iceman-guide-item strong,
+:where(:root[data-theme="dark"]) .iceman-range-top {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .iceman-panel-header h3,
+:where(:root[data-theme="dark"]) .iceman-guide h3,
+:where(:root[data-theme="dark"]) .iceman-file-name,
+:where(:root[data-theme="dark"]) .iceman-range-top strong,
+:where(:root[data-theme="dark"]) .iceman-text-bar,
+:where(:root[data-theme="dark"]) .iceman-dropzone > i {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-subtitle,
+:where(:root[data-theme="dark"]) .iceman-signed-in,
+:where(:root[data-theme="dark"]) .iceman-panel-header p,
+:where(:root[data-theme="dark"]) .iceman-dropzone-hint,
+:where(:root[data-theme="dark"]) .iceman-file-meta,
+:where(:root[data-theme="dark"]) .iceman-range-bounds,
+:where(:root[data-theme="dark"]) .iceman-guide-item p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-text-bar,
+:where(:root[data-theme="dark"]) .iceman-alert,
+:where(:root[data-theme="dark"]) .iceman-panel,
+:where(:root[data-theme="dark"]) .iceman-guide,
+:where(:root[data-theme="dark"]) .iceman-dropzone.has-file {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-panel-header code {
+  background: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-dropzone,
+:where(:root[data-theme="dark"]) .iceman-range-control,
+:where(:root[data-theme="dark"]) .iceman-guide-item {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-dropzone:hover,
+:where(:root[data-theme="dark"]) .iceman-dropzone:focus-visible,
+:where(:root[data-theme="dark"]) .iceman-dropzone.is-dragover {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-range-example {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-btn-secondary {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-alert-error {
+  background: var(--tint-error-bg);
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .iceman-alert-success {
+  background: var(--tint-success-bg);
+  color: var(--tint-success-text);
+}
+
+/* ── Calendar (react-calendar) ── */
+:where(:root[data-theme="dark"]) .react-calendar,
+:where(:root[data-theme="dark"]) .react-calendar__navigation button {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .react-calendar__tile {
+  color: var(--text-primary);
 }

@@ -67,6 +67,7 @@ import {
 } from '../authConfig';
 import { acquireSharePointToken } from '../utils/msalToken';
 import { BUNDLED_DEFAULT_CARD_IMAGES } from '../data/bundledDefaultCardImages';
+import { getMockContent } from '../data/mockContent';
 import {
   clearLegacyLocalStorageImageCache,
   idbGetImageBlob,
@@ -130,9 +131,14 @@ function readLocalContent<T>(key: string): T | null {
   }
 }
 
+/** BYPASS_AUTH has no SharePoint access: local edits first, then spoofed mock content. */
+function readBypassContent<T>(key: string): T | null {
+  return readLocalContent<T>(key) ?? getMockContent<T>(key);
+}
+
 /** Synchronous read of the last cached copy (written after each successful load/save). */
 export function getCachedContent<T>(key: string): T | null {
-  return readLocalContent<T>(key);
+  return BYPASS_AUTH ? readBypassContent<T>(key) : readLocalContent<T>(key);
 }
 
 function writeLocalContent<T>(key: string, data: T): boolean {
@@ -1467,7 +1473,7 @@ async function readContentFromSharePointDrive<T>(
  */
 export async function fetchTvHomepageCardsRaw(msalInstance: any): Promise<unknown | null> {
   if (BYPASS_AUTH) {
-    return readLocalContent(HOMEPAGE_CARDS_KEY);
+    return readBypassContent(HOMEPAGE_CARDS_KEY);
   }
 
   const token = await getToken(msalInstance);
@@ -1785,7 +1791,7 @@ export async function getContent<T>(
   options?: ContentSyncOptions
 ): Promise<T | null> {
   if (BYPASS_AUTH) {
-    return readLocalContent<T>(key);
+    return readBypassContent<T>(key);
   }
 
   const cached = readLocalContent<T>(key);

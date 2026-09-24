@@ -48,7 +48,7 @@ import {
   editSaveStatusFromResult,
   finishEditSave,
 } from './EditSaveStatusText';
-import { useUserTheme } from '../hooks/useUserTheme';
+import { useTheme } from '../context/ThemeContext';
 // import { useTvLayout } from '../hooks/useTvLayout';
 
 import howBanner from '../../images/H.O.W.-banner.png';
@@ -260,7 +260,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
-  const { theme, toggleTheme } = useUserTheme(userInfo.email);
+  const { theme, toggleTheme } = useTheme();
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
   // const isTvLayout = useTvLayout();
   // useEffect(() => {

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/employee-directory.css';
 import { acquireTokenSilentOnly, DIRECTORY_SCOPES } from '../utils/msalToken';
+import { BYPASS_AUTH } from '../authConfig';
+import { MOCK_DIRECTORY_USERS } from '../data/mockContent';
 
 interface GraphUser {
   id: string;
@@ -150,6 +152,11 @@ const EmployeeDirectory: React.FC = () => {
   const loadDirectory = useCallback(async () => {
     setLoading(true);
     setError(null);
+    if (BYPASS_AUTH) {
+      setUsers(MOCK_DIRECTORY_USERS);
+      setLoading(false);
+      return;
+    }
     try {
       const token = await getGraphToken(instance);
       if (!token) {

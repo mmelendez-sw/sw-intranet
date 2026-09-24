@@ -8,6 +8,7 @@ import { BYPASS_AUTH, isIcemanAllowlisted, isDevHomepageAllowlisted, loginReques
 import sti_logo_white from '../../images/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
+import { useTheme } from '../context/ThemeContext';
 import { DEPARTMENTS } from '../config/departments';
 
 interface HeaderProps {
@@ -74,6 +75,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const { isEditMode, toggleEditMode } = useEditMode();
+  const { theme, canToggle: canToggleTheme, toggleTheme } = useTheme();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
@@ -259,6 +261,19 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
               aria-pressed={isEditMode}
             >
               ✏ Edit{isEditMode ? ' (on)' : ''}
+            </button>
+          )}
+          {canToggleTheme && (
+            <button
+              type="button"
+              onClick={() => {
+                toggleTheme();
+                closeDropdown();
+              }}
+              className="dropdown-item"
+              aria-pressed={theme === 'dark'}
+            >
+              {theme === 'dark' ? '☀ Light mode' : '🌙 Dark mode'}
             </button>
           )}
           <button

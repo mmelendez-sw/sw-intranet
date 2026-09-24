@@ -13,13 +13,12 @@ import LeadGeneration from './components/LeadGeneration';
 import Iceman from './components/Iceman';
 import DevHomePage from './components/DevHomePage';
 import EmployeeDirectory from './components/EmployeeDirectory';
-// Last so its :where()-scoped rules win cascade ties; inert unless data-theme="dark".
-import '../styles/dark-theme.css';
 // import TvDisplay from './components/TvDisplay';
 import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted, isDevHomepageAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import {
   readCachedEditorStatus,
@@ -238,6 +237,7 @@ const App: React.FC = () => {
         <Route
           path="/*"
           element={
+            <ThemeProvider email={isDevHomepageAllowlisted(userInfo.email) ? userInfo.email : undefined}>
             <EditMenuProvider>
               <Header userInfo={userInfo} />
               {/* <div className="below-header">
@@ -285,6 +285,7 @@ const App: React.FC = () => {
                 </Routes>
               </div>
             </EditMenuProvider>
+            </ThemeProvider>
           }
         />
       </Routes>
