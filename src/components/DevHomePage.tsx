@@ -37,6 +37,7 @@ import {
   parseHomepageCardsContent,
   parseAnnouncementsContent,
   parseBirthdaysContent,
+  birthdaysOrDefault,
   isBirthdayToday,
   buildHomepageCardsFile,
   buildAnnouncementsContentFile,
@@ -221,7 +222,7 @@ const getInitialAnnouncements = (): Announcement[] => {
 };
 
 const getInitialBirthdays = (): BirthdaysContent => {
-  return parseBirthdaysContent(getCachedContent(BIRTHDAYS_CONTENT_KEY));
+  return birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY));
 };
 
 const daysInMonth = (month: number): number => {

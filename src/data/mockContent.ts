@@ -20,6 +20,7 @@ import type {
 } from '../services/contentService';
 import type { GraphUser } from '../services/directoryService';
 import seedCards from './homepage-cards.seed.json';
+import seedBirthdays from './birthdays.seed.json';
 
 const isoDaysAgo = (days: number): string => {
   const d = new Date();
@@ -135,18 +136,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
   },
 ];
 
-const today = new Date();
-const thisMonth = today.getMonth() + 1;
-const MOCK_BIRTHDAYS: BirthdaysContent = {
-  people: [
-    { id: 'bday-mock-1', name: 'Alex Rivera', month: thisMonth, day: today.getDate(), email: 'arivera.demo@example.com' },
-    { id: 'bday-mock-2', name: 'Jordan Lee', month: 1, day: 15 },
-    { id: 'bday-mock-3', name: 'Casey Morgan', month: thisMonth, day: 3, department: 'Operations' },
-    { id: 'bday-mock-4', name: 'Sam Nguyen', month: thisMonth, day: 27, department: 'Marketing' },
-    // Not in the mock directory — hidden everywhere, flagged in the editor.
-    { id: 'bday-mock-5', name: 'Pat Former', month: thisMonth, day: 12 },
-  ],
-};
+const MOCK_BIRTHDAYS: BirthdaysContent = seedBirthdays as BirthdaysContent;
 
 const MOCK_TICKER: TickerItem[] = [
   { id: 't1', text: '🎉 Welcome to the Symphony Towers intranet (spoofed data — BYPASS_AUTH is on)', order: 1 },
@@ -197,14 +187,21 @@ export function getMockContent<T>(key: string): T | null {
   return value === undefined ? null : (JSON.parse(JSON.stringify(value)) as T);
 }
 
-/** Fake directory entries (not real employees) for /directory under BYPASS_AUTH. */
-export const MOCK_DIRECTORY_USERS: GraphUser[] = [
-  { id: 'u1', displayName: 'Alex Rivera', jobTitle: 'Acquisition Advisor', department: 'Acquisitions', mail: 'arivera.demo@example.com' },
-  { id: 'u2', displayName: 'Jordan Lee', jobTitle: 'Senior Analyst', department: 'Finance', mail: 'jlee.demo@example.com' },
-  { id: 'u3', displayName: 'Casey Morgan', jobTitle: 'Director of Operations', department: 'Operations', mail: 'cmorgan.demo@example.com' },
-  { id: 'u4', displayName: 'Taylor Brooks', jobTitle: 'Software Engineer', department: 'Technology', mail: 'tbrooks.demo@example.com' },
-  { id: 'u5', displayName: 'Morgan Patel', jobTitle: 'HR Generalist', department: 'Human Resources', mail: 'mpatel.demo@example.com' },
-  { id: 'u6', displayName: 'Riley Chen', jobTitle: 'Paralegal', department: 'Legal', mail: 'rchen.demo@example.com' },
-  { id: 'u7', displayName: 'Sam Nguyen', jobTitle: 'Marketing Manager', department: 'Marketing', mail: 'snguyen.demo@example.com' },
-  { id: 'u8', displayName: 'Jamie Ortiz', jobTitle: 'Underwriter', department: 'Underwriting', mail: 'jortiz.demo@example.com' },
-];
+/**
+ * Directory stand-in for /directory and the birthday cross-reference under BYPASS_AUTH:
+ * built from the HR birthday roster (names + department only, no emails or titles).
+ */
+export const MOCK_DIRECTORY_USERS: GraphUser[] = (seedBirthdays as BirthdaysContent).people
+  .map((p) => {
+    const [givenName, ...rest] = p.name.split(' ');
+    return {
+      id: p.id.replace(/^bday-/, 'user-'),
+      displayName: p.name,
+      givenName,
+      surname: rest.join(' '),
+      jobTitle: null,
+      department: p.department ?? null,
+      mail: null,
+    };
+  })
+  .sort((a, b) => a.displayName.localeCompare(b.displayName));

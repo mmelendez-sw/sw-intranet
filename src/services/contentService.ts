@@ -68,6 +68,7 @@ import {
 import { acquireSharePointToken } from '../utils/msalToken';
 import { BUNDLED_DEFAULT_CARD_IMAGES } from '../data/bundledDefaultCardImages';
 import { getMockContent } from '../data/mockContent';
+import seedBirthdays from '../data/birthdays.seed.json';
 import {
   clearLegacyLocalStorageImageCache,
   idbGetImageBlob,
@@ -764,9 +765,13 @@ export const DEFAULT_ALERT: SiteAlert = {
   type: 'info',
 };
 
-export const DEFAULT_BIRTHDAYS: BirthdaysContent = {
-  people: [],
-};
+/** HR birthday list (month/day only) used until birthdays.json exists in SharePoint. */
+export const DEFAULT_BIRTHDAYS: BirthdaysContent = parseBirthdaysContent(seedBirthdays);
+
+/** Cached/remote birthdays, or the bundled HR list when nothing has been saved yet. */
+export function birthdaysOrDefault(raw: unknown): BirthdaysContent {
+  return raw == null ? DEFAULT_BIRTHDAYS : parseBirthdaysContent(raw);
+}
 
 /** Normalize stored birthdays data (supports list or `{ people: [...] }`). */
 export function parseBirthdaysContent(raw: unknown): BirthdaysContent {

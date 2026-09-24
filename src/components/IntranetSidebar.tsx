@@ -20,6 +20,7 @@ import {
   stampSidebarSectionEditor,
   BirthdaysContent,
   parseBirthdaysContent,
+  birthdaysOrDefault,
 } from '../services/contentService';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import {
@@ -231,7 +232,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSaveStatus, setConfigSaveStatus] = useState<EditSaveStatus>('idle');
   const [birthdays, setBirthdays] = useState<BirthdaysContent>(() =>
-    parseBirthdaysContent(getCachedContent(BIRTHDAYS_CONTENT_KEY))
+    birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY))
   );
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
 
@@ -242,7 +243,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
       const remote = await getContent<unknown>(instance, BIRTHDAYS_CONTENT_KEY);
       if (!cancelled && remote) setBirthdays(parseBirthdaysContent(remote));
     };
-    const onUpdated = () => setBirthdays(parseBirthdaysContent(getCachedContent(BIRTHDAYS_CONTENT_KEY)));
+    const onUpdated = () => setBirthdays(birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY)));
     void load();
     window.addEventListener(BIRTHDAYS_UPDATED_EVENT, onUpdated);
     return () => {
