@@ -22,13 +22,22 @@
   box-sizing: border-box;
 }
 
+/* Banner height follows the rankings chart content (not the tall OG clamp). */
 .home-layout--dev .homepage-hero {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
   height: auto;
-  min-height: clamp(180px, 20vw, 330px);
+  min-height: 0;
   align-self: stretch;
+}
+
+.home-layout--dev .homepage-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .home-layout--dev .term-sheet-rankings {
@@ -36,8 +45,10 @@
   width: clamp(360px, 30vw, 460px);
   max-width: clamp(360px, 30vw, 460px);
   min-width: 0;
+  height: fit-content;
   display: flex;
   flex-direction: column;
+  align-self: flex-start;
 }
 
 .home-layout--dev .home-dev-body {
@@ -137,7 +148,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
 }
 
 .term-sheet-rankings-row {
