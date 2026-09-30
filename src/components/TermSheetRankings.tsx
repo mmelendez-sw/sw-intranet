@@ -18,7 +18,7 @@ type SpoofPerson = {
 type TierGroup = {
   tier: TermSheetTier;
   countLabel: string;
-  names: string[];
+  members: { name: string; count: number }[];
 };
 
 const TIER_META: Record<
@@ -51,13 +51,13 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
   return String(tier);
 }
 
-/** Spoofed THIS_MONTH counts keyed by matchKey — replace with live API when ready. */
+/** THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report — replace with live API when ready. */
 const SPOOF_COUNT_BY_KEY: Record<string, number> = {
-  Bocchi: 3,
+  Bocchi: 5,
   Seidenberg: 2,
+  King: 2,
   Sanandaji: 2,
   Kossak: 2,
-  King: 1,
   Casey: 1,
   Polidoro: 0,
   Schamberg: 0,
@@ -80,8 +80,8 @@ function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
   }
 
   return TIER_ORDER.filter((tier) => byTier.has(tier)).map((tier) => {
-    const members = (byTier.get(tier) || []).sort((a, b) =>
-      a.displayName.localeCompare(b.displayName)
+    const members = (byTier.get(tier) || []).sort(
+      (a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName)
     );
     return {
       tier,
@@ -89,7 +89,7 @@ function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
         tier,
         members.map((m) => m.count)
       ),
-      names: members.map((m) => m.displayName),
+      members: members.map((m) => ({ name: m.displayName, count: m.count })),
     };
   });
 }
@@ -99,7 +99,7 @@ function currentMonthLabel(date = new Date()): string {
 }
 
 /**
- * Monthly Term Sheet Rankings — spoofed sample metrics for /dev WIP only.
+ * Monthly Term Sheet Leaderboard — /dev WIP only.
  * When promoting to `/`, gate with isTermSheetRankingsAllowlisted (AM roster).
  */
 const TermSheetRankings: React.FC = () => {
@@ -107,15 +107,17 @@ const TermSheetRankings: React.FC = () => {
   const monthLabel = useMemo(() => currentMonthLabel(), []);
 
   return (
-    <section className="term-sheet-rankings" aria-label="Monthly Term Sheet Rankings">
+    <section className="term-sheet-rankings" aria-label="Monthly Term Sheet Leaderboard">
       <header className="term-sheet-rankings-header">
-        <h2>Monthly Term Sheet Rankings</h2>
+        <h2>
+          <span aria-hidden="true">🥇 🏆 </span>
+          Monthly Term Sheet Leaderboard
+          <span aria-hidden="true"> 🏆 🥇</span>
+        </h2>
         <p className="term-sheet-rankings-month">
           Data for <strong>{monthLabel}</strong>
           <span className="term-sheet-rankings-reset"> · Resets monthly</span>
-        </p>
-        <p className="term-sheet-rankings-spoof-note">Sample Salesforce metrics (preview)</p>
-      </header>
+        </p>      </header>
 
       <ul className="term-sheet-rankings-list">
         {groups.map((group) => {
@@ -130,9 +132,12 @@ const TermSheetRankings: React.FC = () => {
                 title={tier.label}
               />
               <span className="term-sheet-rankings-names">
-                {group.names.map((name) => (
-                  <span key={name} className="term-sheet-rankings-name">
-                    {name}
+                {group.members.map((member) => (
+                  <span key={member.name} className="term-sheet-rankings-name">
+                    {member.name}
+                    {group.tier === 3 && (
+                      <span className="term-sheet-rankings-name-count"> ({member.count})</span>
+                    )}
                   </span>
                 ))}
               </span>

@@ -896,7 +896,7 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
       </div>
       {showHomeContent ? (
         <div className="home-layout home-layout--dev">
-          {/* ── Top: HOW banner + Term Sheet Rankings (same row, wider chart) ── */}
+          {/* ── Top: HOW banner (2/3) + Term Sheet Leaderboard (1/3) ── */}
           <div className="home-dev-top">
             <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
               <SharePointImage

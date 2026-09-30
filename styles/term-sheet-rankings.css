@@ -24,7 +24,7 @@
 
 /* Banner height follows the rankings chart content (not the tall OG clamp). */
 .home-layout--dev .homepage-hero {
-  flex: 1 1 auto;
+  flex: 2 1 0;
   min-width: 0;
   margin: 0;
   height: auto;
@@ -41,9 +41,7 @@
 }
 
 .home-layout--dev .term-sheet-rankings {
-  flex: 0 0 clamp(360px, 30vw, 460px);
-  width: clamp(360px, 30vw, 460px);
-  max-width: clamp(360px, 30vw, 460px);
+  flex: 1 1 0;
   min-width: 0;
   height: fit-content;
   display: flex;
@@ -102,7 +100,7 @@
 
 .term-sheet-rankings-header h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: #003366;
   line-height: 1.25;
@@ -121,13 +119,6 @@
 
 .term-sheet-rankings-reset {
   color: #9ca3af;
-}
-
-.term-sheet-rankings-spoof-note {
-  margin: 6px 0 0;
-  font-size: 10px;
-  color: #9ca3af;
-  font-style: italic;
 }
 
 .term-sheet-rankings-status,
@@ -201,6 +192,11 @@
   overflow-wrap: anywhere;
 }
 
+.term-sheet-rankings-name-count {
+  font-weight: 700;
+  color: #003366;
+}
+
 .term-sheet-rankings-count {
   font-size: 13px;
   font-weight: 700;
@@ -241,6 +237,7 @@
     flex-direction: column;
   }
 
+  .home-layout--dev .homepage-hero,
   .home-layout--dev .term-sheet-rankings,
   .home-layout--dev .home-sidebar {
     flex: 1 1 auto;

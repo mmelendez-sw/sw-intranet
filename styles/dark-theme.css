@@ -869,13 +869,13 @@
 }
 
 :where(:root[data-theme="dark"]) .term-sheet-rankings-header h2,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-name-count,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-count {
   color: var(--text-heading);
 }
 
 :where(:root[data-theme="dark"]) .term-sheet-rankings-month,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-reset,
-:where(:root[data-theme="dark"]) .term-sheet-rankings-spoof-note,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-status {
   color: var(--text-muted);
 }
