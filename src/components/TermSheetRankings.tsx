@@ -1,6 +1,10 @@
 import React, { useMemo } from 'react';
 import { TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import '../../styles/term-sheet-rankings.css';
+import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
+import awesomeKidImg from '../../images/term-sheet-rankings/awesome-kid.png';
+import gatsbyImg from '../../images/term-sheet-rankings/gatsby.png';
+import godfatherImg from '../../images/term-sheet-rankings/godfather.png';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
 
@@ -19,12 +23,12 @@ type TierGroup = {
 
 const TIER_META: Record<
   TermSheetTier,
-  { icon: string; label: string; className: string }
+  { image: string; label: string; className: string }
 > = {
-  0: { icon: '💩', label: '0 term sheets', className: 'tier-0' },
-  1: { icon: '🧒', label: '1 term sheet (child)', className: 'tier-1' },
-  2: { icon: '🎬', label: '2 term sheets — Godfather goal', className: 'tier-2' },
-  3: { icon: '🐐', label: '3+ term sheets — Jordan', className: 'tier-3' },
+  0: { image: awkwardKidImg, label: '0 term sheets', className: 'tier-0' },
+  1: { image: awesomeKidImg, label: '1 term sheet', className: 'tier-1' },
+  2: { image: gatsbyImg, label: '2 term sheets — Gatsby', className: 'tier-2' },
+  3: { image: godfatherImg, label: '3+ term sheets — Godfather', className: 'tier-3' },
 };
 
 const TIER_ORDER: TermSheetTier[] = [3, 2, 1, 0];
@@ -112,9 +116,12 @@ const TermSheetRankings: React.FC = () => {
           const tier = TIER_META[group.tier];
           return (
             <li key={group.tier} className={`term-sheet-rankings-row ${tier.className}`}>
-              <span className="term-sheet-rankings-icon" title={tier.label} aria-label={tier.label}>
-                {tier.icon}
-              </span>
+              <img
+                className="term-sheet-rankings-icon"
+                src={tier.image}
+                alt={tier.label}
+                title={tier.label}
+              />
               <span className="term-sheet-rankings-names">
                 {group.names.map((name) => (
                   <span key={name} className="term-sheet-rankings-name">
@@ -134,10 +141,12 @@ const TermSheetRankings: React.FC = () => {
       </ul>
 
       <div className="term-sheet-rankings-legend" aria-hidden="true">
-        <span>💩 0</span>
-        <span>🧒 1</span>
-        <span>🎬 2 Godfather</span>
-        <span>🐐 3+ Jordan</span>
+        {TIER_ORDER.map((tierKey) => (
+          <span key={tierKey} className="term-sheet-rankings-legend-item">
+            <img src={TIER_META[tierKey].image} alt="" />
+            {tierKey === 3 ? '3+' : tierKey}
+          </span>
+        ))}
       </div>
     </section>
   );

@@ -153,8 +153,8 @@
 
 .term-sheet-rankings-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
-  gap: 8px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 10px;
   align-items: start;
   padding: 8px;
   border-radius: 8px;
@@ -178,10 +178,12 @@
 }
 
 .term-sheet-rankings-icon {
-  font-size: 20px;
-  line-height: 1.2;
-  text-align: center;
-  padding-top: 1px;
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 6px;
 }
 
 .term-sheet-rankings-names {
@@ -217,6 +219,20 @@
   border-top: 1px solid #e5e7eb;
   font-size: 10px;
   color: #6b7280;
+}
+
+.term-sheet-rankings-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.term-sheet-rankings-legend-item img {
+  width: 18px;
+  height: 18px;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 3px;
 }
 
 @media (max-width: 900px) {
