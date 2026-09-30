@@ -861,3 +861,55 @@
 :where(:root[data-theme="dark"]) .birthdays-import {
   border-color: var(--border-subtle);
 }
+
+/* ── term-sheet-rankings.css (/dev) ── */
+:where(:root[data-theme="dark"]) .term-sheet-rankings {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-header h2,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-count {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-month,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-reset,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-spoof-note,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-status {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-month strong,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-name {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-error {
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row {
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-0 {
+  background: var(--tint-error-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-1 {
+  background: rgba(249, 115, 22, 0.16);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-2 {
+  background: var(--tint-info-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-row.tier-3 {
+  background: var(--tint-success-bg);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-legend {
+  border-top-color: var(--border-subtle);
+  color: var(--text-muted);
+}

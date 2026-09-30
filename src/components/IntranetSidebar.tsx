@@ -39,7 +39,7 @@ import {
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
 
-/** The HR section hosts the Current Month Birthdays list. */
+/** The HR section hosts the current month's birthdays list. */
 const isHrSection = (section: SidebarSection): boolean =>
   section.key === 'hr-updates' || /hr/i.test(section.title ?? '');
 
@@ -564,7 +564,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                 )}
                 {isHrSection(section) && monthBirthdays.length > 0 && (
                   <div className="sidebar-birthdays">
-                    <h3 className="sidebar-birthdays-heading">🎂 Current Month Birthdays</h3>
+                    <h3 className="sidebar-birthdays-heading">🎂 {MONTH_NAMES[currentMonth - 1]} Birthdays</h3>
                     <ul className="sidebar-birthdays-list">
                       {monthBirthdays.map((person) => (
                         <li key={person.id}>
