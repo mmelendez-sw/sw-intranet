@@ -869,7 +869,6 @@
 }
 
 :where(:root[data-theme="dark"]) .term-sheet-rankings-header h2,
-:where(:root[data-theme="dark"]) .term-sheet-rankings-name-count,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-count {
   color: var(--text-heading);
 }
@@ -881,7 +880,8 @@
 }
 
 :where(:root[data-theme="dark"]) .term-sheet-rankings-month strong,
-:where(:root[data-theme="dark"]) .term-sheet-rankings-name {
+:where(:root[data-theme="dark"]) .term-sheet-rankings-name,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-name-count {
   color: var(--text-primary);
 }
 
