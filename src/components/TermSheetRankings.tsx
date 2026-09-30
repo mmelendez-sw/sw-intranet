@@ -70,6 +70,25 @@ const SPOOF_COUNTS: SpoofPerson[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
   count: SPOOF_COUNT_BY_KEY[entry.matchKey] ?? 0,
 }));
 
+/** Temporary: set to false to restore the real AM counts after the demo screenshot. */
+const SHOW_DEMO_ATHLETES = true;
+
+const DEMO_ATHLETES: SpoofPerson[] = [
+  { name: 'Michael Jordan', count: 6 },
+  { name: 'Tom Brady', count: 5 },
+  { name: 'Serena Williams', count: 4 },
+  { name: 'Wayne Gretzky', count: 3 },
+  { name: 'LeBron James', count: 2 },
+  { name: 'Lionel Messi', count: 2 },
+  { name: 'Usain Bolt', count: 2 },
+  { name: 'Carmelo Anthony', count: 1 },
+  { name: 'Dwight Howard', count: 1 },
+  { name: 'Happy Gilmore', count: 1 },
+  { name: 'Bobby Boucher', count: 0 },
+  { name: 'Ricky Bobby', count: 0 },
+  { name: 'Kenny Powers', count: 0 },
+].map(({ name, count }) => ({ email: '', displayName: name, matchKey: name, count }));
+
 function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
   const byTier = new Map<TermSheetTier, SpoofPerson[]>();
   for (const person of people) {
@@ -103,7 +122,10 @@ function currentMonthLabel(date = new Date()): string {
  * When promoting to `/`, gate with isTermSheetRankingsAllowlisted (AM roster).
  */
 const TermSheetRankings: React.FC = () => {
-  const groups = useMemo(() => buildTierGroups(SPOOF_COUNTS), []);
+  const groups = useMemo(
+    () => buildTierGroups(SHOW_DEMO_ATHLETES ? DEMO_ATHLETES : SPOOF_COUNTS),
+    []
+  );
   const monthLabel = useMemo(() => currentMonthLabel(), []);
 
   return (
