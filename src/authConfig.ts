@@ -102,6 +102,7 @@ export const isIcemanAllowlisted = (email?: string): boolean => {
  */
 export const DEV_HOMEPAGE_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
+  'atabbacchino@symphonyinfra.com',
 ]);
 
 export const isDevHomepageAllowlisted = (email?: string): boolean => {
