@@ -132,13 +132,16 @@ const TermSheetRankings: React.FC = () => {
                 title={tier.label}
               />
               <span className="term-sheet-rankings-names">
-                {group.members.map((member) => (
-                  <span key={member.name} className="term-sheet-rankings-name">
-                    {member.name}
-                    {group.tier === 3 && (
-                      <span className="term-sheet-rankings-name-count"> ({member.count})</span>
-                    )}
-                  </span>
+                {group.members.map((member, index) => (
+                  <React.Fragment key={member.name}>
+                    <span className="term-sheet-rankings-name">
+                      {member.name}
+                      {group.tier === 3 && (
+                        <span className="term-sheet-rankings-name-count"> ({member.count})</span>
+                      )}
+                    </span>
+                    {index < group.members.length - 1 && ', '}
+                  </React.Fragment>
                 ))}
               </span>
               <span

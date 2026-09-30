@@ -880,6 +880,7 @@
 }
 
 :where(:root[data-theme="dark"]) .term-sheet-rankings-month strong,
+:where(:root[data-theme="dark"]) .term-sheet-rankings-names,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-name,
 :where(:root[data-theme="dark"]) .term-sheet-rankings-name-count {
   color: var(--text-primary);
