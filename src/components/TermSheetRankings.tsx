@@ -53,7 +53,7 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
 
 /** THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report — replace with live API when ready. */
 const SPOOF_COUNT_BY_KEY: Record<string, number> = {
-  Bocchi: 4,
+  Bocchi: 5,
   King: 3,
   Sanandaji: 3,
   Kossak: 3,
