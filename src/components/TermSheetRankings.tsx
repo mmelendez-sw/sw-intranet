@@ -23,12 +23,12 @@ type TierGroup = {
 
 const TIER_META: Record<
   TermSheetTier,
-  { image: string; label: string; className: string }
+  { image: string; label: string; legend: string; className: string }
 > = {
-  0: { image: awkwardKidImg, label: '0 term sheets', className: 'tier-0' },
-  1: { image: awesomeKidImg, label: '1 term sheet', className: 'tier-1' },
-  2: { image: gatsbyImg, label: '2 term sheets — Gatsby', className: 'tier-2' },
-  3: { image: godfatherImg, label: '3+ term sheets — Godfather', className: 'tier-3' },
+  0: { image: awkwardKidImg, label: '0 term sheets', legend: '0 · Side-eye', className: 'tier-0' },
+  1: { image: awesomeKidImg, label: '1 term sheet', legend: '1 · Success Kid', className: 'tier-1' },
+  2: { image: gatsbyImg, label: '2 term sheets — Gatsby', legend: '2 · Gatsby', className: 'tier-2' },
+  3: { image: godfatherImg, label: '3+ term sheets — Godfather', legend: '3+ · Godfather', className: 'tier-3' },
 };
 
 const TIER_ORDER: TermSheetTier[] = [3, 2, 1, 0];
@@ -144,7 +144,7 @@ const TermSheetRankings: React.FC = () => {
         {TIER_ORDER.map((tierKey) => (
           <span key={tierKey} className="term-sheet-rankings-legend-item">
             <img src={TIER_META[tierKey].image} alt="" />
-            {tierKey === 3 ? '3+' : tierKey}
+            {TIER_META[tierKey].legend}
           </span>
         ))}
       </div>
