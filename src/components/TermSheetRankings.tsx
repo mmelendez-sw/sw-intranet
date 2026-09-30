@@ -23,10 +23,16 @@ type TierGroup = {
 
 const TIER_META: Record<
   TermSheetTier,
-  { image: string; label: string; legend: string; className: string }
+  { image: string; imagePosition?: string; label: string; legend: string; className: string }
 > = {
   0: { image: awkwardKidImg, label: '0 term sheets', legend: '0 · Side-eye', className: 'tier-0' },
-  1: { image: awesomeKidImg, label: '1 term sheet', legend: '1 · Success Kid', className: 'tier-1' },
+  1: {
+    image: awesomeKidImg,
+    imagePosition: '8% center',
+    label: '1 term sheet',
+    legend: '1 · Success Kid',
+    className: 'tier-1',
+  },
   2: { image: gatsbyImg, label: '2 term sheets — Gatsby', legend: '2 · Gatsby', className: 'tier-2' },
   3: { image: godfatherImg, label: '3+ term sheets — Godfather', legend: '3+ · Godfather', className: 'tier-3' },
 };
@@ -119,6 +125,7 @@ const TermSheetRankings: React.FC = () => {
               <img
                 className="term-sheet-rankings-icon"
                 src={tier.image}
+                style={tier.imagePosition ? { objectPosition: tier.imagePosition } : undefined}
                 alt={tier.label}
                 title={tier.label}
               />
@@ -143,7 +150,15 @@ const TermSheetRankings: React.FC = () => {
       <div className="term-sheet-rankings-legend" aria-hidden="true">
         {TIER_ORDER.map((tierKey) => (
           <span key={tierKey} className="term-sheet-rankings-legend-item">
-            <img src={TIER_META[tierKey].image} alt="" />
+            <img
+              src={TIER_META[tierKey].image}
+              style={
+                TIER_META[tierKey].imagePosition
+                  ? { objectPosition: TIER_META[tierKey].imagePosition }
+                  : undefined
+              }
+              alt=""
+            />
             {TIER_META[tierKey].legend}
           </span>
         ))}
