@@ -97,6 +97,43 @@ export function filterActiveBirthdays(people: BirthdayPerson[], users: GraphUser
   return people.filter((p) => birthdayDirectoryStatus(p, users) === 'active');
 }
 
+export interface BirthdayCoverageGaps {
+  /** Birthday entries that do not match anyone in the directory. */
+  unmatched: BirthdayPerson[];
+  /** Active employees with no birthday entry. Contractors and consultants are excluded. */
+  missing: GraphUser[];
+}
+
+/**
+ * Compare birthdays.json to the live directory.
+ * Unmatched entries are hidden on the site; missing employees were added to the directory
+ * without a birthday row.
+ */
+export function findBirthdayCoverageGaps(
+  people: BirthdayPerson[],
+  users: GraphUser[],
+): BirthdayCoverageGaps {
+  const matchedIds = new Set<string>();
+  const unmatched: BirthdayPerson[] = [];
+
+  for (const person of people) {
+    const match = matchBirthdayToDirectory(person, users);
+    if (!match) {
+      unmatched.push(person);
+      continue;
+    }
+    matchedIds.add(match.id);
+  }
+
+  const missing = users.filter(
+    (user) => !isContractorOrConsultant(user) && !matchedIds.has(user.id),
+  );
+
+  unmatched.sort((a, b) => a.name.localeCompare(b.name));
+  missing.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  return { unmatched, missing };
+}
+
 export function birthdaysInMonth(people: BirthdayPerson[], month: number): BirthdayPerson[] {
   return people
     .filter((p) => p.month === month)

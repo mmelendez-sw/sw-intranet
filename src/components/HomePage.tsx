@@ -8,7 +8,7 @@ import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import { BIRTHDAYS_UPDATED_EVENT, filterActiveBirthdays } from '../utils/birthdays';
-import { BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
+import { BirthdayCoverageNotice, BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
   getContent,
   setContent,
@@ -1051,6 +1051,12 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               <CompanyProgress userInfo={userInfo} />
               */}
 
+              <BirthdayCoverageNotice
+                email={userInfo.email}
+                people={birthdays.people}
+                users={directoryUsers}
+              />
+
               {/* ── Announcements ── */}
               {showAnnouncementsSection && (
                 <div className="home-announcements">
@@ -1475,6 +1481,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           isSaving={savingBirthdays}
           saveStatus={birthdaysSaveStatus}
         >
+          <BirthdayCoverageNotice
+            email={userInfo.email}
+            people={birthdaysDraft.people}
+            users={directoryUsers}
+          />
           <p className="edit-field-hint" style={{ marginTop: 0 }}>
             Add names and birth dates. On that day, a Happy Birthday announcement appears automatically.
             Only people found in the Employee Directory (not contractors or consultants) are shown.

@@ -129,6 +129,40 @@
   padding: 0;
 }
 
+/* ── Birthday coverage notice (two editors only) ── */
+.birthday-coverage-notice {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-left: 4px solid #ea580c;
+  border-radius: 8px;
+  color: #9a3412;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.birthday-coverage-notice-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.birthday-coverage-notice-group + .birthday-coverage-notice-group {
+  margin-top: 8px;
+}
+
+.birthday-coverage-notice p {
+  margin: 0 0 4px;
+}
+
+.birthday-coverage-notice ul {
+  margin: 0;
+  padding-left: 18px;
+  max-height: 140px;
+  overflow: auto;
+}
+
 /* ── Birthdays editor: directory match + import ── */
 .birthday-status {
   display: inline-block;

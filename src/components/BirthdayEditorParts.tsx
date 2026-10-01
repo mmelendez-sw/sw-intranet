@@ -1,11 +1,58 @@
 import React, { useState } from 'react';
+import { isBirthdayGapNotifyAllowlisted } from '../authConfig';
 import type { BirthdayPerson } from '../services/contentService';
 import type { GraphUser } from '../services/directoryService';
 import {
   birthdayDirectoryStatus,
+  findBirthdayCoverageGaps,
   mergeBirthdayImport,
   parseBirthdaySpreadsheet,
 } from '../utils/birthdays';
+
+/** On-screen notice for the birthday editors when the list and the directory disagree. */
+export const BirthdayCoverageNotice: React.FC<{
+  email?: string;
+  people: BirthdayPerson[];
+  users: GraphUser[] | null | undefined;
+}> = ({ email, people, users }) => {
+  if (!isBirthdayGapNotifyAllowlisted(email) || !users) return null;
+  const { unmatched, missing } = findBirthdayCoverageGaps(people, users);
+  if (!unmatched.length && !missing.length) return null;
+
+  return (
+    <div className="birthday-coverage-notice" role="status">
+      <div className="birthday-coverage-notice-title">Birthday list needs an update</div>
+      {missing.length > 0 && (
+        <div className="birthday-coverage-notice-group">
+          <p>
+            {missing.length === 1
+              ? '1 person is in the directory with no birthday saved:'
+              : `${missing.length} people are in the directory with no birthday saved:`}
+          </p>
+          <ul>
+            {missing.map((user) => (
+              <li key={user.id}>{user.displayName}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {unmatched.length > 0 && (
+        <div className="birthday-coverage-notice-group">
+          <p>
+            {unmatched.length === 1
+              ? '1 birthday does not match anyone in the directory:'
+              : `${unmatched.length} birthdays do not match anyone in the directory:`}
+          </p>
+          <ul>
+            {unmatched.map((person) => (
+              <li key={person.id}>{person.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 /** Directory cross-reference badge shown on each row of the birthdays editor. */
 export const BirthdayStatusBadge: React.FC<{ person: BirthdayPerson; users: GraphUser[] | null | undefined }> = ({

@@ -110,6 +110,18 @@ export const isDevHomepageAllowlisted = (email?: string): boolean => {
   return DEV_HOMEPAGE_ALLOWLIST.has(email.toLowerCase());
 };
 
+/** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
+export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
+  'mmelendez@symphonyinfra.com',
+  'sraffington@symphonyinfra.com',
+]);
+
+export const isBirthdayGapNotifyAllowlisted = (email?: string): boolean => {
+  if (!email) return false;
+  const normalized = email.toLowerCase().replace(/@symphonywireless\.com$/, '@symphonyinfra.com');
+  return BIRTHDAY_GAP_NOTIFY_ALLOWLIST.has(normalized);
+};
+
 /** AMs + leadership who see the Monthly Term Sheet Leaderboard on the main homepage. */
 export const isTermSheetRankingsAllowlisted = (email?: string): boolean => {
   if (!email) return false;

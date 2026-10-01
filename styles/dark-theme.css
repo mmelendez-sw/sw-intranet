@@ -846,6 +846,12 @@
   color: #f472b6;
 }
 
+:where(:root[data-theme="dark"]) .birthday-coverage-notice {
+  background: #3b2416;
+  border-color: #c2410c;
+  color: #fdba74;
+}
+
 :where(:root[data-theme="dark"]) .birthday-status {
   color: var(--text-muted);
 }
