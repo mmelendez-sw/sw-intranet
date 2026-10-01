@@ -1,6 +1,5 @@
 /**
- * AM roster for Monthly Term Sheet Rankings (spoof/live counts + future view access).
- * Chart is /dev-only for now; re-enable isTermSheetRankingsAllowlisted when promoting to `/`.
+ * AM roster for the Monthly Term Sheet Leaderboard (counts + view access on `/`).
  */
 
 export type TermSheetRosterEntry = {
@@ -20,7 +19,18 @@ export const TERM_SHEET_RANKING_ROSTER: TermSheetRosterEntry[] = [
   { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'Steve Schamberg' },
 ];
 
-/** Lowercased emails allowed to see the rankings chart. */
+/** Non-AM viewers of the leaderboard (leadership + intranet admins). */
+const TERM_SHEET_RANKINGS_EXTRA_VIEWERS = [
+  'mmelendez@symphonyinfra.com',
+  'atabbacchino@symphonyinfra.com',
+  'bsteinthal@symphonyinfra.com',
+  'arivera@symphonyinfra.com',
+];
+
+/** Lowercased emails allowed to see the leaderboard on the main homepage. */
 export const TERM_SHEET_RANKINGS_ALLOWLIST = new Set(
-  TERM_SHEET_RANKING_ROSTER.map((entry) => entry.email.toLowerCase())
+  [
+    ...TERM_SHEET_RANKING_ROSTER.map((entry) => entry.email),
+    ...TERM_SHEET_RANKINGS_EXTRA_VIEWERS,
+  ].map((email) => email.toLowerCase())
 );

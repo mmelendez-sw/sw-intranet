@@ -53,13 +53,13 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
 
 /** THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report — replace with live API when ready. */
 const SPOOF_COUNT_BY_KEY: Record<string, number> = {
-  Bocchi: 5,
-  King: 3,
-  Sanandaji: 3,
-  Kossak: 3,
-  Seidenberg: 2,
-  Schamberg: 2,
-  Casey: 1,
+  Bocchi: 0,
+  King: 0,
+  Sanandaji: 0,
+  Kossak: 0,
+  Seidenberg: 0,
+  Schamberg: 0,
+  Casey: 0,
   Polidoro: 0,
 };
 
@@ -71,7 +71,7 @@ const SPOOF_COUNTS: SpoofPerson[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
 }));
 
 /** Temporary: set to false to restore the real AM counts after the demo screenshot. */
-const SHOW_DEMO_ATHLETES = true;
+const SHOW_DEMO_ATHLETES = false;
 
 const DEMO_ATHLETES: SpoofPerson[] = [
   { name: 'Michael Jordan', count: 6 },
@@ -118,8 +118,7 @@ function currentMonthLabel(date = new Date()): string {
 }
 
 /**
- * Monthly Term Sheet Leaderboard — /dev WIP only.
- * When promoting to `/`, gate with isTermSheetRankingsAllowlisted (AM roster).
+ * Monthly Term Sheet Leaderboard. On `/` it is gated by isTermSheetRankingsAllowlisted.
  */
 const TermSheetRankings: React.FC = () => {
   const groups = useMemo(
