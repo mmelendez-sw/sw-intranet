@@ -5,7 +5,7 @@
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  margin-top: clamp(16px, 1.6vw, 24px);
+  margin-top: clamp(28px, calc(1.6vw + 12px), 36px);
 }
 
 /* OG homepage: wrapper must not break the classic flex row layout */
