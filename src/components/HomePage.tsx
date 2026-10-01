@@ -43,6 +43,8 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+import TermSheetRankings from './TermSheetRankings';
+import { isTermSheetRankingsAllowlisted } from '../authConfig';
 import {
   EditSaveStatus,
   EditSaveStatusText,
@@ -258,6 +260,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const canEdit = isEditor && isEditMode;
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
+  const showLeaderboard = isTermSheetRankingsAllowlisted(userInfo.email);
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
   //   if (!isTvLayout) return;
@@ -1001,35 +1004,48 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     );
   };
 
+  const heroBanner = (
+    <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
+      <SharePointImage
+        src={heroImageUrl || howBanner}
+        placeholderSrc={howBanner}
+        alt="Homepage banner"
+        className="homepage-hero-image"
+      />
+      <div className="homepage-hero-overlay">
+        <h1 className="homepage-hero-title">
+          <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
+          <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
+          <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
+        </h1>
+      </div>
+      {canEdit && (
+        <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
+          ✏ Edit Banner
+        </button>
+      )}
+    </section>
+  );
+
   return (
     <div className={`home-page ${showHomeContent ? 'authenticated' : 'unauthenticated'}`}>
       {showHomeContent ? (
-        <div className="home-layout">
+        <div className={`home-layout${showLeaderboard ? ' home-layout--dev' : ''}`}>
+          {/* ── Leaderboard viewers: HOW banner (2/3) + Term Sheet Leaderboard (1/3), as on /dev ── */}
+          {showLeaderboard && (
+            <div className="home-dev-top">
+              {heroBanner}
+              <TermSheetRankings />
+            </div>
+          )}
+
+          <div className={showLeaderboard ? 'home-dev-body' : 'home-og-body'}>
           {/* ── Main Content ── */}
           <div className="home-content-container">
             <div className="main-content home-main-content">
 
               {/* ── Hero Banner ── */}
-              <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
-                <SharePointImage
-                  src={heroImageUrl || howBanner}
-                  placeholderSrc={howBanner}
-                  alt="Homepage banner"
-                  className="homepage-hero-image"
-                />
-                <div className="homepage-hero-overlay">
-                  <h1 className="homepage-hero-title">
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">H</span><span className="homepage-hero-rest">ighest standards</span></span>
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">O</span><span className="homepage-hero-rest">ne team</span></span>
-                    <span className="homepage-hero-line"><span className="homepage-hero-acronym">W</span><span className="homepage-hero-rest">in!</span></span>
-                  </h1>
-                </div>
-                {canEdit && (
-                  <button className="edit-pencil-btn" onClick={openHeroEdit} title="Edit banner image">
-                    ✏ Edit Banner
-                  </button>
-                )}
-              </section>
+              {!showLeaderboard && heroBanner}
 
               {/* Company Progress — re-enable after Lambda + amplify /api rewrite are live
               <CompanyProgress userInfo={userInfo} />
@@ -1263,6 +1279,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
           {/* ── Sidebar ── */}
           <IntranetSidebar userInfo={userInfo} className="sidebar-narrow home-sidebar" />
+          </div>
         </div>
       ) : (
         <div className="unauthenticated-message">
