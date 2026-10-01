@@ -25,6 +25,7 @@ const TERM_SHEET_RANKINGS_EXTRA_VIEWERS = [
   'atabbacchino@symphonyinfra.com',
   'bsteinthal@symphonyinfra.com',
   'arivera@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
 ];
 
 /** Lowercased emails allowed to see the leaderboard on the main homepage. */

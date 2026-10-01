@@ -113,7 +113,9 @@ export const isDevHomepageAllowlisted = (email?: string): boolean => {
 /** AMs + leadership who see the Monthly Term Sheet Leaderboard on the main homepage. */
 export const isTermSheetRankingsAllowlisted = (email?: string): boolean => {
   if (!email) return false;
-  return TERM_SHEET_RANKINGS_ALLOWLIST.has(email.toLowerCase());
+  // Some sign-in names (UPNs) still use the legacy symphonywireless.com domain.
+  const normalized = email.toLowerCase().replace(/@symphonywireless\.com$/, '@symphonyinfra.com');
+  return TERM_SHEET_RANKINGS_ALLOWLIST.has(normalized);
 };
 
 
