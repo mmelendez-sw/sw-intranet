@@ -43,8 +43,6 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
-import TermSheetRankings from './TermSheetRankings';
-import { isTermSheetRankingsAllowlisted } from '../authConfig';
 import {
   EditSaveStatus,
   EditSaveStatusText,
@@ -260,7 +258,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const canEdit = isEditor && isEditMode;
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
-  const showLeaderboard = isTermSheetRankingsAllowlisted(userInfo.email);
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
   //   if (!isTvLayout) return;
@@ -1012,8 +1009,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           <div className="home-content-container">
             <div className="main-content home-main-content">
 
-              {/* ── Hero Banner (+ Term Sheet Leaderboard for allowlisted viewers) ── */}
-              <div className={showLeaderboard ? 'home-hero-row' : undefined}>
+              {/* ── Hero Banner ── */}
               <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
                 <SharePointImage
                   src={heroImageUrl || howBanner}
@@ -1034,8 +1030,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                   </button>
                 )}
               </section>
-              {showLeaderboard && <TermSheetRankings />}
-              </div>
 
               {/* Company Progress — re-enable after Lambda + amplify /api rewrite are live
               <CompanyProgress userInfo={userInfo} />

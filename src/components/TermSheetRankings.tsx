@@ -98,7 +98,7 @@ function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
     byTier.set(tier, list);
   }
 
-  return TIER_ORDER.filter((tier) => byTier.has(tier)).map((tier) => {
+  return TIER_ORDER.map((tier) => {
     const members = (byTier.get(tier) || []).sort(
       (a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName)
     );
