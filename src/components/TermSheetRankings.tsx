@@ -57,7 +57,7 @@ const SPOOF_COUNT_BY_KEY: Record<string, number> = {
   King: 0,
   Sanandaji: 0,
   Kossak: 0,
-  Seidenberg: 0,
+  Seidenberg: 1,
   Schamberg: 0,
   Casey: 0,
   Polidoro: 0,
