@@ -5,17 +5,27 @@
 #   - Lambda already created (Node.js 20+, handler = handler.handler)
 #
 # Usage:
-#   npm run deploy:lambda
-#   powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api -Region us-east-1
+#   npm run deploy:lambda -- -FunctionName sw-intranet-iceman -Region us-east-2
+#   powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-iceman -Region us-east-2
+#
+# Functions that serve live traffic (Amplify /api/<*> catch-all, TV displays) are
+# protected: deploying to them also requires -ConfirmProduction.
 
 param(
   [Parameter(Mandatory = $true)]
   [string]$FunctionName,
 
-  [string]$Region = $env:AWS_REGION
+  [string]$Region = $env:AWS_REGION,
+
+  [switch]$ConfirmProduction
 )
 
 $ErrorActionPreference = 'Stop'
+
+$productionFunctions = @('sw-intranet-api', 'sw-intranet-screen-api')
+if ($productionFunctions -contains $FunctionName -and -not $ConfirmProduction) {
+  throw "'$FunctionName' serves production traffic. Re-run with -ConfirmProduction if you really mean to replace its code."
+}
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $serverDir = Join-Path $repoRoot 'server'
@@ -31,7 +41,7 @@ try {
 }
 
 if (-not (Test-Path (Join-Path $distDir 'handler.js'))) {
-  throw "Expected $distDir\handler.js after build — compile failed?"
+  throw "Expected $distDir\handler.js after build - compile failed?"
 }
 
 $zipPath = Join-Path $env:TEMP 'sw-intranet-api.zip'
@@ -87,6 +97,12 @@ if (-not $awsCmd) {
 }
 
 if ($LASTEXITCODE -ne 0) { throw "aws lambda update-function-code failed (exit $LASTEXITCODE)" }
+
+Write-Host "Waiting for '$FunctionName' to finish updating..."
+$waitArgs = @('lambda', 'wait', 'function-updated-v2', '--function-name', $FunctionName)
+if ($Region) { $waitArgs += @('--region', $Region) }
+if ($awsCmd) { aws @waitArgs } else { & $awsExe @waitArgs }
+if ($LASTEXITCODE -ne 0) { throw "Lambda '$FunctionName' did not reach a Successful update state (exit $LASTEXITCODE). Check the console." }
 
 Write-Host "Deploy complete." -ForegroundColor Green
 Write-Host "Handler: handler.handler"

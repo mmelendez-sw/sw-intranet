@@ -1,159 +1,117 @@
-# ICEMAN Lambda setup checklist
+# ICEMAN Lambda setup (manual, AWS console)
 
-Use this while creating the AWS Lambda that powers **ICEMAN** (`POST /api/iceman/generate`).
-
-Frontend: authenticated users on the ICEMAN allowlist (`mmelendez@symphonyinfra.com`) upload CSV/XLSX → Lambda fetches two north-oblique Nearmap tiles (close + far ground coverage) → returns an `.xlsx` download.
-
----
-
-## What this Lambda does
+ICEMAN: an allowlisted user uploads a CSV/XLSX of coordinates → a Lambda fetches two
+north-oblique Nearmap tiles per row (close + far) → returns an `.xlsx` with the
+thumbnails embedded.
 
 | Item | Value |
-|------|--------|
-| Route | `POST /api/iceman/generate?max_rows=500` |
-| Body | `multipart/form-data` with field name **`file`** (`.csv` or `.xlsx`) |
-| Response | `.xlsx` attachment (base64-encoded in Lambda) |
-| Handler (AWS) | `handler.handler` |
-| Code entry | `server/handler.ts` → `server/iceman.ts` |
-| Secret | `NEARMAP_API_KEY` (Lambda env only — never Amplify frontend env) |
-
-Repo deploy script: `npm run deploy:lambda -- -FunctionName YOUR_NAME -Region YOUR_REGION`
+|------|-------|
+| Route | `POST /api/iceman/generate?max_rows=500&close_m=35&far_m=300` |
+| Body | `multipart/form-data`, file field **`file`** (`.csv` / `.xlsx`) |
+| Response | `.xlsx` attachment (base64 body, `isBase64Encoded: true`) |
+| Handler | `handler.handler` (`server/handler.ts` → `server/iceman.ts`) |
+| Secret | `NEARMAP_API_KEY` — Lambda env only, never Amplify frontend env |
 
 ---
 
-## Decision: one Lambda or a dedicated ICEMAN Lambda?
+## Current production layout (as of Oct 2026) — do not disturb
 
-You already have (or will have) other `/api/*` backends. Amplify can only send each path to **one** target.
+Amplify rewrites are **app-wide** (every branch shares them) and live in the
+**Amplify console** (Hosting → Rewrites and redirects). The `customRules` block in
+`amplify.yml` is not what production uses.
 
-### Option A — Dedicated ICEMAN Lambda (recommended if another API already owns `/api/<*>`)
+| Path | Goes to | Used by |
+|------|---------|---------|
+| `/api/<*>` (catch-all) | `sw-intranet-api` Function URL | `serena-tv-dev` Power BI embed (no auth), Salesforce current-investments |
+| (direct, hardcoded URL) | `sw-intranet-screen-api` Function URL | TV cards / images |
+| `/*` | `/index.html` | SPA |
 
-Create a **new** function just for ICEMAN. In Amplify, add a **specific** rewrite **above** any catch-all `/api/<*>`:
+`sw-intranet-api` is a small hand-deployed handler (Power BI + current-investments
+only) — **not** this repo's `server/handler.ts`. Deploying this repo to it would
+replace live code, so `deploy-lambda.ps1` refuses that function name unless
+`-ConfirmProduction` is passed.
 
-| Source | Target | Type |
-|--------|--------|------|
-| `/api/iceman/<*>` | `https://YOUR_ICEMAN_FUNCTION_URL/api/iceman/<*>` | **200** (rewrite) |
-| `/api/<*>` | `https://YOUR_EXISTING_API_URL/api/<*>` | **200** (rewrite) |
-| `/<*>` | `/index.html` | **200** |
-
-Order matters: **ICEMAN rule first**, then general `/api`, then SPA.
-
-### Option B — Same Lambda as TV / Power BI / Salesforce
-
-Put ICEMAN on the existing intranet API function (this repo’s `handler.ts` already includes the route). Point Amplify’s `/api/<*>` at that Function URL. Redeploy that function whenever ICEMAN code changes.
-
----
-
-## Step 1 — Create the function (console)
-
-1. AWS Console → **Lambda** → **Create function**
-2. **Author from scratch**
-3. Name: e.g. `sw-intranet-iceman-api` (or reuse `sw-intranet-api` for Option B)
-4. Runtime: **Node.js 22.x** (or latest LTS offered)
-5. Architecture: **x86_64**
-6. Create function (default hello-world code is fine for now)
-
-### Runtime settings
-
-- **Code** → **Runtime settings** → Edit  
-- **Handler:** `handler.handler`
-
-### General configuration (important for batch Nearmap)
-
-| Setting | Suggested | Why |
-|---------|-----------|-----|
-| **Timeout** | **5–15 minutes** (max 15) | Each row = coverage + 3 tiles + 0.2s delays |
-| **Memory** | **1024 MB** (512 minimum) | Image resize + Excel build |
-| Ephemeral storage | 512 MB default is fine | No disk cache required |
-
-Do **not** leave timeout at 3 seconds.
+ICEMAN therefore gets its **own** Lambda and, when ready, **one** extra rewrite
+inserted above the catch-all. `/api/iceman/*` returns 404 today, so adding that rule
+changes nothing that currently works.
 
 ---
 
-## Step 2 — Environment variables
+## Step 1 — Create the function
 
-**Configuration** → **Environment variables** → Edit → add:
+Lambda console (region **us-east-2**) → **Create function** → Author from scratch:
 
-| Name | Value |
-|------|--------|
-| `NEARMAP_API_KEY` | Your Nearmap API key |
+| Setting | Value |
+|---------|-------|
+| Name | `sw-intranet-iceman` |
+| Runtime | Node.js 22.x |
+| Architecture | x86_64 |
+| Execution role | Create a new role with basic Lambda permissions (CloudWatch Logs only) |
 
-Optional (only if this same function also serves other routes):
+Then:
 
-| Name | Purpose |
-|------|---------|
-| `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` | SharePoint TV cards |
-| `POWERBI_*` | Power BI embed token |
-| `SF_*` | Salesforce |
+1. **Code → Runtime settings → Edit** → Handler: `handler.handler`
+2. **Configuration → General configuration → Edit**
+   - Memory: **1024 MB**
+   - Timeout: **5 min** to start (max 15 min)
+3. **Configuration → Concurrency → Edit** → Reserved concurrency: **2**
+   (caps runaway Nearmap spend and keeps ICEMAN from starving other functions)
+4. **Configuration → Environment variables → Edit** → `NEARMAP_API_KEY` = your key
 
-ICEMAN alone only needs `NEARMAP_API_KEY`.
+ICEMAN needs no other env vars.
 
----
+## Step 2 — Function URL
 
-## Step 3 — Function URL
+**Configuration → Function URL → Create function URL**
 
-1. **Configuration** → **Function URL** → **Create**
-2. **Auth type:** `NONE` for first internal tests (lock down later if needed)
-3. **CORS:**
-   - Allow origins: your Amplify origin(s), or `*` for a first test
-   - Allow methods: include **POST**, **OPTIONS**, **GET**
-   - Allow headers: `content-type` (and `*` if unsure)
-4. Save and copy the URL origin, e.g.  
-   `https://xxxxxxxx.lambda-url.us-east-2.on.aws`  
-   (**no** trailing slash, **no** `/api/...` path)
+| Setting | Value |
+|---------|-------|
+| Auth type | **AWS_IAM** while testing (only signed requests from your AWS user work) |
+| Invoke mode | BUFFERED |
+| CORS | leave off — the browser will reach it through Amplify (same origin) |
 
-### Binary / large responses
+Copy the origin, e.g. `https://xxxx.lambda-url.us-east-2.on.aws` (no trailing slash).
 
-ICEMAN returns an Excel file as base64. On Function URL this is usually fine when the handler sets `isBase64Encoded: true`.
+> Why AWS_IAM first: with `NONE`, anyone who finds the URL can spend Nearmap credits.
+> The UI allowlist (`ICEMAN_ALLOWLIST` in `src/authConfig.ts`) does not protect the
+> Lambda. Switch to `NONE` only when server-side token checks land and you add the
+> Amplify rewrite (Step 5).
 
-If uploads fail with payload errors:
+## Step 3 — Deploy code from this repo
 
-- Check Function URL / API limits
-- Cap rows with `?max_rows=` (max **500** in code)
-- Prefer smaller CSVs for first tests
-
----
-
-## Step 4 — Deploy code from this repo
-
-Prerequisites on your PC:
-
-- AWS CLI configured (`aws configure` or SSO)
-- Same account/region as the function
-- Repo dependencies installed (`npm ci`)
-
-From repo root:
+Prereqs: AWS CLI configured for account `332441963654`, `npm ci` done.
 
 ```powershell
-npm run deploy:lambda -- -FunctionName sw-intranet-iceman-api -Region us-east-2
+npm run deploy:lambda -- -FunctionName sw-intranet-iceman -Region us-east-2
 ```
 
-What the script does:
+The script compiles `server/*.ts`, stages `server/dist` + runtime deps, uploads the
+zip, and waits until the update reports **Successful**. (The bundle currently also
+contains the other routes; they stay inert without their env vars.)
 
-1. Compiles `server/*.ts` → `server/dist`
-2. Stages `handler.js` + deps (`busboy`, `exceljs`, `jimp`, `xlsx`, …)
-3. Zips and runs `aws lambda update-function-code`
+## Step 4 — Smoke test the Function URL directly
 
-Wait until **Last update status** = **Successful** before testing.
-
----
-
-## Step 5 — Smoke test (before Amplify)
+With `AWS_IAM` auth, sign the request with your AWS keys (curl ≥ 7.75):
 
 ```powershell
-# Expect 400/405 without a file — proves the route exists (not 404)
-curl.exe -i -X POST "https://YOUR_FUNCTION_URL/api/iceman/generate"
+$k = aws configure get aws_access_key_id; $s = aws configure get aws_secret_access_key
+$u = "https://YOUR_FUNCTION_URL"
 
-# Real upload
-curl.exe -L -o iceman-out.xlsx `
-  -F "file=@C:\path\to\coords.csv" `
-  "https://YOUR_FUNCTION_URL/api/iceman/generate?max_rows=5"
+# Expect 405 (route exists, wrong method)
+curl.exe -i --aws-sigv4 "aws:amz:us-east-2:lambda" --user "${k}:${s}" "$u/api/iceman/generate"
+
+# Real upload, 5 rows
+curl.exe -o iceman-out.xlsx --aws-sigv4 "aws:amz:us-east-2:lambda" --user "${k}:${s}" `
+  -F "file=@C:\path\to\coords.csv" "$u/api/iceman/generate?max_rows=5"
 ```
 
-Healthy signs:
-
-- Missing file → JSON `{ "error": "..." }` with **400**
-- Valid CSV with `lat`/`lng` → downloads `.xlsx`
-- Missing `NEARMAP_API_KEY` → **500** mentioning that env var
+| Result | Meaning |
+|--------|---------|
+| 405 / 400 JSON `{ "error": ... }` | Route deployed |
+| `.xlsx` downloads | Working end to end |
+| 500 `Missing required env var: NEARMAP_API_KEY` | Step 1.4 not saved |
+| 403 | Request not signed / wrong keys |
+| Status column notes, blank images | No Nearmap coverage or bad key |
 
 Sample CSV:
 
@@ -162,103 +120,42 @@ lat,lng,site
 40.7128,-74.0060,Example NYC
 ```
 
----
+Local alternative (no AWS): put `NEARMAP_API_KEY=...` in `server/.env`, run
+`npm run tv-api` and `npm start`; webpack proxies `/api/iceman` to `localhost:3001`.
 
-## Step 6 — Wire Amplify
+## Step 5 — Wire Amplify (separate go-ahead; app-wide change)
 
-Your current `amplify.yml` only has the SPA catch-all. Add API rewrites **above** `/<*>`.
+Only after Steps 1–4 pass. In Amplify console → **Hosting → Rewrites and redirects
+→ Manage**:
 
-### Dedicated ICEMAN Lambda (Option A)
+1. Save a copy of the current rules first (or `aws amplify get-app --app-id
+   d2ryoyr4gox6p1 --query app.customRules > amplify-rules-backup.json`).
+2. Add **one** rule at the **very top**, above `/api/<*>`:
 
-```yaml
-version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm ci --cache .npm --prefer-offline
-    build:
-      commands:
-        - npm run build
-  artifacts:
-    baseDirectory: dist
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - .npm/**/*
-  customHeaders:
-    - pattern: '**/*'
-      headers:
-        - key: 'Cache-Control'
-          value: 'public, max-age=0, must-revalidate'
-  customRules:
-    # ICEMAN — must be ABOVE the general /api catch-all
-    - source: '/api/iceman/<*>'
-      target: 'https://YOUR_ICEMAN_FUNCTION_URL/api/iceman/<*>'
-      status: '200'
-    # Existing intranet APIs (TV / Power BI / etc.)
-    - source: '/api/<*>'
-      target: 'https://YOUR_EXISTING_API_FUNCTION_URL/api/<*>'
-      status: '200'
-    - source: '/<*>'
-      target: '/index.html'
-      status: '200'
-```
+   | Source | Target | Type |
+   |--------|--------|------|
+   | `/api/iceman/<*>` | `https://YOUR_ICEMAN_FUNCTION_URL/api/iceman/<*>` | 200 (Rewrite) |
 
-Replace both Function URL origins (no trailing slash in the host part; keep `/api/...` as shown).
+3. Leave every other rule untouched and in order.
+4. Switch the ICEMAN Function URL auth type to `NONE` (Amplify can't sign requests).
 
-### Single shared Lambda (Option B)
-
-```yaml
-  customRules:
-    - source: '/api/<*>'
-      target: 'https://YOUR_SHARED_FUNCTION_URL/api/<*>'
-      status: '200'
-    - source: '/<*>'
-      target: '/index.html'
-      status: '200'
-```
-
-Then:
-
-1. Commit/push `amplify.yml` (or paste the same rules in Amplify Console → **Hosting** → **Rewrites and redirects**)
-2. Redeploy the Amplify branch
-3. Hard-refresh the site → open **ICEMAN** → upload a small file
-
-Browser Network tab should show:
-
-- Request URL: `https://your-amplify-domain/api/iceman/generate?...`
-- Status **200**
-- Response type: Excel / octet-stream (download starts)
+Rollback: delete that one rule (or re-apply the backup).
 
 ---
 
-## Local development (optional)
+## Known limits of the current synchronous design
 
-```powershell
-# server/.env
-NEARMAP_API_KEY=your-key
-API_PORT=3001
+| Limit | Effect |
+|-------|--------|
+| Amplify proxy timeout ≈ 30 s | Through Amplify, roughly 50–100 rows max (rows are fetched 4 at a time) |
+| Function URL buffered payload 6 MB | Responses over ~6 MB fail (~300 rows of thumbnails); uploads over 6 MB fail |
+| Lambda max 15 min | Hard ceiling when calling the Function URL directly |
 
-npm run tv-api
-# other terminal
-npm start
-```
-
-Webpack proxies `/api/iceman` → `http://localhost:3001`.
-
----
-
-## UI access control (already in code)
-
-| Check | Behavior |
-|-------|----------|
-| Header tab | Only if `userInfo.email` is in `ICEMAN_ALLOWLIST` |
-| Route `/iceman` | Others redirected to `/` |
-| Allowlist | `src/authConfig.ts` → `ICEMAN_ALLOWLIST` (currently `mmelendez@symphonyinfra.com`) |
-
-This is **UI-only**. The Function URL is still callable if someone knows the URL. For production lock-down, add auth on the Function URL or an API Gateway authorizer later.
+Planned fix (not built yet): async jobs — upload → `jobId` → the Lambda processes in
+the background → poll for progress → download from a pre-signed S3 link. Extra
+console steps for that phase: an S3 bucket (block public access, 7-day expiry
+lifecycle rule), and adding `s3:GetObject`/`s3:PutObject` on that bucket plus
+`lambda:InvokeFunction` on itself to the function's role.
 
 ---
 
@@ -266,40 +163,21 @@ This is **UI-only**. The Function URL is still callable if someone knows the URL
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| Amplify `/api/iceman/...` → **404** | Catch-all `/api/<*>` points at a Lambda **without** ICEMAN | Use Option A specific rewrite, or deploy ICEMAN onto the catch-all Lambda |
-| **404** on Function URL directly | Code not deployed / wrong handler | Redeploy; confirm handler `handler.handler` |
-| **500** `Missing required env var: NEARMAP_API_KEY` | Env not set | Add Lambda env var and save |
-| **Timeout** | Timeout still 3s / too many rows | Raise timeout; use `max_rows=5` first |
-| CORS errors in browser | Function URL CORS missing POST/OPTIONS | Edit Function URL CORS; allow your Amplify origin |
-| Blank images / Status notes | No Nearmap coverage / bad key | Check key; verify lat/lng in covered area |
-| Tab not visible | Not signed in as allowlisted email | Sign in as `mmelendez@symphonyinfra.com` |
+| `/api/iceman/...` → 404 on the site | No ICEMAN rewrite yet, so the catch-all sends it to `sw-intranet-api` | Step 5 |
+| 504 through Amplify | File too large for the ~30 s proxy timeout | Fewer rows, or call the Function URL directly |
+| Timeout in CloudWatch | Function timeout too low | Raise timeout (Step 1.2) |
+| 429 / throttled | Reserved concurrency 2 already in use | Wait, or raise it |
+| Tab not visible | Not signed in as an allowlisted email | `ICEMAN_ALLOWLIST` in `src/authConfig.ts` |
 
-CloudWatch: **/aws/lambda/`FunctionName`**
-
----
-
-## Quick checklist
-
-- [ ] Lambda created (Node 22.x)
-- [ ] Handler = `handler.handler`
-- [ ] Timeout ≥ 5 min, memory ≥ 512–1024 MB
-- [ ] Env `NEARMAP_API_KEY` set
-- [ ] Function URL created (CORS allows POST)
-- [ ] `npm run deploy:lambda -- -FunctionName … -Region …`
-- [ ] `curl` smoke test with a small CSV
-- [ ] Amplify rewrite for `/api/iceman/<*>` (or shared `/api/<*>`) **above** SPA rule
-- [ ] Amplify redeploy + hard refresh
-- [ ] ICEMAN tab visible only for allowlisted user
-
----
+Logs: CloudWatch → `/aws/lambda/sw-intranet-iceman`.
 
 ## Related code
 
 | Path | Role |
 |------|------|
-| `server/iceman.ts` | Nearmap + XLSX generation |
+| `server/iceman.ts` | Nearmap fetch (4 rows in flight, retry on 429/5xx) + XLSX build |
 | `server/multipart.ts` | Multipart upload parsing |
 | `server/handler.ts` | Route wiring |
-| `scripts/deploy-lambda.ps1` | Zip + update-function-code |
+| `scripts/deploy-lambda.ps1` | Build, zip, update-function-code, wait |
 | `src/components/Iceman.tsx` | Upload UI |
-| `src/authConfig.ts` | `ICEMAN_ALLOWLIST` |
+| `src/config/icemanLimits.ts` | Distance/row limits shared with the UI (a test checks they match the server) |
