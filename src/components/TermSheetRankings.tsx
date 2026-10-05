@@ -39,7 +39,7 @@ const TIER_META: Record<
 
 const TIER_ORDER: TermSheetTier[] = [3, 2, 1, 0];
 
-function tierForCount(count: number): TermSheetTier {
+export function tierForCount(count: number): TermSheetTier {
   if (count <= 0) return 0;
   if (count === 1) return 1;
   if (count === 2) return 2;
@@ -89,7 +89,7 @@ const DEMO_ATHLETES: SpoofPerson[] = [
   { name: 'Kenny Powers', count: 0 },
 ].map(({ name, count }) => ({ email: '', displayName: name, matchKey: name, count }));
 
-function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
+export function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
   const byTier = new Map<TermSheetTier, SpoofPerson[]>();
   for (const person of people) {
     const tier = tierForCount(person.count);
