@@ -97,6 +97,21 @@ export function filterActiveBirthdays(people: BirthdayPerson[], users: GraphUser
   return people.filter((p) => birthdayDirectoryStatus(p, users) === 'active');
 }
 
+/** Directory people left off the missing-birthday notice. */
+const BIRTHDAY_GAP_IGNORED_NAMES = new Set([
+  'ginu thomas',
+  'teagan terry',
+  'angela floyd',
+]);
+
+function isBirthdayGapIgnored(user: GraphUser): boolean {
+  const display = user.displayName.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (BIRTHDAY_GAP_IGNORED_NAMES.has(display)) return true;
+  const given = user.givenName?.trim().toLowerCase() ?? '';
+  const family = user.surname?.trim().toLowerCase() ?? '';
+  return !!(given && family && BIRTHDAY_GAP_IGNORED_NAMES.has(`${given} ${family}`));
+}
+
 export interface BirthdayCoverageGaps {
   /** Birthday entries that do not match anyone in the directory. */
   unmatched: BirthdayPerson[];
@@ -126,7 +141,7 @@ export function findBirthdayCoverageGaps(
   }
 
   const missing = users.filter(
-    (user) => !isContractorOrConsultant(user) && !matchedIds.has(user.id),
+    (user) => !isContractorOrConsultant(user) && !matchedIds.has(user.id) && !isBirthdayGapIgnored(user),
   );
 
   unmatched.sort((a, b) => a.name.localeCompare(b.name));
