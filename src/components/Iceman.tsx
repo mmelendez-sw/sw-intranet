@@ -1,6 +1,15 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { isIcemanAllowlisted } from '../authConfig';
+import {
+  ICEMAN_DEFAULT_MAX_ROWS,
+  CLOSE_OBLIQUE_MIN_M,
+  CLOSE_OBLIQUE_MAX_M,
+  CLOSE_OBLIQUE_DEFAULT_M,
+  FAR_OBLIQUE_MIN_M,
+  FAR_OBLIQUE_MAX_M,
+  FAR_OBLIQUE_DEFAULT_M,
+} from '../config/icemanLimits';
 import { UserInfo } from '../types/user';
 import closeObliqueExample from '../../images/iceman/north-oblique-close-example.jpg';
 import farObliqueExample from '../../images/iceman/north-oblique-far-example.jpg';
@@ -9,16 +18,6 @@ import '../../styles/iceman.css';
 interface IcemanProps {
   userInfo: UserInfo;
 }
-
-const DEFAULT_MAX_ROWS = 500;
-
-const CLOSE_OBLIQUE_MIN_M = 15;
-const CLOSE_OBLIQUE_MAX_M = 50;
-const CLOSE_OBLIQUE_DEFAULT_M = 35;
-
-const FAR_OBLIQUE_MIN_M = 200;
-const FAR_OBLIQUE_MAX_M = 500;
-const FAR_OBLIQUE_DEFAULT_M = 300;
 
 const ICEMAN_API_URL = (() => {
   if (typeof window === 'undefined') return '/api/iceman/generate';
@@ -45,10 +44,6 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-
-  if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
-    return <Navigate to="/" replace />;
-  }
 
   const selectFile = useCallback((picked: File | null) => {
     setError(null);
@@ -104,7 +99,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       form.append('far_m', String(farM));
 
       const url =
-        `${ICEMAN_API_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
+        `${ICEMAN_API_URL}?max_rows=${ICEMAN_DEFAULT_MAX_ROWS}` +
         `&close_m=${encodeURIComponent(String(closeM))}` +
         `&far_m=${encodeURIComponent(String(farM))}`;
       const res = await fetch(url, { method: 'POST', body: form });
@@ -143,6 +138,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       setLoading(false);
     }
   };
+
+  // Guard runs after every hook so the hook count stays stable across renders.
+  if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="iceman-page">

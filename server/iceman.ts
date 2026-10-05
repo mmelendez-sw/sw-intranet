@@ -14,10 +14,17 @@ import Jimp from 'jimp';
 
 const NEARMAP_TILES_BASE = 'https://api.nearmap.com/tiles/v3';
 const NEARMAP_COVERAGE_BASE = 'https://api.nearmap.com/coverage/v2';
-const REQUEST_DELAY_MS = 200;
+/** Rows processed in parallel (each row = 1 coverage call + 2 tile calls). */
+export const DEFAULT_CONCURRENCY = 4;
+/** Retries after the first attempt for Nearmap 429 / 5xx responses. */
+export const DEFAULT_MAX_RETRIES = 3;
+/** Exponential backoff base: 500ms, 1s, 2s, ... */
+export const DEFAULT_RETRY_BASE_DELAY_MS = 500;
+/** Upper bound on any single backoff wait (including Retry-After). */
+const MAX_RETRY_DELAY_MS = 10_000;
 const THUMB_WIDTH = 160;
 const THUMB_HEIGHT = 120;
-const DEFAULT_MAX_ROWS = 500;
+export const DEFAULT_MAX_ROWS = 500;
 
 /** Approximate tile ground width (m) → Web Mercator zoom. */
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
@@ -41,6 +48,27 @@ export type IcemanImageOptions = {
   farObliqueMeters?: number;
 };
 
+export type RetryOptions = {
+  /** Retries after the first attempt (default 3). */
+  maxRetries?: number;
+  /** Backoff base in ms; attempt n waits base * 2^n unless Retry-After is set (default 500). */
+  retryBaseDelayMs?: number;
+  /** Injectable delay (tests pass a no-op). */
+  sleep?: (ms: number) => Promise<void>;
+};
+
+/**
+ * Options accepted by generateIcemanWorkbook's 4th argument. A superset of
+ * IcemanImageOptions so existing callers keep working unchanged.
+ */
+export type IcemanGenerateOptions = IcemanImageOptions &
+  RetryOptions & {
+    /** Max rows in flight at once (default 4). */
+    concurrency?: number;
+    /** Called after each row finishes fetching (processed count is 1..total). */
+    onProgress?: (processed: number, total: number) => void;
+  };
+
 type ObliqueShot = {
   key: 'close' | 'far';
   meters: number;
@@ -58,7 +86,67 @@ type CoverageSurvey = {
   resources?: { type?: string }[];
 };
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+/** Retry-After as delay ms (delta-seconds or HTTP-date), or null if absent/invalid. */
+export function parseRetryAfterMs(value: string | null | undefined, now = Date.now()): number | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (/^\d+(\.\d+)?$/.test(trimmed)) return Math.round(Number(trimmed) * 1000);
+  const at = Date.parse(trimmed);
+  if (Number.isFinite(at)) return Math.max(0, at - now);
+  return null;
+}
+
+/**
+ * fetch() with retry + exponential backoff on HTTP 429 and 5xx.
+ * Returns the last response when retries are exhausted (callers inspect res.ok).
+ * Network errors (fetch throwing) are not retried and propagate.
+ */
+export async function fetchWithRetry(url: string, opts: RetryOptions = {}): Promise<Response> {
+  const maxRetries = Math.max(0, Math.floor(opts.maxRetries ?? DEFAULT_MAX_RETRIES));
+  const base = Math.max(0, opts.retryBaseDelayMs ?? DEFAULT_RETRY_BASE_DELAY_MS);
+  const wait = opts.sleep ?? sleep;
+
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url);
+    if (res.ok || !isRetryableStatus(res.status) || attempt >= maxRetries) return res;
+
+    const retryAfter = parseRetryAfterMs(res.headers?.get?.('retry-after'));
+    const delay = Math.min(MAX_RETRY_DELAY_MS, retryAfter ?? base * 2 ** attempt);
+    // Drain the body so the connection can be reused.
+    await res.arrayBuffer().catch(() => undefined);
+    await wait(delay);
+  }
+}
+
+/**
+ * Run fn over items with at most `limit` in flight. Results keep input order.
+ * Items are started in index order.
+ */
+export async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  const workerCount = Math.min(items.length, Math.max(1, Math.floor(limit) || 1));
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index], index);
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
+}
 
 function requireNearmapKey(): string {
   const key = process.env.NEARMAP_API_KEY?.trim();
@@ -90,7 +178,7 @@ function normalizeHeader(value: string): string {
   return value.trim().toLowerCase().replace(/[\s_-]+/g, '');
 }
 
-function findLatLngColumns(headers: string[]): { latCol: string; lngCol: string } | null {
+export function findLatLngColumns(headers: string[]): { latCol: string; lngCol: string } | null {
   const latNames = new Set(['lat', 'latitude', 'y']);
   const lngNames = new Set(['lng', 'lon', 'long', 'longitude', 'x']);
 
@@ -107,7 +195,7 @@ function findLatLngColumns(headers: string[]): { latCol: string; lngCol: string 
   return { latCol, lngCol };
 }
 
-function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number } {
+export function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number } {
   const n = 2 ** zoom;
   const x = Math.floor(((lng + 180) / 360) * n);
   const latRad = (lat * Math.PI) / 180;
@@ -118,7 +206,7 @@ function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: n
 }
 
 /** Ground width of one 256px Web Mercator tile at latitude / zoom. */
-function tileGroundWidthMeters(lat: number, zoom: number): number {
+export function tileGroundWidthMeters(lat: number, zoom: number): number {
   const cosLat = Math.cos((lat * Math.PI) / 180);
   return (EARTH_CIRCUMFERENCE_M * Math.max(0.01, cosLat)) / 2 ** zoom;
 }
@@ -127,7 +215,7 @@ function tileGroundWidthMeters(lat: number, zoom: number): number {
  * Pick integer zoom whose tile ground width is closest to the requested meters.
  * Nearmap typically tops out around zoom 21 for high-res surveys.
  */
-function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number {
+export function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number {
   const target = Math.max(1, targetMeters);
   let bestZoom = 19;
   let bestDiff = Number.POSITIVE_INFINITY;
@@ -145,13 +233,14 @@ function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number 
 async function getLatestSurveyId(
   lat: number,
   lng: number,
-  apiKey: string
+  apiKey: string,
+  retry: RetryOptions = {}
 ): Promise<{ surveyId: string | null; note?: string }> {
   const coord = `${lng},${lat}`;
   const url = `${NEARMAP_COVERAGE_BASE}/point/${encodeURIComponent(coord)}?apikey=${encodeURIComponent(apiKey)}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetchWithRetry(url, retry);
     if (!res.ok) {
       return { surveyId: null, note: `Coverage ${res.status}` };
     }
@@ -182,7 +271,8 @@ async function fetchNorthObliqueTile(
   meters: number,
   label: string,
   apiKey: string,
-  surveyId: string | null
+  surveyId: string | null,
+  retry: RetryOptions = {}
 ): Promise<ImageFetchResult> {
   const zoom = zoomForGroundCoverageMeters(lat, meters);
   const { x, y } = latLngToTile(lat, lng, zoom);
@@ -195,7 +285,7 @@ async function fetchNorthObliqueTile(
   const url = `${NEARMAP_TILES_BASE}/${path}?apikey=${encodeURIComponent(apiKey)}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetchWithRetry(url, retry);
     if (!res.ok) {
       return { buffer: null, note: `${label} ${res.status}` };
     }
@@ -217,7 +307,7 @@ async function fetchNorthObliqueTile(
   }
 }
 
-function parseWorkbookRows(buffer: Buffer, filename: string): {
+export function parseWorkbookRows(buffer: Buffer, filename: string): {
   rows: IcemanRow[];
   passThroughHeaders: string[];
   error?: string;
@@ -290,7 +380,7 @@ export async function generateIcemanWorkbook(
   fileBuffer: Buffer,
   filename: string,
   maxRows = DEFAULT_MAX_ROWS,
-  imageOptions?: IcemanImageOptions
+  imageOptions?: IcemanGenerateOptions
 ): Promise<{ buffer: Buffer; filename: string }> {
   const apiKey = requireNearmapKey();
   const parsed = parseWorkbookRows(fileBuffer, filename);
@@ -351,12 +441,67 @@ export async function generateIcemanWorkbook(
   }
   ws.getColumn(imageColStart + shots.length).width = 36;
 
-  const surveyCache = new Map<string, string | null>();
+  const retry: RetryOptions = {
+    maxRetries: imageOptions?.maxRetries,
+    retryBaseDelayMs: imageOptions?.retryBaseDelayMs,
+    sleep: imageOptions?.sleep,
+  };
+  const concurrency = imageOptions?.concurrency ?? DEFAULT_CONCURRENCY;
+  const onProgress = imageOptions?.onProgress;
 
+  // Promise cache: concurrent rows with the same coordinate share one coverage call.
+  // Only the row that issued the call reports its note (same as the old sequential loop,
+  // where later duplicates hit the cache and added no coverage note).
+  const surveyCache = new Map<string, Promise<{ surveyId: string | null; note?: string }>>();
+
+  type RowResult = { images: (Buffer | null)[]; statusNotes: string[] };
+  let processed = 0;
+
+  const results = await mapWithConcurrency(rows, concurrency, async (row): Promise<RowResult> => {
+    const statusNotes: string[] = [];
+    const cacheKey = `${row.lat.toFixed(6)},${row.lng.toFixed(6)}`;
+
+    let coveragePromise = surveyCache.get(cacheKey);
+    const ownsCoverage = !coveragePromise;
+    if (!coveragePromise) {
+      coveragePromise = getLatestSurveyId(row.lat, row.lng, apiKey, retry);
+      surveyCache.set(cacheKey, coveragePromise);
+    }
+    const coverage = await coveragePromise;
+    if (ownsCoverage && coverage.note) statusNotes.push(coverage.note);
+
+    const images: (Buffer | null)[] = [];
+    for (const shot of shots) {
+      const result = await fetchNorthObliqueTile(
+        row.lat,
+        row.lng,
+        shot.meters,
+        shot.label,
+        apiKey,
+        coverage.surveyId,
+        retry
+      );
+      if (result.note) statusNotes.push(result.note);
+      images.push(result.buffer);
+    }
+
+    processed++;
+    if (onProgress) {
+      try {
+        onProgress(processed, rows.length);
+      } catch (err) {
+        console.error('[iceman] onProgress callback failed', err);
+      }
+    }
+    return { images, statusNotes };
+  });
+
+  // Build the sheet sequentially in input order so layout and image ordering are deterministic.
+  const statusCol = imageColStart + shots.length;
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const excelRowNum = i + 2;
-    const statusNotes: string[] = [];
+    const { images, statusNotes } = results[i];
 
     const dataCells = [
       row.lat,
@@ -368,33 +513,12 @@ export async function generateIcemanWorkbook(
     ws.addRow(dataCells);
     ws.getRow(excelRowNum).height = 95;
 
-    const cacheKey = `${row.lat.toFixed(6)},${row.lng.toFixed(6)}`;
-    let surveyId = surveyCache.get(cacheKey);
-    if (surveyId === undefined) {
-      const coverage = await getLatestSurveyId(row.lat, row.lng, apiKey);
-      surveyId = coverage.surveyId;
-      surveyCache.set(cacheKey, surveyId);
-      if (coverage.note) statusNotes.push(coverage.note);
-      await sleep(REQUEST_DELAY_MS);
-    }
-
     for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
-      const shot = shots[imgIdx];
-      const result = await fetchNorthObliqueTile(
-        row.lat,
-        row.lng,
-        shot.meters,
-        shot.label,
-        apiKey,
-        surveyId
-      );
-      await sleep(REQUEST_DELAY_MS);
-
-      if (result.note) statusNotes.push(result.note);
-      if (!result.buffer) continue;
+      const buffer = images[imgIdx];
+      if (!buffer) continue;
 
       const imageId = wb.addImage({
-        buffer: result.buffer,
+        buffer,
         extension: 'jpeg',
       });
 
@@ -405,7 +529,6 @@ export async function generateIcemanWorkbook(
       });
     }
 
-    const statusCol = imageColStart + shots.length;
     ws.getCell(excelRowNum, statusCol).value = statusNotes.length
       ? [...new Set(statusNotes)].join('; ')
       : 'OK';
