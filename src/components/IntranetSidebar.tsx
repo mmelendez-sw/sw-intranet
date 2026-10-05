@@ -35,6 +35,7 @@ import {
   EditSaveStatusText,
   finishEditSave,
 } from './EditSaveStatusText';
+import { DEFAULT_LINK_LABEL, buildHtmlLink } from '../utils/html';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
@@ -97,21 +98,6 @@ const EditModal: React.FC<EditModalProps> = ({
       </div>
     </div>
   );
-};
-
-const escapeHtmlAttr = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
-const escapeHtmlText = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-const DEFAULT_LINK_LABEL = 'CLICK HERE';
-
-const buildHtmlLink = (url: string, label: string, suffix = ''): string => {
-  const linkText = label.trim() || DEFAULT_LINK_LABEL;
-  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
-  const trimmedSuffix = suffix.trim();
-  return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
 };
 
 const getSectionValidationError = (section: SidebarSection): string | null => {
