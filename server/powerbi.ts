@@ -1,3 +1,5 @@
+import type { ManagerTermSheetCount } from './termSheetRankings';
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required env var: ${name}`);
@@ -130,4 +132,145 @@ export async function getEmbedConfig(reportId?: string): Promise<PowerbiEmbedCon
     tokenType: 'Aad',
     expiration: new Date(Date.now() + 55 * 60 * 1000).toISOString(),
   };
+}
+
+// ── Term Sheet Leaderboard (DAX executeQueries) ─────────────────────────────
+
+/**
+ * Source of the leaderboard counts: the "MTD Proprietary" page (section
+ * f36508456d02bff60b47) of report 5112761a-… in workspace 113d281a-….
+ * The REST API can't read a page directly, so the DAX below reproduces that page's
+ * visual against the report's dataset: same measure, same page filters.
+ *
+ * TODO: replace managerColumn / countMeasure / pageFilters with the real ones. Easiest:
+ * Power BI Desktop → View → Performance analyzer → refresh the MTD Proprietary visual →
+ * "Copy query", and take the grouping column, measure, and filters from it.
+ *
+ * Env overrides (optional): POWERBI_TERM_SHEET_WORKSPACE_ID, POWERBI_TERM_SHEET_REPORT_ID,
+ * POWERBI_TERM_SHEET_DATASET_ID (skips the report → dataset lookup).
+ */
+export const TERM_SHEET_POWERBI = {
+  workspaceId: '113d281a-8fe0-4d14-829e-30bde3a28f49',
+  reportId: '5112761a-0830-48f3-8f47-2922949b300f',
+  /** Column the visual groups by (one row per manager). */
+  managerColumn: "'Opportunity'[Acquisition Advisor Manager]",
+  /** The page's month-to-date measure. */
+  countMeasure: '[MTD Term Sheets]',
+  /** Page / visual filters, as DAX filter tables. */
+  pageFilters: ["TREATAS({\"Proprietary\"}, 'Opportunity'[Source Type])"],
+};
+
+type TermSheetPowerBIConfig = typeof TERM_SHEET_POWERBI;
+
+/** EVALUATE SUMMARIZECOLUMNS(manager, filters…, "TermSheets", measure). */
+export function buildTermSheetDax(config: TermSheetPowerBIConfig = TERM_SHEET_POWERBI): string {
+  return [
+    'EVALUATE',
+    'SUMMARIZECOLUMNS(',
+    ...[config.managerColumn, ...config.pageFilters, `"TermSheets", ${config.countMeasure}`].map(
+      (arg, i, all) => `  ${arg}${i < all.length - 1 ? ',' : ''}`
+    ),
+    ')',
+  ].join('\n');
+}
+
+/** executeQueries returns `'Opportunity'[Name]` columns keyed as `Opportunity[Name]`. */
+export function daxResultKey(columnRef: string): string {
+  const match = columnRef.trim().match(/^'?(.*?)'?\[(.+)\]$/);
+  if (!match) return columnRef.trim();
+  return `${match[1].replace(/''/g, "'")}[${match[2]}]`;
+}
+
+function datasetApiPath(workspaceId: string, datasetId: string): string {
+  if (isMyWorkspace(workspaceId)) return `/datasets/${datasetId}`;
+  return `/groups/${workspaceId}/datasets/${datasetId}`;
+}
+
+type PowerBIErrorBody = {
+  error?: { message?: string; code?: string; 'pbi.error'?: { details?: Array<{ detail?: { value?: string } }> } };
+};
+
+type ExecuteQueriesResponse = PowerBIErrorBody & {
+  results?: Array<{
+    tables?: Array<{ rows?: Array<Record<string, unknown>> }>;
+    error?: { message?: string };
+  }>;
+};
+
+function powerBIErrorMessage(data: PowerBIErrorBody, fallback: string): string {
+  const detail = data.error?.['pbi.error']?.details?.find((d) => d.detail?.value)?.detail?.value;
+  return detail || data.error?.message || data.error?.code || fallback;
+}
+
+/** Run one DAX query against a dataset and return the first table's rows. */
+export async function executeDaxQuery(
+  workspaceId: string,
+  datasetId: string,
+  dax: string,
+  accessToken?: string
+): Promise<Array<Record<string, unknown>>> {
+  const token = accessToken || (await getAadAccessToken());
+  const response = await fetch(
+    `https://api.powerbi.com/v1.0/myorg${datasetApiPath(workspaceId, datasetId)}/executeQueries`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ queries: [{ query: dax }], serializerSettings: { includeNulls: true } }),
+    }
+  );
+
+  const data = (await response.json().catch(() => ({}))) as ExecuteQueriesResponse;
+  const result = data.results?.[0];
+  if (!response.ok || result?.error) {
+    throw new Error(
+      result?.error?.message ||
+        powerBIErrorMessage(data, `Power BI executeQueries failed (${response.status})`)
+    );
+  }
+  return result?.tables?.[0]?.rows || [];
+}
+
+const datasetIdByReport = new Map<string, string>();
+
+/** Test hook. */
+export function clearTermSheetDatasetCache(): void {
+  datasetIdByReport.clear();
+}
+
+/** Dataset behind a report (cached per workspace + report for the life of the Lambda). */
+export async function resolveReportDatasetId(
+  workspaceId: string,
+  reportId: string,
+  accessToken: string
+): Promise<string> {
+  const key = `${workspaceId}/${reportId}`;
+  const cached = datasetIdByReport.get(key);
+  if (cached) return cached;
+
+  const response = await fetch(`https://api.powerbi.com/v1.0/myorg${reportApiPath(workspaceId, reportId)}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const data = (await response.json().catch(() => ({}))) as PowerBIErrorBody & { datasetId?: string };
+  if (!response.ok || !data.datasetId) {
+    throw new Error(powerBIErrorMessage(data, `Failed to load Power BI report ${reportId} (${response.status})`));
+  }
+  datasetIdByReport.set(key, data.datasetId);
+  return data.datasetId;
+}
+
+/** Month-to-date proprietary term-sheet counts per manager, as shown on the MTD Proprietary page. */
+export async function fetchTermSheetCountsFromPowerBI(): Promise<ManagerTermSheetCount[]> {
+  const workspaceId = (process.env.POWERBI_TERM_SHEET_WORKSPACE_ID || TERM_SHEET_POWERBI.workspaceId).trim();
+  const reportId = (process.env.POWERBI_TERM_SHEET_REPORT_ID || TERM_SHEET_POWERBI.reportId).trim();
+  const accessToken = await getAadAccessToken();
+  const datasetId =
+    process.env.POWERBI_TERM_SHEET_DATASET_ID?.trim() ||
+    (await resolveReportDatasetId(workspaceId, reportId, accessToken));
+
+  const rows = await executeDaxQuery(workspaceId, datasetId, buildTermSheetDax(), accessToken);
+  const managerKey = daxResultKey(TERM_SHEET_POWERBI.managerColumn);
+  return rows.map((row) => ({
+    name: (row[managerKey] as string | null | undefined) ?? null,
+    count: (row['[TermSheets]'] as number | string | null | undefined) ?? null,
+  }));
 }

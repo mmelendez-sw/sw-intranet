@@ -1,3 +1,5 @@
+import type { ManagerTermSheetCount } from './termSheetRankings';
+
 const API_VERSION = '60.0';
 
 const CURRENT_INVESTMENTS_QUERY = `
@@ -115,25 +117,6 @@ export async function getCurrentInvestments(): Promise<unknown> {
   return runSalesforceQuery(CURRENT_INVESTMENTS_QUERY);
 }
 
-/**
- * Fixed AM roster for Monthly Term Sheet Rankings. `displayName` must equal the
- * Salesforce User Name on Acquisition_Advisor_Manager__c (compared case-insensitively).
- */
-export const TERM_SHEET_RANKING_ROSTER: Array<{
-  email: string;
-  matchKey: string;
-  displayName: string;
-}> = [
-  { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'Brandon Seidenberg' },
-  { email: 'CPolidoro@symphonyinfra.com', matchKey: 'Polidoro', displayName: 'Chris Polidoro' },
-  { email: 'DKing@symphonyinfra.com', matchKey: 'King', displayName: 'Dylan King' },
-  { email: 'esanandaji@symphonyinfra.com', matchKey: 'Sanandaji', displayName: 'Ethan Sanandaji' },
-  { email: 'mkossak@symphonyinfra.com', matchKey: 'Kossak', displayName: 'Michael Kossak' },
-  { email: 'NBocchi@symphonyinfra.com', matchKey: 'Bocchi', displayName: 'Nick Bocchi' },
-  { email: 'scasey@symphonyinfra.com', matchKey: 'Casey', displayName: 'Shawn Casey' },
-  { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'Steve Schamberg' },
-];
-
 /** Proprietary term sheets signed this month, counted per Acquisition Advisor Manager. */
 const TERM_SHEET_RANKINGS_QUERY = `
 SELECT Acquisition_Advisor_Manager__r.Name managerName, COUNT(Id) termSheets
@@ -141,26 +124,6 @@ FROM Opportunity
 WHERE Term_Sheet_Signed_Date__c = THIS_MONTH AND Source_Type__c = 'Proprietary'
 GROUP BY Acquisition_Advisor_Manager__r.Name
 `;
-
-export type TermSheetTier = 0 | 1 | 2 | 3;
-
-export type TermSheetRankingRow = {
-  email: string;
-  displayName: string;
-  matchKey: string;
-  count: number;
-  tier: TermSheetTier;
-  dealSourceLabel: string | null;
-};
-
-function tierForCount(count: number): TermSheetTier {
-  if (count <= 0) return 0;
-  if (count === 1) return 1;
-  if (count === 2) return 2;
-  return 3;
-}
-
-const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
 
 /** AggregateResult row. Aliases are set in the SOQL; Salesforce's defaults are the fallback. */
 type TermSheetAggregateRecord = {
@@ -170,64 +133,13 @@ type TermSheetAggregateRecord = {
   expr0?: number | string | null;
 };
 
-type SalesforceQueryResult = {
-  records?: TermSheetAggregateRecord[];
-  totalSize?: number;
-};
-
-/**
- * Monthly Term Sheet Rankings: proprietary term sheets signed THIS_MONTH per
- * Acquisition Advisor Manager, always returning the full fixed roster (zeros included).
- * Managers not on the roster are returned in `unmatchedManagers` so name mismatches
- * between Salesforce and the roster are visible instead of silently dropped.
- */
-export async function getTermSheetRankings(): Promise<{
-  monthLabel: string;
-  rankings: TermSheetRankingRow[];
-  unmatchedManagers: Array<{ name: string; count: number }>;
-}> {
-  const data = (await runSalesforceQuery(TERM_SHEET_RANKINGS_QUERY)) as SalesforceQueryResult;
-  const counts = new Map<string, { count: number; dealSourceLabel: string | null }>();
-  const rosterByName = new Map(
-    TERM_SHEET_RANKING_ROSTER.map((entry) => [normalizeName(entry.displayName), entry])
-  );
-  const unmatchedManagers: Array<{ name: string; count: number }> = [];
-
-  for (const entry of TERM_SHEET_RANKING_ROSTER) {
-    counts.set(entry.matchKey, { count: 0, dealSourceLabel: null });
-  }
-
-  for (const record of data?.records || []) {
-    const name = String(record.managerName ?? record.Name ?? '').trim();
-    const rawCount = Number(record.termSheets ?? record.expr0);
-    const count = Number.isFinite(rawCount) ? Math.max(0, Math.trunc(rawCount)) : 0;
-    if (!count) continue;
-
-    const matched = name ? rosterByName.get(normalizeName(name)) : undefined;
-    if (!matched) {
-      // Includes opportunities with no manager set (name === '').
-      unmatchedManagers.push({ name: name || '(no manager)', count });
-      continue;
-    }
-    const prev = counts.get(matched.matchKey) || { count: 0, dealSourceLabel: null };
-    counts.set(matched.matchKey, {
-      count: prev.count + count,
-      dealSourceLabel: prev.dealSourceLabel || name,
-    });
-  }
-
-  const rankings = TERM_SHEET_RANKING_ROSTER.map((entry) => {
-    const stats = counts.get(entry.matchKey) || { count: 0, dealSourceLabel: null };
-    return {
-      email: entry.email,
-      displayName: entry.displayName,
-      matchKey: entry.matchKey,
-      count: stats.count,
-      tier: tierForCount(stats.count),
-      dealSourceLabel: stats.dealSourceLabel,
-    };
-  }).sort((a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName));
-
-  const monthLabel = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
-  return { monthLabel, rankings, unmatchedManagers };
+/** THIS_MONTH (Salesforce org timezone) proprietary term-sheet counts per manager. */
+export async function fetchTermSheetCountsFromSalesforce(): Promise<ManagerTermSheetCount[]> {
+  const data = (await runSalesforceQuery(TERM_SHEET_RANKINGS_QUERY)) as {
+    records?: TermSheetAggregateRecord[];
+  } | null;
+  return (data?.records || []).map((record) => ({
+    name: record.managerName ?? record.Name ?? null,
+    count: record.termSheets ?? record.expr0 ?? null,
+  }));
 }

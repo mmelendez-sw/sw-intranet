@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getCurrentInvestments,
-  getTermSheetRankings,
-  TERM_SHEET_RANKING_ROSTER,
+  fetchTermSheetCountsFromSalesforce,
 } from '../salesforce';
 
 const SF_ENV = ['SF_USERNAME', 'SF_PASSWORD', 'SF_SECURITY_TOKEN', 'SF_DOMAIN'] as const;
@@ -109,7 +108,7 @@ describe('Salesforce login (SOAP)', () => {
     await expect(getCurrentInvestments()).rejects.toThrow('Missing required env var: SF_USERNAME');
     process.env.SF_USERNAME = 'u';
     delete process.env.SF_PASSWORD;
-    await expect(getTermSheetRankings()).rejects.toThrow('Missing required env var: SF_PASSWORD');
+    await expect(fetchTermSheetCountsFromSalesforce()).rejects.toThrow('Missing required env var: SF_PASSWORD');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -140,7 +139,7 @@ describe('Salesforce login (SOAP)', () => {
   it('logs in on every call (no session cache)', async () => {
     const fetchMock = mockFetch(loginOk(), queryOk([]), loginOk(), queryOk([]));
     await getCurrentInvestments();
-    await getTermSheetRankings();
+    await fetchTermSheetCountsFromSalesforce();
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(String(fetchMock.mock.calls[2][0])).toContain('/services/Soap/u/60.0');
   });
@@ -170,9 +169,9 @@ describe('Salesforce query (REST)', () => {
     expect(soql).toContain('WHERE Current_Investment_Date__c > 2025-12-31');
   });
 
-  it('getTermSheetRankings sends the grouped proprietary term-sheet SOQL', async () => {
+  it('fetchTermSheetCountsFromSalesforce sends the grouped proprietary term-sheet SOQL', async () => {
     const fetchMock = mockFetch(loginOk(), queryOk([]));
-    await getTermSheetRankings();
+    await fetchTermSheetCountsFromSalesforce();
     const soql = new URL(fetchMock.mock.calls[1][0]).searchParams.get('q')!;
     expect(soql).toMatch(
       /^SELECT Acquisition_Advisor_Manager__r\.Name managerName, COUNT\(Id\) termSheets\s+FROM Opportunity/
@@ -192,7 +191,7 @@ describe('Salesforce query (REST)', () => {
 
   it('falls back to a status message on non-array error bodies', async () => {
     mockFetch(loginOk(), Response.json({ error: 'nope' }, { status: 401 }));
-    await expect(getTermSheetRankings()).rejects.toThrow('Salesforce query failed (401)');
+    await expect(fetchTermSheetCountsFromSalesforce()).rejects.toThrow('Salesforce query failed (401)');
   });
 
   it('reports the HTTP status when an error body is not JSON', async () => {
@@ -206,128 +205,30 @@ describe('Salesforce query (REST)', () => {
   });
 });
 
-describe('getTermSheetRankings transformation', () => {
-  beforeEach(() => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2026-10-15T12:00:00Z'));
-  });
-
-  it('returns the full roster with zeros when there are no records', async () => {
-    mockFetch(loginOk(), queryOk([]));
-    const out = await getTermSheetRankings();
-    expect(out.monthLabel).toBe('October 2026');
-    expect(out.rankings).toHaveLength(TERM_SHEET_RANKING_ROSTER.length);
-    expect(out.rankings.every((r) => r.count === 0 && r.tier === 0 && r.dealSourceLabel === null)).toBe(true);
-    // Ties sorted alphabetically by displayName.
-    const names = out.rankings.map((r) => r.displayName);
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-  });
-
-  it('maps grouped counts onto the roster, assigns tiers, sorts by count desc then name', async () => {
+describe('fetchTermSheetCountsFromSalesforce', () => {
+  it('maps aliased aggregate rows to { name, count }', async () => {
     mockFetch(
       loginOk(),
       queryOk([
         { managerName: 'Nick Bocchi', termSheets: 4 },
-        { managerName: 'Brandon Seidenberg', termSheets: 2 },
-        { managerName: 'Shawn Casey', termSheets: 1 },
-        { managerName: 'Chris Polidoro', termSheets: 1 },
+        { managerName: null, termSheets: 2 },
       ])
     );
-    const { rankings, unmatchedManagers } = await getTermSheetRankings();
-    const summary = rankings.map((r) => [r.displayName, r.count, r.tier, r.dealSourceLabel]);
-    expect(summary.slice(0, 4)).toEqual([
-      ['Nick Bocchi', 4, 3, 'Nick Bocchi'],
-      ['Brandon Seidenberg', 2, 2, 'Brandon Seidenberg'],
-      ['Chris Polidoro', 1, 1, 'Chris Polidoro'],
-      ['Shawn Casey', 1, 1, 'Shawn Casey'],
+    await expect(fetchTermSheetCountsFromSalesforce()).resolves.toEqual([
+      { name: 'Nick Bocchi', count: 4 },
+      { name: null, count: 2 },
     ]);
-    expect(summary.slice(4).map((r) => r[0])).toEqual([
-      'Dylan King',
-      'Ethan Sanandaji',
-      'Michael Kossak',
-      'Steve Schamberg',
-    ]);
-    expect(unmatchedManagers).toEqual([]);
-    expect(rankings[0]).toEqual({
-      email: 'NBocchi@symphonyinfra.com',
-      displayName: 'Nick Bocchi',
-      matchKey: 'Bocchi',
-      count: 4,
-      tier: 3,
-      dealSourceLabel: 'Nick Bocchi',
-    });
-  });
-
-  it('matches names case- and whitespace-insensitively', async () => {
-    mockFetch(loginOk(), queryOk([{ managerName: '  dylan   KING ', termSheets: 2 }]));
-    const { rankings } = await getTermSheetRankings();
-    const king = rankings.find((r) => r.matchKey === 'King')!;
-    expect(king.count).toBe(2);
-    expect(king.dealSourceLabel).toBe('dylan   KING');
-  });
-
-  it('uses exact names, so look-alikes are not credited to roster AMs', async () => {
-    mockFetch(
-      loginOk(),
-      queryOk([
-        { managerName: 'Jane Kingsley', termSheets: 3 },
-        { managerName: 'Dylan King Jr', termSheets: 1 },
-      ])
-    );
-    const { rankings, unmatchedManagers } = await getTermSheetRankings();
-    expect(rankings.every((r) => r.count === 0)).toBe(true);
-    expect(unmatchedManagers).toEqual([
-      { name: 'Jane Kingsley', count: 3 },
-      { name: 'Dylan King Jr', count: 1 },
-    ]);
-  });
-
-  it('reports opportunities with no manager as unmatched', async () => {
-    mockFetch(loginOk(), queryOk([{ managerName: null, termSheets: 5 }]));
-    const { unmatchedManagers } = await getTermSheetRankings();
-    expect(unmatchedManagers).toEqual([{ name: '(no manager)', count: 5 }]);
   });
 
   it("falls back to Salesforce's default aggregate keys (Name / expr0)", async () => {
     mockFetch(loginOk(), queryOk([{ Name: 'Ethan Sanandaji', expr0: '2' }]));
-    const { rankings } = await getTermSheetRankings();
-    expect(rankings.find((r) => r.matchKey === 'Sanandaji')!.count).toBe(2);
+    await expect(fetchTermSheetCountsFromSalesforce()).resolves.toEqual([
+      { name: 'Ethan Sanandaji', count: '2' },
+    ]);
   });
 
-  it('ignores zero, negative, fractional-remainder and non-numeric counts safely', async () => {
-    mockFetch(
-      loginOk(),
-      queryOk([
-        { managerName: 'Michael Kossak', termSheets: 0 },
-        { managerName: 'Steve Schamberg', termSheets: 'abc' },
-        { managerName: 'Shawn Casey', termSheets: -2 },
-        { managerName: 'Chris Polidoro', termSheets: 2.9 },
-      ])
-    );
-    const { rankings, unmatchedManagers } = await getTermSheetRankings();
-    const byKey = Object.fromEntries(rankings.map((r) => [r.matchKey, r]));
-    expect(byKey.Kossak.count).toBe(0);
-    expect(byKey.Schamberg.count).toBe(0);
-    expect(byKey.Casey.count).toBe(0);
-    expect(byKey.Polidoro.count).toBe(2);
-    expect(byKey.Polidoro.tier).toBe(2);
-    expect(unmatchedManagers).toEqual([]);
-  });
-
-  it('handles a response with no records array', async () => {
+  it('returns [] when the response has no records array', async () => {
     mockFetch(loginOk(), Response.json({ totalSize: 0, done: true }));
-    const { rankings } = await getTermSheetRankings();
-    expect(rankings.every((r) => r.count === 0)).toBe(true);
-  });
-
-  it('roster has unique emails and matchKeys', () => {
-    const emails = TERM_SHEET_RANKING_ROSTER.map((r) => r.email.toLowerCase());
-    const keys = TERM_SHEET_RANKING_ROSTER.map((r) => r.matchKey.toLowerCase());
-    expect(new Set(emails).size).toBe(emails.length);
-    expect(new Set(keys).size).toBe(keys.length);
-    for (const r of TERM_SHEET_RANKING_ROSTER) {
-      expect(r.displayName.toLowerCase()).toContain(r.matchKey.toLowerCase());
-      expect(r.email).toMatch(/@symphonyinfra\.com$/);
-    }
+    await expect(fetchTermSheetCountsFromSalesforce()).resolves.toEqual([]);
   });
 });

@@ -7,7 +7,8 @@
  *   GET /api/images/:id            — proxy SharePoint drive item bytes
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/current-investments
- *   GET /api/salesforce/term-sheet-rankings
+ *   GET /api/term-sheet-rankings       — leaderboard (Power BI or Salesforce, see termSheetRankings.ts)
+ *   GET /api/salesforce/term-sheet-rankings — legacy alias of the above
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file)
  *
@@ -17,6 +18,7 @@
  *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
  *   ICEMAN:        NEARMAP_API_KEY
+ *   Leaderboard:   TERM_SHEET_RANKINGS_SOURCE?, POWERBI_TERM_SHEET_DATASET_ID? (else POWERBI_DATASET_ID)
  */
 
 import { getGraphToken, getHomepageCardsMeta } from './tvHomepageCards';
@@ -26,7 +28,8 @@ import {
   getDriveImageContentByWebUrl,
   clearDefaultImagesCache,
 } from './tvImages';
-import { getCurrentInvestments, getTermSheetRankings } from './salesforce';
+import { getCurrentInvestments } from './salesforce';
+import { getTermSheetRankings } from './termSheetRankings';
 import { getEmbedConfig } from './powerbi';
 import { parseMultipart } from './multipart';
 import { generateIcemanWorkbook } from './iceman';
@@ -97,8 +100,8 @@ function isSalesforceInvestmentsPath(path: string): boolean {
   return /\/api\/salesforce\/current-investments\/?$/i.test(path);
 }
 
-function isSalesforceTermSheetRankingsPath(path: string): boolean {
-  return /\/api\/salesforce\/term-sheet-rankings\/?$/i.test(path);
+function isTermSheetRankingsPath(path: string): boolean {
+  return /\/api\/(salesforce\/)?term-sheet-rankings\/?$/i.test(path);
 }
 
 function isPowerbiEmbedTokenPath(path: string): boolean {
@@ -227,7 +230,7 @@ export async function handler(event?: {
       };
     }
 
-    if (isSalesforceTermSheetRankingsPath(path)) {
+    if (isTermSheetRankingsPath(path)) {
       const data = await getTermSheetRankings();
       return {
         statusCode: 200,
