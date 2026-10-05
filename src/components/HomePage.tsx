@@ -41,7 +41,7 @@ import {
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
 import TermSheetRankings from './TermSheetRankings';
-import { isTermSheetRankingsAllowlisted } from '../authConfig';
+import { canViewTermSheetLeaderboard } from '../utils/termSheetLeaderboard';
 import {
   EditSaveStatus,
   editSaveStatusFromResult,
@@ -116,7 +116,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const canEdit = isEditor && isEditMode;
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
-  const showLeaderboard = isTermSheetRankingsAllowlisted(userInfo.email);
+  const showLeaderboard = canViewTermSheetLeaderboard(userInfo.email, directoryUsers);
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
   //   if (!isTvLayout) return;

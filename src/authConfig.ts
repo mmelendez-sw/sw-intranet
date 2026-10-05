@@ -1,6 +1,5 @@
 import { UserInfo } from './types/user';
 import { acquireTokenSilentOnly, GRAPH_GROUP_SCOPES } from './utils/msalToken';
-import { TERM_SHEET_RANKINGS_ALLOWLIST } from './data/termSheetRankingsRoster';
 
 /** Dev-only: skip MSAL login and grant full access. Keep false for deployed environments. */
 export const BYPASS_AUTH = false;
@@ -122,12 +121,23 @@ export const isBirthdayGapNotifyAllowlisted = (email?: string): boolean => {
   return BIRTHDAY_GAP_NOTIFY_ALLOWLIST.has(normalized);
 };
 
-/** AMs + leadership who see the Monthly Term Sheet Leaderboard on the main homepage. */
+/**
+ * Named viewers of the Monthly Term Sheet Leaderboard. Everyone whose Entra job title is
+ * "Acquisitions Manager" can also see it (see utils/termSheetLeaderboard.ts).
+ */
+export const TERM_SHEET_LEADERBOARD_VIEWERS = new Set([
+  'mmelendez@symphonyinfra.com',
+  'arivera@symphonyinfra.com',
+  'bsteinthal@symphonyinfra.com',
+  'atabbacchino@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+]);
+
 export const isTermSheetRankingsAllowlisted = (email?: string): boolean => {
   if (!email) return false;
   // Some sign-in names (UPNs) still use the legacy symphonywireless.com domain.
   const normalized = email.toLowerCase().replace(/@symphonywireless\.com$/, '@symphonyinfra.com');
-  return TERM_SHEET_RANKINGS_ALLOWLIST.has(normalized);
+  return TERM_SHEET_LEADERBOARD_VIEWERS.has(normalized);
 };
 
 

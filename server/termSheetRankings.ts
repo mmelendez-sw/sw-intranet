@@ -1,9 +1,13 @@
 /**
- * Monthly Term Sheet Leaderboard: per-AM counts for the current month, from Power BI
- * (default; the MTD Proprietary report page's measure) or Salesforce, mapped onto the
- * fixed AM roster. The month label and cache key use TERM_SHEET_RANKINGS_TIMEZONE; the
- * counts' month boundary is whatever the source uses (the Power BI measure / Salesforce
- * THIS_MONTH), so the two can differ for a few hours around midnight on the 1st.
+ * Monthly Term Sheet Leaderboard: per-manager counts for the current month, from Power BI
+ * (default; the MTD Proprietary report page's measure) or Salesforce.
+ *
+ * There is no roster here. The frontend decides who appears (Entra users titled
+ * "Acquisitions Manager", plus anyone with counts) and who may view the leaderboard.
+ *
+ * The month label and cache key use TERM_SHEET_RANKINGS_TIMEZONE; the counts' month
+ * boundary is whatever the source uses (the Power BI measure / Salesforce THIS_MONTH),
+ * so the two can differ for a few hours around midnight on the 1st.
  *
  * Env:
  *   TERM_SHEET_RANKINGS_SOURCE   'powerbi' (default) | 'salesforce'
@@ -18,55 +22,19 @@ export type ManagerTermSheetCount = { name: string | null; count: number | strin
 
 export type TermSheetRankingsSource = 'powerbi' | 'salesforce';
 
-/**
- * Fixed AM roster. `displayName` must equal the manager name in the data source
- * (compared case- and whitespace-insensitively).
- */
-export const TERM_SHEET_RANKING_ROSTER: Array<{
-  email: string;
-  matchKey: string;
-  displayName: string;
-}> = [
-  { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'Brandon Seidenberg' },
-  { email: 'CPolidoro@symphonyinfra.com', matchKey: 'Polidoro', displayName: 'Chris Polidoro' },
-  { email: 'DKing@symphonyinfra.com', matchKey: 'King', displayName: 'Dylan King' },
-  { email: 'esanandaji@symphonyinfra.com', matchKey: 'Sanandaji', displayName: 'Ethan Sanandaji' },
-  { email: 'mkossak@symphonyinfra.com', matchKey: 'Kossak', displayName: 'Michael Kossak' },
-  { email: 'NBocchi@symphonyinfra.com', matchKey: 'Bocchi', displayName: 'Nick Bocchi' },
-  { email: 'scasey@symphonyinfra.com', matchKey: 'Casey', displayName: 'Shawn Casey' },
-  { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'Steve Schamberg' },
-];
-
-export type TermSheetTier = 0 | 1 | 2 | 3;
-
-export type TermSheetRankingRow = {
-  email: string;
-  displayName: string;
-  matchKey: string;
-  count: number;
-  tier: TermSheetTier;
-  dealSourceLabel: string | null;
-};
-
 export type TermSheetRankingsResponse = {
   monthLabel: string;
   source: TermSheetRankingsSource;
   /** ISO time the data was fetched from the source (cache hits keep the original time). */
   fetchedAt: string;
-  rankings: TermSheetRankingRow[];
-  /** Managers with term sheets who are not on the roster (name mismatches, no manager set). */
-  unmatchedManagers: Array<{ name: string; count: number }>;
+  /** Managers with at least one term sheet this month, count desc then name. */
+  managers: Array<{ name: string; count: number }>;
+  /** Term sheets with no manager set on the opportunity (not shown on the leaderboard). */
+  unassignedCount: number;
 };
 
 const DEFAULT_TIMEZONE = 'America/New_York';
 const CACHE_TTL_MS = 5 * 60 * 1000;
-
-export function tierForCount(count: number): TermSheetTier {
-  if (count <= 0) return 0;
-  if (count === 1) return 1;
-  if (count === 2) return 2;
-  return 3;
-}
 
 const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
 
@@ -86,48 +54,35 @@ export function currentMonth(
   return { year, month, label };
 }
 
-/** Map source rows onto the full roster (zeros included), sorted by count desc then name. */
-export function buildTermSheetRankings(rows: ManagerTermSheetCount[]): Pick<
-  TermSheetRankingsResponse,
-  'rankings' | 'unmatchedManagers'
-> {
-  const rosterByName = new Map(
-    TERM_SHEET_RANKING_ROSTER.map((entry) => [normalizeName(entry.displayName), entry])
-  );
-  const counts = new Map<string, { count: number; dealSourceLabel: string | null }>();
-  const unmatchedManagers: Array<{ name: string; count: number }> = [];
+/**
+ * Clean source rows: drop zero / invalid counts, truncate fractions, merge rows whose
+ * names differ only by case or spacing (keeping the first spelling), and sort.
+ */
+export function normalizeManagerCounts(
+  rows: ManagerTermSheetCount[]
+): Pick<TermSheetRankingsResponse, 'managers' | 'unassignedCount'> {
+  const byName = new Map<string, { name: string; count: number }>();
+  let unassignedCount = 0;
 
   for (const row of rows) {
-    const name = String(row.name ?? '').trim();
     const rawCount = Number(row.count);
     const count = Number.isFinite(rawCount) ? Math.max(0, Math.trunc(rawCount)) : 0;
     if (!count) continue;
 
-    const matched = name ? rosterByName.get(normalizeName(name)) : undefined;
-    if (!matched) {
-      unmatchedManagers.push({ name: name || '(no manager)', count });
+    const name = String(row.name ?? '').trim().replace(/\s+/g, ' ');
+    if (!name) {
+      unassignedCount += count;
       continue;
     }
-    const prev = counts.get(matched.matchKey) || { count: 0, dealSourceLabel: null };
-    counts.set(matched.matchKey, {
-      count: prev.count + count,
-      dealSourceLabel: prev.dealSourceLabel || name,
-    });
+    const key = normalizeName(name);
+    const prev = byName.get(key);
+    byName.set(key, { name: prev?.name ?? name, count: (prev?.count ?? 0) + count });
   }
 
-  const rankings = TERM_SHEET_RANKING_ROSTER.map((entry) => {
-    const stats = counts.get(entry.matchKey) || { count: 0, dealSourceLabel: null };
-    return {
-      email: entry.email,
-      displayName: entry.displayName,
-      matchKey: entry.matchKey,
-      count: stats.count,
-      tier: tierForCount(stats.count),
-      dealSourceLabel: stats.dealSourceLabel,
-    };
-  }).sort((a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName));
-
-  return { rankings, unmatchedManagers };
+  const managers = [...byName.values()].sort(
+    (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+  );
+  return { managers, unassignedCount };
 }
 
 export function resolveTermSheetRankingsSource(
@@ -167,7 +122,7 @@ export async function getTermSheetRankings(now: Date = new Date()): Promise<Term
       monthLabel: month.label,
       source,
       fetchedAt: now.toISOString(),
-      ...buildTermSheetRankings(rows),
+      ...normalizeManagerCounts(rows),
     };
     cache = { key, at: now.getTime(), value };
     return value;

@@ -119,7 +119,7 @@ describe('Salesforce + Power BI routes', () => {
   });
 
   it('term-sheet-rankings + legacy salesforce alias (trailing slash, case-insensitive, stage prefix)', async () => {
-    const payload = { monthLabel: 'October 2026', rankings: [], unmatchedManagers: [], source: 'powerbi' as const, fetchedAt: '' };
+    const payload = { monthLabel: 'October 2026', managers: [], unassignedCount: 0, source: 'powerbi' as const, fetchedAt: '' };
     vi.mocked(getTermSheetRankings).mockResolvedValue(payload);
     for (const p of [
       '/api/term-sheet-rankings',
@@ -139,7 +139,7 @@ describe('Salesforce + Power BI routes', () => {
 
   it('salesforce routes do not need Graph env vars', async () => {
     delete process.env.TENANT_ID;
-    vi.mocked(getTermSheetRankings).mockResolvedValue({ monthLabel: 'x', rankings: [], unmatchedManagers: [], source: 'powerbi' as const, fetchedAt: '' });
+    vi.mocked(getTermSheetRankings).mockResolvedValue({ monthLabel: 'x', managers: [], unassignedCount: 0, source: 'powerbi' as const, fetchedAt: '' });
     expect((await handler(fnUrlEvent('/api/salesforce/term-sheet-rankings'))).statusCode).toBe(200);
   });
 

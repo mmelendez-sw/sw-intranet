@@ -6,15 +6,12 @@ vi.mock('../salesforce', () => ({ fetchTermSheetCountsFromSalesforce: vi.fn() })
 import { fetchTermSheetCountsFromPowerBI } from '../powerbi';
 import { fetchTermSheetCountsFromSalesforce } from '../salesforce';
 import {
-  TERM_SHEET_RANKING_ROSTER,
-  buildTermSheetRankings,
   clearTermSheetRankingsCache,
   currentMonth,
   getTermSheetRankings,
+  normalizeManagerCounts,
   resolveTermSheetRankingsSource,
-  tierForCount,
 } from '../termSheetRankings';
-import { TERM_SHEET_RANKING_ROSTER as FRONTEND_ROSTER } from '../../src/data/termSheetRankingsRoster';
 
 const ENV = ['TERM_SHEET_RANKINGS_SOURCE', 'TERM_SHEET_RANKINGS_TIMEZONE'] as const;
 let savedEnv: Record<string, string | undefined>;
@@ -40,35 +37,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('roster', () => {
-  it('has unique emails and matchKeys, each matchKey inside the display name', () => {
-    const emails = TERM_SHEET_RANKING_ROSTER.map((r) => r.email.toLowerCase());
-    const keys = TERM_SHEET_RANKING_ROSTER.map((r) => r.matchKey.toLowerCase());
-    expect(new Set(emails).size).toBe(emails.length);
-    expect(new Set(keys).size).toBe(keys.length);
-    for (const r of TERM_SHEET_RANKING_ROSTER) {
-      expect(r.displayName.toLowerCase()).toContain(r.matchKey.toLowerCase());
-      expect(r.email).toMatch(/@symphonyinfra\.com$/);
-    }
-  });
-
-  it('matches the frontend roster (src/data/termSheetRankingsRoster.ts)', () => {
-    expect(TERM_SHEET_RANKING_ROSTER).toEqual(FRONTEND_ROSTER);
-  });
-});
-
-describe('tierForCount', () => {
-  it.each([
-    [0, 0],
-    [1, 1],
-    [2, 2],
-    [3, 3],
-    [9, 3],
-  ])('%i → tier %i', (count, tier) => {
-    expect(tierForCount(count)).toBe(tier);
-  });
-});
-
 describe('currentMonth', () => {
   it('uses America/New_York by default', () => {
     // 02:00 UTC on Nov 1 is still Oct 31 in New York.
@@ -90,86 +58,70 @@ describe('currentMonth', () => {
   });
 });
 
-describe('buildTermSheetRankings', () => {
-  it('returns the full roster with zeros when there are no rows', () => {
-    const { rankings, unmatchedManagers } = buildTermSheetRankings([]);
-    expect(rankings).toHaveLength(TERM_SHEET_RANKING_ROSTER.length);
-    expect(rankings.every((r) => r.count === 0 && r.tier === 0 && r.dealSourceLabel === null)).toBe(true);
-    const names = rankings.map((r) => r.displayName);
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
-    expect(unmatchedManagers).toEqual([]);
+describe('normalizeManagerCounts', () => {
+  it('returns no managers for no rows', () => {
+    expect(normalizeManagerCounts([])).toEqual({ managers: [], unassignedCount: 0 });
   });
 
-  it('maps counts onto the roster, assigns tiers, sorts by count desc then name', () => {
-    const { rankings } = buildTermSheetRankings([
+  it('sorts by count desc then name', () => {
+    expect(
+      normalizeManagerCounts([
+        { name: 'Shawn Casey', count: 1 },
+        { name: 'Nick Bocchi', count: 4 },
+        { name: 'Chris Polidoro', count: 1 },
+        { name: 'Brandon Seidenberg', count: 2 },
+      ]).managers
+    ).toEqual([
       { name: 'Nick Bocchi', count: 4 },
       { name: 'Brandon Seidenberg', count: 2 },
-      { name: 'Shawn Casey', count: 1 },
       { name: 'Chris Polidoro', count: 1 },
+      { name: 'Shawn Casey', count: 1 },
     ]);
-    expect(rankings.slice(0, 4).map((r) => [r.displayName, r.count, r.tier])).toEqual([
-      ['Nick Bocchi', 4, 3],
-      ['Brandon Seidenberg', 2, 2],
-      ['Chris Polidoro', 1, 1],
-      ['Shawn Casey', 1, 1],
+  });
+
+  it('merges names that differ only by case/spacing, keeping the first spelling', () => {
+    expect(
+      normalizeManagerCounts([
+        { name: '  Dylan   King ', count: 1 },
+        { name: 'dylan king', count: 2 },
+      ]).managers
+    ).toEqual([{ name: 'Dylan King', count: 3 }]);
+  });
+
+  it('keeps any manager name the source returns (no roster)', () => {
+    expect(normalizeManagerCounts([{ name: 'New Hire', count: 1 }]).managers).toEqual([
+      { name: 'New Hire', count: 1 },
     ]);
-    expect(rankings[0]).toEqual({
-      email: 'NBocchi@symphonyinfra.com',
-      displayName: 'Nick Bocchi',
-      matchKey: 'Bocchi',
-      count: 4,
-      tier: 3,
-      dealSourceLabel: 'Nick Bocchi',
+  });
+
+  it('totals rows with no manager as unassigned', () => {
+    expect(
+      normalizeManagerCounts([
+        { name: null, count: 2 },
+        { name: '   ', count: 1 },
+        { name: 'Nick Bocchi', count: 1 },
+      ])
+    ).toEqual({ managers: [{ name: 'Nick Bocchi', count: 1 }], unassignedCount: 3 });
+  });
+
+  it('drops zero, negative, and non-numeric counts and truncates fractions', () => {
+    expect(
+      normalizeManagerCounts([
+        { name: 'A Zero', count: 0 },
+        { name: 'B Text', count: 'abc' },
+        { name: 'C Negative', count: -2 },
+        { name: 'D Null', count: null },
+        { name: 'E Fraction', count: 2.9 },
+        { name: 'F String', count: '3' },
+        { name: null, count: 'x' },
+      ])
+    ).toEqual({
+      managers: [
+        { name: 'F String', count: 3 },
+        { name: 'E Fraction', count: 2 },
+      ],
+      unassignedCount: 0,
     });
-  });
-
-  it('matches names case- and whitespace-insensitively', () => {
-    const { rankings } = buildTermSheetRankings([{ name: '  dylan   KING ', count: 2 }]);
-    const king = rankings.find((r) => r.matchKey === 'King')!;
-    expect(king.count).toBe(2);
-    expect(king.dealSourceLabel).toBe('dylan   KING');
-  });
-
-  it('sums duplicate rows for the same person', () => {
-    const { rankings } = buildTermSheetRankings([
-      { name: 'Nick Bocchi', count: 1 },
-      { name: 'nick bocchi', count: 2 },
-    ]);
-    expect(rankings.find((r) => r.matchKey === 'Bocchi')!.count).toBe(3);
-  });
-
-  it('uses exact names, so look-alikes are reported as unmatched', () => {
-    const { rankings, unmatchedManagers } = buildTermSheetRankings([
-      { name: 'Jane Kingsley', count: 3 },
-      { name: 'Dylan King Jr', count: 1 },
-      { name: null, count: 5 },
-      { name: '   ', count: 1 },
-    ]);
-    expect(rankings.every((r) => r.count === 0)).toBe(true);
-    expect(unmatchedManagers).toEqual([
-      { name: 'Jane Kingsley', count: 3 },
-      { name: 'Dylan King Jr', count: 1 },
-      { name: '(no manager)', count: 5 },
-      { name: '(no manager)', count: 1 },
-    ]);
-  });
-
-  it('treats zero, negative, and non-numeric counts as zero and truncates fractions', () => {
-    const { rankings, unmatchedManagers } = buildTermSheetRankings([
-      { name: 'Michael Kossak', count: 0 },
-      { name: 'Steve Schamberg', count: 'abc' },
-      { name: 'Shawn Casey', count: -2 },
-      { name: 'Ethan Sanandaji', count: null },
-      { name: 'Chris Polidoro', count: 2.9 },
-      { name: 'Dylan King', count: '3' },
-    ]);
-    const byKey = Object.fromEntries(rankings.map((r) => [r.matchKey, r]));
-    expect([byKey.Kossak.count, byKey.Schamberg.count, byKey.Casey.count, byKey.Sanandaji.count]).toEqual([
-      0, 0, 0, 0,
-    ]);
-    expect(byKey.Polidoro).toMatchObject({ count: 2, tier: 2 });
-    expect(byKey.King).toMatchObject({ count: 3, tier: 3 });
-    expect(unmatchedManagers).toEqual([]);
   });
 });
 
@@ -200,9 +152,9 @@ describe('getTermSheetRankings', () => {
       monthLabel: 'October 2026',
       source: 'powerbi',
       fetchedAt: OCT_15.toISOString(),
-      unmatchedManagers: [],
+      managers: [{ name: 'Nick Bocchi', count: 2 }],
+      unassignedCount: 0,
     });
-    expect(out.rankings[0]).toMatchObject({ displayName: 'Nick Bocchi', count: 2, tier: 2 });
   });
 
   it('uses Salesforce when TERM_SHEET_RANKINGS_SOURCE=salesforce', async () => {

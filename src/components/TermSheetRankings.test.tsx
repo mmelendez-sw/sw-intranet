@@ -1,11 +1,14 @@
 import React from 'react';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
+import type { GraphUser } from '../services/directoryService';
+
+const directoryState = vi.hoisted(() => ({ users: undefined as GraphUser[] | null | undefined }));
+vi.mock('../hooks/useDirectoryUsers', () => ({
+  useDirectoryUsers: () => directoryState.users,
+}));
+
 import TermSheetRankings, { buildTierGroups, parseLiveRankings, tierForCount } from './TermSheetRankings';
-import {
-  TERM_SHEET_RANKING_ROSTER,
-  TERM_SHEET_RANKINGS_ALLOWLIST,
-} from '../data/termSheetRankingsRoster';
 
 const p = (displayName: string, count: number) => ({
   email: '',
@@ -14,32 +17,32 @@ const p = (displayName: string, count: number) => ({
   count,
 });
 
-describe('termSheetRankingsRoster', () => {
-  it('has unique emails and matchKeys', () => {
-    const emails = TERM_SHEET_RANKING_ROSTER.map((e) => e.email.toLowerCase());
-    const keys = TERM_SHEET_RANKING_ROSTER.map((e) => e.matchKey);
-    expect(new Set(emails).size).toBe(emails.length);
-    expect(new Set(keys).size).toBe(keys.length);
-  });
-
-  it('matchKey is the surname used in displayName', () => {
-    for (const entry of TERM_SHEET_RANKING_ROSTER) {
-      expect(entry.displayName.endsWith(entry.matchKey)).toBe(true);
-      expect(entry.email).toMatch(/@symphonyinfra\.com$/i);
-    }
-  });
-
-  it('allowlist is lowercased and includes every AM plus extra viewers', () => {
-    for (const email of TERM_SHEET_RANKINGS_ALLOWLIST) {
-      expect(email).toBe(email.toLowerCase());
-    }
-    for (const entry of TERM_SHEET_RANKING_ROSTER) {
-      expect(TERM_SHEET_RANKINGS_ALLOWLIST.has(entry.email.toLowerCase())).toBe(true);
-    }
-    expect(TERM_SHEET_RANKINGS_ALLOWLIST.has('mmelendez@symphonyinfra.com')).toBe(true);
-    expect(TERM_SHEET_RANKINGS_ALLOWLIST.size).toBe(TERM_SHEET_RANKING_ROSTER.length + 5);
-  });
+const manager = (displayName: string, mail: string): GraphUser => ({
+  id: mail,
+  displayName,
+  mail,
+  jobTitle: 'Acquisitions Manager',
+  department: null,
 });
+
+const MANAGERS: GraphUser[] = [
+  manager('Brandon Seidenberg', 'BSeidenberg@symphonyinfra.com'),
+  manager('Chris Polidoro', 'CPolidoro@symphonyinfra.com'),
+  manager('Dylan King', 'DKing@symphonyinfra.com'),
+  manager('Ethan Sanandaji', 'esanandaji@symphonyinfra.com'),
+  manager('Michael Kossak', 'mkossak@symphonyinfra.com'),
+  manager('Nick Bocchi', 'nbocchi@symphonyinfra.com'),
+  manager('Shawn Casey', 'SCasey@symphonyinfra.com'),
+  manager('Steve Schamberg', 'SSchamberg@symphonyinfra.com'),
+];
+
+const ADVISOR: GraphUser = {
+  id: 'jscott',
+  displayName: 'Jeremy Scott',
+  mail: 'JScott@symphonyinfra.com',
+  jobTitle: 'Acquisitions Advisor',
+  department: null,
+};
 
 describe('tierForCount', () => {
   it('maps counts to tiers 0/1/2/3+', () => {
@@ -82,15 +85,17 @@ describe('buildTierGroups', () => {
   });
 
   it('places every input person exactly once', () => {
-    const people = TERM_SHEET_RANKING_ROSTER.map((e, i) => p(e.displayName, i % 5));
+    const people = MANAGERS.map((m, i) => p(m.displayName, i % 5));
     const names = buildTierGroups(people).flatMap((g) => g.members.map((m) => m.name));
     expect(names.sort()).toEqual(people.map((x) => x.displayName).sort());
   });
 });
 
 describe('<TermSheetRankings />', () => {
-  // Default: the live API is unreachable, so the hardcoded fallback counts render.
+  // Default: directory loaded with the 8 managers + an advisor; the live API is unreachable,
+  // so the fallback counts render.
   beforeEach(() => {
+    directoryState.users = [...MANAGERS, ADVISOR];
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
@@ -104,6 +109,8 @@ describe('<TermSheetRankings />', () => {
 
   const rows = () =>
     Array.from(document.querySelectorAll<HTMLLIElement>('.term-sheet-rankings-row'));
+  const namesIn = (li: HTMLLIElement) =>
+    Array.from(li.querySelectorAll('.term-sheet-rankings-name')).map((el) => el.textContent);
 
   it('renders the header with the current month', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -134,12 +141,18 @@ describe('<TermSheetRankings />', () => {
     expect(screen.getByAltText('0 term sheets')).toBeTruthy();
   });
 
-  it('shows every roster AM exactly once', () => {
+  it('shows every Entra Acquisitions Manager exactly once, and no advisors', () => {
     render(<TermSheetRankings />);
     const names = Array.from(document.querySelectorAll('.term-sheet-rankings-name')).map(
       (el) => el.textContent
     );
-    expect(names.sort()).toEqual(TERM_SHEET_RANKING_ROSTER.map((e) => e.displayName).sort());
+    expect(names.sort()).toEqual(MANAGERS.map((m) => m.displayName).sort());
+  });
+
+  it('adds a new Entra manager to the 0 row with no code change', () => {
+    directoryState.users = [...MANAGERS, manager('New Hire', 'nhire@symphonyinfra.com')];
+    render(<TermSheetRankings />);
+    expect(namesIn(rows()[3])).toContain('New Hire');
   });
 
   it('renders the legend for all tiers', () => {
@@ -149,31 +162,36 @@ describe('<TermSheetRankings />', () => {
     expect(within(legend).getByText('0 · Side-eye')).toBeTruthy();
   });
 
-  // Snapshot of the hand-copied fallback counts (shown while loading / when the API fails).
-  it('fallback counts: Seidenberg and Bocchi have 1, everyone else 0', () => {
+  it('fallback counts: Seidenberg and Bocchi have 1, the other managers 0', () => {
     render(<TermSheetRankings />);
     const [, , tier1, tier0] = rows();
     expect(tier1.querySelector('.term-sheet-rankings-names')?.textContent).toBe(
       'Brandon Seidenberg, Nick Bocchi'
     );
-    expect(tier0.querySelectorAll('.term-sheet-rankings-name')).toHaveLength(
-      TERM_SHEET_RANKING_ROSTER.length - 2
-    );
+    expect(namesIn(tier0)).toHaveLength(MANAGERS.length - 2);
+  });
+
+  it('shows only people with counts while the directory is loading or unavailable', () => {
+    directoryState.users = undefined;
+    render(<TermSheetRankings />);
+    expect(namesIn(rows()[2])).toEqual(['Brandon Seidenberg', 'Nick Bocchi']);
+    expect(namesIn(rows()[3])).toEqual([]);
+    cleanup();
+
+    directoryState.users = null;
+    render(<TermSheetRankings />);
+    expect(namesIn(rows()[3])).toEqual([]);
   });
 
   const livePayload = (overrides: Record<string, unknown> = {}) => ({
     monthLabel: 'November 2026',
     source: 'powerbi',
     fetchedAt: '2026-11-03T15:00:00.000Z',
-    unmatchedManagers: [],
-    rankings: TERM_SHEET_RANKING_ROSTER.map((e) => ({
-      email: e.email,
-      displayName: e.displayName,
-      matchKey: e.matchKey,
-      count: e.matchKey === 'Kossak' ? 4 : e.matchKey === 'Casey' ? 2 : 0,
-      tier: 0,
-      dealSourceLabel: null,
-    })),
+    unassignedCount: 0,
+    managers: [
+      { name: 'Michael Kossak', count: 4 },
+      { name: 'Shawn Casey', count: 2 },
+    ],
     ...overrides,
   });
 
@@ -204,10 +222,22 @@ describe('<TermSheetRankings />', () => {
     const [tier3, tier2, tier1, tier0] = rows();
     expect(tier3.querySelector('.term-sheet-rankings-names')?.textContent).toBe('Michael Kossak (4)');
     expect(tier2.querySelector('.term-sheet-rankings-names')?.textContent).toBe('Shawn Casey');
-    expect(tier1.querySelectorAll('.term-sheet-rankings-name')).toHaveLength(0);
-    expect(tier0.querySelectorAll('.term-sheet-rankings-name')).toHaveLength(
-      TERM_SHEET_RANKING_ROSTER.length - 2
-    );
+    expect(namesIn(tier1)).toEqual([]);
+    expect(namesIn(tier0)).toHaveLength(MANAGERS.length - 2);
+  });
+
+  it('puts every manager in the 0 row when the API returns no counts yet this month', async () => {
+    stubLive(livePayload({ managers: [] }));
+    render(<TermSheetRankings />);
+    expect(await screen.findByText('November 2026')).toBeTruthy();
+    expect(namesIn(rows()[3])).toHaveLength(MANAGERS.length);
+  });
+
+  it('still shows someone with counts who is not a titled manager', async () => {
+    stubLive(livePayload({ managers: [{ name: 'Jeremy Scott', count: 1 }] }));
+    render(<TermSheetRankings />);
+    expect(await screen.findByText('November 2026')).toBeTruthy();
+    expect(namesIn(rows()[2])).toEqual(['Jeremy Scott']);
   });
 
   it.each([
@@ -215,7 +245,7 @@ describe('<TermSheetRankings />', () => {
     ['HTTP 500', () => stubLive({ error: 'Power BI down' }, 500)],
     ['non-JSON body', () => stubLive('<html>gateway</html>')],
     ['missing monthLabel', () => stubLive(livePayload({ monthLabel: '' }))],
-    ['empty rankings', () => stubLive(livePayload({ rankings: [] }))],
+    ['old response shape', () => stubLive({ monthLabel: 'November 2026', rankings: [] })],
   ])('keeps the fallback counts on %s', async (_label, stub) => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 15));
@@ -240,40 +270,29 @@ describe('<TermSheetRankings />', () => {
 });
 
 describe('parseLiveRankings', () => {
-  const row = (displayName: string, count: unknown, extra: Record<string, unknown> = {}) => ({
-    email: 'x@symphonyinfra.com',
-    displayName,
-    matchKey: displayName.split(' ').pop(),
-    count,
-    ...extra,
-  });
-
-  it('maps valid rows', () => {
-    expect(parseLiveRankings({ monthLabel: 'November 2026', rankings: [row('Nick Bocchi', 2)] })).toEqual({
-      monthLabel: 'November 2026',
-      people: [{ email: 'x@symphonyinfra.com', displayName: 'Nick Bocchi', matchKey: 'Bocchi', count: 2 }],
-    });
-  });
-
-  it('defaults missing email / matchKey', () => {
+  it('maps valid rows and trims names', () => {
     expect(
-      parseLiveRankings({ monthLabel: 'M', rankings: [{ displayName: 'A B', count: 0 }] })?.people
-    ).toEqual([{ email: '', displayName: 'A B', matchKey: 'A B', count: 0 }]);
+      parseLiveRankings({ monthLabel: 'November 2026', managers: [{ name: ' Nick Bocchi ', count: 2 }] })
+    ).toEqual({ monthLabel: 'November 2026', managers: [{ name: 'Nick Bocchi', count: 2 }] });
+  });
+
+  it('accepts an empty managers list (no term sheets yet this month)', () => {
+    expect(parseLiveRankings({ monthLabel: 'M', managers: [] })).toEqual({ monthLabel: 'M', managers: [] });
   });
 
   it.each([
     ['null', null],
     ['string', 'nope'],
-    ['no monthLabel', { rankings: [row('A', 1)] }],
-    ['blank monthLabel', { monthLabel: '  ', rankings: [row('A', 1)] }],
-    ['rankings not an array', { monthLabel: 'M', rankings: {} }],
-    ['empty rankings', { monthLabel: 'M', rankings: [] }],
-    ['NaN count', { monthLabel: 'M', rankings: [row('A', NaN)] }],
-    ['fractional count', { monthLabel: 'M', rankings: [row('A', 1.5)] }],
-    ['negative count', { monthLabel: 'M', rankings: [row('A', -1)] }],
-    ['string count', { monthLabel: 'M', rankings: [row('A', '2')] }],
-    ['blank name', { monthLabel: 'M', rankings: [row(' ', 1)] }],
-    ['null row', { monthLabel: 'M', rankings: [null] }],
+    ['no monthLabel', { managers: [] }],
+    ['blank monthLabel', { monthLabel: '  ', managers: [] }],
+    ['managers missing', { monthLabel: 'M' }],
+    ['managers not an array', { monthLabel: 'M', managers: {} }],
+    ['NaN count', { monthLabel: 'M', managers: [{ name: 'A', count: NaN }] }],
+    ['fractional count', { monthLabel: 'M', managers: [{ name: 'A', count: 1.5 }] }],
+    ['negative count', { monthLabel: 'M', managers: [{ name: 'A', count: -1 }] }],
+    ['string count', { monthLabel: 'M', managers: [{ name: 'A', count: '2' }] }],
+    ['blank name', { monthLabel: 'M', managers: [{ name: ' ', count: 1 }] }],
+    ['null row', { monthLabel: 'M', managers: [null] }],
   ])('rejects %s', (_label, payload) => {
     expect(parseLiveRankings(payload)).toBeNull();
   });

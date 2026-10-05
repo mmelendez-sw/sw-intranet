@@ -6,6 +6,7 @@ import {
   isIcemanAllowlisted,
   isNetSuiteAdminAllowlisted,
   isTermSheetRankingsAllowlisted,
+  TERM_SHEET_LEADERBOARD_VIEWERS,
   resolveIsEditor,
   BYPASS_AUTH,
 } from './authConfig';
@@ -88,22 +89,30 @@ describe('allowlist helpers', () => {
     });
   });
 
-  describe('isTermSheetRankingsAllowlisted', () => {
-    it('allows roster AMs with mixed-case roster emails', () => {
-      expect(isTermSheetRankingsAllowlisted('bseidenberg@symphonyinfra.com')).toBe(true);
-      expect(isTermSheetRankingsAllowlisted('NBOCCHI@SYMPHONYINFRA.COM')).toBe(true);
-    });
-    it('allows extra (non-AM) viewers', () => {
-      expect(isTermSheetRankingsAllowlisted('htolani@symphonyinfra.com')).toBe(true);
-      expect(isTermSheetRankingsAllowlisted('bsteinthal@symphonyinfra.com')).toBe(true);
+  describe('isTermSheetRankingsAllowlisted (named leaderboard viewers)', () => {
+    it('allows exactly the five named viewers, case-insensitively', () => {
+      for (const email of [
+        'mmelendez@symphonyinfra.com',
+        'ARivera@symphonyinfra.com',
+        'bsteinthal@symphonyinfra.com',
+        'atabbacchino@symphonyinfra.com',
+        'HTOLANI@SYMPHONYINFRA.COM',
+      ]) {
+        expect(isTermSheetRankingsAllowlisted(email)).toBe(true);
+      }
+      expect(TERM_SHEET_LEADERBOARD_VIEWERS.size).toBe(5);
     });
     it('normalizes legacy symphonywireless.com sign-ins', () => {
-      expect(isTermSheetRankingsAllowlisted('DKing@symphonywireless.com')).toBe(true);
+      expect(isTermSheetRankingsAllowlisted('ATabbacchino@symphonywireless.com')).toBe(true);
+    });
+    it('does not list managers by name (they qualify by Entra job title instead)', () => {
+      expect(isTermSheetRankingsAllowlisted('bseidenberg@symphonyinfra.com')).toBe(false);
+      expect(isTermSheetRankingsAllowlisted('nbocchi@symphonyinfra.com')).toBe(false);
     });
     it('rejects others', () => {
       expect(isTermSheetRankingsAllowlisted(undefined)).toBe(false);
       expect(isTermSheetRankingsAllowlisted('shuang@symphonyinfra.com')).toBe(false);
-      expect(isTermSheetRankingsAllowlisted('dking@symphonywireless.co')).toBe(false);
+      expect(isTermSheetRankingsAllowlisted('htolani@symphonywireless.co')).toBe(false);
     });
   });
 });

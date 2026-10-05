@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { TERM_SHEET_RANKINGS_URL } from '../authConfig';
-import { TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
+import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
+import {
+  LeaderboardPerson,
+  ManagerCount,
+  acquisitionsManagers,
+  buildLeaderboardPeople,
+} from '../utils/termSheetLeaderboard';
 import '../../styles/term-sheet-rankings.css';
 import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
 import awesomeKidImg from '../../images/term-sheet-rankings/awesome-kid.png';
@@ -9,12 +15,7 @@ import godfatherImg from '../../images/term-sheet-rankings/godfather.png';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
 
-type SpoofPerson = {
-  email: string;
-  displayName: string;
-  matchKey: string;
-  count: number;
-};
+type SpoofPerson = LeaderboardPerson;
 
 type TierGroup = {
   tier: TermSheetTier;
@@ -53,26 +54,14 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
 }
 
 /**
- * THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report.
- * Shown while live counts load from /api/term-sheet-rankings, and whenever that call fails.
+ * Non-zero THIS_MONTH counts hand-copied from the Salesforce report. Used only while live
+ * counts load from /api/term-sheet-rankings or when that call fails (e.g. the route isn't
+ * deployed yet). Delete once the API is live in production.
  */
-const SPOOF_COUNT_BY_KEY: Record<string, number> = {
-  Bocchi: 1,
-  King: 0,
-  Sanandaji: 0,
-  Kossak: 0,
-  Seidenberg: 1,
-  Schamberg: 0,
-  Casey: 0,
-  Polidoro: 0,
-};
-
-const SPOOF_COUNTS: SpoofPerson[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
-  email: entry.email,
-  displayName: entry.displayName,
-  matchKey: entry.matchKey,
-  count: SPOOF_COUNT_BY_KEY[entry.matchKey] ?? 0,
-}));
+const FALLBACK_COUNTS: ManagerCount[] = [
+  { name: 'Nick Bocchi', count: 1 },
+  { name: 'Brandon Seidenberg', count: 1 },
+];
 
 /** Temporary: set to false to restore the real AM counts after the demo screenshot. */
 const SHOW_DEMO_ATHLETES = false;
@@ -121,38 +110,36 @@ function currentMonthLabel(date = new Date()): string {
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
-type LiveRankings = { monthLabel: string; people: SpoofPerson[] };
+type LiveRankings = { monthLabel: string; managers: ManagerCount[] };
 
 /**
  * Validate the /api/term-sheet-rankings payload. Returns null for anything unexpected
- * so the component keeps the hardcoded counts instead of rendering bad data.
+ * so the component keeps the fallback counts instead of rendering bad data.
+ * An empty `managers` list is valid (nobody has a term sheet yet this month).
  */
 export function parseLiveRankings(payload: unknown): LiveRankings | null {
   if (!payload || typeof payload !== 'object') return null;
-  const { monthLabel, rankings } = payload as { monthLabel?: unknown; rankings?: unknown };
-  if (typeof monthLabel !== 'string' || !monthLabel.trim() || !Array.isArray(rankings)) return null;
+  const { monthLabel, managers } = payload as { monthLabel?: unknown; managers?: unknown };
+  if (typeof monthLabel !== 'string' || !monthLabel.trim() || !Array.isArray(managers)) return null;
 
-  const people: SpoofPerson[] = [];
-  for (const row of rankings) {
-    const { email, displayName, matchKey, count } = (row || {}) as Record<string, unknown>;
-    if (typeof displayName !== 'string' || !displayName.trim()) return null;
+  const parsed: ManagerCount[] = [];
+  for (const row of managers) {
+    const { name, count } = (row || {}) as Record<string, unknown>;
+    if (typeof name !== 'string' || !name.trim()) return null;
     if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return null;
-    people.push({
-      email: typeof email === 'string' ? email : '',
-      displayName,
-      matchKey: typeof matchKey === 'string' ? matchKey : displayName,
-      count,
-    });
+    parsed.push({ name: name.trim(), count });
   }
-  return people.length ? { monthLabel, people } : null;
+  return { monthLabel, managers: parsed };
 }
 
 /**
- * Monthly Term Sheet Leaderboard. On `/` it is gated by isTermSheetRankingsAllowlisted.
- * Counts come from /api/term-sheet-rankings (Power BI); the hardcoded counts are the fallback.
+ * Monthly Term Sheet Leaderboard. On `/` it is shown to canViewTermSheetLeaderboard users.
+ * People: Entra "Acquisitions Manager"s (from the shared directory cache) plus anyone with
+ * counts. Counts: /api/term-sheet-rankings (Power BI), with FALLBACK_COUNTS if unavailable.
  */
 const TermSheetRankings: React.FC = () => {
   const [live, setLive] = useState<LiveRankings | null>(null);
+  const directoryUsers = useDirectoryUsers(!SHOW_DEMO_ATHLETES);
 
   useEffect(() => {
     if (SHOW_DEMO_ATHLETES) return;
@@ -172,8 +159,16 @@ const TermSheetRankings: React.FC = () => {
   }, []);
 
   const groups = useMemo(
-    () => buildTierGroups(SHOW_DEMO_ATHLETES ? DEMO_ATHLETES : live?.people ?? SPOOF_COUNTS),
-    [live]
+    () =>
+      buildTierGroups(
+        SHOW_DEMO_ATHLETES
+          ? DEMO_ATHLETES
+          : buildLeaderboardPeople(
+              acquisitionsManagers(directoryUsers),
+              live?.managers ?? FALLBACK_COUNTS
+            )
+      ),
+    [live, directoryUsers]
   );
   const monthLabel = useMemo(() => live?.monthLabel ?? currentMonthLabel(), [live]);
 
