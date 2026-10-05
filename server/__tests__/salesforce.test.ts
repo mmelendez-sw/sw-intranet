@@ -29,7 +29,14 @@ function loginFault(message: string, status = 500) {
   );
 }
 
-function queryOk(records: Array<{ Id?: string; Deal_Source_Individual__c?: string | null }>) {
+type AggregateRow = {
+  managerName?: string | null;
+  termSheets?: number | string | null;
+  Name?: string | null;
+  expr0?: number | string | null;
+};
+
+function queryOk(records: Array<Record<string, unknown>> | AggregateRow[]) {
   return Response.json({ totalSize: records.length, done: true, records });
 }
 
@@ -163,18 +170,16 @@ describe('Salesforce query (REST)', () => {
     expect(soql).toContain('WHERE Current_Investment_Date__c > 2025-12-31');
   });
 
-  it('getTermSheetRankings SOQL filters THIS_MONTH and LIKEs every roster matchKey', async () => {
+  it('getTermSheetRankings sends the grouped proprietary term-sheet SOQL', async () => {
     const fetchMock = mockFetch(loginOk(), queryOk([]));
     await getTermSheetRankings();
     const soql = new URL(fetchMock.mock.calls[1][0]).searchParams.get('q')!;
-    expect(soql).toMatch(/^SELECT Deal_Source_Individual__c, Id\s+FROM Opportunity/);
-    expect(soql).toContain('Term_Sheet_Signed_Date__c = THIS_MONTH');
-    expect(soql).toContain('Deal_Source_Individual_Internal__c != null');
-    for (const entry of TERM_SHEET_RANKING_ROSTER) {
-      expect(soql).toContain(`Deal_Source_Individual__c LIKE '%${entry.matchKey}%'`);
-    }
-    const likeCount = soql.match(/LIKE '%/g)?.length;
-    expect(likeCount).toBe(TERM_SHEET_RANKING_ROSTER.length);
+    expect(soql).toMatch(
+      /^SELECT Acquisition_Advisor_Manager__r\.Name managerName, COUNT\(Id\) termSheets\s+FROM Opportunity/
+    );
+    expect(soql).toContain("WHERE Term_Sheet_Signed_Date__c = THIS_MONTH AND Source_Type__c = 'Proprietary'");
+    expect(soql).toMatch(/GROUP BY Acquisition_Advisor_Manager__r\.Name$/);
+    expect(soql).not.toContain('LIKE');
   });
 
   it('surfaces the first Salesforce error message on query failure', async () => {
@@ -190,11 +195,14 @@ describe('Salesforce query (REST)', () => {
     await expect(getTermSheetRankings()).rejects.toThrow('Salesforce query failed (401)');
   });
 
-  it('KNOWN ISSUE: non-JSON error bodies surface a JSON parse error, not the status', async () => {
+  it('reports the HTTP status when an error body is not JSON', async () => {
     mockFetch(loginOk(), new Response('<html>Service Unavailable</html>', { status: 503 }));
-    const err = await getCurrentInvestments().catch((e: Error) => e);
-    expect(err).toBeInstanceOf(Error);
-    expect((err as Error).message).not.toContain('503');
+    await expect(getCurrentInvestments()).rejects.toThrow('Salesforce query failed (503)');
+  });
+
+  it('rejects a 200 response that is not JSON', async () => {
+    mockFetch(loginOk(), new Response('<html>maintenance</html>', { status: 200 }));
+    await expect(getCurrentInvestments()).rejects.toThrow('Salesforce query returned a non-JSON response');
   });
 });
 
@@ -215,25 +223,17 @@ describe('getTermSheetRankings transformation', () => {
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
   });
 
-  it('counts per AM, assigns tiers, keeps first label, sorts by count desc then name', async () => {
+  it('maps grouped counts onto the roster, assigns tiers, sorts by count desc then name', async () => {
     mockFetch(
       loginOk(),
       queryOk([
-        { Id: '1', Deal_Source_Individual__c: 'Nick Bocchi' },
-        { Id: '2', Deal_Source_Individual__c: '  nick bocchi  ' },
-        { Id: '3', Deal_Source_Individual__c: 'NICK BOCCHI' },
-        { Id: '4', Deal_Source_Individual__c: 'Nick Bocchi' },
-        { Id: '5', Deal_Source_Individual__c: 'Brandon Seidenberg' },
-        { Id: '6', Deal_Source_Individual__c: 'Brandon Seidenberg' },
-        { Id: '7', Deal_Source_Individual__c: 'Shawn Casey' },
-        { Id: '8', Deal_Source_Individual__c: 'Chris Polidoro' },
-        { Id: '9', Deal_Source_Individual__c: null },
-        { Id: '10', Deal_Source_Individual__c: '   ' },
-        { Id: '11', Deal_Source_Individual__c: 'Someone Else' },
-        { Id: '12' },
+        { managerName: 'Nick Bocchi', termSheets: 4 },
+        { managerName: 'Brandon Seidenberg', termSheets: 2 },
+        { managerName: 'Shawn Casey', termSheets: 1 },
+        { managerName: 'Chris Polidoro', termSheets: 1 },
       ])
     );
-    const { rankings } = await getTermSheetRankings();
+    const { rankings, unmatchedManagers } = await getTermSheetRankings();
     const summary = rankings.map((r) => [r.displayName, r.count, r.tier, r.dealSourceLabel]);
     expect(summary.slice(0, 4)).toEqual([
       ['Nick Bocchi', 4, 3, 'Nick Bocchi'],
@@ -247,10 +247,8 @@ describe('getTermSheetRankings transformation', () => {
       'Michael Kossak',
       'Steve Schamberg',
     ]);
-    expect(rankings.reduce((n, r) => n + r.count, 0)).toBe(8);
-
-    const bocchi = rankings[0];
-    expect(bocchi).toEqual({
+    expect(unmatchedManagers).toEqual([]);
+    expect(rankings[0]).toEqual({
       email: 'NBocchi@symphonyinfra.com',
       displayName: 'Nick Bocchi',
       matchKey: 'Bocchi',
@@ -260,33 +258,60 @@ describe('getTermSheetRankings transformation', () => {
     });
   });
 
-  it('stores the trimmed label of the first matching record', async () => {
-    mockFetch(
-      loginOk(),
-      queryOk([
-        { Deal_Source_Individual__c: '  Dylan King (AM) ' },
-        { Deal_Source_Individual__c: 'Dylan King' },
-      ])
-    );
+  it('matches names case- and whitespace-insensitively', async () => {
+    mockFetch(loginOk(), queryOk([{ managerName: '  dylan   KING ', termSheets: 2 }]));
     const { rankings } = await getTermSheetRankings();
     const king = rankings.find((r) => r.matchKey === 'King')!;
     expect(king.count).toBe(2);
-    expect(king.dealSourceLabel).toBe('Dylan King (AM)');
+    expect(king.dealSourceLabel).toBe('dylan   KING');
   });
 
-  it('prefers the longer matchKey when a label contains several', async () => {
-    // "Kossak" (6) beats "King" (4) and "Casey" (5).
-    mockFetch(loginOk(), queryOk([{ Deal_Source_Individual__c: 'King / Casey / Kossak' }]));
-    const { rankings } = await getTermSheetRankings();
-    expect(rankings[0].matchKey).toBe('Kossak');
-    expect(rankings[0].count).toBe(1);
-    expect(rankings.filter((r) => r.count > 0)).toHaveLength(1);
+  it('uses exact names, so look-alikes are not credited to roster AMs', async () => {
+    mockFetch(
+      loginOk(),
+      queryOk([
+        { managerName: 'Jane Kingsley', termSheets: 3 },
+        { managerName: 'Dylan King Jr', termSheets: 1 },
+      ])
+    );
+    const { rankings, unmatchedManagers } = await getTermSheetRankings();
+    expect(rankings.every((r) => r.count === 0)).toBe(true);
+    expect(unmatchedManagers).toEqual([
+      { name: 'Jane Kingsley', count: 3 },
+      { name: 'Dylan King Jr', count: 1 },
+    ]);
   });
 
-  it('KNOWN RISK: substring matching attributes unrelated names containing "king"', async () => {
-    mockFetch(loginOk(), queryOk([{ Deal_Source_Individual__c: 'Jane Kingsley' }]));
+  it('reports opportunities with no manager as unmatched', async () => {
+    mockFetch(loginOk(), queryOk([{ managerName: null, termSheets: 5 }]));
+    const { unmatchedManagers } = await getTermSheetRankings();
+    expect(unmatchedManagers).toEqual([{ name: '(no manager)', count: 5 }]);
+  });
+
+  it("falls back to Salesforce's default aggregate keys (Name / expr0)", async () => {
+    mockFetch(loginOk(), queryOk([{ Name: 'Ethan Sanandaji', expr0: '2' }]));
     const { rankings } = await getTermSheetRankings();
-    expect(rankings.find((r) => r.matchKey === 'King')!.count).toBe(1);
+    expect(rankings.find((r) => r.matchKey === 'Sanandaji')!.count).toBe(2);
+  });
+
+  it('ignores zero, negative, fractional-remainder and non-numeric counts safely', async () => {
+    mockFetch(
+      loginOk(),
+      queryOk([
+        { managerName: 'Michael Kossak', termSheets: 0 },
+        { managerName: 'Steve Schamberg', termSheets: 'abc' },
+        { managerName: 'Shawn Casey', termSheets: -2 },
+        { managerName: 'Chris Polidoro', termSheets: 2.9 },
+      ])
+    );
+    const { rankings, unmatchedManagers } = await getTermSheetRankings();
+    const byKey = Object.fromEntries(rankings.map((r) => [r.matchKey, r]));
+    expect(byKey.Kossak.count).toBe(0);
+    expect(byKey.Schamberg.count).toBe(0);
+    expect(byKey.Casey.count).toBe(0);
+    expect(byKey.Polidoro.count).toBe(2);
+    expect(byKey.Polidoro.tier).toBe(2);
+    expect(unmatchedManagers).toEqual([]);
   });
 
   it('handles a response with no records array', async () => {

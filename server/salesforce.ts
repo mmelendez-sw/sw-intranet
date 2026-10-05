@@ -91,7 +91,15 @@ async function runSalesforceQuery(soql: string): Promise<unknown> {
     },
   });
 
-  const data = await response.json();
+  const text = await response.text();
+  let data: unknown;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    // Gateway / maintenance pages come back as HTML.
+    if (!response.ok) throw new Error(`Salesforce query failed (${response.status})`);
+    throw new Error('Salesforce query returned a non-JSON response');
+  }
   if (!response.ok) {
     const message =
       Array.isArray(data) && data[0]?.message
@@ -107,7 +115,10 @@ export async function getCurrentInvestments(): Promise<unknown> {
   return runSalesforceQuery(CURRENT_INVESTMENTS_QUERY);
 }
 
-/** Fixed AM roster for Monthly Term Sheet Rankings (match key → email). */
+/**
+ * Fixed AM roster for Monthly Term Sheet Rankings. `displayName` must equal the
+ * Salesforce User Name on Acquisition_Advisor_Manager__c (compared case-insensitively).
+ */
 export const TERM_SHEET_RANKING_ROSTER: Array<{
   email: string;
   matchKey: string;
@@ -123,21 +134,12 @@ export const TERM_SHEET_RANKING_ROSTER: Array<{
   { email: 'SSchamberg@symphonyinfra.com', matchKey: 'Schamberg', displayName: 'Steve Schamberg' },
 ];
 
+/** Proprietary term sheets signed this month, counted per Acquisition Advisor Manager. */
 const TERM_SHEET_RANKINGS_QUERY = `
-SELECT Deal_Source_Individual__c, Id
+SELECT Acquisition_Advisor_Manager__r.Name managerName, COUNT(Id) termSheets
 FROM Opportunity
-WHERE Term_Sheet_Signed_Date__c = THIS_MONTH
-AND Deal_Source_Individual_Internal__c != null
-AND (
-    Deal_Source_Individual__c LIKE '%Seidenberg%'
-    OR Deal_Source_Individual__c LIKE '%Polidoro%'
-    OR Deal_Source_Individual__c LIKE '%King%'
-    OR Deal_Source_Individual__c LIKE '%Sanandaji%'
-    OR Deal_Source_Individual__c LIKE '%Kossak%'
-    OR Deal_Source_Individual__c LIKE '%Bocchi%'
-    OR Deal_Source_Individual__c LIKE '%Casey%'
-    OR Deal_Source_Individual__c LIKE '%Schamberg%'
-)
+WHERE Term_Sheet_Signed_Date__c = THIS_MONTH AND Source_Type__c = 'Proprietary'
+GROUP BY Acquisition_Advisor_Manager__r.Name
 `;
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
@@ -158,47 +160,59 @@ function tierForCount(count: number): TermSheetTier {
   return 3;
 }
 
-function matchRosterEntry(dealSource: string) {
-  const normalized = dealSource.toLowerCase();
-  // Prefer longer / more specific keys first to avoid accidental overlaps.
-  const sorted = [...TERM_SHEET_RANKING_ROSTER].sort(
-    (a, b) => b.matchKey.length - a.matchKey.length
-  );
-  return sorted.find((entry) => normalized.includes(entry.matchKey.toLowerCase())) || null;
-}
+const normalizeName = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase();
+
+/** AggregateResult row. Aliases are set in the SOQL; Salesforce's defaults are the fallback. */
+type TermSheetAggregateRecord = {
+  managerName?: string | null;
+  termSheets?: number | string | null;
+  Name?: string | null;
+  expr0?: number | string | null;
+};
 
 type SalesforceQueryResult = {
-  records?: Array<{
-    Id?: string;
-    Deal_Source_Individual__c?: string | null;
-  }>;
+  records?: TermSheetAggregateRecord[];
   totalSize?: number;
 };
 
 /**
- * Monthly Term Sheet Rankings: count THIS_MONTH signed term sheets per AM,
- * always returning the full fixed roster (zeros included).
+ * Monthly Term Sheet Rankings: proprietary term sheets signed THIS_MONTH per
+ * Acquisition Advisor Manager, always returning the full fixed roster (zeros included).
+ * Managers not on the roster are returned in `unmatchedManagers` so name mismatches
+ * between Salesforce and the roster are visible instead of silently dropped.
  */
 export async function getTermSheetRankings(): Promise<{
   monthLabel: string;
   rankings: TermSheetRankingRow[];
+  unmatchedManagers: Array<{ name: string; count: number }>;
 }> {
   const data = (await runSalesforceQuery(TERM_SHEET_RANKINGS_QUERY)) as SalesforceQueryResult;
   const counts = new Map<string, { count: number; dealSourceLabel: string | null }>();
+  const rosterByName = new Map(
+    TERM_SHEET_RANKING_ROSTER.map((entry) => [normalizeName(entry.displayName), entry])
+  );
+  const unmatchedManagers: Array<{ name: string; count: number }> = [];
 
   for (const entry of TERM_SHEET_RANKING_ROSTER) {
     counts.set(entry.matchKey, { count: 0, dealSourceLabel: null });
   }
 
-  for (const record of data.records || []) {
-    const label = (record.Deal_Source_Individual__c || '').trim();
-    if (!label) continue;
-    const matched = matchRosterEntry(label);
-    if (!matched) continue;
+  for (const record of data?.records || []) {
+    const name = String(record.managerName ?? record.Name ?? '').trim();
+    const rawCount = Number(record.termSheets ?? record.expr0);
+    const count = Number.isFinite(rawCount) ? Math.max(0, Math.trunc(rawCount)) : 0;
+    if (!count) continue;
+
+    const matched = name ? rosterByName.get(normalizeName(name)) : undefined;
+    if (!matched) {
+      // Includes opportunities with no manager set (name === '').
+      unmatchedManagers.push({ name: name || '(no manager)', count });
+      continue;
+    }
     const prev = counts.get(matched.matchKey) || { count: 0, dealSourceLabel: null };
     counts.set(matched.matchKey, {
-      count: prev.count + 1,
-      dealSourceLabel: prev.dealSourceLabel || label,
+      count: prev.count + count,
+      dealSourceLabel: prev.dealSourceLabel || name,
     });
   }
 
@@ -215,5 +229,5 @@ export async function getTermSheetRankings(): Promise<{
   }).sort((a, b) => b.count - a.count || a.displayName.localeCompare(b.displayName));
 
   const monthLabel = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
-  return { monthLabel, rankings };
+  return { monthLabel, rankings, unmatchedManagers };
 }
