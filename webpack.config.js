@@ -81,6 +81,7 @@ module.exports = {
           '/api/salesforce',
           '/api/powerbi',
           '/api/iceman',
+          '/api/term-sheet-rankings',
         ],
         target: 'http://localhost:3001',
         changeOrigin: true,

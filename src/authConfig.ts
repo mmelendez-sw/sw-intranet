@@ -214,6 +214,15 @@ export const SALESFORCE_TERM_SHEET_RANKINGS_URL = (() => {
   return '/api/salesforce/term-sheet-rankings';
 })();
 
+/** Monthly term-sheet leaderboard counts (Power BI-backed; local API or Lambda). */
+export const TERM_SHEET_RANKINGS_URL = (() => {
+  if (typeof window === 'undefined') return '/api/term-sheet-rankings';
+  if (INTRANET_API_BASE_URL) {
+    return `${INTRANET_API_BASE_URL}/api/term-sheet-rankings`;
+  }
+  return '/api/term-sheet-rankings';
+})();
+
 /** Power BI embed-token endpoint (local API or Lambda). */
 export const POWERBI_EMBED_TOKEN_URL = (() => {
   if (typeof window === 'undefined') return '/api/powerbi/embed-token';

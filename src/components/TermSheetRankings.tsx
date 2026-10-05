@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { TERM_SHEET_RANKINGS_URL } from '../authConfig';
 import { TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import '../../styles/term-sheet-rankings.css';
 import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
@@ -51,7 +52,10 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
   return String(tier);
 }
 
-/** THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report — replace with live API when ready. */
+/**
+ * THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report.
+ * Shown while live counts load from /api/term-sheet-rankings, and whenever that call fails.
+ */
 const SPOOF_COUNT_BY_KEY: Record<string, number> = {
   Bocchi: 1,
   King: 0,
@@ -117,15 +121,61 @@ function currentMonthLabel(date = new Date()): string {
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
+type LiveRankings = { monthLabel: string; people: SpoofPerson[] };
+
+/**
+ * Validate the /api/term-sheet-rankings payload. Returns null for anything unexpected
+ * so the component keeps the hardcoded counts instead of rendering bad data.
+ */
+export function parseLiveRankings(payload: unknown): LiveRankings | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const { monthLabel, rankings } = payload as { monthLabel?: unknown; rankings?: unknown };
+  if (typeof monthLabel !== 'string' || !monthLabel.trim() || !Array.isArray(rankings)) return null;
+
+  const people: SpoofPerson[] = [];
+  for (const row of rankings) {
+    const { email, displayName, matchKey, count } = (row || {}) as Record<string, unknown>;
+    if (typeof displayName !== 'string' || !displayName.trim()) return null;
+    if (typeof count !== 'number' || !Number.isInteger(count) || count < 0) return null;
+    people.push({
+      email: typeof email === 'string' ? email : '',
+      displayName,
+      matchKey: typeof matchKey === 'string' ? matchKey : displayName,
+      count,
+    });
+  }
+  return people.length ? { monthLabel, people } : null;
+}
+
 /**
  * Monthly Term Sheet Leaderboard. On `/` it is gated by isTermSheetRankingsAllowlisted.
+ * Counts come from /api/term-sheet-rankings (Power BI); the hardcoded counts are the fallback.
  */
 const TermSheetRankings: React.FC = () => {
+  const [live, setLive] = useState<LiveRankings | null>(null);
+
+  useEffect(() => {
+    if (SHOW_DEMO_ATHLETES) return;
+    const controller = new AbortController();
+    fetch(TERM_SHEET_RANKINGS_URL, { signal: controller.signal, cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => {
+        const parsed = parseLiveRankings(payload);
+        if (parsed) setLive(parsed);
+      })
+      .catch((err) => {
+        if (err?.name !== 'AbortError') {
+          console.warn('[term-sheet-rankings] live counts unavailable; showing fallback', err);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
   const groups = useMemo(
-    () => buildTierGroups(SHOW_DEMO_ATHLETES ? DEMO_ATHLETES : SPOOF_COUNTS),
-    []
+    () => buildTierGroups(SHOW_DEMO_ATHLETES ? DEMO_ATHLETES : live?.people ?? SPOOF_COUNTS),
+    [live]
   );
-  const monthLabel = useMemo(() => currentMonthLabel(), []);
+  const monthLabel = useMemo(() => live?.monthLabel ?? currentMonthLabel(), [live]);
 
   return (
     <section className="term-sheet-rankings" aria-label="Monthly Term Sheet Leaderboard">

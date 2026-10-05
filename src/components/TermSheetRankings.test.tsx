@@ -1,7 +1,7 @@
 import React from 'react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
-import TermSheetRankings, { buildTierGroups, tierForCount } from './TermSheetRankings';
+import TermSheetRankings, { buildTierGroups, parseLiveRankings, tierForCount } from './TermSheetRankings';
 import {
   TERM_SHEET_RANKING_ROSTER,
   TERM_SHEET_RANKINGS_ALLOWLIST,
@@ -89,9 +89,17 @@ describe('buildTierGroups', () => {
 });
 
 describe('<TermSheetRankings />', () => {
+  // Default: the live API is unreachable, so the hardcoded fallback counts render.
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  });
+
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   const rows = () =>
@@ -141,9 +149,8 @@ describe('<TermSheetRankings />', () => {
     expect(within(legend).getByText('0 · Side-eye')).toBeTruthy();
   });
 
-  // Snapshot of the current hand-copied counts. Update/remove when switching to the live
-  // Salesforce feed (SALESFORCE_TERM_SHEET_RANKINGS_URL) — the component does not fetch yet.
-  it('current spoofed counts: Seidenberg and Bocchi have 1, everyone else 0', () => {
+  // Snapshot of the hand-copied fallback counts (shown while loading / when the API fails).
+  it('fallback counts: Seidenberg and Bocchi have 1, everyone else 0', () => {
     render(<TermSheetRankings />);
     const [, , tier1, tier0] = rows();
     expect(tier1.querySelector('.term-sheet-rankings-names')?.textContent).toBe(
@@ -154,11 +161,120 @@ describe('<TermSheetRankings />', () => {
     );
   });
 
-  it('does not call the network', () => {
-    const fetchMock = vi.fn();
+  const livePayload = (overrides: Record<string, unknown> = {}) => ({
+    monthLabel: 'November 2026',
+    source: 'powerbi',
+    fetchedAt: '2026-11-03T15:00:00.000Z',
+    unmatchedManagers: [],
+    rankings: TERM_SHEET_RANKING_ROSTER.map((e) => ({
+      email: e.email,
+      displayName: e.displayName,
+      matchKey: e.matchKey,
+      count: e.matchKey === 'Kossak' ? 4 : e.matchKey === 'Casey' ? 2 : 0,
+      tier: 0,
+      dealSourceLabel: null,
+    })),
+    ...overrides,
+  });
+
+  const stubLive = (body: unknown, status = 200) => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(typeof body === 'string' ? body : JSON.stringify(body), { status })
+    );
     vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  };
+
+  it('requests /api/term-sheet-rankings without caching', () => {
+    const fetchMock = stubLive(livePayload());
     render(<TermSheetRankings />);
-    expect(fetchMock).not.toHaveBeenCalled();
-    vi.unstubAllGlobals();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    // jsdom runs on localhost, so this resolves to the local API (npm run tv-api).
+    expect(url).toBe('http://localhost:3001/api/term-sheet-rankings');
+    expect(init).toMatchObject({ cache: 'no-store' });
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('replaces the fallback with live counts and the API month label (same markup)', async () => {
+    stubLive(livePayload());
+    render(<TermSheetRankings />);
+
+    expect(await screen.findByText('November 2026')).toBeTruthy();
+    const [tier3, tier2, tier1, tier0] = rows();
+    expect(tier3.querySelector('.term-sheet-rankings-names')?.textContent).toBe('Michael Kossak (4)');
+    expect(tier2.querySelector('.term-sheet-rankings-names')?.textContent).toBe('Shawn Casey');
+    expect(tier1.querySelectorAll('.term-sheet-rankings-name')).toHaveLength(0);
+    expect(tier0.querySelectorAll('.term-sheet-rankings-name')).toHaveLength(
+      TERM_SHEET_RANKING_ROSTER.length - 2
+    );
+  });
+
+  it.each([
+    ['HTTP 404 (route not deployed yet)', () => stubLive({ error: 'Not found' }, 404)],
+    ['HTTP 500', () => stubLive({ error: 'Power BI down' }, 500)],
+    ['non-JSON body', () => stubLive('<html>gateway</html>')],
+    ['missing monthLabel', () => stubLive(livePayload({ monthLabel: '' }))],
+    ['empty rankings', () => stubLive(livePayload({ rankings: [] }))],
+  ])('keeps the fallback counts on %s', async (_label, stub) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 15));
+    const fetchMock = stub();
+    render(<TermSheetRankings />);
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(screen.getByText('October 2026')).toBeTruthy();
+    expect(rows()[2].querySelector('.term-sheet-rankings-names')?.textContent).toBe(
+      'Brandon Seidenberg, Nick Bocchi'
+    );
+  });
+
+  it('aborts the request on unmount', () => {
+    const fetchMock = stubLive(livePayload());
+    const { unmount } = render(<TermSheetRankings />);
+    const signal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+    unmount();
+    expect(signal.aborted).toBe(true);
+  });
+});
+
+describe('parseLiveRankings', () => {
+  const row = (displayName: string, count: unknown, extra: Record<string, unknown> = {}) => ({
+    email: 'x@symphonyinfra.com',
+    displayName,
+    matchKey: displayName.split(' ').pop(),
+    count,
+    ...extra,
+  });
+
+  it('maps valid rows', () => {
+    expect(parseLiveRankings({ monthLabel: 'November 2026', rankings: [row('Nick Bocchi', 2)] })).toEqual({
+      monthLabel: 'November 2026',
+      people: [{ email: 'x@symphonyinfra.com', displayName: 'Nick Bocchi', matchKey: 'Bocchi', count: 2 }],
+    });
+  });
+
+  it('defaults missing email / matchKey', () => {
+    expect(
+      parseLiveRankings({ monthLabel: 'M', rankings: [{ displayName: 'A B', count: 0 }] })?.people
+    ).toEqual([{ email: '', displayName: 'A B', matchKey: 'A B', count: 0 }]);
+  });
+
+  it.each([
+    ['null', null],
+    ['string', 'nope'],
+    ['no monthLabel', { rankings: [row('A', 1)] }],
+    ['blank monthLabel', { monthLabel: '  ', rankings: [row('A', 1)] }],
+    ['rankings not an array', { monthLabel: 'M', rankings: {} }],
+    ['empty rankings', { monthLabel: 'M', rankings: [] }],
+    ['NaN count', { monthLabel: 'M', rankings: [row('A', NaN)] }],
+    ['fractional count', { monthLabel: 'M', rankings: [row('A', 1.5)] }],
+    ['negative count', { monthLabel: 'M', rankings: [row('A', -1)] }],
+    ['string count', { monthLabel: 'M', rankings: [row('A', '2')] }],
+    ['blank name', { monthLabel: 'M', rankings: [row(' ', 1)] }],
+    ['null row', { monthLabel: 'M', rankings: [null] }],
+  ])('rejects %s', (_label, payload) => {
+    expect(parseLiveRankings(payload)).toBeNull();
   });
 });
