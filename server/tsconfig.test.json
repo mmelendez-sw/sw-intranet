@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": ".." },
+  "include": ["./**/*.ts", "../src/config/icemanLimits.ts"],
+  "exclude": ["dist", "node_modules"]
+}
