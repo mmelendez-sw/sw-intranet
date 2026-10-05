@@ -32,3 +32,6 @@ server/.env.example
 server/dist/
 dist-lambda/
 sw-intranet-api.zip
+
+# Claude Code local worktrees
+.claude/worktrees/
