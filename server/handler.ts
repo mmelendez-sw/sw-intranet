@@ -6,17 +6,20 @@
  *   GET /api/tv-cards/meta         — eTag / lastModified only
  *   GET /api/images/:id            — proxy SharePoint drive item bytes
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
- *   GET /api/salesforce/current-investments
- *   GET /api/salesforce/term-sheet-rankings
+ *   GET /api/salesforce/current-investments       — signed-in users (Entra ID token)
+ *   GET /api/salesforce/term-sheet-rankings       — signed-in users (Entra ID token)
  *   GET /api/powerbi/embed-token?reportId=
- *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file)
+ *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file); ICEMAN allowlist
+ *
+ * TV / image / Power BI routes stay unauthenticated: /tv kiosks run without a signed-in user.
  *
  * Env vars (set on the Lambda — never in the Amplify frontend build):
  *   Graph/TV:      TENANT_ID, CLIENT_ID, CLIENT_SECRET
  *   Salesforce:    SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN?, SF_DOMAIN?
  *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
- *   ICEMAN:        NEARMAP_API_KEY
+ *   ICEMAN:        NEARMAP_API_KEY, ICEMAN_ALLOWED_EMAILS? (comma-separated; default below)
+ *   Auth:          INTRANET_TENANT_ID?, INTRANET_CLIENT_ID?, INTRANET_API_AUTH_DISABLED? (see auth.ts)
  */
 
 import { getGraphToken, getHomepageCardsMeta } from './tvHomepageCards';
@@ -31,13 +34,30 @@ import { getEmbedConfig } from './powerbi';
 import { parseMultipart } from './multipart';
 import { generateIcemanWorkbook } from './iceman';
 import { requireEnv } from './env';
+import { AuthError, authenticateRequest } from './auth';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
+
+/** Mirrors ICEMAN_ALLOWLIST in src/authConfig.ts; override with ICEMAN_ALLOWED_EMAILS on the Lambda. */
+const DEFAULT_ICEMAN_ALLOWED_EMAILS = 'mmelendez@symphonyinfra.com';
+
+function isIcemanAllowed(email: string): boolean {
+  const allowed = (process.env.ICEMAN_ALLOWED_EMAILS || DEFAULT_ICEMAN_ALLOWED_EMAILS)
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  // Some sign-in names (UPNs) still use the legacy symphonywireless.com domain.
+  return allowed.includes(email.replace(/@symphonywireless\.com$/, '@symphonyinfra.com'));
+}
+
+function errorResult(statusCode: number, error: string): LambdaResult {
+  return { statusCode, headers: JSON_HEADERS, body: JSON.stringify({ error }) };
+}
 
 function getPath(event?: {
   httpMethod?: string;
@@ -142,6 +162,23 @@ export async function handler(event?: {
   const query = getQuery(event);
 
   try {
+    // ── Signed-in routes: Salesforce data and ICEMAN (Nearmap spend) ──
+    const needsAuth =
+      isIcemanGeneratePath(path) ||
+      isSalesforceInvestmentsPath(path) ||
+      isSalesforceTermSheetRankingsPath(path);
+    if (needsAuth) {
+      try {
+        const user = await authenticateRequest(getHeader(event?.headers, 'authorization'));
+        if (user && isIcemanGeneratePath(path) && !isIcemanAllowed(user.email)) {
+          return errorResult(403, 'ICEMAN is not enabled for this account.');
+        }
+      } catch (err) {
+        if (err instanceof AuthError) return errorResult(401, err.message);
+        throw err;
+      }
+    }
+
     // ── ICEMAN Nearmap batch (no Graph credentials required) ──
     if (isIcemanGeneratePath(path)) {
       if (method !== 'POST') {

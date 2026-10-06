@@ -8,6 +8,7 @@
  *   Power BI:   POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *               POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
  *   ICEMAN:     NEARMAP_API_KEY
+ *   Auth:       INTRANET_API_AUTH_DISABLED=1 to call Salesforce/ICEMAN routes without a sign-in token
  */
 
 import * as http from 'http';

@@ -92,7 +92,7 @@ ICEMAN alone only needs `NEARMAP_API_KEY`.
 ## Step 3 — Function URL
 
 1. **Configuration** → **Function URL** → **Create**
-2. **Auth type:** `NONE` for first internal tests (lock down later if needed)
+2. **Auth type:** `NONE` — the handler itself verifies the caller's Entra ID token on Salesforce and ICEMAN routes (`server/auth.ts`)
 3. **CORS:**
    - Allow origins: your Amplify origin(s), or `*` for a first test
    - Allow methods: include **POST**, **OPTIONS**, **GET**
@@ -257,8 +257,9 @@ Webpack proxies `/api/iceman` → `http://localhost:3001`.
 | Header tab | Only if `userInfo.email` is in `ICEMAN_ALLOWLIST` |
 | Route `/iceman` | Others redirected to `/` |
 | Allowlist | `src/authConfig.ts` → `ICEMAN_ALLOWLIST` (currently `mmelendez@symphonyinfra.com`) |
+| Lambda | Requires the signed-in user's Entra ID token (`server/auth.ts`); returns 401 without one and 403 unless the email is in `ICEMAN_ALLOWED_EMAILS` (Lambda env, comma-separated; defaults to the same address) |
 
-This is **UI-only**. The Function URL is still callable if someone knows the URL. For production lock-down, add auth on the Function URL or an API Gateway authorizer later.
+Keep `ICEMAN_ALLOWED_EMAILS` in step with `ICEMAN_ALLOWLIST` when adding users. For local testing without a token, set `INTRANET_API_AUTH_DISABLED=1` in `server/.env` (never on the Lambda).
 
 ---
 

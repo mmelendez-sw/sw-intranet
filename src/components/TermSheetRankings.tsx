@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useMsal } from '@azure/msal-react';
 import { SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
 import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import { GraphUser } from '../services/directoryService';
+import { intranetApiFetch } from '../services/intranetApi';
 import '../../styles/term-sheet-rankings.css';
 import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
 import awesomeKidImg from '../../images/term-sheet-rankings/awesome-kid.png';
@@ -187,12 +189,15 @@ interface TermSheetRankingsProps {
 const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers }) => {
   // null = live counts unavailable (endpoint not deployed / failed) → hand-copied fallback.
   const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(null);
+  const { instance } = useMsal();
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const res = await fetch(SALESFORCE_TERM_SHEET_RANKINGS_URL, { cache: 'no-store' });
+        const res = await intranetApiFetch(instance, SALESFORCE_TERM_SHEET_RANKINGS_URL, {
+          cache: 'no-store',
+        });
         if (!res.ok) throw new Error(`term-sheet-rankings failed (${res.status})`);
         const data: { counts?: unknown } = await res.json();
         if (!Array.isArray(data.counts)) throw new Error('term-sheet-rankings: missing counts');
@@ -204,7 +209,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [instance]);
 
   const groups = useMemo(() => {
     if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);

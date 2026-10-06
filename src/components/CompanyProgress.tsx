@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useMsal } from '@azure/msal-react';
 import { service, factories, models } from 'powerbi-client';
 import '../../styles/company-progress.css';
 import { UserInfo } from '../types/user';
 import { SALESFORCE_CURRENT_INVESTMENTS_URL } from '../authConfig';
 import { PowerbiService, PowerbiEmbedToken } from '../services/powerbiService';
+import { intranetApiFetch } from '../services/intranetApi';
 
 const powerbiEmbedService = new service.Service(
   factories.hpmFactory,
@@ -247,6 +249,7 @@ const CompanyProgress: React.FC<CompanyProgressProps> = ({
   showPowerBi = true,
 }) => {
   const powerbiContainerRef = useRef<HTMLDivElement>(null);
+  const { instance } = useMsal();
   const [embedConfig, setEmbedConfig] = useState<PowerbiEmbedToken | null>(null);
   const [embedError, setEmbedError] = useState<string | null>(null);
   const [salesforceRows, setSalesforceRows] = useState<SalesforceInvestmentRecord[]>([]);
@@ -309,7 +312,7 @@ const CompanyProgress: React.FC<CompanyProgressProps> = ({
         setSalesforceLoading(true);
         setSalesforceError(null);
 
-        const response = await fetch(SALESFORCE_CURRENT_INVESTMENTS_URL);
+        const response = await intranetApiFetch(instance, SALESFORCE_CURRENT_INVESTMENTS_URL);
         const data = (await response.json().catch(() => ({}))) as SalesforceInvestmentResponse & {
           error?: string;
         };
@@ -338,7 +341,7 @@ const CompanyProgress: React.FC<CompanyProgressProps> = ({
     return () => {
       isActive = false;
     };
-  }, [showGauges]);
+  }, [showGauges, instance]);
 
   const proprietaryRows = salesforceRows.filter(
     (row) => (row.Source_Type__c || '').trim().toLowerCase() === 'proprietary'
