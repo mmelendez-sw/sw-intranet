@@ -61,6 +61,7 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
 const FALLBACK_COUNTS: ManagerCount[] = [
   { name: 'Nick Bocchi', count: 1 },
   { name: 'Brandon Seidenberg', count: 1 },
+  { name: 'Michael Kossak', count: 1 },
 ];
 
 /** Temporary: set to false to restore the real AM counts after the demo screenshot. */

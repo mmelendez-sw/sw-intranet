@@ -162,19 +162,19 @@ describe('<TermSheetRankings />', () => {
     expect(within(legend).getByText('0 · Side-eye')).toBeTruthy();
   });
 
-  it('fallback counts: Seidenberg and Bocchi have 1, the other managers 0', () => {
+  it('fallback counts: Seidenberg, Kossak, and Bocchi have 1, the other managers 0', () => {
     render(<TermSheetRankings />);
     const [, , tier1, tier0] = rows();
     expect(tier1.querySelector('.term-sheet-rankings-names')?.textContent).toBe(
-      'Brandon Seidenberg, Nick Bocchi'
+      'Brandon Seidenberg, Michael Kossak, Nick Bocchi'
     );
-    expect(namesIn(tier0)).toHaveLength(MANAGERS.length - 2);
+    expect(namesIn(tier0)).toHaveLength(MANAGERS.length - 3);
   });
 
   it('shows only people with counts while the directory is loading or unavailable', () => {
     directoryState.users = undefined;
     render(<TermSheetRankings />);
-    expect(namesIn(rows()[2])).toEqual(['Brandon Seidenberg', 'Nick Bocchi']);
+    expect(namesIn(rows()[2])).toEqual(['Brandon Seidenberg', 'Michael Kossak', 'Nick Bocchi']);
     expect(namesIn(rows()[3])).toEqual([]);
     cleanup();
 
@@ -256,7 +256,7 @@ describe('<TermSheetRankings />', () => {
 
     expect(screen.getByText('October 2026')).toBeTruthy();
     expect(rows()[2].querySelector('.term-sheet-rankings-names')?.textContent).toBe(
-      'Brandon Seidenberg, Nick Bocchi'
+      'Brandon Seidenberg, Michael Kossak, Nick Bocchi'
     );
   });
 
