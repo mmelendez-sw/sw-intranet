@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isIcemanAllowlisted } from '../authConfig';
+import { ICEMAN_GENERATE_URL, isIcemanAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
 import closeObliqueExample from '../../images/iceman/north-oblique-close-example.jpg';
 import farObliqueExample from '../../images/iceman/north-oblique-far-example.jpg';
@@ -19,15 +19,6 @@ const CLOSE_OBLIQUE_DEFAULT_M = 35;
 const FAR_OBLIQUE_MIN_M = 200;
 const FAR_OBLIQUE_MAX_M = 500;
 const FAR_OBLIQUE_DEFAULT_M = 300;
-
-const ICEMAN_API_URL = (() => {
-  if (typeof window === 'undefined') return '/api/iceman/generate';
-  const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
-    return 'http://localhost:3001/api/iceman/generate';
-  }
-  return '/api/iceman/generate';
-})();
 
 const isAcceptedFile = (name: string) => {
   const lower = name.toLowerCase();
@@ -104,7 +95,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       form.append('far_m', String(farM));
 
       const url =
-        `${ICEMAN_API_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
+        `${ICEMAN_GENERATE_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
         `&close_m=${encodeURIComponent(String(closeM))}` +
         `&far_m=${encodeURIComponent(String(farM))}`;
       const res = await fetch(url, { method: 'POST', body: form });

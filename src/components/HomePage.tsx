@@ -15,9 +15,6 @@ import {
   setContentDetailed,
   uploadImage,
   uploadImageFromUrl,
-  DEFAULT_CARDS,
-  SEED_CARDS,
-  DEFAULT_ANNOUNCEMENTS,
   getCachedContent,
   isSharePointImageUrl,
   preloadSharePointImages,
@@ -43,12 +40,36 @@ import {
 } from '../services/contentService';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
+import {
+  EditModal,
+  CARDS_CONTENT_KEY,
+  HERO_CONTENT_KEY,
+  ANNOUNCEMENTS_CONTENT_KEY,
+  HOMEPAGE_LAYOUT_CONTENT_KEY,
+  CARD_POLL,
+  CARD_AUTOSAVE_MS,
+  CARD_POLL_MS,
+  CARDS_SPINNER_MIN_MS,
+  sortCardsByOrder,
+  renumberCards,
+  normalizeCards,
+  cardsMatch,
+  getInitialCards,
+  bulletsToText,
+  parseBulletLines,
+  sanitizeBullets,
+  todayLocalDateString,
+  formatAnnouncementDate,
+  CARDS_PER_ROW_OPTIONS,
+  getInitialAnnouncements,
+  isOddCardFor4Columns,
+} from './homePageShared';
+import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
 import TermSheetRankings from './TermSheetRankings';
 import { isTermSheetRankingsAllowlisted } from '../authConfig';
 import { isAcquisitionsManagerTitle } from '../data/termSheetRankingsRoster';
 import {
   EditSaveStatus,
-  EditSaveStatusText,
   editSaveStatusFromResult,
   finishEditSave,
 } from './EditSaveStatusText';
@@ -60,87 +81,7 @@ interface HomePageProps {
   userInfo: UserInfo;
 }
 
-// ─── Tiny Edit Modal component ─────────────────────────────────────────────
-
-interface EditModalProps {
-  title: string;
-  onClose: () => void;
-  onSave?: () => Promise<void>;
-  isSaving: boolean;
-  onDelete?: () => Promise<void>;
-  children: React.ReactNode;
-  autoSave?: boolean;
-  saveStatus?: EditSaveStatus;
-  /** Autosave "Done" — defaults to onClose. Use to block leave until SharePoint save succeeds. */
-  onDone?: () => void | Promise<void>;
-}
-
-const EditModal: React.FC<EditModalProps> = ({
-  title,
-  onClose,
-  onSave,
-  isSaving,
-  onDelete,
-  children,
-  autoSave = false,
-  saveStatus = 'idle',
-  onDone,
-}) => {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  return (
-    <div className="edit-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={title}>
-        <div className="edit-modal-header">
-          <h3>{title}</h3>
-          <button className="edit-modal-close" onClick={onClose} aria-label="Close">&times;</button>
-        </div>
-        <div className="edit-modal-body">{children}</div>
-        <div className="edit-modal-footer">
-          {onDelete && (
-            <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>
-              🗑 Delete
-            </button>
-          )}
-          <div className="edit-modal-footer-right">
-            {autoSave ? (
-              <>
-                {saveStatus === 'idle' ? (
-                  <span className="edit-saving-indicator" style={{ color: '#6c757d' }}>Edits save automatically</span>
-                ) : (
-                  <EditSaveStatusText status={saveStatus} />
-                )}
-                <button
-                  className="edit-btn-save"
-                  onClick={() => { void (onDone ?? onClose)(); }}
-                  disabled={saveStatus === 'saving'}
-                >
-                  Done
-                </button>
-              </>
-            ) : (
-              <>
-                <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
-                <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
-                <button className="edit-btn-save" onClick={onSave} disabled={isSaving || !onSave}>Save</button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const CARDS_CONTENT_KEY = 'homepage-cards';
-const HERO_CONTENT_KEY = 'homepage-hero';
-const ANNOUNCEMENTS_CONTENT_KEY = 'announcements';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
-const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
 const MONTH_OPTIONS = [
   { value: 1, label: 'January' },
   { value: 2, label: 'February' },
@@ -155,72 +96,6 @@ const MONTH_OPTIONS = [
   { value: 11, label: 'November' },
   { value: 12, label: 'December' },
 ];
-const CARD_POLL = { remoteOnly: true } as const;
-const CARD_AUTOSAVE_MS = 800;
-const CARD_POLL_MS = 20_000;
-/** Minimum time to show the cards loading spinner (set to 0 in production). */
-const CARDS_SPINNER_MIN_MS = 0;
-
-const sortCardsByOrder = (cardList: CardContent[]): CardContent[] =>
-  [...cardList].sort((a, b) => a.order - b.order);
-
-/** Assign sequential order values; preserves the array's current display order. */
-const renumberCards = (cardList: CardContent[]): CardContent[] =>
-  cardList.map((c, i) => ({ ...c, order: i + 1 }));
-
-const normalizeCards = (remoteCards: CardContent[]): CardContent[] =>
-  renumberCards(sortCardsByOrder(remoteCards));
-
-const cardsMatch = (a: CardContent[], b: CardContent[]) => JSON.stringify(a) === JSON.stringify(b);
-
-const getInitialCards = (): CardContent[] => {
-  const cached = getCachedContent<unknown>(CARDS_CONTENT_KEY);
-  const parsed = parseHomepageCardsContent(cached);
-  if (parsed.length) return normalizeCards(parsed);
-  if (SEED_CARDS.length) return normalizeCards(SEED_CARDS);
-  return DEFAULT_CARDS;
-};
-
-const bulletsToText = (bullets: string[]) => bullets.join('\n');
-const parseBulletLines = (text: string) => text.split('\n');
-const sanitizeBullets = (bullets: string[]) => bullets.filter((l) => l.trim() !== '');
-
-/** YYYY-MM-DD in local timezone (avoids UTC off-by-one from toISOString). */
-const todayLocalDateString = (): string => {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
-
-/** Parse date-only strings as local calendar dates, not UTC midnight. */
-const formatAnnouncementDate = (dateStr: string): string => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-  if (!match) return dateStr;
-  const [, y, m, d] = match;
-  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString([], {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
-
-const escapeHtmlAttr = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-
-const escapeHtmlText = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-const DEFAULT_LINK_LABEL = 'CLICK HERE';
-
-const CARDS_PER_ROW_OPTIONS: HomepageCardsPerRow[] = [2, 3, 4, 5];
-
-const getInitialAnnouncements = (): Announcement[] => {
-  const parsed = parseAnnouncementsContent(getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
-  return parsed.length ? parsed : DEFAULT_ANNOUNCEMENTS;
-};
-
 const getInitialBirthdays = (): BirthdaysContent => {
   return birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY));
 };
@@ -229,26 +104,6 @@ const daysInMonth = (month: number): number => {
   if (month === 2) return 29;
   if ([4, 6, 9, 11].includes(month)) return 30;
   return 31;
-};
-
-/** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
-const isOddCardFor4Columns = (index: number): boolean => {
-  let isOdd = true;
-  for (let i = 1; i <= index; i++) {
-    const cardNum = i + 1;
-    if (cardNum % 4 === 1 && cardNum > 4) {
-      continue;
-    }
-    isOdd = !isOdd;
-  }
-  return isOdd;
-};
-
-const buildClickHereBullet = (url: string, label: string, suffix = ''): string => {
-  const linkText = label.trim() || DEFAULT_LINK_LABEL;
-  const link = `<a href="${escapeHtmlAttr(url.trim())}" target="_blank" rel="noopener noreferrer">${escapeHtmlText(linkText)}</a>`;
-  const trimmedSuffix = suffix.trim();
-  return trimmedSuffix ? `${link} ${trimmedSuffix}` : link;
 };
 
 // ─── HomePage ──────────────────────────────────────────────────────────────

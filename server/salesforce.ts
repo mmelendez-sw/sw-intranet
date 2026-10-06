@@ -1,3 +1,5 @@
+import { requireEnv } from './env';
+
 const API_VERSION = '60.0';
 
 const CURRENT_INVESTMENTS_QUERY = `
@@ -5,12 +7,6 @@ SELECT Id, All_In_Purchase_Price__c, Annual_Rent__c, Source_Type__c
 FROM Opportunity
 WHERE Current_Investment_Date__c > 2025-12-31
 `;
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-}
 
 function escapeXml(value: string): string {
   return String(value)
