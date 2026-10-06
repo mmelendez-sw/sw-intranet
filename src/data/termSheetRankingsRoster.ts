@@ -1,5 +1,7 @@
 /**
  * AM roster for the Monthly Term Sheet Leaderboard (counts + view access on `/`).
+ * The live roster is every Entra user with ACQUISITIONS_MANAGER_JOB_TITLE; the static
+ * list below is the fallback when the directory can't be read.
  */
 
 export type TermSheetRosterEntry = {
@@ -7,6 +9,12 @@ export type TermSheetRosterEntry = {
   matchKey: string;
   displayName: string;
 };
+
+/** Entra jobTitle that puts someone on the leaderboard (case-insensitive, exact). */
+export const ACQUISITIONS_MANAGER_JOB_TITLE = 'Acquisitions Manager';
+
+export const isAcquisitionsManagerTitle = (jobTitle?: string | null): boolean =>
+  (jobTitle ?? '').trim().toLowerCase() === ACQUISITIONS_MANAGER_JOB_TITLE.toLowerCase();
 
 export const TERM_SHEET_RANKING_ROSTER: TermSheetRosterEntry[] = [
   { email: 'BSeidenberg@symphonyinfra.com', matchKey: 'Seidenberg', displayName: 'Brandon Seidenberg' },

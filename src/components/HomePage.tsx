@@ -45,6 +45,7 @@ import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
 import TermSheetRankings from './TermSheetRankings';
 import { isTermSheetRankingsAllowlisted } from '../authConfig';
+import { isAcquisitionsManagerTitle } from '../data/termSheetRankingsRoster';
 import {
   EditSaveStatus,
   EditSaveStatusText,
@@ -260,7 +261,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const canEdit = isEditor && isEditMode;
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
   const showHomeContent = userInfo.isAuthenticated || msalAuthenticated;
-  const showLeaderboard = isTermSheetRankingsAllowlisted(userInfo.email);
+  const signedInEmail = (userInfo.email ?? '').toLowerCase();
+  // Static allowlist, plus any active Entra "Acquisitions Manager" (new hires see it automatically).
+  const showLeaderboard =
+    isTermSheetRankingsAllowlisted(userInfo.email) ||
+    (!!signedInEmail &&
+      !!directoryUsers?.some(
+        (u) => u.mail?.toLowerCase() === signedInEmail && isAcquisitionsManagerTitle(u.jobTitle)
+      ));
   // const isTvLayout = useTvLayout();
   // useEffect(() => {
   //   if (!isTvLayout) return;
@@ -1035,7 +1043,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           {showLeaderboard && (
             <div className="home-dev-top">
               {heroBanner}
-              <TermSheetRankings />
+              <TermSheetRankings directoryUsers={directoryUsers} />
             </div>
           )}
 

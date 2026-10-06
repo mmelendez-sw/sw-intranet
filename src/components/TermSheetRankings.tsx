@@ -1,5 +1,7 @@
-import React, { useMemo } from 'react';
-import { TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
+import React, { useEffect, useMemo, useState } from 'react';
+import { SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
+import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
+import { GraphUser } from '../services/directoryService';
 import '../../styles/term-sheet-rankings.css';
 import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
 import awesomeKidImg from '../../images/term-sheet-rankings/awesome-kid.png';
@@ -8,10 +10,14 @@ import godfatherImg from '../../images/term-sheet-rankings/godfather.png';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
 
-type SpoofPerson = {
-  email: string;
+type LeaderboardPerson = {
   displayName: string;
-  matchKey: string;
+  count: number;
+};
+
+/** One row of GET /api/salesforce/term-sheet-rankings → counts. */
+type TermSheetCountRow = {
+  name: string;
   count: number;
 };
 
@@ -51,7 +57,11 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
   return String(tier);
 }
 
-/** THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report — replace with live API when ready. */
+/**
+ * Fallback counts only — used when the live Salesforce endpoint is unreachable.
+ * The roster still comes from Entra, so new Acquisitions Managers appear at 0.
+ * THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report.
+ */
 const SPOOF_COUNT_BY_KEY: Record<string, number> = {
   Bocchi: 1,
   King: 0,
@@ -63,17 +73,66 @@ const SPOOF_COUNT_BY_KEY: Record<string, number> = {
   Polidoro: 0,
 };
 
-const SPOOF_COUNTS: SpoofPerson[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
-  email: entry.email,
-  displayName: entry.displayName,
-  matchKey: entry.matchKey,
+const SPOOF_COUNTS: TermSheetCountRow[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
+  name: entry.displayName,
   count: SPOOF_COUNT_BY_KEY[entry.matchKey] ?? 0,
-}));
+})).filter((row) => row.count > 0);
+
+/** Lowercase, strip accents/punctuation, collapse spaces — Salesforce vs Entra name keys. */
+function normalizeName(name: string): string {
+  return name
+    .normalize('NFD') // split accents off so the letters-only filter drops them
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Active Acquisitions Managers from Entra, or the static roster when the directory is unavailable. */
+function rosterNames(directoryUsers: GraphUser[] | null | undefined): { displayName: string; keys: string[] }[] {
+  const managers = (directoryUsers ?? []).filter((u) => isAcquisitionsManagerTitle(u.jobTitle));
+  if (managers.length) {
+    return managers.map((u) => ({
+      displayName: u.displayName,
+      keys: [u.displayName, [u.givenName, u.surname].filter(Boolean).join(' ')]
+        .map(normalizeName)
+        .filter(Boolean),
+    }));
+  }
+  return TERM_SHEET_RANKING_ROSTER.map((entry) => ({
+    displayName: entry.displayName,
+    keys: [normalizeName(entry.displayName)],
+  }));
+}
+
+/**
+ * Every active manager (zeros included) with their live count. Salesforce names that don't
+ * match a manager are still listed so a signed term sheet is never dropped.
+ */
+function mergeLiveCounts(
+  directoryUsers: GraphUser[] | null | undefined,
+  liveCounts: TermSheetCountRow[]
+): LeaderboardPerson[] {
+  const countByKey = new Map<string, TermSheetCountRow>();
+  for (const row of liveCounts) countByKey.set(normalizeName(row.name), row);
+
+  const matched = new Set<TermSheetCountRow>();
+  const people = rosterNames(directoryUsers).map(({ displayName, keys }) => {
+    const row = keys.map((k) => countByKey.get(k)).find(Boolean);
+    if (row) matched.add(row);
+    return { displayName, count: row?.count ?? 0 };
+  });
+
+  for (const row of liveCounts) {
+    if (!matched.has(row)) people.push({ displayName: row.name, count: row.count });
+  }
+  return people;
+}
 
 /** Temporary: set to false to restore the real AM counts after the demo screenshot. */
 const SHOW_DEMO_ATHLETES = false;
 
-const DEMO_ATHLETES: SpoofPerson[] = [
+const DEMO_ATHLETES: LeaderboardPerson[] = [
   { name: 'Michael Jordan', count: 6 },
   { name: 'Tom Brady', count: 5 },
   { name: 'Serena Williams', count: 4 },
@@ -87,10 +146,10 @@ const DEMO_ATHLETES: SpoofPerson[] = [
   { name: 'Bobby Boucher', count: 0 },
   { name: 'Ricky Bobby', count: 0 },
   { name: 'Kenny Powers', count: 0 },
-].map(({ name, count }) => ({ email: '', displayName: name, matchKey: name, count }));
+].map(({ name, count }) => ({ displayName: name, count }));
 
-function buildTierGroups(people: SpoofPerson[]): TierGroup[] {
-  const byTier = new Map<TermSheetTier, SpoofPerson[]>();
+function buildTierGroups(people: LeaderboardPerson[]): TierGroup[] {
+  const byTier = new Map<TermSheetTier, LeaderboardPerson[]>();
   for (const person of people) {
     const tier = tierForCount(person.count);
     const list = byTier.get(tier) || [];
@@ -117,14 +176,40 @@ function currentMonthLabel(date = new Date()): string {
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
+interface TermSheetRankingsProps {
+  /** Entra directory (from useDirectoryUsers); drives the roster of Acquisitions Managers. */
+  directoryUsers?: GraphUser[] | null;
+}
+
 /**
  * Monthly Term Sheet Leaderboard. On `/` it is gated by isTermSheetRankingsAllowlisted.
  */
-const TermSheetRankings: React.FC = () => {
-  const groups = useMemo(
-    () => buildTierGroups(SHOW_DEMO_ATHLETES ? DEMO_ATHLETES : SPOOF_COUNTS),
-    []
-  );
+const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers }) => {
+  // null = live counts unavailable (endpoint not deployed / failed) → hand-copied fallback.
+  const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch(SALESFORCE_TERM_SHEET_RANKINGS_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`term-sheet-rankings failed (${res.status})`);
+        const data: { counts?: unknown } = await res.json();
+        if (!Array.isArray(data.counts)) throw new Error('term-sheet-rankings: missing counts');
+        if (!cancelled) setLiveCounts(data.counts as TermSheetCountRow[]);
+      } catch (err) {
+        console.warn('[TermSheetRankings] using fallback counts:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const groups = useMemo(() => {
+    if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);
+    return buildTierGroups(mergeLiveCounts(directoryUsers, liveCounts ?? SPOOF_COUNTS));
+  }, [directoryUsers, liveCounts]);
   const monthLabel = useMemo(() => currentMonthLabel(), []);
 
   return (
