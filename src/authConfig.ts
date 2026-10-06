@@ -53,6 +53,22 @@ export const INTRANET_EXECS_GROUP_ID = '47033fd4-2aed-482d-9ad4-c580103dacfa';
 // IntranetEditors security group ID
 export const INTRANET_EDITORS_GROUP_ID = 'cbf6d5aa-f6ca-435d-a707-af1d1fac87a2';
 
+/**
+ * Case-insensitive allowlist check. `legacyDomain` maps @symphonywireless.com sign-in names
+ * (some UPNs still use the old domain) to @symphonyinfra.com before matching.
+ */
+const isInAllowlist = (
+  allowlist: ReadonlySet<string>,
+  email?: string,
+  { legacyDomain = false }: { legacyDomain?: boolean } = {}
+): boolean => {
+  if (!email) return false;
+  const lower = email.toLowerCase();
+  return allowlist.has(
+    legacyDomain ? lower.replace(/@symphonywireless\.com$/, '@symphonyinfra.com') : lower
+  );
+};
+
 // Emails granted editor UI access without IntranetEditors group membership
 export const EDIT_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
@@ -64,10 +80,7 @@ export const EDIT_ALLOWLIST = new Set([
   'aquinn@symphonyinfra.com',
 ]);
 
-export const isEditAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  return EDIT_ALLOWLIST.has(email.toLowerCase());
-};
+export const isEditAllowlisted = (email?: string): boolean => isInAllowlist(EDIT_ALLOWLIST, email);
 
 export const resolveIsEditor = (isGroupMember: boolean, email?: string): boolean =>
   isGroupMember || isEditAllowlisted(email);
@@ -81,20 +94,15 @@ export const NETSUITE_ADMIN_ALLOWLIST = new Set([
   'shuang@symphonyinfra.com'
 ]);
 
-export const isNetSuiteAdminAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  return NETSUITE_ADMIN_ALLOWLIST.has(email.toLowerCase());
-};
+export const isNetSuiteAdminAllowlisted = (email?: string): boolean =>
+  isInAllowlist(NETSUITE_ADMIN_ALLOWLIST, email);
 
 /** ICEMAN Nearmap tool — restricted to this allowlist. */
 export const ICEMAN_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
 ]);
 
-export const isIcemanAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  return ICEMAN_ALLOWLIST.has(email.toLowerCase());
-};
+export const isIcemanAllowlisted = (email?: string): boolean => isInAllowlist(ICEMAN_ALLOWLIST, email);
 
 /**
  * /dev homepage sandbox — real login required; UI work happens here before
@@ -105,10 +113,8 @@ export const DEV_HOMEPAGE_ALLOWLIST = new Set([
   'atabbacchino@symphonyinfra.com',
 ]);
 
-export const isDevHomepageAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  return DEV_HOMEPAGE_ALLOWLIST.has(email.toLowerCase());
-};
+export const isDevHomepageAllowlisted = (email?: string): boolean =>
+  isInAllowlist(DEV_HOMEPAGE_ALLOWLIST, email);
 
 /** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
 export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
@@ -116,19 +122,12 @@ export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
   'sraffington@symphonyinfra.com',
 ]);
 
-export const isBirthdayGapNotifyAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  const normalized = email.toLowerCase().replace(/@symphonywireless\.com$/, '@symphonyinfra.com');
-  return BIRTHDAY_GAP_NOTIFY_ALLOWLIST.has(normalized);
-};
+export const isBirthdayGapNotifyAllowlisted = (email?: string): boolean =>
+  isInAllowlist(BIRTHDAY_GAP_NOTIFY_ALLOWLIST, email, { legacyDomain: true });
 
 /** AMs + leadership who see the Monthly Term Sheet Leaderboard on the main homepage. */
-export const isTermSheetRankingsAllowlisted = (email?: string): boolean => {
-  if (!email) return false;
-  // Some sign-in names (UPNs) still use the legacy symphonywireless.com domain.
-  const normalized = email.toLowerCase().replace(/@symphonywireless\.com$/, '@symphonyinfra.com');
-  return TERM_SHEET_RANKINGS_ALLOWLIST.has(normalized);
-};
+export const isTermSheetRankingsAllowlisted = (email?: string): boolean =>
+  isInAllowlist(TERM_SHEET_RANKINGS_ALLOWLIST, email, { legacyDomain: true });
 
 
 // SharePoint site where editable content is stored
@@ -196,32 +195,20 @@ export const TV_CARDS_API_URL = (() => {
   return '';
 })();
 
+/** Intranet API endpoint URL: INTRANET_API_BASE_URL + path, or the relative path (Amplify rewrite). */
+const intranetApiUrl = (path: string): string => `${INTRANET_API_BASE_URL}${path}`;
+
 /** Salesforce current-investments endpoint (local API or Lambda). */
-export const SALESFORCE_CURRENT_INVESTMENTS_URL = (() => {
-  if (typeof window === 'undefined') return '/api/salesforce/current-investments';
-  if (INTRANET_API_BASE_URL) {
-    return `${INTRANET_API_BASE_URL}/api/salesforce/current-investments`;
-  }
-  return '/api/salesforce/current-investments';
-})();
+export const SALESFORCE_CURRENT_INVESTMENTS_URL = intranetApiUrl('/api/salesforce/current-investments');
 
 /** Salesforce monthly term-sheet rankings endpoint (local API or Lambda). */
-export const SALESFORCE_TERM_SHEET_RANKINGS_URL = (() => {
-  if (typeof window === 'undefined') return '/api/salesforce/term-sheet-rankings';
-  if (INTRANET_API_BASE_URL) {
-    return `${INTRANET_API_BASE_URL}/api/salesforce/term-sheet-rankings`;
-  }
-  return '/api/salesforce/term-sheet-rankings';
-})();
+export const SALESFORCE_TERM_SHEET_RANKINGS_URL = intranetApiUrl('/api/salesforce/term-sheet-rankings');
 
 /** Power BI embed-token endpoint (local API or Lambda). */
-export const POWERBI_EMBED_TOKEN_URL = (() => {
-  if (typeof window === 'undefined') return '/api/powerbi/embed-token';
-  if (INTRANET_API_BASE_URL) {
-    return `${INTRANET_API_BASE_URL}/api/powerbi/embed-token`;
-  }
-  return '/api/powerbi/embed-token';
-})();
+export const POWERBI_EMBED_TOKEN_URL = intranetApiUrl('/api/powerbi/embed-token');
+
+/** ICEMAN Nearmap batch endpoint (local API or Lambda). */
+export const ICEMAN_GENERATE_URL = intranetApiUrl('/api/iceman/generate');
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const BIRTHDAYS_DATA_FILENAME = 'birthdays.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';

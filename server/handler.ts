@@ -30,6 +30,7 @@ import { getCurrentInvestments, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { parseMultipart } from './multipart';
 import { generateIcemanWorkbook } from './iceman';
+import { requireEnv } from './env';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -37,12 +38,6 @@ const JSON_HEADERS = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-}
 
 function getPath(event?: {
   httpMethod?: string;

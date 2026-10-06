@@ -1,8 +1,4 @@
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-}
+import { requireEnv } from './env';
 
 function isMyWorkspace(workspaceId?: string): boolean {
   return !workspaceId || ['me', 'my', 'personal'].includes(String(workspaceId).toLowerCase());
