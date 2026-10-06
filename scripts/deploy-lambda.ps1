@@ -6,7 +6,7 @@
 #
 # Usage:
 #   npm run deploy:lambda
-#   powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api -Region us-east-1
+#   powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api -Region us-east-2
 
 param(
   [Parameter(Mandatory = $true)]
