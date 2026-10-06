@@ -1,7 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
 import { ICEMAN_GENERATE_URL, isIcemanAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
+import { intranetApiFetch } from '../services/intranetApi';
 import closeObliqueExample from '../../images/iceman/north-oblique-close-example.jpg';
 import farObliqueExample from '../../images/iceman/north-oblique-far-example.jpg';
 import '../../styles/iceman.css';
@@ -36,6 +38,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const { instance } = useMsal();
 
   if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
     return <Navigate to="/" replace />;
@@ -98,7 +101,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
         `${ICEMAN_GENERATE_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
         `&close_m=${encodeURIComponent(String(closeM))}` +
         `&far_m=${encodeURIComponent(String(farM))}`;
-      const res = await fetch(url, { method: 'POST', body: form });
+      const res = await intranetApiFetch(instance, url, { method: 'POST', body: form });
 
       if (!res.ok) {
         let message = `Request failed (${res.status})`;
