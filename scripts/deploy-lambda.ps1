@@ -31,7 +31,7 @@ try {
 }
 
 if (-not (Test-Path (Join-Path $distDir 'handler.js'))) {
-  throw "Expected $distDir\handler.js after build — compile failed?"
+  throw "Expected $distDir\handler.js after build - compile failed?"
 }
 
 $zipPath = Join-Path $env:TEMP 'sw-intranet-api.zip'
