@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { InteractionStatus } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
-import { SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
+import { BYPASS_AUTH, SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
 import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import { GraphUser } from '../services/directoryService';
 import { intranetApiFetch } from '../services/intranetApi';
@@ -178,6 +179,38 @@ function currentMonthLabel(date = new Date()): string {
   return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 }
 
+/** Re-check Salesforce this often while the page is open (matches the Lambda's cache). */
+const REFRESH_MS = 5 * 60_000;
+const CACHE_KEY = 'term-sheet-leaderboard:v1';
+
+type CachedCounts = { month: string; counts: TermSheetCountRow[]; savedAt: number };
+
+const monthKey = (date = new Date()): string =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+/** Last live counts saved in this browser — only for the current month (the board resets monthly). */
+function readCachedCounts(): CachedCounts | null {
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') as CachedCounts | null;
+    return cached && cached.month === monthKey() && Array.isArray(cached.counts) ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedCounts(counts: TermSheetCountRow[]): number {
+  const savedAt = Date.now();
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ month: monthKey(), counts, savedAt }));
+  } catch {
+    /* storage unavailable (private window, blocked site data) — live counts still render */
+  }
+  return savedAt;
+}
+
+const countsEqual = (a: TermSheetCountRow[] | null, b: TermSheetCountRow[]): boolean =>
+  !!a && JSON.stringify(a) === JSON.stringify(b);
+
 interface TermSheetRankingsProps {
   /** Entra directory (from useDirectoryUsers); drives the roster of Acquisitions Managers. */
   directoryUsers?: GraphUser[] | null;
@@ -187,13 +220,22 @@ interface TermSheetRankingsProps {
  * Monthly Term Sheet Leaderboard. On `/` it is gated by isTermSheetRankingsAllowlisted.
  */
 const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers }) => {
-  // null = live counts unavailable (endpoint not deployed / failed) → hand-copied fallback.
-  const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(null);
-  const { instance } = useMsal();
+  // Show this browser's last saved live counts immediately, then refresh in the background.
+  // null = no live counts yet (endpoint not deployed / failed) → hand-copied fallback.
+  const [cached] = useState(readCachedCounts);
+  const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(cached?.counts ?? null);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(cached?.savedAt ?? null);
+  // Spinner only when nothing is saved yet, so the hand-copied counts don't flash before live data.
+  const [loading, setLoading] = useState(!cached);
+  const { instance, accounts, inProgress } = useMsal();
+  const accountId = accounts[0]?.homeAccountId;
+  // Fetch only once MSAL has a signed-in account; an earlier call would go out without a token.
+  const signedIn = BYPASS_AUTH || (inProgress === InteractionStatus.None && !!accountId);
 
   useEffect(() => {
+    if (!signedIn) return;
     let cancelled = false;
-    void (async () => {
+    const refresh = async () => {
       try {
         const res = await intranetApiFetch(instance, SALESFORCE_TERM_SHEET_RANKINGS_URL, {
           cache: 'no-store',
@@ -201,15 +243,24 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         if (!res.ok) throw new Error(`term-sheet-rankings failed (${res.status})`);
         const data: { counts?: unknown } = await res.json();
         if (!Array.isArray(data.counts)) throw new Error('term-sheet-rankings: missing counts');
-        if (!cancelled) setLiveCounts(data.counts as TermSheetCountRow[]);
+        if (cancelled) return;
+        const counts = data.counts as TermSheetCountRow[];
+        setUpdatedAt(writeCachedCounts(counts));
+        // Only re-render the board when a count actually changed.
+        setLiveCounts((current) => (countsEqual(current, counts) ? current : counts));
       } catch (err) {
-        console.warn('[TermSheetRankings] using fallback counts:', err);
+        console.warn('[TermSheetRankings] keeping saved/fallback counts:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    })();
+    };
+    void refresh();
+    const intervalId = window.setInterval(() => void refresh(), REFRESH_MS);
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
     };
-  }, [instance]);
+  }, [instance, signedIn, accountId]);
 
   const groups = useMemo(() => {
     if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);
@@ -228,8 +279,19 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         <p className="term-sheet-rankings-month">
           Data for <strong>{monthLabel}</strong>
           <span className="term-sheet-rankings-reset"> · Resets monthly</span>
+          {updatedAt && (
+            <span className="term-sheet-rankings-reset">
+              {' · Updated '}
+              {new Date(updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+            </span>
+          )}
         </p>      </header>
 
+      {loading ? (
+        <div className="term-sheet-rankings-loading" role="status" aria-label="Loading term sheet counts">
+          <div className="app-loading-spinner" aria-hidden="true" />
+        </div>
+      ) : (
       <ul className="term-sheet-rankings-list">
         {groups.map((group) => {
           const tier = TIER_META[group.tier];
@@ -265,6 +327,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
           );
         })}
       </ul>
+      )}
 
       <div className="term-sheet-rankings-legend" aria-hidden="true">
         {TIER_ORDER.map((tierKey) => (
