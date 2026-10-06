@@ -60,27 +60,6 @@ function countLabelForTier(tier: TermSheetTier, _counts: number[]): string {
   return String(tier);
 }
 
-/**
- * Fallback counts only — used when the live Salesforce endpoint is unreachable.
- * The roster still comes from Entra, so new Acquisitions Managers appear at 0.
- * THIS_MONTH counts keyed by matchKey, hand-copied from the Salesforce report.
- */
-const SPOOF_COUNT_BY_KEY: Record<string, number> = {
-  Bocchi: 1,
-  King: 0,
-  Sanandaji: 0,
-  Kossak: 1,
-  Seidenberg: 1,
-  Schamberg: 0,
-  Casey: 0,
-  Polidoro: 0,
-};
-
-const SPOOF_COUNTS: TermSheetCountRow[] = TERM_SHEET_RANKING_ROSTER.map((entry) => ({
-  name: entry.displayName,
-  count: SPOOF_COUNT_BY_KEY[entry.matchKey] ?? 0,
-})).filter((row) => row.count > 0);
-
 /** Lowercase, strip accents/punctuation, collapse spaces — Salesforce vs Entra name keys. */
 function normalizeName(name: string): string {
   return name
@@ -221,11 +200,11 @@ interface TermSheetRankingsProps {
  */
 const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers }) => {
   // Show this browser's last saved live counts immediately, then refresh in the background.
-  // null = no live counts yet (endpoint not deployed / failed) → hand-copied fallback.
+  // null = no live counts yet (none saved and the fetch failed) → roster shown at 0 with a note.
   const [cached] = useState(readCachedCounts);
   const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(cached?.counts ?? null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(cached?.savedAt ?? null);
-  // Spinner only when nothing is saved yet, so the hand-copied counts don't flash before live data.
+  // Spinner only when nothing is saved yet, so placeholder zeros don't flash before live data.
   const [loading, setLoading] = useState(!cached);
   const { instance, accounts, inProgress } = useMsal();
   const accountId = accounts[0]?.homeAccountId;
@@ -249,7 +228,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         // Only re-render the board when a count actually changed.
         setLiveCounts((current) => (countsEqual(current, counts) ? current : counts));
       } catch (err) {
-        console.warn('[TermSheetRankings] keeping saved/fallback counts:', err);
+        console.warn('[TermSheetRankings] keeping saved counts:', err);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -264,7 +243,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
 
   const groups = useMemo(() => {
     if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);
-    return buildTierGroups(mergeLiveCounts(directoryUsers, liveCounts ?? SPOOF_COUNTS));
+    return buildTierGroups(mergeLiveCounts(directoryUsers, liveCounts ?? []));
   }, [directoryUsers, liveCounts]);
   const monthLabel = useMemo(() => currentMonthLabel(), []);
 
@@ -279,6 +258,9 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         <p className="term-sheet-rankings-month">
           Data for <strong>{monthLabel}</strong>
           <span className="term-sheet-rankings-reset"> · Resets monthly</span>
+          {!loading && !liveCounts && (
+            <span className="term-sheet-rankings-reset"> · Live counts unavailable</span>
+          )}
           {updatedAt && (
             <span className="term-sheet-rankings-reset">
               {' · Updated '}
