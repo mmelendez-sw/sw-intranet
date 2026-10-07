@@ -61,7 +61,6 @@ import {
   SITE_CONFIG_DATA_FILENAME,
   SIDEBAR_LAYOUT_DATA_FILENAME,
   HOMEPAGE_LAYOUT_DATA_FILENAME,
-  DEPARTMENTS_CONTENT_FOLDER_PATH,
   TV_SHAREPOINT_DRIVE_ID,
   TV_HOMEPAGE_CARDS_ITEM_ID,
 } from '../authConfig';
@@ -200,8 +199,6 @@ export interface DriveItem {
   file?: { mimeType: string };
 }
 
-export type CardWithResolvedImage = CardContent & { resolvedImageUrl: string | null };
-
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
 
 let cachedDefaultImages: DriveItem[] | null = null;
@@ -216,11 +213,6 @@ function encodeDriveRelativePath(path: string): string {
     .filter(Boolean)
     .map((segment) => encodeURIComponent(segment))
     .join('/');
-}
-
-/** Build a SharePoint webUrl under Shared Documents for a drive-relative path. */
-export function buildSharePointDocumentUrl(driveRelativePath: string): string {
-  return `https://${SHAREPOINT_HOST}${SHAREPOINT_SITE_PATH}/Shared%20Documents/${encodeDriveRelativePath(driveRelativePath)}`;
 }
 
 /**
@@ -296,10 +288,6 @@ export async function fetchDefaultFallbackImageUrls(msalInstance: any): Promise<
   }
 }
 
-/** Current folder size (0 until first successful list); bundled count when folder empty. */
-export const DEFAULT_FALLBACK_IMAGE_COUNT = (): number =>
-  cachedDefaultImages?.length || BUNDLED_DEFAULT_CARD_IMAGES.length;
-
 /**
  * Empty imageUrl → cycle Default Images by display position.
  * Returns YOUR proxy URL `/api/images/{id}`, not a raw SharePoint URL.
@@ -322,14 +310,6 @@ export function getBundledDefaultFallbackImageUrl(cardPosition: number): string 
   return images[((cardPosition % images.length) + images.length) % images.length] || null;
 }
 
-/** @deprecated Prefer getDefaultFallbackImageUrl — kept for existing call sites. */
-export function pickDefaultFallbackImageUrl(
-  images: DriveItem[],
-  cardIndex: number
-): string {
-  return getDefaultFallbackImageUrl(cardIndex, images) || '';
-}
-
 /**
  * Display src for UI: SharePoint webUrl when listed, else bundled static asset.
  * Use getDefaultFallbackImageUrl only when a TV image proxy is available.
@@ -350,44 +330,6 @@ export async function refreshDefaultFallbackImages(msalInstance: any): Promise<D
   cachedDefaultImages = null;
   cachedDefaultImagesPending = null;
   return fetchDefaultFallbackImageUrls(msalInstance);
-}
-
-/** Clear cached Default Images list without fetching. */
-export function clearDefaultFallbackImageUrlCache(): void {
-  cachedDefaultImages = null;
-  cachedDefaultImagesPending = null;
-}
-
-/**
- * Attach resolvedImageUrl: custom imageUrl when set, else `/api/images/{id}` by position.
- */
-export async function resolveCardImages(
-  cards: CardContent[],
-  msalInstance: any
-): Promise<CardWithResolvedImage[]> {
-  const defaultImages = await fetchDefaultFallbackImageUrls(msalInstance);
-  return cards.map((card, index) => {
-    if (card.imageUrl && card.imageUrl.trim() !== '') {
-      return { ...card, resolvedImageUrl: card.imageUrl };
-    }
-    const fallback = getDefaultFallbackImageUrl(index, defaultImages);
-    return { ...card, resolvedImageUrl: fallback };
-  });
-}
-
-export function resolveCardImagesSync(
-  cards: CardContent[],
-  defaultImages: DriveItem[]
-): CardWithResolvedImage[] {
-  return cards.map((card, index) => {
-    if (card.imageUrl && card.imageUrl.trim() !== '') {
-      return { ...card, resolvedImageUrl: card.imageUrl };
-    }
-    return {
-      ...card,
-      resolvedImageUrl: getDefaultFallbackImageUrl(index, defaultImages),
-    };
-  });
 }
 
 // ─── Editor email tracking in JSON files ─────────────────────────────────────
@@ -628,62 +570,6 @@ export function buildDefaultDepartmentContent(
     resources: withSection(`${departmentLabel} Resources`, overrides?.resources),
     faq: withSection('FAQ', overrides?.faq),
   };
-}
-
-export const EMPTY_DEPARTMENT_CONTENT = buildDefaultDepartmentContent('Department');
-
-/** Accept legacy SharePoint payloads that stored plain string arrays per section. */
-export function normalizeDepartmentContent(
-  raw: unknown,
-  defaults: DepartmentPageContent
-): DepartmentPageContent {
-  if (!raw || typeof raw !== 'object') return defaults;
-
-  const data = raw as Record<string, unknown>;
-  const firstSection = data.updates;
-
-  if (
-    firstSection &&
-    typeof firstSection === 'object' &&
-    !Array.isArray(firstSection) &&
-    'title' in firstSection &&
-    'items' in firstSection
-  ) {
-    const content = raw as DepartmentPageContent;
-    return {
-      updates: {
-        title: content.updates.title?.trim() || defaults.updates.title,
-        items: Array.isArray(content.updates.items) ? content.updates.items : [],
-      },
-      resources: {
-        title: content.resources.title?.trim() || defaults.resources.title,
-        items: Array.isArray(content.resources.items) ? content.resources.items : [],
-      },
-      faq: {
-        title: content.faq.title?.trim() || defaults.faq.title,
-        items: Array.isArray(content.faq.items) ? content.faq.items : [],
-      },
-    };
-  }
-
-  if (Array.isArray(data.updates) || Array.isArray(data.resources) || Array.isArray(data.faq)) {
-    return {
-      updates: {
-        title: defaults.updates.title,
-        items: Array.isArray(data.updates) ? (data.updates as string[]) : [],
-      },
-      resources: {
-        title: defaults.resources.title,
-        items: Array.isArray(data.resources) ? (data.resources as string[]) : [],
-      },
-      faq: {
-        title: defaults.faq.title,
-        items: Array.isArray(data.faq) ? (data.faq as string[]) : [],
-      },
-    };
-  }
-
-  return defaults;
 }
 
 export interface SiteAlert {
@@ -2036,116 +1922,6 @@ export async function setContentDetailed<T>(
   if (localOk) {
     console.warn(`[contentService] setContent("${key}") saved to browser storage (SharePoint write failed)`);
     return { ok: true, storage: 'local' };
-  }
-  return { ok: false, storage: 'none' };
-}
-
-// ─── Department page content (General/intranet/departments/{slug}.json) ───────
-
-const departmentCacheKey = (slug: string): string => `department-${slug}`;
-
-export function getDepartmentContentFileName(slug: string): string {
-  return `${slug}.json`;
-}
-
-async function fetchDepartmentContentFromRemote(
-  msalInstance: any,
-  slug: string
-): Promise<DepartmentPageContent | null> {
-  try {
-    const token = await getToken(msalInstance);
-    if (!token) return null;
-
-    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
-    const parsed = await readContentFromSharePointDrive<DepartmentPageContent>(
-      siteId,
-      token,
-      getDepartmentContentFileName(slug),
-      DEPARTMENTS_CONTENT_FOLDER_PATH
-    );
-    if (parsed) {
-      writeLocalContent(departmentCacheKey(slug), parsed);
-      return parsed;
-    }
-    return null;
-  } catch (err) {
-    console.error(`[contentService] fetchDepartmentContentFromRemote("${slug}") failed:`, err);
-    return null;
-  }
-}
-
-export async function getDepartmentContent(
-  msalInstance: any,
-  slug: string,
-  options?: ContentSyncOptions
-): Promise<DepartmentPageContent | null> {
-  const key = departmentCacheKey(slug);
-  if (BYPASS_AUTH) {
-    return readLocalContent<DepartmentPageContent>(key);
-  }
-
-  const cached = readLocalContent<DepartmentPageContent>(key);
-  if (!options?.remoteOnly && cached !== null) {
-    void fetchDepartmentContentFromRemote(msalInstance, slug);
-    return cached;
-  }
-
-  const remote = await fetchDepartmentContentFromRemote(msalInstance, slug);
-  if (remote !== null) return remote;
-
-  return options?.remoteOnly ? null : cached;
-}
-
-export async function setDepartmentContent(
-  msalInstance: any,
-  slug: string,
-  data: DepartmentPageContent,
-  options?: ContentSyncOptions
-): Promise<boolean> {
-  const result = await setDepartmentContentDetailed(msalInstance, slug, data, options);
-  return result.ok;
-}
-
-export async function setDepartmentContentDetailed(
-  msalInstance: any,
-  slug: string,
-  data: DepartmentPageContent,
-  options?: ContentSyncOptions
-): Promise<SetContentResult> {
-  const key = departmentCacheKey(slug);
-  if (BYPASS_AUTH) {
-    const ok = writeLocalContent(key, data);
-    return { ok, storage: ok ? 'local' : 'none' };
-  }
-
-  try {
-    const token = await getToken(msalInstance);
-    if (!token) throw new Error('Could not acquire SharePoint token.');
-
-    const siteId = await getSiteId(token, SHAREPOINT_SITE_PATH);
-    const driveOk = await writeContentToSharePointDrive(
-      siteId,
-      token,
-      getDepartmentContentFileName(slug),
-      data,
-      DEPARTMENTS_CONTENT_FOLDER_PATH
-    );
-    if (driveOk) {
-      writeLocalContent(key, data);
-      return { ok: true, storage: 'sharepoint' };
-    }
-  } catch (err) {
-    console.error(`[contentService] setDepartmentContent("${slug}") failed:`, err);
-  }
-
-  if (!options?.remoteOnly) {
-    const localOk = writeLocalContent(key, data);
-    if (localOk) {
-      console.warn(
-        `[contentService] setDepartmentContent("${slug}") saved to browser storage (SharePoint write failed)`
-      );
-      return { ok: true, storage: 'local' };
-    }
   }
   return { ok: false, storage: 'none' };
 }
