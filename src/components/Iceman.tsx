@@ -12,7 +12,8 @@ interface IcemanProps {
   userInfo: UserInfo;
 }
 
-const DEFAULT_MAX_ROWS = 500;
+/** Amplify's proxy times out around 30s (~1–2s per row), so keep uploads small. */
+const MAX_ROWS = 15;
 
 const CLOSE_OBLIQUE_MIN_M = 15;
 const CLOSE_OBLIQUE_MAX_M = 50;
@@ -98,7 +99,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       form.append('far_m', String(farM));
 
       const url =
-        `${ICEMAN_GENERATE_URL}?max_rows=${DEFAULT_MAX_ROWS}` +
+        `${ICEMAN_GENERATE_URL}?max_rows=${MAX_ROWS}` +
         `&close_m=${encodeURIComponent(String(closeM))}` +
         `&far_m=${encodeURIComponent(String(farM))}`;
       const res = await intranetApiFetch(instance, url, { method: 'POST', body: form });
@@ -183,6 +184,10 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             <p>
               CSV or Excel with <code>lat</code>/<code>lng</code> (or latitude/longitude) columns.
             </p>
+            <p>
+              <strong>Maximum {MAX_ROWS} rows per file.</strong> Only the first {MAX_ROWS} rows
+              are processed — split larger lists into multiple files.
+            </p>
           </div>
 
           <div
@@ -234,7 +239,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             ) : (
               <div>
                 <p className="iceman-dropzone-title">Drop your file here</p>
-                <p className="iceman-dropzone-hint">or click to browse · .csv / .xlsx</p>
+                <p className="iceman-dropzone-hint">or click to browse · .csv / .xlsx · up to {MAX_ROWS} rows</p>
               </div>
             )}
           </div>
@@ -325,8 +330,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <div className="iceman-panel-header">
             <h3 id="iceman-generate-heading">3. Generate &amp; download</h3>
             <p>
-              Nearmap imagery is fetched for each row. Large files take longer; keep the tab open
-              until the download starts.
+              Nearmap imagery is fetched for each row (up to {MAX_ROWS}). This can take up to
+              30 seconds; keep the tab open until the download starts.
             </p>
           </div>
 
