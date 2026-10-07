@@ -6,6 +6,7 @@ import {
   getSharePointImageBlobUrl,
   isSharePointImageUrl,
   resolveTvMediaUrl,
+  SHAREPOINT_IMAGE_UPDATED_EVENT,
 } from '../services/contentService';
 
 interface SharePointImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -32,7 +33,8 @@ function resolveDisplaySrc(src: string, placeholderSrc?: string): string {
  * load for signed-in users even without SharePoint browser cookies (e.g. incognito).
  * When unsigned but TV_CARDS_API_URL is set, uses the TV API image proxy instead.
  *
- * Cache path: in-memory object URL → IndexedDB blob → Graph fetch.
+ * Cache path: in-memory object URL → IndexedDB blob → Graph fetch. IndexedDB hits are
+ * revalidated in the background; a newer blob arrives via SHAREPOINT_IMAGE_UPDATED_EVENT.
  */
 const SharePointImage: React.FC<SharePointImageProps> = ({
   src,
@@ -83,6 +85,17 @@ const SharePointImage: React.FC<SharePointImageProps> = ({
       cancelled = true;
     };
   }, [src, placeholderSrc, instance, isAuthenticated]);
+
+  useEffect(() => {
+    if (!src || !isSharePointImageUrl(src)) return;
+    const onUpdated = (event: Event) => {
+      if ((event as CustomEvent<{ url: string }>).detail?.url !== src) return;
+      const next = getCachedSharePointImageUrl(src);
+      if (next) setResolvedSrc(next);
+    };
+    window.addEventListener(SHAREPOINT_IMAGE_UPDATED_EVENT, onUpdated);
+    return () => window.removeEventListener(SHAREPOINT_IMAGE_UPDATED_EVENT, onUpdated);
+  }, [src]);
 
   if (!resolvedSrc) {
     return null;

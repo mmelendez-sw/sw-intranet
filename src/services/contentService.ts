@@ -71,8 +71,10 @@ import { getMockContent } from '../data/mockContent';
 import seedBirthdays from '../data/birthdays.seed.json';
 import {
   clearLegacyLocalStorageImageCache,
-  idbGetImageBlob,
+  idbGetImageRecord,
+  idbMarkImageChecked,
   idbSetImageBlob,
+  ImageRecord,
 } from '../utils/sharePointImageIdb';
 // import seedCards from '../data/homepage-cards.seed.json';
 
@@ -1239,14 +1241,30 @@ function ensureLegacyImageCacheCleared(): void {
   clearLegacyLocalStorageImageCache();
 }
 
-function rememberObjectUrl(webUrl: string, blob: Blob): string {
+/**
+ * Fired on window (detail: { url }) when background revalidation swaps in a newer blob,
+ * so mounted <SharePointImage>s can switch to the new object URL.
+ */
+export const SHAREPOINT_IMAGE_UPDATED_EVENT = 'intranet-sharepoint-image-updated';
+
+/** Background metadata check (eTag) at most this often per image. */
+const IMAGE_REVALIDATE_MS = 60 * 60 * 1000;
+/** Hard TTL: past this, refetch the blob if the metadata check can't confirm it's current. */
+const IMAGE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function rememberObjectUrl(webUrl: string, blob: Blob, revokeDelayMs = 0): string {
   const existing = sharePointImageResolvedCache.get(webUrl);
   if (existing?.startsWith('blob:')) {
-    try {
-      URL.revokeObjectURL(existing);
-    } catch {
-      // ignore
-    }
+    const revoke = () => {
+      try {
+        URL.revokeObjectURL(existing);
+      } catch {
+        // ignore
+      }
+    };
+    // Revalidation swaps: give mounted <img>s time to move to the new URL first.
+    if (revokeDelayMs > 0) window.setTimeout(revoke, revokeDelayMs);
+    else revoke();
   }
   const objectUrl = URL.createObjectURL(blob);
   sharePointImageResolvedCache.set(webUrl, objectUrl);
@@ -1311,10 +1329,83 @@ async function fetchSharePointImageBlob(msalInstance: any, webUrl: string): Prom
   return shareRes.blob();
 }
 
-async function hydrateSharePointImageFromIdb(webUrl: string): Promise<string | null> {
-  const blob = await idbGetImageBlob(webUrl);
-  if (!blob) return null;
-  return rememberObjectUrl(webUrl, blob);
+/** eTag + lastModified for a SharePoint file without downloading it. */
+async function fetchSharePointImageVersion(
+  token: string,
+  webUrl: string
+): Promise<{ eTag?: string; lastModified: number } | null> {
+  const select = '$select=eTag,lastModifiedDateTime';
+  const drivePath = webUrlToDrivePath(webUrl);
+  let res: Response | null = null;
+  if (drivePath) {
+    const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
+    res = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodeDriveRelativePath(drivePath)}?${select}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+  }
+  if (!res?.ok) {
+    res = await fetch(
+      `https://graph.microsoft.com/v1.0/shares/${encodeSharePointUrlForGraph(webUrl)}/driveItem?${select}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+  }
+  if (!res.ok) return null;
+  const data = await res.json();
+  const lastModified = Date.parse(data.lastModifiedDateTime || '');
+  return { eTag: data.eTag || undefined, lastModified: Number.isFinite(lastModified) ? lastModified : 0 };
+}
+
+const revalidatedImageUrls = new Set<string>();
+let imageRevalidationQueue: Promise<void> = Promise.resolve();
+
+/**
+ * Background check of an IndexedDB hit: cheap metadata call, refetch only when the eTag
+ * (or, for rows saved before eTags were stored, lastModified vs savedAt) says it changed.
+ * Serialized so a homepage full of cached images doesn't burst Graph on load.
+ */
+function scheduleSharePointImageRevalidation(msalInstance: any, record: ImageRecord): void {
+  const webUrl = record.url;
+  const lastChecked = record.checkedAt ?? record.savedAt;
+  if (revalidatedImageUrls.has(webUrl) || Date.now() - lastChecked < IMAGE_REVALIDATE_MS) return;
+  revalidatedImageUrls.add(webUrl);
+
+  imageRevalidationQueue = imageRevalidationQueue.then(async () => {
+    try {
+      const token = await getToken(msalInstance);
+      if (!token) return;
+      const meta = await fetchSharePointImageVersion(token, webUrl).catch(() => null);
+      const expired = Date.now() - record.savedAt > IMAGE_CACHE_TTL_MS;
+      const changed = meta
+        ? record.version
+          ? !!meta.eTag && meta.eTag !== record.version
+          : meta.lastModified > record.savedAt
+        : expired;
+      if (!changed) {
+        if (meta) void idbMarkImageChecked(webUrl, meta.eTag);
+        return;
+      }
+
+      const blob = await fetchSharePointImageBlob(msalInstance, webUrl);
+      if (!blob) return;
+      await idbSetImageBlob(webUrl, blob, meta?.eTag);
+      rememberObjectUrl(webUrl, blob, 60_000);
+      window.dispatchEvent(
+        new CustomEvent<{ url: string }>(SHAREPOINT_IMAGE_UPDATED_EVENT, { detail: { url: webUrl } })
+      );
+    } catch (err) {
+      console.warn('[contentService] SharePoint image revalidation failed:', webUrl, err);
+    }
+  });
+}
+
+async function hydrateSharePointImageFromIdb(msalInstance: any, webUrl: string): Promise<string | null> {
+  const record = await idbGetImageRecord(webUrl);
+  if (!record) return null;
+  const objectUrl = rememberObjectUrl(webUrl, record.blob);
+  // Paint the cached copy now; check SharePoint for a newer version in the background.
+  scheduleSharePointImageRevalidation(msalInstance, record);
+  return objectUrl;
 }
 
 async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): Promise<string | null> {
@@ -1323,7 +1414,7 @@ async function fetchSharePointImageBlobUrl(msalInstance: any, webUrl: string): P
   const fromMemory = sharePointImageResolvedCache.get(webUrl);
   if (fromMemory) return fromMemory;
 
-  const fromIdb = await hydrateSharePointImageFromIdb(webUrl);
+  const fromIdb = await hydrateSharePointImageFromIdb(msalInstance, webUrl);
   if (fromIdb) return fromIdb;
 
   const blob = await fetchSharePointImageBlob(msalInstance, webUrl);
