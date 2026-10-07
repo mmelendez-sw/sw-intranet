@@ -8,7 +8,22 @@
 import { TV_SHAREPOINT_DRIVE_ID } from './tvHomepageCards';
 
 const DEFAULT_IMAGES_FOLDER_PATH = 'General/intranet/Default Images';
-const IMAGE_FILE_RE = /\.(jpe?g|png|gif|webp|bmp|svg)$/i;
+const IMAGE_FILE_RE = /\.(jpe?g|png|gif|webp|bmp)$/i;
+/** The proxies are unauthenticated, so only serve image files from the intranet content folder. */
+const ALLOWED_IMAGE_ROOT = 'general/intranet/';
+
+function isAllowedImagePath(drivePath: string): boolean {
+  const normalized = drivePath.replace(/^\/+/, '').toLowerCase();
+  return (
+    normalized.startsWith(ALLOWED_IMAGE_ROOT) &&
+    !normalized.split('/').includes('..') &&
+    IMAGE_FILE_RE.test(normalized)
+  );
+}
+
+function isImageContentType(contentType: string): boolean {
+  return /^image\/(jpeg|png|gif|webp|bmp)(;|$)/i.test(contentType.trim());
+}
 
 export interface DriveImageFile {
   id: string;
@@ -105,46 +120,26 @@ export async function resolveDriveItemIdFromWebUrl(
   return data.id ?? null;
 }
 
-/** Fetch image bytes for a SharePoint webUrl via Graph (app token). */
+/** Fetch image bytes for a SharePoint webUrl via Graph (app token); intranet images only. */
 export async function getDriveImageContentByWebUrl(
   webUrl: string,
   token: string
 ): Promise<{ body: ArrayBuffer; contentType: string } | null> {
   const drivePath = webUrlToDrivePath(webUrl);
-  if (drivePath) {
-    const encodedPath = encodeDrivePath(drivePath);
-    const byPathUrl =
-      `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
-      `/root:/${encodedPath}:/content`;
-    const byPath = await fetch(byPathUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (byPath.ok) {
-      return {
-        body: await byPath.arrayBuffer(),
-        contentType: byPath.headers.get('content-type') || 'application/octet-stream',
-      };
-    }
-  }
+  if (!drivePath || !isAllowedImagePath(drivePath)) return null;
 
-  const shareId = encodeSharePointUrlForGraph(webUrl);
-  const shareRes = await fetch(
-    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem/content`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (!shareRes.ok) {
-    const err = await shareRes.text().catch(() => '');
-    console.warn(
-      `[tvImages] getDriveImageContentByWebUrl failed (${shareRes.status}):`,
-      webUrl,
-      err
-    );
+  const byPathUrl =
+    `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
+    `/root:/${encodeDrivePath(drivePath)}:/content`;
+  const byPath = await fetch(byPathUrl, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const contentType = byPath.headers.get('content-type') || '';
+  if (!byPath.ok || !isImageContentType(contentType)) {
+    console.warn(`[tvImages] getDriveImageContentByWebUrl failed (${byPath.status}):`, webUrl);
     return null;
   }
-  return {
-    body: await shareRes.arrayBuffer(),
-    contentType: shareRes.headers.get('content-type') || 'application/octet-stream',
-  };
+  return { body: await byPath.arrayBuffer(), contentType };
 }
 
 /** Public origin for `/api/images/...` links (SPA may be on another port). */
@@ -219,14 +214,33 @@ export async function resolveCardImage(
   return `/api/images/${encodeURIComponent(targetFile.id)}`;
 }
 
-/** Fetch raw image bytes from Graph for a drive item id. */
+export class ImageNotAllowedError extends Error {
+  constructor() {
+    super('Image not found');
+  }
+}
+
+/** Fetch raw image bytes from Graph for a drive item id (intranet images only). */
 export async function getDriveImageContent(
   itemId: string,
   token: string
 ): Promise<{ body: ArrayBuffer; contentType: string }> {
-  const url =
+  const itemUrl =
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
-    `/items/${encodeURIComponent(itemId)}/content`;
+    `/items/${encodeURIComponent(itemId)}`;
+  const metaResp = await fetch(`${itemUrl}?$select=name,parentReference`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!metaResp.ok) {
+    throw new Error(`Image lookup failed: ${metaResp.status}`);
+  }
+  const meta = (await metaResp.json()) as { name?: string; parentReference?: { path?: string } };
+  // parentReference.path looks like "/drives/{id}/root:/General/intranet/Default Images".
+  const parentPath = decodeURIComponent(meta.parentReference?.path?.split('root:')[1] ?? '');
+  if (!isAllowedImagePath(`${parentPath}/${meta.name ?? ''}`)) {
+    throw new ImageNotAllowedError();
+  }
+  const url = `${itemUrl}/content`;
 
   const resp = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
@@ -235,7 +249,8 @@ export async function getDriveImageContent(
     throw new Error(`Image content fetch failed: ${resp.status} ${await resp.text()}`);
   }
 
-  const contentType = resp.headers.get('content-type') || 'application/octet-stream';
+  const contentType = resp.headers.get('content-type') || '';
+  if (!isImageContentType(contentType)) throw new ImageNotAllowedError();
   const body = await resp.arrayBuffer();
   return { body, contentType };
 }

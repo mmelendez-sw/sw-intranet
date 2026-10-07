@@ -5,6 +5,9 @@ export type ParsedMultipart = {
   file?: { buffer: Buffer; filename: string; mimeType: string };
 };
 
+/** Lambda caps request payloads at 6 MB; keep uploads comfortably under that. */
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
 /**
  * Parse multipart/form-data from a Lambda Function URL / API Gateway event.
  */
@@ -29,12 +32,20 @@ export function parseMultipart(
     const fields: Record<string, string> = {};
     let file: ParsedMultipart['file'];
 
-    const busboy = Busboy({ headers: { 'content-type': contentType } });
+    const busboy = Busboy({
+      headers: { 'content-type': contentType },
+      limits: { fileSize: MAX_UPLOAD_BYTES, files: 3, fields: 20 },
+    });
 
     busboy.on('file', (fieldname, stream, info) => {
-      if (fieldname !== 'file' && file) return;
+      // Unread streams stall Busboy, so drain anything we don't keep.
+      if (fieldname !== 'file' || file) {
+        stream.resume();
+        return;
+      }
       const chunks: Buffer[] = [];
       stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('limit', () => reject(new Error('Upload too large (max 5 MB)')));
       stream.on('end', () => {
         file = {
           buffer: Buffer.concat(chunks),

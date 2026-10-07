@@ -28,6 +28,7 @@ import {
   getDriveImageContent,
   getDriveImageContentByWebUrl,
   clearDefaultImagesCache,
+  ImageNotAllowedError,
 } from './tvImages';
 import { getCurrentInvestments, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
@@ -239,13 +240,12 @@ export async function handler(event?: {
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'ICEMAN request failed';
         const clientError =
-          /missing|unsupported|no valid|no data rows|latitude\/longitude/i.test(msg);
+          /^(missing request|missing latitude|unsupported|no valid|file has no data|upload too large)/i.test(msg);
         console.error('[iceman]', err);
-        return {
-          statusCode: clientError ? 400 : 500,
-          headers: JSON_HEADERS,
-          body: JSON.stringify({ error: msg }),
-        };
+        return errorResult(
+          clientError ? 400 : 500,
+          clientError ? msg : 'ICEMAN request failed. Check the Lambda logs for details.'
+        );
       }
     }
 
@@ -361,13 +361,9 @@ export async function handler(event?: {
       body: JSON.stringify(cards),
     };
   } catch (err) {
+    if (err instanceof ImageNotAllowedError) return errorResult(404, 'Image not found');
+    // Details go to CloudWatch only; raw upstream errors can include tenant and token details.
     console.error('[intranet-api]', err);
-    return {
-      statusCode: 500,
-      headers: JSON_HEADERS,
-      body: JSON.stringify({
-        error: err instanceof Error ? err.message : 'API request failed',
-      }),
-    };
+    return errorResult(500, 'API request failed');
   }
 }

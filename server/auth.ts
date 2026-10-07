@@ -106,7 +106,10 @@ export async function verifyIdToken(token: string): Promise<AuthenticatedUser> {
 export async function authenticateRequest(
   authorizationHeader: string | undefined
 ): Promise<AuthenticatedUser | null> {
-  if (process.env.INTRANET_API_AUTH_DISABLED === '1') return null;
+  // Local dev only: never honour the bypass inside Lambda, even if the env var is set there.
+  if (process.env.INTRANET_API_AUTH_DISABLED === '1' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return null;
+  }
   const match = /^Bearer\s+(.+)$/i.exec(authorizationHeader || '');
   if (!match) throw new AuthError('Sign in to use this endpoint');
   return verifyIdToken(match[1].trim());
