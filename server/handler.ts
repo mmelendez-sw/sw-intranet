@@ -6,7 +6,6 @@
  *   GET /api/tv-cards/meta         — eTag / lastModified only
  *   GET /api/images/:id            — proxy SharePoint drive item bytes
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
- *   GET /api/salesforce/current-investments       — signed-in users (Entra ID token)
  *   GET /api/salesforce/term-sheet-rankings       — signed-in users (Entra ID token)
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file); ICEMAN allowlist
@@ -27,15 +26,14 @@ import { getHomepageCardsWithImages } from './enrichCards';
 import {
   getDriveImageContent,
   getDriveImageContentByWebUrl,
-  clearDefaultImagesCache,
   ImageNotAllowedError,
 } from './tvImages';
-import { getCurrentInvestments, getTermSheetRankings } from './salesforce';
+import { getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { parseMultipart } from './multipart';
 import { generateIcemanWorkbook } from './iceman';
 import { requireEnv } from './env';
-import { AuthError, authenticateRequest } from './auth';
+import { AuthError, AuthServiceError, authenticateRequest } from './auth';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json',
@@ -109,10 +107,6 @@ function isCardsPath(path: string): boolean {
   );
 }
 
-function isSalesforceInvestmentsPath(path: string): boolean {
-  return /\/api\/salesforce\/current-investments\/?$/i.test(path);
-}
-
 function isSalesforceTermSheetRankingsPath(path: string): boolean {
   return /\/api\/salesforce\/term-sheet-rankings\/?$/i.test(path);
 }
@@ -166,7 +160,6 @@ export async function handler(event?: {
     // ── Signed-in routes: Salesforce data and ICEMAN (Nearmap spend) ──
     const needsAuth =
       isIcemanGeneratePath(path) ||
-      isSalesforceInvestmentsPath(path) ||
       isSalesforceTermSheetRankingsPath(path);
     if (needsAuth) {
       try {
@@ -176,6 +169,7 @@ export async function handler(event?: {
         }
       } catch (err) {
         if (err instanceof AuthError) return errorResult(401, err.message);
+        if (err instanceof AuthServiceError) return errorResult(503, err.message);
         throw err;
       }
     }
@@ -250,15 +244,6 @@ export async function handler(event?: {
     }
 
     // ── Salesforce (no Graph credentials required) ──
-    if (isSalesforceInvestmentsPath(path)) {
-      const data = await getCurrentInvestments();
-      return {
-        statusCode: 200,
-        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
-        body: JSON.stringify(data),
-      };
-    }
-
     if (isSalesforceTermSheetRankingsPath(path)) {
       const data = await getTermSheetRankings();
       return {
@@ -278,11 +263,16 @@ export async function handler(event?: {
       };
     }
 
+    const imageItemId = matchImageProxy(path);
+    // Unknown paths 404 here, before the Graph env check (which 500s when TV isn't configured).
+    if (!isImageByUrlPath(path) && !imageItemId && !isCardsMetaPath(path) && !isCardsPath(path)) {
+      return errorResult(404, 'Not found');
+    }
+
     // ── TV / SharePoint routes below need Graph app credentials ──
     const tenantId = requireEnv('TENANT_ID');
     const clientId = requireEnv('CLIENT_ID');
     const clientSecret = requireEnv('CLIENT_SECRET');
-    const imageItemId = matchImageProxy(path);
 
     if (isImageByUrlPath(path)) {
       const webUrl = (query.url || '').trim();
@@ -342,15 +332,6 @@ export async function handler(event?: {
       };
     }
 
-    if (!isCardsPath(path)) {
-      return {
-        statusCode: 404,
-        headers: JSON_HEADERS,
-        body: JSON.stringify({ error: 'Not found' }),
-      };
-    }
-
-    clearDefaultImagesCache();
     const cards = await getHomepageCardsWithImages(tenantId, clientId, clientSecret);
     return {
       statusCode: 200,

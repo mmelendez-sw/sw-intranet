@@ -1,12 +1,7 @@
 import { requireEnv } from './env';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 const API_VERSION = '60.0';
-
-const CURRENT_INVESTMENTS_QUERY = `
-SELECT Id, All_In_Purchase_Price__c, Annual_Rent__c, Source_Type__c
-FROM Opportunity
-WHERE Current_Investment_Date__c > 2025-12-31
-`;
 
 function escapeXml(value: string): string {
   return String(value)
@@ -49,7 +44,7 @@ async function loginToSalesforce(): Promise<{ sessionId: string; instanceUrl: st
   </env:Body>
 </env:Envelope>`;
 
-  const response = await fetch(loginUrl, {
+  const response = await fetchWithTimeout(loginUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/xml; charset=UTF-8',
@@ -76,31 +71,61 @@ async function loginToSalesforce(): Promise<{ sessionId: string; instanceUrl: st
   };
 }
 
-async function runSalesforceQuery(soql: string): Promise<unknown> {
-  const { sessionId, instanceUrl } = await loginToSalesforce();
-  const queryUrl = `${instanceUrl}/services/data/v${API_VERSION}/query?q=${encodeURIComponent(soql.trim())}`;
+type SalesforceSession = { sessionId: string; instanceUrl: string };
 
-  const response = await fetch(queryUrl, {
+/** SOAP sessions last hours; reuse one across warm invocations instead of logging in per query. */
+let sessionCache: SalesforceSession | null = null;
+let loginInFlight: Promise<SalesforceSession> | null = null;
+
+function getSalesforceSession(): Promise<SalesforceSession> {
+  if (sessionCache) return Promise.resolve(sessionCache);
+  if (!loginInFlight) {
+    loginInFlight = loginToSalesforce()
+      .then((session) => {
+        sessionCache = session;
+        return session;
+      })
+      .finally(() => {
+        loginInFlight = null;
+      });
+  }
+  return loginInFlight;
+}
+
+class SalesforceSessionExpiredError extends Error {}
+
+async function querySalesforce(session: SalesforceSession, soql: string): Promise<unknown> {
+  const queryUrl = `${session.instanceUrl}/services/data/v${API_VERSION}/query?q=${encodeURIComponent(soql.trim())}`;
+
+  const response = await fetchWithTimeout(queryUrl, {
     headers: {
-      Authorization: `Bearer ${sessionId}`,
+      Authorization: `Bearer ${session.sessionId}`,
       Accept: 'application/json',
     },
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => null);
   if (!response.ok) {
-    const message =
-      Array.isArray(data) && data[0]?.message
-        ? data[0].message
-        : `Salesforce query failed (${response.status})`;
-    throw new Error(message);
+    const first = Array.isArray(data) ? data[0] : null;
+    if (response.status === 401 || first?.errorCode === 'INVALID_SESSION_ID') {
+      throw new SalesforceSessionExpiredError('Salesforce session expired');
+    }
+    throw new Error(first?.message || `Salesforce query failed (${response.status})`);
   }
 
   return data;
 }
 
-export async function getCurrentInvestments(): Promise<unknown> {
-  return runSalesforceQuery(CURRENT_INVESTMENTS_QUERY);
+async function runSalesforceQuery(soql: string): Promise<unknown> {
+  const session = await getSalesforceSession();
+  try {
+    return await querySalesforce(session, soql);
+  } catch (err) {
+    if (!(err instanceof SalesforceSessionExpiredError)) throw err;
+    // Session expired or was revoked: log in again once and retry.
+    if (sessionCache === session) sessionCache = null;
+    return querySalesforce(await getSalesforceSession(), soql);
+  }
 }
 
 /**
@@ -129,10 +154,39 @@ type TermSheetAggregateResult = {
   }>;
 };
 
-/** Counts change only when a term sheet is signed; avoid a Salesforce login per page view. */
+/** Counts change only when a term sheet is signed; avoid a Salesforce query per page view. */
 const TERM_SHEET_CACHE_MS = 5 * 60_000;
 let termSheetCache: { at: number; value: { monthLabel: string; counts: TermSheetCountRow[] } } | null =
   null;
+
+/** SOQL THIS_MONTH follows the org's timezone, so the month label must too. */
+const DEFAULT_ORG_TIME_ZONE = 'America/New_York';
+let orgTimeZone: string | null = null;
+
+function isSupportedTimeZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getOrgTimeZone(): Promise<string> {
+  if (orgTimeZone) return orgTimeZone;
+  try {
+    const data = (await runSalesforceQuery('SELECT TimeZoneSidKey FROM Organization')) as {
+      records?: Array<{ TimeZoneSidKey?: string | null }>;
+    };
+    const tz = data.records?.[0]?.TimeZoneSidKey || '';
+    orgTimeZone = tz && isSupportedTimeZone(tz) ? tz : DEFAULT_ORG_TIME_ZONE;
+    return orgTimeZone;
+  } catch (err) {
+    // Transient failure: use the default for now and look it up again next time.
+    console.warn('[salesforce] org timezone lookup failed', err);
+    return DEFAULT_ORG_TIME_ZONE;
+  }
+}
 
 /**
  * Monthly Term Sheet Leaderboard: THIS_MONTH proprietary term sheets per Acquisition
@@ -142,7 +196,14 @@ export async function getTermSheetRankings(): Promise<{
   monthLabel: string;
   counts: TermSheetCountRow[];
 }> {
-  if (termSheetCache && Date.now() - termSheetCache.at < TERM_SHEET_CACHE_MS) {
+  const timeZone = await getOrgTimeZone();
+  const monthLabel = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone });
+  // Same month only: a cached count must not straddle a month rollover.
+  if (
+    termSheetCache &&
+    termSheetCache.value.monthLabel === monthLabel &&
+    Date.now() - termSheetCache.at < TERM_SHEET_CACHE_MS
+  ) {
     return termSheetCache.value;
   }
 
@@ -156,7 +217,6 @@ export async function getTermSheetRankings(): Promise<{
   }
   counts.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-  const monthLabel = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' });
   const value = { monthLabel, counts };
   termSheetCache = { at: Date.now(), value };
   return value;

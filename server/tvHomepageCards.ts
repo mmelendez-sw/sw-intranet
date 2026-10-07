@@ -3,6 +3,8 @@
  * Used by server/handler.ts — secrets stay in env vars, never in the browser bundle.
  */
 
+import { fetchWithTimeout } from './fetchWithTimeout';
+
 export interface TokenResponse {
   access_token: string;
   expires_in: number;
@@ -33,12 +35,17 @@ export function parseHomepageCardsContent(raw: unknown): HomepageCard[] {
   return [];
 }
 
-export async function getGraphToken(
+/** Refresh the app token this long before Entra says it expires. */
+const TOKEN_EXPIRY_MARGIN_MS = 5 * 60_000;
+let graphTokenCache: { key: string; token: string; expiresAt: number } | null = null;
+let graphTokenInFlight: { key: string; promise: Promise<string> } | null = null;
+
+async function requestGraphToken(
   tenantId: string,
   clientId: string,
   clientSecret: string
-): Promise<string> {
-  const resp = await fetch(
+): Promise<{ token: string; expiresAt: number }> {
+  const resp = await fetchWithTimeout(
     `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
     {
       method: 'POST',
@@ -56,15 +63,42 @@ export async function getGraphToken(
     throw new Error(`Token request failed: ${resp.status} ${await resp.text()}`);
   }
 
-  const data = (await resp.json()) as TokenResponse;
-  return data.access_token;
+  const data = (await resp.json()) as Partial<TokenResponse>;
+  if (!data.access_token) throw new Error('Token response missing access_token');
+  const expiresInMs = (Number(data.expires_in) || 0) * 1000;
+  return { token: data.access_token, expiresAt: Date.now() + expiresInMs - TOKEN_EXPIRY_MARGIN_MS };
+}
+
+/** Client-credentials Graph token, reused across warm invocations until shortly before expiry. */
+export async function getGraphToken(
+  tenantId: string,
+  clientId: string,
+  clientSecret: string
+): Promise<string> {
+  const key = `${tenantId}|${clientId}`;
+  if (graphTokenCache?.key === key && Date.now() < graphTokenCache.expiresAt) {
+    return graphTokenCache.token;
+  }
+  // Concurrent requests on a cold container share one token request.
+  if (graphTokenInFlight?.key === key) return graphTokenInFlight.promise;
+
+  const promise = requestGraphToken(tenantId, clientId, clientSecret)
+    .then(({ token, expiresAt }) => {
+      graphTokenCache = { key, token, expiresAt };
+      return token;
+    })
+    .finally(() => {
+      if (graphTokenInFlight?.promise === promise) graphTokenInFlight = null;
+    });
+  graphTokenInFlight = { key, promise };
+  return promise;
 }
 
 /** Raw JSON from homepage-cards.json (array or { cards: [...] } wrapper). */
 export async function getHomepageCardsRaw(token: string): Promise<unknown> {
   const url = `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}/items/${TV_HOMEPAGE_CARDS_ITEM_ID}/content`;
 
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -89,7 +123,7 @@ export async function getHomepageCardsMeta(token: string): Promise<HomepageCards
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
     `/items/${TV_HOMEPAGE_CARDS_ITEM_ID}?$select=eTag,cTag,lastModifiedDateTime`;
 
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
