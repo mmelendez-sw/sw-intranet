@@ -63,7 +63,7 @@ const App: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo>(() => buildUserInfoFromAccount(instance));
   const refreshInFlight = useRef<Promise<void> | null>(null);
 
-  const refreshGroupMembership = async (forceNetwork = false) => {
+  const refreshGroupMembership = async () => {
     if (BYPASS_AUTH) {
       setUserInfo(DEV_USER_INFO);
       return;
@@ -96,25 +96,8 @@ const App: React.FC = () => {
       name: account.name,
     });
 
-    const eliteFresh = eliteCache.fresh && !forceNetwork;
-    const editorFresh = editorCache.fresh && !forceNetwork;
-    if (eliteFresh && editorFresh) {
-      // Still recover editors stuck on a false cache from older transient failures.
-      if (editorCache.value === false && !resolveIsEditor(false, email)) {
-        try {
-          const isMember = await isEditorGroupMember(instance);
-          const verified = resolveIsEditor(isMember, email);
-          if (verified) {
-            writeCachedEditorStatus(email, true);
-            setUserInfo((prev) => (prev.isEditor ? prev : { ...prev, isEditor: true }));
-          }
-        } catch {
-          // keep optimistic state
-        }
-      }
-      return;
-    }
-
+    // Always revalidate: the cache is only for first paint, so users newly added to the
+    // Elite/Editor groups pick up access on their next page load instead of after 24h.
     const retryDelays = [0, 400, 1000, 2000, 4000];
     let lastError: unknown = null;
 
@@ -158,7 +141,7 @@ const App: React.FC = () => {
       await refreshInFlight.current;
       return;
     }
-    const run = refreshGroupMembership(forceNetwork).finally(() => {
+    const run = refreshGroupMembership().finally(() => {
       refreshInFlight.current = null;
     });
     refreshInFlight.current = run;

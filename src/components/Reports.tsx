@@ -143,7 +143,8 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
 
       try {
         const [remote, remoteConfig] = await Promise.all([
-          getContent<unknown>(instance, REPORTS_CONTENT_KEY),
+          // First paint already used the local copy; wait for SharePoint so new reports show this visit.
+          getContent<unknown>(instance, REPORTS_CONTENT_KEY, { remoteOnly: true }),
           getContent<SiteConfig>(instance, 'site-config'),
         ]);
         if (!cancelled) {
