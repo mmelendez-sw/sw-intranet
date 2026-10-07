@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
-import AlertBanner from './components/AlertBanner';
-import Ticker from './components/Ticker';
+// AlertBanner / Ticker are disabled below — restore their imports when re-enabling the JSX.
 import HomePage from './components/HomePage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
@@ -14,12 +13,10 @@ import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 // import TvDisplay from './components/TvDisplay';
 import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
-import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 import {
-  clearCachedGroupStatus,
   readCachedEditorStatus,
   readCachedEliteStatus,
   writeCachedEditorStatus,
@@ -208,25 +205,6 @@ const App: React.FC = () => {
       retryTimer.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-
-    (window as any).debugGroups = () => getGroupIds(instance);
-    (window as any).debugUserState = () => {
-      console.log('Current user state:', userInfo);
-    };
-    (window as any).refreshEliteStatus = async () => {
-      if (userInfo.email) clearCachedGroupStatus(userInfo.email);
-      await checkAuthentication(true);
-    };
-    (window as any).clearEliteCache = () => {
-      if (userInfo.email) clearCachedGroupStatus(userInfo.email);
-    };
-    (window as any).forceEliteCheck = async () => {
-      await checkAuthentication(true);
-    };
-  }, [userInfo, instance]);
 
   return (
     <Router>

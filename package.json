@@ -2,7 +2,7 @@
     "name": "intranet-site",
     "version": "1.0.0",
     "description": "A company intranet site built with React and TypeScript.",
-    "main": "dist/bundle.js",
+    "private": true,
     "scripts": {
         "start": "webpack serve --open --mode development",
         "build": "webpack --mode production",
