@@ -21,11 +21,15 @@ import { EditMenuProvider } from './context/EditMenuContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 import {
+  clearCachedGroupStatus,
   readCachedEditorStatus,
   readCachedEliteStatus,
   writeCachedEditorStatus,
   writeCachedEliteStatus,
 } from './utils/groupStatusCache';
+
+/** Re-check group membership this long after every retry in a refresh failed. */
+const GROUP_RETRY_AFTER_FAILURE_MS = 60_000;
 
 function buildUserInfoFromAccount(instance: ReturnType<typeof useMsal>['instance']): UserInfo {
   if (BYPASS_AUTH) return DEV_USER_INFO;
@@ -62,8 +66,15 @@ const App: React.FC = () => {
   const hasSignedInAccount = instance.getAllAccounts().length > 0;
   const [userInfo, setUserInfo] = useState<UserInfo>(() => buildUserInfoFromAccount(instance));
   const refreshInFlight = useRef<Promise<void> | null>(null);
+  /** Pending re-check after every retry failed; cleared on unmount / next refresh. */
+  const retryTimer = useRef<number | null>(null);
+  const unmounted = useRef(false);
 
   const refreshGroupMembership = async () => {
+    if (retryTimer.current !== null) {
+      window.clearTimeout(retryTimer.current);
+      retryTimer.current = null;
+    }
     if (BYPASS_AUTH) {
       setUserInfo(DEV_USER_INFO);
       return;
@@ -132,8 +143,15 @@ const App: React.FC = () => {
       }
     }
 
-    // Indeterminate failure: keep stale elite/editor paint; never cache false.
+    // Indeterminate failure: keep stale elite/editor paint; never cache false. Try again in
+    // a minute so a transient Graph outage doesn't pin stale access for the whole visit.
     console.warn('[App] keeping cached group status after failed refresh:', lastError);
+    if (!unmounted.current) {
+      retryTimer.current = window.setTimeout(() => {
+        retryTimer.current = null;
+        void checkAuthentication();
+      }, GROUP_RETRY_AFTER_FAILURE_MS);
+    }
   };
 
   const checkAuthentication = async (forceNetwork = false) => {
@@ -185,6 +203,15 @@ const App: React.FC = () => {
   }, [instance]);
 
   useEffect(() => {
+    unmounted.current = false;
+    return () => {
+      unmounted.current = true;
+      if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
+      retryTimer.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!userInfo.isAuthenticated) return;
 
     (window as any).debugGroups = () => getGroupIds(instance);
@@ -192,17 +219,11 @@ const App: React.FC = () => {
       console.log('Current user state:', userInfo);
     };
     (window as any).refreshEliteStatus = async () => {
-      if (userInfo.email) {
-        localStorage.removeItem(`elite_status_${userInfo.email}`);
-        localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
-      }
+      if (userInfo.email) clearCachedGroupStatus(userInfo.email);
       await checkAuthentication(true);
     };
     (window as any).clearEliteCache = () => {
-      if (userInfo.email) {
-        localStorage.removeItem(`elite_status_${userInfo.email}`);
-        localStorage.removeItem(`elite_status_timestamp_${userInfo.email}`);
-      }
+      if (userInfo.email) clearCachedGroupStatus(userInfo.email);
     };
     (window as any).forceEliteCheck = async () => {
       await checkAuthentication(true);

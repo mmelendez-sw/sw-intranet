@@ -2,10 +2,29 @@
  * Cached Entra group membership for fast first paint (stale-while-revalidate).
  */
 
+// Keys use the lowercased email so "Jane@x.com" and "jane@x.com" share one entry.
+// Reads fall back to the pre-normalization mixed-case key once (see readFlag).
 const ELITE_KEY = (email: string) => `elite_status_${email}`;
 const ELITE_TS_KEY = (email: string) => `elite_status_timestamp_${email}`;
 const EDITOR_KEY = (email: string) => `editor_status_${email}`;
 const EDITOR_TS_KEY = (email: string) => `editor_status_timestamp_${email}`;
+
+const normalizeEmail = (email: string): string => (email || '').trim().toLowerCase();
+
+/** Remove both the normalized and legacy mixed-case entries (debug helpers / sign-out). */
+export function clearCachedGroupStatus(email: string): void {
+  const keys = new Set([email, normalizeEmail(email)]);
+  try {
+    keys.forEach((k) => {
+      localStorage.removeItem(ELITE_KEY(k));
+      localStorage.removeItem(ELITE_TS_KEY(k));
+      localStorage.removeItem(EDITOR_KEY(k));
+      localStorage.removeItem(EDITOR_TS_KEY(k));
+    });
+  } catch {
+    // ignore
+  }
+}
 
 /** Fresh cache window — still used for "should we skip network?" decisions. */
 export const GROUP_STATUS_TTL_MS = 24 * 60 * 60 * 1000;
@@ -18,7 +37,17 @@ export type CachedFlag = {
   present: boolean;
 };
 
-function readFlag(valueKey: string, tsKey: string): CachedFlag {
+function readFlag(
+  keyFn: (email: string) => string,
+  tsKeyFn: (email: string) => string,
+  email: string
+): CachedFlag {
+  const normalized = readFlagAt(keyFn(normalizeEmail(email)), tsKeyFn(normalizeEmail(email)));
+  if (normalized.present || normalizeEmail(email) === email) return normalized;
+  return readFlagAt(keyFn(email), tsKeyFn(email));
+}
+
+function readFlagAt(valueKey: string, tsKey: string): CachedFlag {
   try {
     const raw = localStorage.getItem(valueKey);
     if (raw !== 'true' && raw !== 'false') {
@@ -33,17 +62,18 @@ function readFlag(valueKey: string, tsKey: string): CachedFlag {
 }
 
 export function readCachedEliteStatus(email: string): CachedFlag {
-  return readFlag(ELITE_KEY(email), ELITE_TS_KEY(email));
+  return readFlag(ELITE_KEY, ELITE_TS_KEY, email);
 }
 
 export function readCachedEditorStatus(email: string): CachedFlag {
-  return readFlag(EDITOR_KEY(email), EDITOR_TS_KEY(email));
+  return readFlag(EDITOR_KEY, EDITOR_TS_KEY, email);
 }
 
 export function writeCachedEliteStatus(email: string, isElite: boolean): void {
   try {
-    localStorage.setItem(ELITE_KEY(email), String(isElite));
-    localStorage.setItem(ELITE_TS_KEY(email), String(Date.now()));
+    const key = normalizeEmail(email);
+    localStorage.setItem(ELITE_KEY(key), String(isElite));
+    localStorage.setItem(ELITE_TS_KEY(key), String(Date.now()));
   } catch {
     // ignore quota / private mode
   }
@@ -51,8 +81,9 @@ export function writeCachedEliteStatus(email: string, isElite: boolean): void {
 
 export function writeCachedEditorStatus(email: string, isEditor: boolean): void {
   try {
-    localStorage.setItem(EDITOR_KEY(email), String(isEditor));
-    localStorage.setItem(EDITOR_TS_KEY(email), String(Date.now()));
+    const key = normalizeEmail(email);
+    localStorage.setItem(EDITOR_KEY(key), String(isEditor));
+    localStorage.setItem(EDITOR_TS_KEY(key), String(Date.now()));
   } catch {
     // ignore
   }

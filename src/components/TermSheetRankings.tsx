@@ -160,7 +160,10 @@ function currentMonthLabel(date = new Date()): string {
 
 /** Re-check Salesforce this often while the page is open (matches the Lambda's cache). */
 const REFRESH_MS = 5 * 60_000;
-const CACHE_KEY = 'term-sheet-leaderboard:v1';
+/** Pre-v2 key shared by every account on the browser; removed on the next write. */
+const LEGACY_CACHE_KEY = 'term-sheet-leaderboard:v1';
+/** Per-account cache so a shared device never shows the previous user's board. */
+const cacheKey = (email: string): string => `term-sheet-leaderboard:v2:${email.toLowerCase()}`;
 
 type CachedCounts = { month: string; counts: TermSheetCountRow[]; savedAt: number };
 
@@ -168,19 +171,22 @@ const monthKey = (date = new Date()): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
 /** Last live counts saved in this browser — only for the current month (the board resets monthly). */
-function readCachedCounts(): CachedCounts | null {
+function readCachedCounts(email: string): CachedCounts | null {
+  if (!email) return null;
   try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null') as CachedCounts | null;
+    const cached = JSON.parse(localStorage.getItem(cacheKey(email)) || 'null') as CachedCounts | null;
     return cached && cached.month === monthKey() && Array.isArray(cached.counts) ? cached : null;
   } catch {
     return null;
   }
 }
 
-function writeCachedCounts(counts: TermSheetCountRow[]): number {
+function writeCachedCounts(email: string, counts: TermSheetCountRow[]): number {
   const savedAt = Date.now();
+  if (!email) return savedAt;
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ month: monthKey(), counts, savedAt }));
+    localStorage.removeItem(LEGACY_CACHE_KEY);
+    localStorage.setItem(cacheKey(email), JSON.stringify({ month: monthKey(), counts, savedAt }));
   } catch {
     /* storage unavailable (private window, blocked site data) — live counts still render */
   }
@@ -201,13 +207,16 @@ interface TermSheetRankingsProps {
 const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers }) => {
   // Show this browser's last saved live counts immediately, then refresh in the background.
   // null = no live counts yet (none saved and the fetch failed) → roster shown at 0 with a note.
-  const [cached] = useState(readCachedCounts);
+  const { instance, accounts, inProgress } = useMsal();
+  const accountId = accounts[0]?.homeAccountId;
+  const cacheEmail = (accounts[0]?.username || '').toLowerCase();
+  const [cached] = useState(() => readCachedCounts(cacheEmail));
   const [liveCounts, setLiveCounts] = useState<TermSheetCountRow[] | null>(cached?.counts ?? null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(cached?.savedAt ?? null);
   // Spinner only when nothing is saved yet, so placeholder zeros don't flash before live data.
   const [loading, setLoading] = useState(!cached);
-  const { instance, accounts, inProgress } = useMsal();
-  const accountId = accounts[0]?.homeAccountId;
+  // Recomputed on every refresh tick so an open tab rolls over at month end.
+  const [monthLabel, setMonthLabel] = useState(currentMonthLabel);
   // Fetch only once MSAL has a signed-in account; an earlier call would go out without a token.
   const signedIn = BYPASS_AUTH || (inProgress === InteractionStatus.None && !!accountId);
 
@@ -215,6 +224,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
     if (!signedIn) return;
     let cancelled = false;
     const refresh = async () => {
+      setMonthLabel(currentMonthLabel());
       try {
         const res = await intranetApiFetch(instance, SALESFORCE_TERM_SHEET_RANKINGS_URL, {
           cache: 'no-store',
@@ -224,7 +234,7 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         if (!Array.isArray(data.counts)) throw new Error('term-sheet-rankings: missing counts');
         if (cancelled) return;
         const counts = data.counts as TermSheetCountRow[];
-        setUpdatedAt(writeCachedCounts(counts));
+        setUpdatedAt(writeCachedCounts(cacheEmail, counts));
         // Only re-render the board when a count actually changed.
         setLiveCounts((current) => (countsEqual(current, counts) ? current : counts));
       } catch (err) {
@@ -239,13 +249,12 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [instance, signedIn, accountId]);
+  }, [instance, signedIn, accountId, cacheEmail]);
 
   const groups = useMemo(() => {
     if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);
     return buildTierGroups(mergeLiveCounts(directoryUsers, liveCounts ?? []));
   }, [directoryUsers, liveCounts]);
-  const monthLabel = useMemo(() => currentMonthLabel(), []);
 
   return (
     <section className="term-sheet-rankings" aria-label="Monthly Term Sheet Leaderboard">

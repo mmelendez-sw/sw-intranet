@@ -10,6 +10,7 @@ import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import { useTheme } from '../context/ThemeContext';
 import { DEPARTMENTS } from '../config/departments';
+import { clearUserSessionState } from '../utils/signOutCleanup';
 
 interface HeaderProps {
   userInfo: UserInfo;
@@ -189,11 +190,18 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       await instance.logoutPopup();
     } catch (e: any) {
       if (e.errorCode === 'popup_window_error' || e.errorCode === 'empty_window_error') {
+        // Redirect logout navigates away (full reload), so clear user state first.
+        clearUserSessionState(userInfo.email);
         instance.logoutRedirect().catch(console.error);
       } else {
         console.error(e);
       }
+      return;
     }
+    // Full reload so module-level caches, edit mode, and per-user widgets don't carry over
+    // to whoever signs in next on this tab.
+    clearUserSessionState(userInfo.email);
+    window.location.assign('/');
   };
 
   const toggleDropdown = () => {
