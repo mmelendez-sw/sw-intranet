@@ -12,10 +12,13 @@
 import ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
 import Jimp from 'jimp';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 const NEARMAP_TILES_BASE = 'https://api.nearmap.com/tiles/v3';
 const NEARMAP_COVERAGE_BASE = 'https://api.nearmap.com/coverage/v2';
+/** Pause between rows (not between a row's tiles) to stay polite to Nearmap. */
 const REQUEST_DELAY_MS = 200;
+const NEARMAP_TIMEOUT_MS = 15_000;
 const THUMB_WIDTH = 160;
 const THUMB_HEIGHT = 120;
 const DEFAULT_MAX_ROWS = 500;
@@ -158,7 +161,7 @@ async function getLatestSurveyIds(
   const url = `${NEARMAP_COVERAGE_BASE}/point/${encodeURIComponent(coord)}?apikey=${encodeURIComponent(apiKey)}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, {}, NEARMAP_TIMEOUT_MS);
     if (!res.ok) {
       return { surveyIds: {}, note: `Coverage ${res.status}` };
     }
@@ -210,7 +213,7 @@ async function fetchTile(
   const url = `${NEARMAP_TILES_BASE}/${path}?apikey=${encodeURIComponent(apiKey)}`;
 
   try {
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, {}, NEARMAP_TIMEOUT_MS);
     if (!res.ok) {
       return { buffer: null, note: `${label} ${res.status}` };
     }
@@ -377,6 +380,7 @@ export async function generateIcemanWorkbook(
   const surveyCache = new Map<string, SurveyIdsByType>();
 
   for (let i = 0; i < rows.length; i++) {
+    if (i > 0) await sleep(REQUEST_DELAY_MS);
     const row = rows[i];
     const excelRowNum = i + 2;
     const statusNotes: string[] = [];
@@ -398,22 +402,26 @@ export async function generateIcemanWorkbook(
       surveyIds = coverage.surveyIds;
       surveyCache.set(cacheKey, surveyIds);
       if (coverage.note) statusNotes.push(coverage.note);
-      await sleep(REQUEST_DELAY_MS);
     }
 
-    for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
-      const shot = shots[imgIdx];
-      const result = await fetchTile(
-        row.lat,
-        row.lng,
-        shot.meters,
-        shot.label,
-        shot.contentType,
-        apiKey,
-        surveyIds[shot.contentType]
-      );
-      await sleep(REQUEST_DELAY_MS);
+    // A row's three tiles download in parallel; results are placed in shot order.
+    const rowSurveyIds = surveyIds;
+    const results = await Promise.all(
+      shots.map((shot) =>
+        fetchTile(
+          row.lat,
+          row.lng,
+          shot.meters,
+          shot.label,
+          shot.contentType,
+          apiKey,
+          rowSurveyIds[shot.contentType]
+        )
+      )
+    );
 
+    for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
+      const result = results[imgIdx];
       if (result.note) statusNotes.push(result.note);
       if (!result.buffer) continue;
 

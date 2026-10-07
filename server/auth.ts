@@ -11,13 +11,22 @@
  */
 
 import { createPublicKey, createVerify, KeyObject } from 'crypto';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 const DEFAULT_TENANT_ID = '63fbe43e-8963-4cb6-8f87-2ecc3cd029b4';
 const DEFAULT_CLIENT_ID = '543ae09d-95e7-47bb-b679-e4428c20918e';
 const CLOCK_SKEW_S = 5 * 60;
 const JWKS_CACHE_MS = 60 * 60_000;
+const JWKS_REFETCH_MIN_INTERVAL_MS = 5 * 60_000;
 
 export class AuthError extends Error {}
+
+/** Signing keys couldn't be loaded (Entra unreachable), so no token can be verified right now. */
+export class AuthServiceError extends Error {
+  constructor() {
+    super('Sign-in verification is temporarily unavailable');
+  }
+}
 
 export type AuthenticatedUser = {
   email: string;
@@ -42,21 +51,45 @@ const tenantId = () => process.env.INTRANET_TENANT_ID || DEFAULT_TENANT_ID;
 const clientId = () => process.env.INTRANET_CLIENT_ID || DEFAULT_CLIENT_ID;
 
 let jwksCache: { at: number; keys: Map<string, KeyObject> } | null = null;
+let jwksInFlight: Promise<void> | null = null;
+let lastJwksFetchAt = 0;
+
+async function fetchJwks(): Promise<void> {
+  const res = await fetchWithTimeout(`https://login.microsoftonline.com/${tenantId()}/discovery/v2.0/keys`);
+  if (!res.ok) throw new Error(`Entra JWKS fetch failed (${res.status})`);
+  const body = (await res.json()) as { keys?: Jwk[] };
+  const keys = new Map<string, KeyObject>();
+  for (const jwk of body.keys || []) {
+    if (jwk.kid && jwk.kty === 'RSA') keys.set(jwk.kid, createPublicKey({ key: jwk, format: 'jwk' }));
+  }
+  jwksCache = { at: Date.now(), keys };
+}
+
+/** One shared JWKS fetch at a time; a failure keeps whatever keys are already cached. */
+function refreshJwks(): Promise<void> {
+  if (!jwksInFlight) {
+    lastJwksFetchAt = Date.now();
+    jwksInFlight = fetchJwks()
+      .catch((err) => {
+        console.error('[auth] JWKS fetch failed', err);
+      })
+      .finally(() => {
+        jwksInFlight = null;
+      });
+  }
+  return jwksInFlight;
+}
 
 async function getSigningKey(kid: string): Promise<KeyObject> {
-  const fresh = jwksCache && Date.now() - jwksCache.at < JWKS_CACHE_MS;
-  // Refetch on an unknown kid too: Entra rotates keys.
-  if (!fresh || !jwksCache!.keys.has(kid)) {
-    const res = await fetch(`https://login.microsoftonline.com/${tenantId()}/discovery/v2.0/keys`);
-    if (!res.ok) throw new Error(`Entra JWKS fetch failed (${res.status})`);
-    const body = (await res.json()) as { keys?: Jwk[] };
-    const keys = new Map<string, KeyObject>();
-    for (const jwk of body.keys || []) {
-      if (jwk.kid && jwk.kty === 'RSA') keys.set(jwk.kid, createPublicKey({ key: jwk, format: 'jwk' }));
-    }
-    jwksCache = { at: Date.now(), keys };
-  }
-  const key = jwksCache!.keys.get(kid);
+  // Refetch when the cache is old or the kid is unknown (Entra rotates keys), but at most every
+  // few minutes so tokens with made-up kids or an Entra outage can't make every request hit Entra.
+  const stale = !!jwksCache && Date.now() - jwksCache.at >= JWKS_CACHE_MS;
+  const unknownKid = !!jwksCache && !jwksCache.keys.has(kid);
+  const mayRefetch = Date.now() - lastJwksFetchAt >= JWKS_REFETCH_MIN_INTERVAL_MS;
+  if (!jwksCache || ((stale || unknownKid) && mayRefetch)) await refreshJwks();
+
+  if (!jwksCache) throw new AuthServiceError();
+  const key = jwksCache.keys.get(kid);
   if (!key) throw new AuthError('Unknown token signing key');
   return key;
 }

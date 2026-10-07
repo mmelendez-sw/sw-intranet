@@ -1,8 +1,9 @@
-# Compiles server/*.ts and deploys server/dist to an existing Lambda function.
+# Bundles server/handler.ts (plus its npm deps) into one handler.js and deploys it to an existing Lambda.
 #
 # Prerequisites:
 #   - AWS CLI configured (`aws configure`)
-#   - Lambda already created (Node.js 20+, handler = handler.handler)
+#   - Lambda already created (Node.js 22, handler = handler.handler)
+#   - npm install run at the repo root (esbuild and the server deps come from node_modules)
 #
 # Usage:
 #   npm run deploy:lambda
@@ -18,56 +19,36 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$serverDir = Join-Path $repoRoot 'server'
-$distDir = Join-Path $serverDir 'dist'
+$stageDir = Join-Path $env:TEMP ("sw-intranet-lambda-" + [guid]::NewGuid().ToString('n'))
+New-Item -ItemType Directory -Path $stageDir | Out-Null
 
-Write-Host "Compiling server TypeScript..."
 Push-Location $repoRoot
 try {
-  npm run build:tv-api
-  if ($LASTEXITCODE -ne 0) { throw "npm run build:tv-api failed (exit $LASTEXITCODE)" }
+  # esbuild strips types without checking them, so type-check first.
+  Write-Host "Type-checking server TypeScript..."
+  npx tsc --noEmit -p server
+  if ($LASTEXITCODE -ne 0) { throw "tsc type-check failed (exit $LASTEXITCODE)" }
+
+  # One minified CommonJS file: no staging npm install, and nothing stale from server/dist ships.
+  Write-Host "Bundling server/handler.ts..."
+  npx esbuild server/handler.ts --bundle --platform=node --target=node22 --format=cjs --minify --legal-comments=none "--outfile=$stageDir\handler.js"
+  if ($LASTEXITCODE -ne 0) { throw "esbuild bundle failed (exit $LASTEXITCODE)" }
 } finally {
   Pop-Location
 }
 
-if (-not (Test-Path (Join-Path $distDir 'handler.js'))) {
-  throw "Expected $distDir\handler.js after build - compile failed?"
+if (-not (Test-Path (Join-Path $stageDir 'handler.js'))) {
+  throw "Expected $stageDir\handler.js after bundling - esbuild failed?"
 }
 
 $zipPath = Join-Path $env:TEMP 'sw-intranet-api.zip'
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
-$stageDir = Join-Path $env:TEMP ("sw-intranet-lambda-" + [guid]::NewGuid().ToString('n'))
-New-Item -ItemType Directory -Path $stageDir | Out-Null
-Copy-Item -Path (Join-Path $distDir '*') -Destination $stageDir -Recurse
-
-$lambdaPackageJson = @'
-{
-  "name": "sw-intranet-api",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "busboy": "^1.6.0",
-    "exceljs": "^4.4.0",
-    "jimp": "^0.22.12",
-    "xlsx": "^0.18.5"
-  }
-}
-'@
-Set-Content -Path (Join-Path $stageDir 'package.json') -Value $lambdaPackageJson -Encoding UTF8
-
-Write-Host "Installing Lambda production dependencies in staging folder..."
-Push-Location $stageDir
-try {
-  npm install --omit=dev --no-package-lock
-  if ($LASTEXITCODE -ne 0) { throw "npm install in Lambda stage failed (exit $LASTEXITCODE)" }
-} finally {
-  Pop-Location
-}
-
 Write-Host "Zipping $stageDir -> $zipPath"
-Compress-Archive -Path (Join-Path $stageDir '*') -DestinationPath $zipPath -Force
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[IO.Compression.ZipFile]::CreateFromDirectory($stageDir, $zipPath, [IO.Compression.CompressionLevel]::Optimal, $false)
 Remove-Item $stageDir -Recurse -Force
+Write-Host ("Package size: {0:N1} MB" -f ((Get-Item $zipPath).Length / 1MB))
 
 $awsArgs = @(
   'lambda', 'update-function-code',

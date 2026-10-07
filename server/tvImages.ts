@@ -6,6 +6,7 @@
  */
 
 import { TV_SHAREPOINT_DRIVE_ID } from './tvHomepageCards';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 const DEFAULT_IMAGES_FOLDER_PATH = 'General/intranet/Default Images';
 const IMAGE_FILE_RE = /\.(jpe?g|png|gif|webp|bmp)$/i;
@@ -48,7 +49,7 @@ export async function getDefaultImagesFolderId(token: string): Promise<string> {
 
   const path = encodeDrivePath(DEFAULT_IMAGES_FOLDER_PATH);
   const url = `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}/root:/${path}?$select=id`;
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resp.ok) {
@@ -93,7 +94,7 @@ export async function resolveDriveItemIdFromWebUrl(
     const byPathUrl =
       `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
       `/root:/${encodedPath}?$select=id`;
-    const byPath = await fetch(byPathUrl, {
+    const byPath = await fetchWithTimeout(byPathUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (byPath.ok) {
@@ -103,7 +104,7 @@ export async function resolveDriveItemIdFromWebUrl(
   }
 
   const shareId = encodeSharePointUrlForGraph(webUrl);
-  const shareRes = await fetch(
+  const shareRes = await fetchWithTimeout(
     `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem?$select=id`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -131,7 +132,7 @@ export async function getDriveImageContentByWebUrl(
   const byPathUrl =
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
     `/root:/${encodeDrivePath(drivePath)}:/content`;
-  const byPath = await fetch(byPathUrl, {
+  const byPath = await fetchWithTimeout(byPathUrl, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const contentType = byPath.headers.get('content-type') || '';
@@ -173,7 +174,7 @@ export async function listDefaultImageFiles(token: string): Promise<DriveImageFi
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
     `/items/${folderId}/children?$select=id,name,file&$top=200`;
 
-  const resp = await fetch(listUrl, {
+  const resp = await fetchWithTimeout(listUrl, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resp.ok) {
@@ -228,7 +229,7 @@ export async function getDriveImageContent(
   const itemUrl =
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
     `/items/${encodeURIComponent(itemId)}`;
-  const metaResp = await fetch(`${itemUrl}?$select=name,parentReference`, {
+  const metaResp = await fetchWithTimeout(`${itemUrl}?$select=name,parentReference`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!metaResp.ok) {
@@ -242,7 +243,7 @@ export async function getDriveImageContent(
   }
   const url = `${itemUrl}/content`;
 
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!resp.ok) {
