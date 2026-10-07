@@ -13,6 +13,7 @@ import LeadGeneration from './components/LeadGeneration';
 import Iceman from './components/Iceman';
 import DevHomePage from './components/DevHomePage';
 import EmployeeDirectory from './components/EmployeeDirectory';
+import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 // import TvDisplay from './components/TvDisplay';
 import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted, isDevHomepageAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
@@ -232,6 +233,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <UpdateAvailableBanner />
       <Routes>
         {/* ── Standalone TV / kiosk display — disabled on this branch
         <Route path="/tv" element={<TvDisplay />} />
