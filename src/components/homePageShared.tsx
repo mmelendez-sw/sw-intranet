@@ -1,5 +1,5 @@
 /**
- * Helpers shared by HomePage and the /dev DevHomePage fork: edit modal, card ordering,
+ * Helpers shared across homepage components: edit modal, card ordering,
  * bullet text, announcement dates, and cached initial content.
  */
 

@@ -11,11 +11,10 @@ import HomePage from './components/HomePage';
 import Reports from './components/Reports';
 import LeadGeneration from './components/LeadGeneration';
 import Iceman from './components/Iceman';
-import DevHomePage from './components/DevHomePage';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 // import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted, isDevHomepageAllowlisted } from './authConfig';
+import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted } from './authConfig';
 import { UserInfo } from './types/user';
 import { getGroupIds } from './utils/getGroupId';
 import { EditMenuProvider } from './context/EditMenuContext';
@@ -253,14 +252,6 @@ const App: React.FC = () => {
               <div className="main-content">
                 <Routes>
                   <Route path="/" element={<HomePage userInfo={userInfo} />} />
-                  <Route
-                    path="/dev"
-                    element={
-                      userInfo.isAuthenticated && isDevHomepageAllowlisted(userInfo.email)
-                        ? <DevHomePage userInfo={userInfo} />
-                        : <Navigate to="/" replace />
-                    }
-                  />
                   <Route
                     path="/lead-generation"
                     element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}

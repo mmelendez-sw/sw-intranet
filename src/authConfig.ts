@@ -104,18 +104,6 @@ export const ICEMAN_ALLOWLIST = new Set([
 
 export const isIcemanAllowlisted = (email?: string): boolean => isInAllowlist(ICEMAN_ALLOWLIST, email);
 
-/**
- * /dev homepage sandbox — real login required; UI work happens here before
- * promoting changes to `/`.
- */
-export const DEV_HOMEPAGE_ALLOWLIST = new Set([
-  'mmelendez@symphonyinfra.com',
-  'atabbacchino@symphonyinfra.com',
-]);
-
-export const isDevHomepageAllowlisted = (email?: string): boolean =>
-  isInAllowlist(DEV_HOMEPAGE_ALLOWLIST, email);
-
 /** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
 export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',

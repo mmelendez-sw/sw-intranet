@@ -551,12 +551,6 @@
   border-top: 1px solid var(--border-subtle);
 }
 
-:where(:root[data-theme="dark"]) .dev-homepage-banner {
-  background: var(--header-menu-bg) !important;
-  color: var(--text-heading) !important;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
 :where(:root[data-theme="dark"]) .card-text a,
 :where(:root[data-theme="dark"]) .home-sidebar a:not(.home-button):not(.link-button),
 :where(:root[data-theme="dark"]) .announcement-item-body a,
