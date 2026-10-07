@@ -812,17 +812,6 @@
   color: var(--tint-success-text);
 }
 
-/* ── Calendar (react-calendar) ── */
-:where(:root[data-theme="dark"]) .react-calendar,
-:where(:root[data-theme="dark"]) .react-calendar__navigation button {
-  background-color: var(--surface);
-  color: var(--text-primary);
-}
-
-:where(:root[data-theme="dark"]) .react-calendar__tile {
-  color: var(--text-primary);
-}
-
 /* ── Birthdays: sidebar list + editor ── */
 :where(:root[data-theme="dark"]) .sidebar-birthdays {
   background: #3a2433;
