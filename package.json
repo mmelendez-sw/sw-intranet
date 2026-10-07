@@ -9,7 +9,7 @@
         "build:tv-api": "tsc -p server/tsconfig.json",
         "tv-api": "npm run build:tv-api && node -r ./server/loadEnv.js server/dist/localDev.js",
         "api": "npm run tv-api",
-        "deploy:lambda": "powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api"
+        "deploy:lambda": "powershell -ExecutionPolicy Bypass -File scripts/deploy-lambda.ps1 -FunctionName sw-intranet-api -Region us-east-2"
     },
     "dependencies": {
         "@azure/msal-browser": "^3.27.0",
@@ -38,6 +38,7 @@
         "@types/busboy": "^1.5.4",
         "copy-webpack-plugin": "^13.0.0",
         "css-loader": "^6.8.1",
+        "esbuild": "^0.28.2",
         "file-loader": "^6.2.0",
         "html-webpack-plugin": "^5.5.3",
         "style-loader": "^3.3.3",
