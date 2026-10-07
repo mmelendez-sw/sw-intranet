@@ -17,11 +17,14 @@ const MAX_ROWS = 15;
 
 const CLOSE_OBLIQUE_MIN_M = 15;
 const CLOSE_OBLIQUE_MAX_M = 50;
-const CLOSE_OBLIQUE_DEFAULT_M = 35;
+const CLOSE_OBLIQUE_DEFAULT_M = 30;
 
 const FAR_OBLIQUE_MIN_M = 200;
 const FAR_OBLIQUE_MAX_M = 500;
 const FAR_OBLIQUE_DEFAULT_M = 300;
+
+/** Mirrors TOP_DOWN_M in server/iceman.ts. */
+const TOP_DOWN_M = 100;
 
 const isAcceptedFile = (name: string) => {
   const lower = name.toLowerCase();
@@ -146,8 +149,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <p className="iceman-kicker">Site imagery toolkit</p>
           <h1>ICEMAN</h1>
           <p className="iceman-subtitle">
-            Upload coordinates and download an Excel workbook with two north-oblique Nearmap
-            thumbnails per location — a close view and a wider context view.
+            Upload coordinates and download an Excel workbook with three Nearmap thumbnails per
+            location — a top-down view, a close north oblique and a wider context oblique.
           </p>
           {userInfo.email && (
             <p className="iceman-signed-in">Signed in as {userInfo.email}</p>
@@ -263,7 +266,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             <h3 id="iceman-range-heading">2. Set oblique distances</h3>
             <p>
               Choose approximate ground coverage for each north-oblique thumbnail. Defaults are
-              35&nbsp;m (close) and 300&nbsp;m (context).
+              30&nbsp;m (close) and 300&nbsp;m (context). The top-down view is fixed at
+              ~{TOP_DOWN_M}&nbsp;m.
             </p>
           </div>
 
@@ -377,10 +381,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             <div className="iceman-guide-item">
               <span className="iceman-guide-num">Img</span>
               <div>
-                <strong>Two north obliques</strong>
+                <strong>Three images</strong>
                 <p>
-                  Close ({CLOSE_OBLIQUE_MIN_M}–{CLOSE_OBLIQUE_MAX_M} m) and far (
-                  {FAR_OBLIQUE_MIN_M}–{FAR_OBLIQUE_MAX_M} m)
+                  Top-down (~{TOP_DOWN_M} m), close oblique ({CLOSE_OBLIQUE_MIN_M}–
+                  {CLOSE_OBLIQUE_MAX_M} m) and far oblique ({FAR_OBLIQUE_MIN_M}–
+                  {FAR_OBLIQUE_MAX_M} m)
                 </p>
               </div>
             </div>

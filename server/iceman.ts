@@ -3,9 +3,10 @@
  *
  * Env: NEARMAP_API_KEY
  *
- * Output images (north oblique):
- *   - Close range: 15–50 m ground coverage (default 35 m)
- *   - Far range:   200–500 m ground coverage (default 300 m)
+ * Output images per row:
+ *   - Top-down (vertical): ~100 m ground coverage (fixed)
+ *   - Close north oblique: 15–50 m ground coverage (default 30 m)
+ *   - Far north oblique:   200–500 m ground coverage (default 300 m)
  */
 
 import ExcelJS from 'exceljs';
@@ -24,11 +25,13 @@ const EARTH_CIRCUMFERENCE_M = 40075016.686;
 
 export const CLOSE_OBLIQUE_MIN_M = 15;
 export const CLOSE_OBLIQUE_MAX_M = 50;
-export const CLOSE_OBLIQUE_DEFAULT_M = 35;
+export const CLOSE_OBLIQUE_DEFAULT_M = 30;
 
 export const FAR_OBLIQUE_MIN_M = 200;
 export const FAR_OBLIQUE_MAX_M = 500;
 export const FAR_OBLIQUE_DEFAULT_M = 300;
+
+export const TOP_DOWN_M = 100;
 
 export type IcemanRow = {
   lat: number;
@@ -41,8 +44,9 @@ export type IcemanImageOptions = {
   farObliqueMeters?: number;
 };
 
-type ObliqueShot = {
-  key: 'close' | 'far';
+type ImageShot = {
+  key: 'topDown' | 'close' | 'far';
+  contentType: 'Vert' | 'North';
   meters: number;
   label: string;
 };
@@ -55,8 +59,11 @@ type ImageFetchResult = {
 type CoverageSurvey = {
   id?: string;
   captureDate?: string;
-  resources?: { type?: string }[];
+  resources?: { tiles?: { type?: string }[] };
 };
+
+/** Newest survey id per tile type; obliques are often captured less often than verticals. */
+type SurveyIdsByType = Partial<Record<ImageShot['contentType'], string>>;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -142,23 +149,23 @@ function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number 
   return bestZoom;
 }
 
-async function getLatestSurveyId(
+async function getLatestSurveyIds(
   lat: number,
   lng: number,
   apiKey: string
-): Promise<{ surveyId: string | null; note?: string }> {
+): Promise<{ surveyIds: SurveyIdsByType; note?: string }> {
   const coord = `${lng},${lat}`;
   const url = `${NEARMAP_COVERAGE_BASE}/point/${encodeURIComponent(coord)}?apikey=${encodeURIComponent(apiKey)}`;
 
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      return { surveyId: null, note: `Coverage ${res.status}` };
+      return { surveyIds: {}, note: `Coverage ${res.status}` };
     }
     const data = (await res.json()) as { surveys?: CoverageSurvey[] };
     const surveys = Array.isArray(data.surveys) ? data.surveys : [];
     if (!surveys.length) {
-      return { surveyId: null, note: 'No coverage' };
+      return { surveyIds: {}, note: 'No coverage' };
     }
 
     const sorted = [...surveys].sort((a, b) => {
@@ -167,26 +174,34 @@ async function getLatestSurveyId(
       return db - da;
     });
 
-    const latest = sorted.find((s) => s.id) ?? sorted[0];
-    return { surveyId: latest.id ?? null, note: latest.id ? undefined : 'No survey id' };
+    const surveyIds: SurveyIdsByType = {};
+    for (const survey of sorted) {
+      if (!survey.id) continue;
+      for (const tile of survey.resources?.tiles ?? []) {
+        if ((tile.type === 'Vert' || tile.type === 'North') && !surveyIds[tile.type]) {
+          surveyIds[tile.type] = survey.id;
+        }
+      }
+    }
+    return { surveyIds };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Coverage failed';
     console.error('[iceman] coverage error', lat, lng, msg);
-    return { surveyId: null, note: msg };
+    return { surveyIds: {}, note: msg };
   }
 }
 
-async function fetchNorthObliqueTile(
+async function fetchTile(
   lat: number,
   lng: number,
   meters: number,
   label: string,
+  contentType: ImageShot['contentType'],
   apiKey: string,
-  surveyId: string | null
+  surveyId: string | undefined
 ): Promise<ImageFetchResult> {
   const zoom = zoomForGroundCoverageMeters(lat, meters);
   const { x, y } = latLngToTile(lat, lng, zoom);
-  const contentType = 'North';
 
   const path = surveyId
     ? `surveys/${surveyId}/${contentType}/${zoom}/${x}/${y}.jpg`
@@ -302,14 +317,22 @@ export async function generateIcemanWorkbook(
   const rows = parsed.rows.slice(0, maxRows);
   const passThroughHeaders = parsed.passThroughHeaders;
 
-  const shots: ObliqueShot[] = [
+  const shots: ImageShot[] = [
+    {
+      key: 'topDown',
+      contentType: 'Vert',
+      meters: TOP_DOWN_M,
+      label: `Top-Down ~${TOP_DOWN_M}m`,
+    },
     {
       key: 'close',
+      contentType: 'North',
       meters: opts.closeObliqueMeters,
       label: `North Oblique ~${opts.closeObliqueMeters}m`,
     },
     {
       key: 'far',
+      contentType: 'North',
       meters: opts.farObliqueMeters,
       label: `North Oblique ~${opts.farObliqueMeters}m`,
     },
@@ -351,7 +374,7 @@ export async function generateIcemanWorkbook(
   }
   ws.getColumn(imageColStart + shots.length).width = 36;
 
-  const surveyCache = new Map<string, string | null>();
+  const surveyCache = new Map<string, SurveyIdsByType>();
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -369,24 +392,25 @@ export async function generateIcemanWorkbook(
     ws.getRow(excelRowNum).height = 95;
 
     const cacheKey = `${row.lat.toFixed(6)},${row.lng.toFixed(6)}`;
-    let surveyId = surveyCache.get(cacheKey);
-    if (surveyId === undefined) {
-      const coverage = await getLatestSurveyId(row.lat, row.lng, apiKey);
-      surveyId = coverage.surveyId;
-      surveyCache.set(cacheKey, surveyId);
+    let surveyIds = surveyCache.get(cacheKey);
+    if (surveyIds === undefined) {
+      const coverage = await getLatestSurveyIds(row.lat, row.lng, apiKey);
+      surveyIds = coverage.surveyIds;
+      surveyCache.set(cacheKey, surveyIds);
       if (coverage.note) statusNotes.push(coverage.note);
       await sleep(REQUEST_DELAY_MS);
     }
 
     for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
       const shot = shots[imgIdx];
-      const result = await fetchNorthObliqueTile(
+      const result = await fetchTile(
         row.lat,
         row.lng,
         shot.meters,
         shot.label,
+        shot.contentType,
         apiKey,
-        surveyId
+        surveyIds[shot.contentType]
       );
       await sleep(REQUEST_DELAY_MS);
 

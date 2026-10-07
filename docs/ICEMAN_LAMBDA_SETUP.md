@@ -2,7 +2,7 @@
 
 Use this while creating the AWS Lambda that powers **ICEMAN** (`POST /api/iceman/generate`).
 
-Frontend: authenticated users on the ICEMAN allowlist (`mmelendez@symphonyinfra.com`) upload CSV/XLSX → Lambda fetches two north-oblique Nearmap tiles (close + far ground coverage) → returns an `.xlsx` download.
+Frontend: authenticated users on the ICEMAN allowlist (`mmelendez@symphonyinfra.com`) upload CSV/XLSX → Lambda fetches three Nearmap tiles (top-down ~100 m, plus close and far north obliques) → returns an `.xlsx` download.
 
 ---
 
