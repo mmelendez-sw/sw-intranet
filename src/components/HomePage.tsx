@@ -7,7 +7,8 @@ import { useIsAuthenticated, useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
-import { BIRTHDAYS_UPDATED_EVENT, filterActiveBirthdays } from '../utils/birthdays';
+import { useSharePointContent } from '../hooks/useSharePointContent';
+import { filterActiveBirthdays } from '../utils/birthdays';
 import { BirthdayCoverageNotice, BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
   getContent,
@@ -27,11 +28,11 @@ import {
   BirthdaysContent,
   HomepageLayout,
   HomepageCardsPerRow,
-  normalizeHomepageLayout,
   parseHomepageCardsContent,
   parseAnnouncementsContent,
-  parseBirthdaysContent,
   birthdaysOrDefault,
+  DEFAULT_BIRTHDAYS,
+  DEFAULT_ANNOUNCEMENTS,
   isBirthdayToday,
   buildHomepageCardsFile,
   buildAnnouncementsContentFile,
@@ -61,8 +62,9 @@ import {
   todayLocalDateString,
   formatAnnouncementDate,
   CARDS_PER_ROW_OPTIONS,
-  getInitialAnnouncements,
   isOddCardFor4Columns,
+  parseHeroContent,
+  parseCardsPerRow,
 } from './homePageShared';
 import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
 import TermSheetRankings from './TermSheetRankings';
@@ -96,10 +98,6 @@ const MONTH_OPTIONS = [
   { value: 11, label: 'November' },
   { value: 12, label: 'December' },
 ];
-const getInitialBirthdays = (): BirthdaysContent => {
-  return birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY));
-};
-
 const daysInMonth = (month: number): number => {
   if (month === 2) return 29;
   if ([4, 6, 9, 11].includes(month)) return 30;
@@ -136,13 +134,25 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [cardsLoading, setCardsLoading] = useState(
     () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
   );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(getInitialAnnouncements);
-  const [birthdays, setBirthdays] = useState<BirthdaysContent>(getInitialBirthdays);
-  const [heroImageUrl, setHeroImageUrl] = useState(
-    () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
+  // Hero / announcements / birthdays / layout fetch after the first cards load settles.
+  const [secondaryContentReady, setSecondaryContentReady] = useState(false);
+  const secondaryContentEnabled = showHomeContent && secondaryContentReady;
+  const { data: announcements, setData: setAnnouncements } = useSharePointContent<Announcement[]>(
+    ANNOUNCEMENTS_CONTENT_KEY,
+    { fallback: DEFAULT_ANNOUNCEMENTS, parse: parseAnnouncementsContent, enabled: secondaryContentEnabled }
   );
-  const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
-    () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
+  const { data: birthdays, setData: setBirthdays } = useSharePointContent<BirthdaysContent>(
+    BIRTHDAYS_CONTENT_KEY,
+    { fallback: DEFAULT_BIRTHDAYS, parse: birthdaysOrDefault, enabled: secondaryContentEnabled }
+  );
+  const { data: heroImageUrl, setData: setHeroImageUrl } = useSharePointContent<string>(HERO_CONTENT_KEY, {
+    fallback: '',
+    parse: parseHeroContent,
+    enabled: secondaryContentEnabled,
+  });
+  const { data: cardsPerRow, setData: setCardsPerRow } = useSharePointContent<HomepageCardsPerRow>(
+    HOMEPAGE_LAYOUT_CONTENT_KEY,
+    { fallback: parseCardsPerRow(null), parse: parseCardsPerRow, enabled: secondaryContentEnabled }
   );
   const [defaultFallbackImages, setDefaultFallbackImages] = useState<DriveItem[]>([]);
   const [savingLayout, setSavingLayout] = useState(false);
@@ -300,28 +310,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
       await finishCardsLoading();
 
-      if (cancelled) return;
-
-      try {
-        const [remoteHero, remoteAnnouncements, remoteBirthdays, remoteLayout] = await Promise.all([
-          getContent<string>(instance, HERO_CONTENT_KEY),
-          getContent<unknown>(instance, ANNOUNCEMENTS_CONTENT_KEY),
-          getContent<unknown>(instance, BIRTHDAYS_CONTENT_KEY),
-          getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
-        ]);
-        if (cancelled) return;
-        if (remoteHero) setHeroImageUrl(remoteHero);
-        if (remoteAnnouncements) {
-          const parsed = parseAnnouncementsContent(remoteAnnouncements);
-          if (parsed.length) setAnnouncements(parsed);
-        }
-        if (remoteBirthdays) {
-          setBirthdays(parseBirthdaysContent(remoteBirthdays));
-        }
-        if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
-      } catch (err) {
-        console.error('[HomePage] failed to load hero/announcements:', err);
-      }
+      // useSharePointContent loads hero/announcements/birthdays/layout from here on. Not gated
+      // on `cancelled`: StrictMode's dev re-run skips this effect via hasFetchedCardsRef.
+      setSecondaryContentReady(true);
     })();
 
     return () => {
@@ -793,7 +784,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     if (result.ok) {
       setBirthdays(cleaned);
       setBirthdaysDraft(cleaned);
-      window.dispatchEvent(new Event(BIRTHDAYS_UPDATED_EVENT));
     }
     setSavingBirthdays(false);
     setBirthdaysSaveStatus(editSaveStatusFromResult(result));

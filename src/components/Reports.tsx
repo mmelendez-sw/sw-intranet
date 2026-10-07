@@ -17,6 +17,7 @@ import {
   buildReportsContentFile,
   stampReportEditor,
 } from '../services/contentService';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import IntranetSidebar from './IntranetSidebar';
 import {
   EditSaveStatus,
@@ -110,7 +111,10 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
   const [editDraft, setEditDraft] = useState<ReportItemContent | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  const { data: siteConfig } = useSharePointContent<SiteConfig>('site-config', {
+    fallback: DEFAULT_SITE_CONFIG,
+    enabled: !!userInfo.isAuthenticated,
+  });
   const [draggingReportIdx, setDraggingReportIdx] = useState<number | null>(null);
   const [dragOverReportIdx, setDragOverReportIdx] = useState<number | null>(null);
 
@@ -142,17 +146,11 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
       };
 
       try {
-        const [remote, remoteConfig] = await Promise.all([
-          // First paint already used the local copy; wait for SharePoint so new reports show this visit.
-          getContent<unknown>(instance, REPORTS_CONTENT_KEY, { remoteOnly: true }),
-          getContent<SiteConfig>(instance, 'site-config'),
-        ]);
-        if (!cancelled) {
-          if (remote) {
-            const parsed = parseReportsContent(remote);
-            if (parsed.length) setAllReports(parsed);
-          }
-          if (remoteConfig) setSiteConfig(remoteConfig);
+        // First paint already used the local copy; wait for SharePoint so new reports show this visit.
+        const remote = await getContent<unknown>(instance, REPORTS_CONTENT_KEY, { remoteOnly: true });
+        if (!cancelled && remote) {
+          const parsed = parseReportsContent(remote);
+          if (parsed.length) setAllReports(parsed);
         }
       } catch (err) {
         console.error('[Reports] failed to load reports:', err);

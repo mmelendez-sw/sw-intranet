@@ -8,9 +8,6 @@
 import type { BirthdayPerson } from '../services/contentService';
 import { GraphUser, isContractorOrConsultant } from '../services/directoryService';
 
-/** Fired on window after birthdays.json is saved so other widgets (sidebar) refresh. */
-export const BIRTHDAYS_UPDATED_EVENT = 'intranet-birthdays-updated';
-
 export const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',

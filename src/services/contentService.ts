@@ -142,9 +142,32 @@ export function getCachedContent<T>(key: string): T | null {
   return BYPASS_AUTH ? readBypassContent<T>(key) : readLocalContent<T>(key);
 }
 
+/**
+ * Fired on window (detail: { key }) whenever the cached copy of a content block changes —
+ * background SharePoint refreshes and saves alike — so mounted widgets can re-render.
+ */
+export const CONTENT_UPDATED_EVENT = 'intranet-content-updated';
+
+export interface ContentUpdatedDetail {
+  key: string;
+}
+
+/** localStorage key for a content block (exposed for cross-tab `storage` listeners). */
+export function localContentStorageKey(key: string): string {
+  return `${LOCAL_CONTENT_PREFIX}${key}`;
+}
+
 function writeLocalContent<T>(key: string, data: T): boolean {
   try {
-    window.localStorage.setItem(`${LOCAL_CONTENT_PREFIX}${key}`, JSON.stringify(data));
+    const storageKey = localContentStorageKey(key);
+    const json = JSON.stringify(data);
+    const changed = window.localStorage.getItem(storageKey) !== json;
+    window.localStorage.setItem(storageKey, json);
+    if (changed) {
+      window.dispatchEvent(
+        new CustomEvent<ContentUpdatedDetail>(CONTENT_UPDATED_EVENT, { detail: { key } })
+      );
+    }
     return true;
   } catch (err) {
     console.warn('[contentService] writeLocalContent failed:', err);
@@ -180,7 +203,10 @@ export type CardWithResolvedImage = CardContent & { resolvedImageUrl: string | n
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']);
 
 let cachedDefaultImages: DriveItem[] | null = null;
+let cachedDefaultImagesAt = 0;
 let cachedDefaultImagesPending: Promise<DriveItem[]> | null = null;
+/** Re-list Default Images after this long so folder edits reach long-lived homepage tabs. */
+const DEFAULT_IMAGES_TTL_MS = 10 * 60 * 1000;
 
 function encodeDriveRelativePath(path: string): string {
   return path
@@ -196,7 +222,7 @@ export function buildSharePointDocumentUrl(driveRelativePath: string): string {
 }
 
 /**
- * List image files in Default Images (sorted by name). Cached per session.
+ * List image files in Default Images (sorted by name). Cached for DEFAULT_IMAGES_TTL_MS.
  * Low-level: siteId + token (matches Graph listing used by /api/images proxy).
  */
 export async function fetchDefaultFallbackImages(
@@ -204,7 +230,9 @@ export async function fetchDefaultFallbackImages(
   token: string,
   folderPath: string = DEFAULT_IMAGES_FOLDER_PATH
 ): Promise<DriveItem[]> {
-  if (cachedDefaultImages) return cachedDefaultImages;
+  if (cachedDefaultImages && Date.now() - cachedDefaultImagesAt < DEFAULT_IMAGES_TTL_MS) {
+    return cachedDefaultImages;
+  }
   if (cachedDefaultImagesPending) return cachedDefaultImagesPending;
 
   cachedDefaultImagesPending = (async () => {
@@ -239,6 +267,7 @@ export async function fetchDefaultFallbackImages(
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
     cachedDefaultImages = images;
+    cachedDefaultImagesAt = Date.now();
     return images;
   })();
 
@@ -899,8 +928,8 @@ export const DEFAULT_REPORTS: ReportItemContent[] = [];
 
 const CONTENT_LIST_NAME = 'IntranetContent';
 
-const _siteIds: Record<string, string | null> = {};
-let _listId: string | null = null;
+const _siteIds: Record<string, Promise<string>> = {};
+let _listId: Promise<string> | null = null;
 let _contentJsonFieldName: string | null = null;
 
 async function ensureContentJsonColumn(siteId: string, listId: string, token: string): Promise<void> {
@@ -952,20 +981,38 @@ async function getToken(msalInstance: any): Promise<string | null> {
   }
 }
 
-async function getSiteId(token: string, sitePath: string): Promise<string> {
-  if (_siteIds[sitePath]) return _siteIds[sitePath] as string;
-  const res = await fetch(
-    `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${sitePath}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  if (!res.ok) throw new Error(`getSiteId failed: ${res.status}`);
-  const data = await res.json();
-  _siteIds[sitePath] = data.id as string;
-  return _siteIds[sitePath] as string;
+/** Caches the in-flight lookup so parallel first loads share one request; failures retry. */
+function getSiteId(token: string, sitePath: string): Promise<string> {
+  const existing = _siteIds[sitePath];
+  if (existing) return existing;
+  const pending = (async () => {
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT_HOST}:${sitePath}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) throw new Error(`getSiteId failed: ${res.status}`);
+    const data = await res.json();
+    return data.id as string;
+  })();
+  _siteIds[sitePath] = pending;
+  pending.catch(() => {
+    if (_siteIds[sitePath] === pending) delete _siteIds[sitePath];
+  });
+  return pending;
 }
 
-async function getOrCreateList(siteId: string, token: string): Promise<string> {
+/** Same in-flight caching as getSiteId — prevents duplicate list creation on parallel loads. */
+function getOrCreateList(siteId: string, token: string): Promise<string> {
   if (_listId) return _listId;
+  const pending = findOrCreateList(siteId, token);
+  _listId = pending;
+  pending.catch(() => {
+    if (_listId === pending) _listId = null;
+  });
+  return pending;
+}
+
+async function findOrCreateList(siteId: string, token: string): Promise<string> {
 
   // Try to find existing list
   const listRes = await fetch(
@@ -975,8 +1022,7 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
   if (listRes.ok) {
     const listData = await listRes.json();
     if (listData.value?.length > 0) {
-      _listId = listData.value[0].id as string;
-      return _listId;
+      return listData.value[0].id as string;
     }
   }
 
@@ -997,8 +1043,7 @@ async function getOrCreateList(siteId: string, token: string): Promise<string> {
   );
   if (!createRes.ok) throw new Error(`createList failed: ${createRes.status}`);
   const created = await createRes.json();
-  _listId = created.id as string;
-  return _listId;
+  return created.id as string;
 }
 
 async function findListItemId(

@@ -5,7 +5,8 @@ import { Navigate } from 'react-router-dom';
 const exifr = require('exifr');
 import { BYPASS_AUTH } from '../authConfig';
 import { UserInfo } from '../types/user';
-import { getContent, SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';
+import { SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import '../../styles/lead-generation.css';
 
 interface FormData {
@@ -143,6 +144,8 @@ const msalWithInteractionRetry = async <T,>(fn: () => Promise<T>): Promise<T> =>
 // sessionStorage key used to persist form text fields across a token-refresh
 // redirect so the user does not lose their work on iOS Edge.
 const LEADGEN_RESTORE_KEY = 'leadgen_pending_restore';
+/** Saved fields older than this (or from another account) are discarded on restore. */
+const LEADGEN_RESTORE_MAX_AGE_MS = 15 * 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Excel workbook config — fill these in to activate the live log feature.
@@ -228,10 +231,22 @@ interface LeadGenerationProps {
   userInfo: UserInfo;
 }
 
+/** Auth guard kept outside the form so the early return never skips its hooks. */
 const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const hasSignedInAccount = instance.getAllAccounts().length > 0;
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
+  if (!BYPASS_AUTH && !userInfo.isAuthenticated && !hasSignedInAccount) {
+    return <Navigate to="/" replace />;
+  }
+  return <LeadGenerationForm userInfo={userInfo} />;
+};
+
+const LeadGenerationForm: React.FC<LeadGenerationProps> = ({ userInfo }) => {
+  const { instance } = useMsal();
+  const { data: siteConfig } = useSharePointContent<SiteConfig>('site-config', {
+    fallback: DEFAULT_SITE_CONFIG,
+    enabled: !!userInfo.isAuthenticated,
+  });
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
@@ -244,17 +259,9 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
   const libraryInputRef = useRef<HTMLInputElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const remoteConfig = await getContent<SiteConfig>(instance, 'site-config');
-      if (remoteConfig) setSiteConfig(remoteConfig);
-    })();
-  }, [userInfo.isAuthenticated, instance]);
-
-  if (!BYPASS_AUTH && !userInfo.isAuthenticated && !hasSignedInAccount) {
-    return <Navigate to="/" replace />;
-  }
+  /** Signed-in email used to scope the redirect restore to the same account. */
+  const restoreOwnerEmail = (): string =>
+    (userInfo.email || instance.getAllAccounts()[0]?.username || '').toLowerCase();
 
   const tag = useMemo(() => generateTag(), []);
   const hasLatLong = Boolean(formData.latitude.trim() && formData.longitude.trim());
@@ -294,8 +301,16 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
     if (!saved) return;
     sessionStorage.removeItem(LEADGEN_RESTORE_KEY);
     try {
-      const parsed = JSON.parse(saved);
-      setFormData(prev => ({ ...prev, ...parsed, photos: [] }));
+      const { email, savedAt, fields } = JSON.parse(saved) as {
+        email?: string;
+        savedAt?: number;
+        fields?: Partial<FormData>;
+      };
+      // Drop drafts from another account (shared device) or an abandoned redirect.
+      const owner = restoreOwnerEmail();
+      if (!fields || !owner || email !== owner) return;
+      if (typeof savedAt !== 'number' || Date.now() - savedAt > LEADGEN_RESTORE_MAX_AGE_MS) return;
+      setFormData(prev => ({ ...prev, ...fields, photos: [] }));
       setSessionRestored(true);
     } catch {
       // Corrupted storage — silently ignore and let the user start fresh.
@@ -473,14 +488,18 @@ const LeadGeneration: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           // full-page token refresh redirect.
           if (isIOS()) {
             sessionStorage.setItem(LEADGEN_RESTORE_KEY, JSON.stringify({
-              address: data.address,
-              city: data.city,
-              state: data.state,
-              zipCode: data.zipCode,
-              latitude: data.latitude,
-              longitude: data.longitude,
-              notes: data.notes,
-              siteType: data.siteType,
+              email: restoreOwnerEmail(),
+              savedAt: Date.now(),
+              fields: {
+                address: data.address,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                latitude: data.latitude,
+                longitude: data.longitude,
+                notes: data.notes,
+                siteType: data.siteType,
+              },
             }));
             await instance.acquireTokenRedirect({
               scopes: ['Mail.Send'],

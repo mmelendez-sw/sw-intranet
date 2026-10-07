@@ -3,12 +3,12 @@ import { useMsal } from '@azure/msal-react';
 import '../../styles/ticker.css';
 import '../../styles/edit-mode.css';
 import {
-  getContent,
   setContent,
   setContentDetailed,
   TickerItem,
   DEFAULT_TICKER_ITEMS,
 } from '../services/contentService';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
@@ -75,21 +75,16 @@ const Ticker: React.FC<TickerProps> = ({ userInfo }) => {
   const isEditor = userInfo.isEditor;
   const canEdit = isEditor && isEditMode;
 
-  const [items, setItems] = useState<TickerItem[]>(DEFAULT_TICKER_ITEMS);
+  const { data: items, setData: setItems } = useSharePointContent<TickerItem[]>('ticker-items', {
+    fallback: DEFAULT_TICKER_ITEMS,
+    enabled: !!userInfo.isAuthenticated,
+  });
   const [editingItem, setEditingItem] = useState<TickerItem | null>(null);
   const [editDraft, setEditDraft] = useState<TickerItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
   const [isNew, setIsNew] = useState(false);
   const [managingTicker, setManagingTicker] = useState(false);
-
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const remote = await getContent<TickerItem[]>(instance, 'ticker-items');
-      if (remote) setItems(remote);
-    })();
-  }, [userInfo.isAuthenticated, instance]);
 
   const openEdit = useCallback((item: TickerItem, isNewItem = false) => {
     setEditingItem(item);

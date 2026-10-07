@@ -14,6 +14,7 @@ import {
   HomepageCardsPerRow,
   parseHomepageCardsContent,
   parseAnnouncementsContent,
+  normalizeHomepageLayout,
 } from '../services/contentService';
 import { EditSaveStatus, EditSaveStatusText } from './EditSaveStatusText';
 
@@ -161,6 +162,11 @@ export const getInitialAnnouncements = (): Announcement[] => {
   const parsed = parseAnnouncementsContent(getCachedContent(ANNOUNCEMENTS_CONTENT_KEY));
   return parsed.length ? parsed : DEFAULT_ANNOUNCEMENTS;
 };
+
+// Parsers for useSharePointContent (hero / layout blocks shared by both homepages).
+export const parseHeroContent = (raw: unknown): string => (typeof raw === 'string' ? raw : '');
+export const parseCardsPerRow = (raw: unknown): HomepageCardsPerRow =>
+  normalizeHomepageLayout(raw).cardsPerRow;
 
 /** 4-col layout: alternate colors, but cards 4–5, 8–9, 12–13, … (multiples of 4) share a color. */
 export const isOddCardFor4Columns = (index: number): boolean => {

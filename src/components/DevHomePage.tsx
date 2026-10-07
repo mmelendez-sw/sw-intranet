@@ -24,14 +24,15 @@ import {
   Announcement,
   HomepageLayout,
   HomepageCardsPerRow,
-  normalizeHomepageLayout,
   parseHomepageCardsContent,
   parseAnnouncementsContent,
   buildHomepageCardsFile,
   buildAnnouncementsContentFile,
   stampCardEditor,
   stampAnnouncementEditor,
+  DEFAULT_ANNOUNCEMENTS,
 } from '../services/contentService';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import IntranetSidebar from './IntranetSidebar';
 import SharePointImage from './SharePointImage';
 import {
@@ -55,7 +56,8 @@ import {
   todayLocalDateString,
   formatAnnouncementDate,
   CARDS_PER_ROW_OPTIONS,
-  getInitialAnnouncements,
+  parseHeroContent,
+  parseCardsPerRow,
   isOddCardFor4Columns,
 } from './homePageShared';
 import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
@@ -73,11 +75,15 @@ interface DevHomePageProps {
 
 // ─── DevHomePage (fork of HomePage for WIP / sign-off) ─────────────────────
 
+/** Allowlist guard kept outside the page so the early return never skips its hooks. */
 const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   if (!userInfo.isAuthenticated || !isDevHomepageAllowlisted(userInfo.email)) {
     return <Navigate to="/" replace />;
   }
+  return <DevHomePageContent userInfo={userInfo} />;
+};
 
+const DevHomePageContent: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const msalAuthenticated = useIsAuthenticated();
   const isEditor = userInfo.isEditor;
@@ -96,12 +102,21 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
   const [cardsLoading, setCardsLoading] = useState(
     () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
   );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(getInitialAnnouncements);
-  const [heroImageUrl, setHeroImageUrl] = useState(
-    () => getCachedContent<string>(HERO_CONTENT_KEY) || ''
+  // Hero / announcements / layout fetch after the first cards load settles.
+  const [secondaryContentReady, setSecondaryContentReady] = useState(false);
+  const secondaryContentEnabled = showHomeContent && secondaryContentReady;
+  const { data: announcements, setData: setAnnouncements } = useSharePointContent<Announcement[]>(
+    ANNOUNCEMENTS_CONTENT_KEY,
+    { fallback: DEFAULT_ANNOUNCEMENTS, parse: parseAnnouncementsContent, enabled: secondaryContentEnabled }
   );
-  const [cardsPerRow, setCardsPerRow] = useState<HomepageCardsPerRow>(
-    () => normalizeHomepageLayout(getCachedContent<HomepageLayout>(HOMEPAGE_LAYOUT_CONTENT_KEY)).cardsPerRow
+  const { data: heroImageUrl, setData: setHeroImageUrl } = useSharePointContent<string>(HERO_CONTENT_KEY, {
+    fallback: '',
+    parse: parseHeroContent,
+    enabled: secondaryContentEnabled,
+  });
+  const { data: cardsPerRow, setData: setCardsPerRow } = useSharePointContent<HomepageCardsPerRow>(
+    HOMEPAGE_LAYOUT_CONTENT_KEY,
+    { fallback: parseCardsPerRow(null), parse: parseCardsPerRow, enabled: secondaryContentEnabled }
   );
   const [defaultFallbackImages, setDefaultFallbackImages] = useState<DriveItem[]>([]);
   const [savingLayout, setSavingLayout] = useState(false);
@@ -254,24 +269,9 @@ const DevHomePage: React.FC<DevHomePageProps> = ({ userInfo }) => {
 
       await finishCardsLoading();
 
-      if (cancelled) return;
-
-      try {
-        const [remoteHero, remoteAnnouncements, remoteLayout] = await Promise.all([
-          getContent<string>(instance, HERO_CONTENT_KEY),
-          getContent<unknown>(instance, ANNOUNCEMENTS_CONTENT_KEY),
-          getContent<HomepageLayout>(instance, HOMEPAGE_LAYOUT_CONTENT_KEY),
-        ]);
-        if (cancelled) return;
-        if (remoteHero) setHeroImageUrl(remoteHero);
-        if (remoteAnnouncements) {
-          const parsed = parseAnnouncementsContent(remoteAnnouncements);
-          if (parsed.length) setAnnouncements(parsed);
-        }
-        if (remoteLayout) setCardsPerRow(normalizeHomepageLayout(remoteLayout).cardsPerRow);
-      } catch (err) {
-        console.error('[HomePage] failed to load hero/announcements:', err);
-      }
+      // useSharePointContent loads hero/announcements/layout from here on. Not gated
+      // on `cancelled`: StrictMode's dev re-run skips this effect via hasFetchedCardsRef.
+      setSecondaryContentReady(true);
     })();
 
     return () => {

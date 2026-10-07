@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/alert-banner.css';
 import '../../styles/edit-mode.css';
-import { getContent, setContentDetailed, SiteAlert, DEFAULT_ALERT } from '../services/contentService';
+import { setContentDetailed, SiteAlert, DEFAULT_ALERT } from '../services/contentService';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
@@ -20,6 +21,26 @@ const ICONS: Record<SiteAlert['type'], string> = {
   warning: '⚠️',
   success: '✅',
   error:   '🚨',
+};
+
+const DISMISSED_STORAGE_KEY = 'alert-dismissed';
+
+/** Dismissal key: changes when the message, severity, or link changes (djb2 over the fields). */
+const alertDismissKey = (alert: SiteAlert): string => {
+  const text = JSON.stringify([alert.message, alert.type, alert.linkLabel || '', alert.linkUrl || '']);
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+  }
+  return `v2:${(hash >>> 0).toString(36)}`;
+};
+
+const readDismissedKey = (): string | null => {
+  try {
+    return sessionStorage.getItem(DISMISSED_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 };
 
 // Editors see an inline modal to compose / update the alert
@@ -105,26 +126,17 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
   const { instance } = useMsal();
   const { isEditMode } = useEditMode();
   const canEdit = userInfo.isEditor && isEditMode;
-  const [alert, setAlert] = useState<SiteAlert>(DEFAULT_ALERT);
-  const [dismissed, setDismissed] = useState(false);
+  const { data: alert, setData: setAlert } = useSharePointContent<SiteAlert>('site-alert', {
+    fallback: DEFAULT_ALERT,
+    enabled: !!userInfo.isAuthenticated,
+  });
+  const [dismissedKey, setDismissedKey] = useState<string | null>(readDismissedKey);
+  // Re-shows automatically when the alert changes (new key) even mid-session.
+  const dismissed = dismissedKey === alertDismissKey(alert);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<SiteAlert>(DEFAULT_ALERT);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<EditSaveStatus>('idle');
-
-  // Load alert from SharePoint
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const remote = await getContent<SiteAlert>(instance, 'site-alert');
-      if (remote) {
-        setAlert(remote);
-        // Check if this exact message was already dismissed this session
-        const dismissedMsg = sessionStorage.getItem('alert-dismissed');
-        setDismissed(dismissedMsg === remote.message);
-      }
-    })();
-  }, [userInfo.isAuthenticated, instance]);
 
   const openEdit = useCallback(() => {
     setDraft({ ...alert });
@@ -143,16 +155,25 @@ const AlertBanner: React.FC<AlertBannerProps> = ({ userInfo }) => {
     const result = await setContentDetailed(instance, 'site-alert', draft);
     if (result.ok) {
       setAlert(draft);
-      setDismissed(false);
-      sessionStorage.removeItem('alert-dismissed');
+      setDismissedKey(null);
+      try {
+        sessionStorage.removeItem(DISMISSED_STORAGE_KEY);
+      } catch {
+        // ignore private mode
+      }
     }
     setSaving(false);
     await finishEditSave(result, setSaveStatus, closeEdit);
   };
 
   const dismiss = () => {
-    setDismissed(true);
-    sessionStorage.setItem('alert-dismissed', alert.message);
+    const key = alertDismissKey(alert);
+    setDismissedKey(key);
+    try {
+      sessionStorage.setItem(DISMISSED_STORAGE_KEY, key);
+    } catch {
+      // ignore private mode
+    }
   };
 
   const showBanner = alert.isActive && alert.message && !dismissed;

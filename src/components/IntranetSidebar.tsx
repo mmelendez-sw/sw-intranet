@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
-  getContent,
   setContent,
   setContentDetailed,
   SidebarSection,
@@ -18,13 +17,12 @@ import {
   parseSidebarContent,
   buildSidebarContentFile,
   stampSidebarSectionEditor,
-  BirthdaysContent,
-  parseBirthdaysContent,
   birthdaysOrDefault,
+  DEFAULT_BIRTHDAYS,
 } from '../services/contentService';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
+import { useSharePointContent } from '../hooks/useSharePointContent';
 import {
-  BIRTHDAYS_UPDATED_EVENT,
   MONTH_NAMES,
   birthdaysInMonth,
   filterActiveBirthdays,
@@ -137,6 +135,14 @@ const getQuickLinkValidationError = (link: QuickLink): string | null => {
 
 const QUICK_LINKS_BLOCK: SidebarLayoutBlock = { type: 'quick-links' };
 
+const parseQuickLinks = (raw: unknown): QuickLink[] =>
+  Array.isArray(raw)
+    ? (raw as QuickLink[]).map((link) => ({ ...link, isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly }))
+    : DEFAULT_QUICK_LINKS;
+
+const parseSidebarLayoutBlocks = (raw: unknown): SidebarLayoutBlock[] | undefined =>
+  (raw as SidebarLayout | null)?.blocks;
+
 const buildDefaultSidebarLayout = (sections: SidebarSection[]): SidebarLayoutBlock[] => [
   ...[...sections].sort((a, b) => a.order - b.order).map((s) => ({ type: 'section' as const, key: s.key })),
   QUICK_LINKS_BLOCK,
@@ -190,11 +196,35 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const { isEditMode } = useEditMode();
   const canEdit = isEditor && isEditMode;
 
-  // ── Data state ──
-  const [sections, setSections] = useState<SidebarSection[]>(DEFAULT_SIDEBAR);
-  const [quickLinks, setQuickLinks] = useState<QuickLink[]>(DEFAULT_QUICK_LINKS);
-  const [siteConfig, setSiteConfig] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
-  const [blocks, setBlocks] = useState<SidebarLayoutBlock[]>(() => buildDefaultSidebarLayout(DEFAULT_SIDEBAR));
+  // ── Data state (cached first, refreshed from SharePoint; edits use separate drafts) ──
+  const contentEnabled = !!userInfo.isAuthenticated;
+  const { data: sections, setData: setSections } = useSharePointContent<SidebarSection[]>(
+    SIDEBAR_CONTENT_KEY,
+    {
+      fallback: DEFAULT_SIDEBAR,
+      parse: parseSidebarContent,
+      enabled: contentEnabled,
+      // Keep current sections when the stored file parses empty (matches prior behavior).
+      shouldApply: (next) => next.length > 0,
+    }
+  );
+  const { data: quickLinks, setData: setQuickLinks } = useSharePointContent<QuickLink[]>('quick-links', {
+    fallback: DEFAULT_QUICK_LINKS,
+    parse: parseQuickLinks,
+    enabled: contentEnabled,
+  });
+  const { data: siteConfig, setData: setSiteConfig } = useSharePointContent<SiteConfig>('site-config', {
+    fallback: DEFAULT_SITE_CONFIG,
+    enabled: contentEnabled,
+  });
+  const { data: layoutBlocks, setData: setLayoutBlocks } = useSharePointContent<
+    SidebarLayoutBlock[] | undefined
+  >('sidebar-layout', {
+    fallback: undefined,
+    parse: parseSidebarLayoutBlocks,
+    enabled: contentEnabled,
+  });
+  const blocks = useMemo(() => syncSidebarLayout(layoutBlocks, sections), [layoutBlocks, sections]);
 
   // ── Section edit state ──
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
@@ -217,56 +247,18 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [configDraft, setConfigDraft] = useState<SiteConfig>(DEFAULT_SITE_CONFIG);
   const [savingConfig, setSavingConfig] = useState(false);
   const [configSaveStatus, setConfigSaveStatus] = useState<EditSaveStatus>('idle');
-  const [birthdays, setBirthdays] = useState<BirthdaysContent>(() =>
-    birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY))
-  );
+  // Re-renders when the homepage birthday editor saves (content-updated event).
+  const { data: birthdays } = useSharePointContent(BIRTHDAYS_CONTENT_KEY, {
+    fallback: DEFAULT_BIRTHDAYS,
+    parse: birthdaysOrDefault,
+    enabled: contentEnabled,
+  });
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
-
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-    let cancelled = false;
-    const load = async () => {
-      const remote = await getContent<unknown>(instance, BIRTHDAYS_CONTENT_KEY);
-      if (!cancelled && remote) setBirthdays(parseBirthdaysContent(remote));
-    };
-    const onUpdated = () => setBirthdays(birthdaysOrDefault(getCachedContent(BIRTHDAYS_CONTENT_KEY)));
-    void load();
-    window.addEventListener(BIRTHDAYS_UPDATED_EVENT, onUpdated);
-    return () => {
-      cancelled = true;
-      window.removeEventListener(BIRTHDAYS_UPDATED_EVENT, onUpdated);
-    };
-  }, [userInfo.isAuthenticated, instance]);
 
   const currentMonth = new Date().getMonth() + 1;
   const monthBirthdays = directoryUsers === undefined
     ? []
     : birthdaysInMonth(filterActiveBirthdays(birthdays.people, directoryUsers), currentMonth);
-
-  // ── Load from SharePoint ──
-  useEffect(() => {
-    if (!userInfo.isAuthenticated) return;
-    (async () => {
-      const [remoteSections, remoteLinks, remoteConfig, remoteLayout] = await Promise.all([
-        getContent<unknown>(instance, SIDEBAR_CONTENT_KEY),
-        getContent<QuickLink[]>(instance, 'quick-links'),
-        getContent<SiteConfig>(instance, 'site-config'),
-        getContent<SidebarLayout>(instance, 'sidebar-layout'),
-      ]);
-      const sectionsData = remoteSections ? parseSidebarContent(remoteSections) : [];
-      if (sectionsData.length) setSections(sectionsData);
-      if (remoteLinks) {
-        setQuickLinks(
-          remoteLinks.map((link) => ({
-            ...link,
-            isNetSuiteAdminOnly: !!link.isNetSuiteAdminOnly,
-          }))
-        );
-      }
-      if (remoteConfig) setSiteConfig(remoteConfig);
-      setBlocks(syncSidebarLayout(remoteLayout?.blocks, sectionsData));
-    })();
-  }, [userInfo.isAuthenticated, instance]);
 
   const resetSectionLinkInsert = useCallback(() => {
     setLinkInsertUrl('');
@@ -308,7 +300,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   }, [editSectionDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix, resetSectionLinkInsert]);
 
   const persistSidebarLayout = async (newBlocks: SidebarLayoutBlock[]) => {
-    setBlocks(newBlocks);
+    setLayoutBlocks(newBlocks);
     await setContent(instance, 'sidebar-layout', { blocks: newBlocks });
   };
 
