@@ -29,6 +29,8 @@ export interface EditModalProps {
   saveStatus?: EditSaveStatus;
   /** Autosave "Done" — defaults to onClose. Use to block leave until SharePoint save succeeds. */
   onDone?: () => void | Promise<void>;
+  /** Dialog aria-label when it should differ from the visible title. */
+  ariaLabel?: string;
 }
 
 export const EditModal: React.FC<EditModalProps> = ({
@@ -41,6 +43,7 @@ export const EditModal: React.FC<EditModalProps> = ({
   autoSave = false,
   saveStatus = 'idle',
   onDone,
+  ariaLabel,
 }) => {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -50,7 +53,7 @@ export const EditModal: React.FC<EditModalProps> = ({
 
   return (
     <div className="edit-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={ariaLabel ?? title}>
         <div className="edit-modal-header">
           <h3>{title}</h3>
           <button className="edit-modal-close" onClick={onClose} aria-label="Close">&times;</button>

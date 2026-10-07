@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useMsal } from '@azure/msal-react';
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -30,9 +30,9 @@ import {
 import '../../styles/edit-mode.css';
 import {
   EditSaveStatus,
-  EditSaveStatusText,
   finishEditSave,
 } from './EditSaveStatusText';
+import { EditModal } from './homePageShared';
 import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
@@ -47,56 +47,6 @@ interface IntranetSidebarProps {
   /** Extra CSS classes appended after the base "sidebar" class */
   className?: string;
 }
-
-// ─── Shared Edit Modal ────────────────────────────────────────────────────────
-
-interface EditModalProps {
-  title: string;
-  onClose: () => void;
-  onSave: () => Promise<void>;
-  isSaving: boolean;
-  onDelete?: () => Promise<void>;
-  children: React.ReactNode;
-  saveStatus?: EditSaveStatus;
-}
-
-const EditModal: React.FC<EditModalProps> = ({
-  title,
-  onClose,
-  onSave,
-  isSaving,
-  onDelete,
-  children,
-  saveStatus = 'idle',
-}) => {
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
-
-  return (
-    <div className="edit-modal-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={title}>
-        <div className="edit-modal-header">
-          <h3>{title}</h3>
-          <button className="edit-modal-close" onClick={onClose} aria-label="Close">&times;</button>
-        </div>
-        <div className="edit-modal-body">{children}</div>
-        <div className="edit-modal-footer">
-          {onDelete && (
-            <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>🗑 Delete</button>
-          )}
-          <div className="edit-modal-footer-right">
-            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
-            <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
-            <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const getSectionValidationError = (section: SidebarSection): string | null => {
   const buttonUrl = section.buttonUrl?.trim() || '';

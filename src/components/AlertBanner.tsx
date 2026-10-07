@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/alert-banner.css';
 import '../../styles/edit-mode.css';
@@ -8,9 +8,9 @@ import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import {
   EditSaveStatus,
-  EditSaveStatusText,
   finishEditSave,
 } from './EditSaveStatusText';
+import { EditModal } from './homePageShared';
 
 interface AlertBannerProps {
   userInfo: UserInfo;
@@ -60,65 +60,49 @@ const AlertEditModal: React.FC<EditModalProps> = ({
   onClose,
   isSaving,
   saveStatus = 'idle',
-}) => {
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, [onClose]);
-
-  return (
-    <div className="edit-modal-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-modal" role="dialog" aria-label="Edit site alert">
-        <div className="edit-modal-header">
-          <h3>Site-wide Alert Banner</h3>
-          <button className="edit-modal-close" onClick={onClose}>&times;</button>
-        </div>
-        <div className="edit-modal-body">
-          <div className="edit-checkbox-row" style={{ marginBottom: 8 }}>
-            <input type="checkbox" id="alert-active" checked={draft.isActive}
-              onChange={e => onChange({ ...draft, isActive: e.target.checked })} />
-            <label htmlFor="alert-active" style={{ fontWeight: 600 }}>Banner is active (visible to all users)</label>
-          </div>
-          <div className="edit-field-group">
-            <label>Message</label>
-            <textarea rows={3} value={draft.message}
-              onChange={e => onChange({ ...draft, message: e.target.value })}
-              placeholder="e.g. Office closed Friday, April 18 — Good Friday holiday." />
-          </div>
-          <div className="edit-field-group">
-            <label>Type</label>
-            <select value={draft.type} onChange={e => onChange({ ...draft, type: e.target.value as SiteAlert['type'] })}>
-              <option value="info">ℹ️ Info (blue)</option>
-              <option value="warning">⚠️ Warning (yellow)</option>
-              <option value="success">✅ Success (green)</option>
-              <option value="error">🚨 Alert (red)</option>
-            </select>
-          </div>
-          <div className="edit-field-group">
-            <label>CTA Link Label (optional)</label>
-            <input type="text" value={draft.linkLabel || ''}
-              onChange={e => onChange({ ...draft, linkLabel: e.target.value })}
-              placeholder="e.g. Read more" />
-          </div>
-          <div className="edit-field-group">
-            <label>CTA Link URL (optional)</label>
-            <input type="url" value={draft.linkUrl || ''}
-              onChange={e => onChange({ ...draft, linkUrl: e.target.value })}
-              placeholder="https://…" />
-          </div>
-        </div>
-        <div className="edit-modal-footer">
-          <div className="edit-modal-footer-right">
-            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
-            <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
-            <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
-          </div>
-        </div>
-      </div>
+}) => (
+  <EditModal
+    title="Site-wide Alert Banner"
+    ariaLabel="Edit site alert"
+    onClose={onClose}
+    onSave={onSave}
+    isSaving={isSaving}
+    saveStatus={saveStatus}
+  >
+    <div className="edit-checkbox-row" style={{ marginBottom: 8 }}>
+      <input type="checkbox" id="alert-active" checked={draft.isActive}
+        onChange={e => onChange({ ...draft, isActive: e.target.checked })} />
+      <label htmlFor="alert-active" style={{ fontWeight: 600 }}>Banner is active (visible to all users)</label>
     </div>
-  );
-};
+    <div className="edit-field-group">
+      <label>Message</label>
+      <textarea rows={3} value={draft.message}
+        onChange={e => onChange({ ...draft, message: e.target.value })}
+        placeholder="e.g. Office closed Friday, April 18 — Good Friday holiday." />
+    </div>
+    <div className="edit-field-group">
+      <label>Type</label>
+      <select value={draft.type} onChange={e => onChange({ ...draft, type: e.target.value as SiteAlert['type'] })}>
+        <option value="info">ℹ️ Info (blue)</option>
+        <option value="warning">⚠️ Warning (yellow)</option>
+        <option value="success">✅ Success (green)</option>
+        <option value="error">🚨 Alert (red)</option>
+      </select>
+    </div>
+    <div className="edit-field-group">
+      <label>CTA Link Label (optional)</label>
+      <input type="text" value={draft.linkLabel || ''}
+        onChange={e => onChange({ ...draft, linkLabel: e.target.value })}
+        placeholder="e.g. Read more" />
+    </div>
+    <div className="edit-field-group">
+      <label>CTA Link URL (optional)</label>
+      <input type="url" value={draft.linkUrl || ''}
+        onChange={e => onChange({ ...draft, linkUrl: e.target.value })}
+        placeholder="https://…" />
+    </div>
+  </EditModal>
+);
 
 // ─── Main AlertBanner component ───────────────────────────────────────────────
 

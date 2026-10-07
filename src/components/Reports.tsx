@@ -21,63 +21,13 @@ import { useSharePointContent } from '../hooks/useSharePointContent';
 import IntranetSidebar from './IntranetSidebar';
 import {
   EditSaveStatus,
-  EditSaveStatusText,
   finishEditSave,
 } from './EditSaveStatusText';
+import { EditModal } from './homePageShared';
 
 interface ReportsProps {
   userInfo: UserInfo;
 }
-
-// ─── Inline Edit Modal ─────────────────────────────────────────────────────
-
-interface EditModalProps {
-  title: string;
-  onClose: () => void;
-  onSave: () => Promise<void>;
-  isSaving: boolean;
-  onDelete?: () => Promise<void>;
-  children: React.ReactNode;
-  saveStatus?: EditSaveStatus;
-}
-
-const EditModal: React.FC<EditModalProps> = ({
-  title,
-  onClose,
-  onSave,
-  isSaving,
-  onDelete,
-  children,
-  saveStatus = 'idle',
-}) => {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  return (
-    <div className="edit-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="edit-modal" role="dialog" aria-modal="true" aria-label={title}>
-        <div className="edit-modal-header">
-          <h3>{title}</h3>
-          <button className="edit-modal-close" onClick={onClose} aria-label="Close">&times;</button>
-        </div>
-        <div className="edit-modal-body">{children}</div>
-        <div className="edit-modal-footer">
-          {onDelete && (
-            <button className="edit-delete-btn" onClick={onDelete} disabled={isSaving}>🗑 Delete</button>
-          )}
-          <div className="edit-modal-footer-right">
-            <EditSaveStatusText status={isSaving ? 'saving' : saveStatus} />
-            <button className="edit-btn-cancel" onClick={onClose} disabled={isSaving}>Cancel</button>
-            <button className="edit-btn-save" onClick={onSave} disabled={isSaving}>Save</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ─── Reports Page ──────────────────────────────────────────────────────────
 
