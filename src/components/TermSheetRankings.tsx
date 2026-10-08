@@ -3,7 +3,7 @@ import { InteractionStatus } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
 import { BYPASS_AUTH, SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
 import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
-import { GraphUser } from '../services/directoryService';
+import { GraphUser, isNameOnHold } from '../services/directoryService';
 import { intranetApiFetch } from '../services/intranetApi';
 import '../../styles/term-sheet-rankings.css';
 import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
@@ -106,7 +106,7 @@ function mergeLiveCounts(
   });
 
   for (const row of liveCounts) {
-    if (!matched.has(row)) people.push({ displayName: row.name, count: row.count });
+    if (!matched.has(row) && !isNameOnHold(row.name)) people.push({ displayName: row.name, count: row.count });
   }
   return people;
 }
