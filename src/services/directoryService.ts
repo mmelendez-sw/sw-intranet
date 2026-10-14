@@ -45,6 +45,21 @@ function hasAllowedCompany(user: GraphUser): boolean {
   return user.companyName?.trim().toLowerCase() === ALLOWED_COMPANY;
 }
 
+/**
+ * People not yet formally onboarded: their names stay off the site until `showFrom`
+ * (local midnight). Remove entries once the date has passed.
+ */
+const ONBOARDING_HOLDS: { name: string; showFrom: Date }[] = [
+  { name: 'alex macheras', showFrom: new Date(2026, 9, 19) },
+];
+
+/** True when this name must not be rendered yet (pending onboarding). */
+export function isNameOnHold(name: string | null | undefined): boolean {
+  const normalized = (name ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const now = new Date();
+  return ONBOARDING_HOLDS.some((hold) => now < hold.showFrom && normalized === hold.name);
+}
+
 function hasJobTitle(user: GraphUser): boolean {
   return !!user.jobTitle?.trim();
 }
@@ -92,7 +107,8 @@ export async function fetchDirectoryUsers(token: string): Promise<GraphUser[]> {
         !isRoomResource(u) &&
         hasAllowedCompany(u) &&
         hasJobTitle(u) &&
-        !isConsultant(u)
+        !isConsultant(u) &&
+        !isNameOnHold(u.displayName)
     )
     .sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
