@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
 /* General Layout */
 .home-page {
@@ -368,7 +367,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background:  url('../images/site_1.jpg') no-repeat center center;
+  background:  url('../images/optimized/site_1.jpg') no-repeat center center;
   background-size: cover;
 }
 

@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
 /**
@@ -54,7 +55,9 @@ module.exports = (_env, argv = {}) => {
         },
         {
           test: /\.css$/i,
-          use: ['style-loader', 'css-loader'],
+          // Production: real .css files the browser can cache and paint without waiting for JS.
+          // Dev keeps style-loader for HMR.
+          use: [isProduction ? MiniCssExtractPlugin.loader : 'style-loader', 'css-loader'],
         },
         {
           test: /\.(png|jpe?g|gif|svg|ico)$/i,
@@ -72,11 +75,30 @@ module.exports = (_env, argv = {}) => {
         },
       ],
     },
+    optimization: {
+      // Vendor code (react, msal, router) changes far less often than app code, so it gets
+      // its own content-hashed chunk that stays cached across most deploys. React.lazy routes
+      // in src/App.tsx become their own chunks automatically.
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            priority: -10,
+          },
+        },
+      },
+      runtimeChunk: 'single',
+    },
     plugins: [
       new webpack.DefinePlugin({
         __BUILD_ID__: JSON.stringify(buildId),
       }),
       new BuildVersionPlugin(buildId),
+      ...(isProduction
+        ? [new MiniCssExtractPlugin({ filename: '[name].[contenthash].css' })]
+        : []),
       new HtmlWebpackPlugin({
         template: './public/index.html',
         filename: 'index.html',

@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './App';
 import '../styles/global.css';
 // After App + global.css so its :where()-scoped rules win cascade ties; inert unless data-theme="dark".
@@ -36,13 +36,13 @@ const renderApp = async () => {
   // Warm IndexedDB/object-URL cache without blocking first paint.
   void warmHomepageImageCache(msalInstance);
 
-  ReactDOM.render(
+  // React 18 concurrent root: enables automatic batching and Suspense for the lazy routes.
+  createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
       <MsalProvider instance={msalInstance}>
         <App />
       </MsalProvider>
-    </React.StrictMode>,
-    document.getElementById('root')
+    </React.StrictMode>
   );
 };
 

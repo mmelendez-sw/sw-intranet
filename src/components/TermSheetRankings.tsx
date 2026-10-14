@@ -6,10 +6,10 @@ import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/t
 import { GraphUser, isNameOnHold } from '../services/directoryService';
 import { intranetApiFetch } from '../services/intranetApi';
 import '../../styles/term-sheet-rankings.css';
-import awkwardKidImg from '../../images/term-sheet-rankings/awkward-kid.png';
-import awesomeKidImg from '../../images/term-sheet-rankings/awesome-kid.png';
-import gatsbyImg from '../../images/term-sheet-rankings/gatsby.png';
-import godfatherImg from '../../images/term-sheet-rankings/godfather.png';
+import awkwardKidImg from '../../images/optimized/term-sheet-rankings/awkward-kid.png';
+import awesomeKidImg from '../../images/optimized/term-sheet-rankings/awesome-kid.png';
+import gatsbyImg from '../../images/optimized/term-sheet-rankings/gatsby.png';
+import godfatherImg from '../../images/optimized/term-sheet-rankings/godfather.png';
 
 export type TermSheetTier = 0 | 1 | 2 | 3;
 
