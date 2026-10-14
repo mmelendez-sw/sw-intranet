@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 export type UserTheme = 'light' | 'dark';
 
@@ -61,8 +61,13 @@ export const ThemeProvider: React.FC<{ email?: string; children: React.ReactNode
     });
   }, [email]);
 
+  const value = useMemo(
+    () => ({ theme, canToggle: !!email, toggleTheme }),
+    [theme, email, toggleTheme]
+  );
+
   return (
-    <ThemeContext.Provider value={{ theme, canToggle: !!email, toggleTheme }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

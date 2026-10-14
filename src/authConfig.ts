@@ -212,10 +212,23 @@ export const HOMEPAGE_LAYOUT_DATA_FILENAME = 'homepage-layout.json';
  * so callers do not cache false and hide elite/editor UI on transient errors.
  */
 const checkGroupMembership = async (msalInstance: any, groupId: string): Promise<boolean> => {
-  if (BYPASS_AUTH) return true;
+  const result = await checkGroupMemberships(msalInstance, [groupId]);
+  return result.has(groupId);
+};
+
+/**
+ * One Graph round-trip for several groups (checkMemberGroups accepts up to 20 ids).
+ * Returns the subset of `groupIds` the signed-in user belongs to. Same failure semantics
+ * as checkGroupMembership: throws when the answer is indeterminate.
+ */
+export const checkGroupMemberships = async (
+  msalInstance: any,
+  groupIds: string[]
+): Promise<Set<string>> => {
+  if (BYPASS_AUTH) return new Set(groupIds);
 
   const accounts = msalInstance.getAllAccounts();
-  if (accounts.length === 0) return false;
+  if (accounts.length === 0) return new Set();
 
   const graphScopes = GRAPH_GROUP_SCOPES;
 
@@ -236,21 +249,24 @@ const checkGroupMembership = async (msalInstance: any, groupId: string): Promise
     const checkRes = await fetch('https://graph.microsoft.com/v1.0/me/checkMemberGroups', {
       method: 'POST',
       headers: graphHeaders,
-      body: JSON.stringify({ groupIds: [groupId] }),
+      body: JSON.stringify({ groupIds }),
       signal: controller.signal,
     });
 
+    const wanted = new Set(groupIds);
     if (checkRes.ok) {
       const body = await checkRes.json();
-      return Array.isArray(body.value) && body.value.includes(groupId);
+      const ids: string[] = Array.isArray(body.value) ? body.value : [];
+      return new Set(ids.filter((id) => wanted.has(id)));
     }
 
     type MemberOfPage = {
       value?: Array<{ id?: string }>;
       ['@odata.nextLink']?: string;
     };
+    const found = new Set<string>();
     let memberOfUrl: string | null = 'https://graph.microsoft.com/v1.0/me/memberOf';
-    while (memberOfUrl) {
+    while (memberOfUrl && found.size < wanted.size) {
       const memberRes: Response = await fetch(memberOfUrl, {
         headers: graphHeaders,
         signal: controller.signal,
@@ -259,12 +275,12 @@ const checkGroupMembership = async (msalInstance: any, groupId: string): Promise
         throw new Error(`Graph memberOf failed (${memberRes.status})`);
       }
       const memberPage: MemberOfPage = await memberRes.json();
-      if (memberPage.value?.some((group) => group.id === groupId)) {
-        return true;
-      }
+      memberPage.value?.forEach((group) => {
+        if (group.id && wanted.has(group.id)) found.add(group.id);
+      });
       memberOfUrl = memberPage['@odata.nextLink'] ?? null;
     }
-    return false;
+    return found;
   } catch (fetchError: any) {
     if (fetchError?.name === 'AbortError') {
       throw new Error('Graph group membership check timed out');

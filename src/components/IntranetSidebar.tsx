@@ -206,9 +206,18 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const directoryUsers = useDirectoryUsers(!!userInfo.isAuthenticated);
 
   const currentMonth = new Date().getMonth() + 1;
-  const monthBirthdays = directoryUsers === undefined
-    ? []
-    : birthdaysInMonth(filterActiveBirthdays(birthdays.people, directoryUsers), currentMonth);
+  // Narrow to this month before the directory match (name normalisation per pair), and
+  // memoise so the sidebar doesn't redo it on every keystroke in an edit modal.
+  const monthBirthdays = useMemo(
+    () =>
+      directoryUsers === undefined
+        ? []
+        : birthdaysInMonth(
+            filterActiveBirthdays(birthdaysInMonth(birthdays.people, currentMonth), directoryUsers),
+            currentMonth
+          ),
+    [birthdays.people, directoryUsers, currentMonth]
+  );
 
   const resetSectionLinkInsert = useCallback(() => {
     setLinkInsertUrl('');

@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 interface EditModeContextValue {
   isEditMode: boolean;
@@ -36,8 +36,11 @@ export const EditMenuProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, []);
 
+  // Stable value: consumers re-render only when edit mode actually flips, not on every App render.
+  const value = useMemo(() => ({ isEditMode, toggleEditMode }), [isEditMode, toggleEditMode]);
+
   return (
-    <EditModeContext.Provider value={{ isEditMode, toggleEditMode }}>
+    <EditModeContext.Provider value={value}>
       {children}
     </EditModeContext.Provider>
   );

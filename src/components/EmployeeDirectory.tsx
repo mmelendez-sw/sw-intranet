@@ -1,16 +1,21 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
 import '../../styles/employee-directory.css';
 import { BYPASS_AUTH } from '../authConfig';
 import { MOCK_DIRECTORY_USERS } from '../data/mockContent';
-import { GraphUser, fetchDirectoryUsers, getDirectoryToken } from '../services/directoryService';
+import { GraphUser, getDirectoryToken, getDirectoryUsersCached } from '../services/directoryService';
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
+
+/** Avatars render at ~72 px, so ask Graph for its 96×96 rendition, not the 648 px original. */
+const PHOTO_SIZE = '96x96';
+/** Parallel photo downloads — enough to fill the grid fast without tripping Graph throttling. */
+const PHOTO_CONCURRENCY = 6;
 
 async function fetchPhoto(token: string, userId: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://graph.microsoft.com/v1.0/users/${userId}/photo/$value`,
+      `https://graph.microsoft.com/v1.0/users/${userId}/photos/${PHOTO_SIZE}/$value`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!res.ok) return null;
@@ -19,6 +24,23 @@ async function fetchPhoto(token: string, userId: string): Promise<string | null>
   } catch {
     return null;
   }
+}
+
+/** Run `worker` over `items` with at most `limit` in flight; results arrive via `onResult`. */
+async function runWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<R>,
+  onResult: (item: T, result: R) => void
+): Promise<void> {
+  let next = 0;
+  const lane = async () => {
+    while (next < items.length) {
+      const item = items[next++];
+      onResult(item, await worker(item));
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, lane));
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -57,8 +79,19 @@ const EmployeeDirectory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  /** Object URLs created for avatars this mount; revoked on unmount / reload. */
+  const photoUrlsRef = useRef<string[]>([]);
+  const loadGenerationRef = useRef(0);
+
+  const releasePhotoUrls = useCallback(() => {
+    photoUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    photoUrlsRef.current = [];
+  }, []);
 
   const loadDirectory = useCallback(async () => {
+    const generation = ++loadGenerationRef.current;
+    const isCurrent = () => loadGenerationRef.current === generation;
+    releasePhotoUrls();
     setLoading(true);
     setError(null);
     if (BYPASS_AUTH) {
@@ -73,36 +106,55 @@ const EmployeeDirectory: React.FC = () => {
         return;
       }
 
-      const rawUsers = await fetchDirectoryUsers(token);
+      // Shared with the homepage/sidebar birthday cross-reference: one /users download per page load.
+      const rawUsers = await getDirectoryUsersCached(instance);
+      if (!isCurrent()) return;
+      if (!rawUsers) {
+        setError('Failed to load employee directory.');
+        return;
+      }
       setUsers(rawUsers);
       setLoading(false);
 
-      // Load photos in the background — don't block the initial render
-      const withPhotos = await Promise.all(
-        rawUsers.map(async (u) => {
-          const photoUrl = await fetchPhoto(token, u.id);
-          return { ...u, photoUrl: photoUrl ?? undefined };
-        })
+      // Photos stream in a few at a time and each card updates as its own photo lands,
+      // instead of one re-render after the slowest of ~100 downloads.
+      await runWithConcurrency(
+        rawUsers,
+        PHOTO_CONCURRENCY,
+        (u) => fetchPhoto(token, u.id),
+        (u, photoUrl) => {
+          if (!photoUrl) return;
+          if (!isCurrent()) {
+            URL.revokeObjectURL(photoUrl);
+            return;
+          }
+          photoUrlsRef.current.push(photoUrl);
+          setUsers((current) => current.map((x) => (x.id === u.id ? { ...x, photoUrl } : x)));
+        }
       );
-      setUsers(withPhotos);
     } catch (err: any) {
-      setError(err.message ?? 'Failed to load employee directory.');
+      if (isCurrent()) setError(err.message ?? 'Failed to load employee directory.');
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [instance]);
+  }, [instance, releasePhotoUrls]);
 
   useEffect(() => { loadDirectory(); }, [loadDirectory]);
+  useEffect(() => () => {
+    loadGenerationRef.current++;
+    releasePhotoUrls();
+  }, [releasePhotoUrls]);
 
-  const filtered = users.filter(u => {
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return (
+    if (!q) return users;
+    return users.filter(u =>
       u.displayName.toLowerCase().includes(q) ||
       (u.department ?? '').toLowerCase().includes(q) ||
       (u.jobTitle ?? '').toLowerCase().includes(q) ||
       (u.mail ?? '').toLowerCase().includes(q)
     );
-  });
+  }, [users, search]);
 
   return (
     <div className="directory-page">

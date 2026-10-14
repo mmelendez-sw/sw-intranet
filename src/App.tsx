@@ -1,17 +1,34 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 // AlertBanner / Ticker are disabled below — restore their imports when re-enabling the JSX.
 import HomePage from './components/HomePage';
-import Reports from './components/Reports';
-import LeadGeneration from './components/LeadGeneration';
-import Iceman from './components/Iceman';
-import EmployeeDirectory from './components/EmployeeDirectory';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 // import TvDisplay from './components/TvDisplay';
-import { BYPASS_AUTH, DEV_USER_INFO, isEliteGroupMember, isEditorGroupMember, resolveIsEditor, isNetSuiteAdminAllowlisted, isIcemanAllowlisted } from './authConfig';
+import {
+  BYPASS_AUTH,
+  DEV_USER_INFO,
+  INTRANET_EDITORS_GROUP_ID,
+  INTRANET_EXECS_GROUP_ID,
+  checkGroupMemberships,
+  resolveIsEditor,
+  isNetSuiteAdminAllowlisted,
+  isIcemanAllowlisted,
+} from './authConfig';
+
+// Secondary routes load on first visit; the homepage bundle stays small for everyone.
+const Reports = lazy(() => import('./components/Reports'));
+const LeadGeneration = lazy(() => import('./components/LeadGeneration'));
+const Iceman = lazy(() => import('./components/Iceman'));
+const EmployeeDirectory = lazy(() => import('./components/EmployeeDirectory'));
+
+const RouteFallback: React.FC = () => (
+  <div className="app-loading" role="status" aria-label="Loading">
+    <div className="app-loading-spinner" aria-hidden="true" />
+  </div>
+);
 import { UserInfo } from './types/user';
 import { EditMenuProvider } from './context/EditMenuContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -112,12 +129,13 @@ const App: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, retryDelays[attempt]));
       }
       try {
-        const [eliteResult, editorResult] = await Promise.all([
-          isEliteGroupMember(instance),
-          isEditorGroupMember(instance),
+        // Both groups in one checkMemberGroups call (and one call per retry).
+        const memberOf = await checkGroupMemberships(instance, [
+          INTRANET_EXECS_GROUP_ID,
+          INTRANET_EDITORS_GROUP_ID,
         ]);
-        const isElite = eliteResult;
-        const isEditor = resolveIsEditor(editorResult, email);
+        const isElite = memberOf.has(INTRANET_EXECS_GROUP_ID);
+        const isEditor = resolveIsEditor(memberOf.has(INTRANET_EDITORS_GROUP_ID), email);
 
         writeCachedEliteStatus(email, isElite);
         writeCachedEditorStatus(email, isEditor);
@@ -226,27 +244,29 @@ const App: React.FC = () => {
                 <Ticker userInfo={userInfo} />
               </div> */}
               <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<HomePage userInfo={userInfo} />} />
-                  <Route
-                    path="/lead-generation"
-                    element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
-                  />
-                  <Route
-                    path="/iceman"
-                    element={
-                      (userInfo.isAuthenticated || hasSignedInAccount) && isIcemanAllowlisted(userInfo.email)
-                        ? <Iceman userInfo={userInfo} />
-                        : <Navigate to="/" replace />
-                    }
-                  />
-                  {userInfo.isAuthenticated && (
-                    <>
-                      <Route path="/directory" element={<EmployeeDirectory />} />
-                      <Route path="/reports" element={<Reports userInfo={userInfo} />} />
-                    </>
-                  )}
-                </Routes>
+                <Suspense fallback={<RouteFallback />}>
+                  <Routes>
+                    <Route path="/" element={<HomePage userInfo={userInfo} />} />
+                    <Route
+                      path="/lead-generation"
+                      element={userInfo.isAuthenticated || hasSignedInAccount ? <LeadGeneration userInfo={userInfo} /> : <Navigate to="/" replace />}
+                    />
+                    <Route
+                      path="/iceman"
+                      element={
+                        (userInfo.isAuthenticated || hasSignedInAccount) && isIcemanAllowlisted(userInfo.email)
+                          ? <Iceman userInfo={userInfo} />
+                          : <Navigate to="/" replace />
+                      }
+                    />
+                    {userInfo.isAuthenticated && (
+                      <>
+                        <Route path="/directory" element={<EmployeeDirectory />} />
+                        <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+                      </>
+                    )}
+                  </Routes>
+                </Suspense>
               </div>
             </EditMenuProvider>
             </ThemeProvider>

@@ -87,12 +87,21 @@ const QUICK_LINKS_CONTENT_KEY = 'quick-links';
 const SITE_CONFIG_CONTENT_KEY = 'site-config';
 const SIDEBAR_LAYOUT_CONTENT_KEY = 'sidebar-layout';
 const HOMEPAGE_LAYOUT_CONTENT_KEY = 'homepage-layout';
+/**
+ * Hero banner URL as a drive file. Before this it lived only in the IntranetContent list,
+ * which costs 3–5 serial Graph calls per read; the list→drive migration in
+ * fetchContentFromRemote moves it on the first read.
+ */
+const HOMEPAGE_HERO_DATA_FILENAME = 'homepage-hero.json';
 /** Previous reports.json location before co-locating with cards in General/intranet */
 const LEGACY_REPORTS_FOLDER_PATH = 'General/intranet/reports';
 
 function getDriveContentConfig(key: string): { folderPath: string; fileName: string } | null {
   if (key === HOMEPAGE_CARDS_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: CARDS_DATA_FILENAME };
+  }
+  if (key === HOMEPAGE_HERO_KEY) {
+    return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: HOMEPAGE_HERO_DATA_FILENAME };
   }
   if (key === ANNOUNCEMENTS_CONTENT_KEY) {
     return { folderPath: INTRANET_CONTENT_FOLDER_PATH, fileName: ANNOUNCEMENTS_DATA_FILENAME };
@@ -1184,6 +1193,18 @@ function encodeSharePointUrlForGraph(webUrl: string): string {
   return `u!${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
 }
 
+/**
+ * Card/hero slots render at ≤1600 px wide, so ask Graph for a server-side thumbnail instead
+ * of the original bytes (often 1–6 MB camera files). Animated/vector formats keep the original.
+ */
+const IMAGE_THUMBNAIL_SIZE = 'c1600x1600';
+const THUMBNAIL_SKIP_EXTENSIONS = new Set(['gif', 'svg']);
+
+function canUseThumbnail(drivePath: string): boolean {
+  const ext = drivePath.split('.').pop()?.toLowerCase() ?? '';
+  return !THUMBNAIL_SKIP_EXTENSIONS.has(ext);
+}
+
 async function fetchSharePointImageBlob(msalInstance: any, webUrl: string): Promise<Blob | null> {
   const token = await getToken(msalInstance);
   if (!token) return null;
@@ -1193,10 +1214,16 @@ async function fetchSharePointImageBlob(msalInstance: any, webUrl: string): Prom
     const siteId = await getSiteId(token, IMAGE_SHAREPOINT_SITE_PATH);
     // Encode each segment (e.g. "Default Images") — raw spaces break Graph /content
     const encodedPath = encodeDriveRelativePath(drivePath);
-    const res = await fetch(
-      `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodedPath}:/content`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const itemUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${encodedPath}`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    if (canUseThumbnail(drivePath)) {
+      const thumbRes = await fetch(`${itemUrl}:/thumbnails/0/${IMAGE_THUMBNAIL_SIZE}/content`, { headers });
+      if (thumbRes.ok) return thumbRes.blob();
+      // Thumbnails are best-effort (not generated yet, unsupported type): fall through to the original.
+    }
+
+    const res = await fetch(`${itemUrl}:/content`, { headers });
     if (res.ok) return res.blob();
     const err = await res.text().catch(() => '');
     console.warn(`[contentService] SharePoint image fetch failed (${res.status}):`, drivePath, err);
@@ -1338,12 +1365,17 @@ export async function getSharePointImageBlobUrl(
   }
 }
 
-/** Collect SharePoint image URLs from cached/seed homepage content for boot-time warmup. */
-export function collectHomepageImageUrls(): string[] {
+/** Cached homepage cards (or the bundled seed) in display order. */
+function cachedHomepageCards(): CardContent[] {
   const cachedCards = parseHomepageCardsContent(getCachedContent<unknown>(HOMEPAGE_CARDS_KEY));
   const cards = cachedCards.length ? cachedCards : SEED_CARDS;
+  return [...cards].sort((a, b) => a.order - b.order);
+}
+
+/** Collect SharePoint image URLs from cached/seed homepage content for boot-time warmup. */
+export function collectHomepageImageUrls(): string[] {
   const urls: string[] = [];
-  for (const card of cards) {
+  for (const card of cachedHomepageCards()) {
     if (card.imageUrl) urls.push(card.imageUrl);
   }
   const hero = getCachedContent<string>(HOMEPAGE_HERO_KEY);
@@ -1352,9 +1384,27 @@ export function collectHomepageImageUrls(): string[] {
 }
 
 /**
+ * Default Images actually shown: one per card with an empty imageUrl, cycled by position.
+ * (Warming the whole folder pulled every photo in it on every load, used or not.)
+ */
+export function collectDisplayedDefaultImageUrls(
+  cards: CardContent[],
+  defaultImages: DriveItem[]
+): string[] {
+  if (defaultImages.length === 0) return [];
+  const urls = new Set<string>();
+  cards.forEach((card, index) => {
+    if (card.imageUrl?.trim()) return;
+    const src = getDefaultFallbackImageDisplaySrc(index, defaultImages);
+    if (src && isSharePointImageUrl(src)) urls.add(src);
+  });
+  return Array.from(urls);
+}
+
+/**
  * Fetch homepage SharePoint images during app boot so the homepage paints from cache.
- * Homepage card/hero URLs warm immediately; Default Images folder listing runs in parallel
- * and does not block first paint.
+ * Homepage card/hero URLs warm immediately; the Default Images listing runs in parallel
+ * and only warms the fallbacks a card will actually display.
  */
 export async function warmHomepageImageCache(msalInstance: any): Promise<void> {
   ensureLegacyImageCacheCleared();
@@ -1367,8 +1417,10 @@ export async function warmHomepageImageCache(msalInstance: any): Promise<void> {
 
   void fetchDefaultFallbackImageUrls(msalInstance)
     .then((defaultImages) => {
-      const defaultUrls = defaultImages.map((item) => item.webUrl).filter(Boolean) as string[];
-      preloadSharePointImages(msalInstance, defaultUrls);
+      preloadSharePointImages(
+        msalInstance,
+        collectDisplayedDefaultImageUrls(cachedHomepageCards(), defaultImages)
+      );
     })
     .catch(() => {});
 
@@ -1443,6 +1495,10 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
       return null;
     }
 
+    // The PUT response is a full driveItem, so webUrl is already here; only re-read it
+    // when Graph omits it.
+    if (item.webUrl) return item.webUrl as string;
+
     try {
       const infoRes = await fetch(
         `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${item.id}?$select=@microsoft.graph.downloadUrl,webUrl`,
@@ -1463,12 +1519,8 @@ export async function uploadImage(msalInstance: any, file: File): Promise<string
       console.error('[contentService] uploadImage metadata fetch error:', infoErr);
     }
 
-    if (!item?.webUrl) {
-      console.error('[contentService] uploadImage did not return webUrl', item);
-      return null;
-    }
-
-    return item.webUrl as string;
+    console.error('[contentService] uploadImage did not return webUrl', item);
+    return null;
   } catch (err) {
     console.error('[contentService] uploadImage error:', err);
     return null;
@@ -1661,6 +1713,21 @@ async function putDriveFileContent(
   });
 }
 
+/** Folders confirmed to exist this session (siteId + path) — skips the pre-write GET. */
+const verifiedDriveFolders = new Set<string>();
+
+async function ensureDriveFolderPathOnce(siteId: string, token: string, folderPath: string): Promise<void> {
+  const key = `${siteId}|${folderPath}`;
+  if (verifiedDriveFolders.has(key)) return;
+  await ensureDriveFolderPath(siteId, token, folderPath);
+  verifiedDriveFolders.add(key);
+}
+
+/**
+ * `PUT …/root:/{path}:/content` creates or replaces in one call, so the common autosave path
+ * is a single request. The folder check and the delete/recreate fallback only run when that
+ * PUT fails (missing folder, locked/checked-out file).
+ */
 async function writeContentToSharePointDrive<T>(
   siteId: string,
   token: string,
@@ -1668,16 +1735,27 @@ async function writeContentToSharePointDrive<T>(
   data: T,
   folderPath: string = INTRANET_CONTENT_FOLDER_PATH
 ): Promise<boolean> {
-  await ensureDriveFolderPath(siteId, token, folderPath);
   const filePath = `${folderPath}/${fileName}`;
   const jsonBody = JSON.stringify(data, null, 2);
+  const pathContentUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`;
 
+  const firstRes = await putDriveFileContent(siteId, token, pathContentUrl, jsonBody);
+  if (firstRes.ok) {
+    verifiedDriveFolders.add(`${siteId}|${folderPath}`);
+    return true;
+  }
+  const firstErr = await firstRes.text().catch(() => '');
+  console.warn(
+    `[contentService] drive write "${filePath}" failed (${firstRes.status}), retrying via folder check + item id:`,
+    firstErr
+  );
+
+  await ensureDriveFolderPathOnce(siteId, token, folderPath);
   const existing = await getDriveItemByPath(siteId, token, filePath);
 
   if (existing) {
     const itemContentUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/${existing.id}/content`;
-    let res = await putDriveFileContent(siteId, token, itemContentUrl, jsonBody);
-
+    const res = await putDriveFileContent(siteId, token, itemContentUrl, jsonBody);
     if (res.ok) return true;
 
     const err = await res.text().catch(() => '');
@@ -1698,8 +1776,7 @@ async function writeContentToSharePointDrive<T>(
     }
   }
 
-  const createUrl = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${filePath}:/content`;
-  const createRes = await putDriveFileContent(siteId, token, createUrl, jsonBody);
+  const createRes = await putDriveFileContent(siteId, token, pathContentUrl, jsonBody);
   if (!createRes.ok) {
     const err = await createRes.text().catch(() => '');
     console.error(
@@ -1737,7 +1814,20 @@ async function readContentFromSharePoint<T>(
   return JSON.parse(json) as T;
 }
 
-async function fetchContentFromRemote<T>(
+/** In-flight remote reads by key: a page and its sidebar asking for the same block share one download. */
+const pendingRemoteReads = new Map<string, Promise<unknown>>();
+
+function fetchContentFromRemote<T>(msalInstance: any, key: string): Promise<T | null> {
+  const pending = pendingRemoteReads.get(key);
+  if (pending) return pending as Promise<T | null>;
+  const request = fetchContentFromRemoteUncached<T>(msalInstance, key).finally(() => {
+    if (pendingRemoteReads.get(key) === request) pendingRemoteReads.delete(key);
+  });
+  pendingRemoteReads.set(key, request);
+  return request;
+}
+
+async function fetchContentFromRemoteUncached<T>(
   msalInstance: any,
   key: string
 ): Promise<T | null> {

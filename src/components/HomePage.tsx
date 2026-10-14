@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import '../../styles/home-page.css';
 import '../../styles/edit-mode.css';
 import '../../styles/announcements.css';
@@ -21,6 +21,7 @@ import {
   preloadSharePointImages,
   fetchDefaultFallbackImageUrls,
   getDefaultFallbackImageDisplaySrc,
+  collectDisplayedDefaultImageUrls,
   DriveItem,
   CardContent,
   Announcement,
@@ -131,8 +132,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   // ── Content state ──
   const [cards, setCards] = useState<CardContent[]>(getInitialCards);
+  // Derived from the state above so the localStorage read + parse happens once per mount.
   const [cardsLoading, setCardsLoading] = useState(
-    () => CARDS_SPINNER_MIN_MS > 0 || getInitialCards().length === 0
+    () => CARDS_SPINNER_MIN_MS > 0 || cards.length === 0
   );
   // Hero / announcements / birthdays / layout fetch after the first cards load settles.
   const [secondaryContentReady, setSecondaryContentReady] = useState(false);
@@ -252,14 +254,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   }, [showHomeContent, instance]);
 
   // ── Preload SharePoint card/hero images as soon as URLs are known ──
+  // Only the images that will be displayed: custom card images, the fallback each
+  // image-less card resolves to, and the hero. Not the whole Default Images folder.
   useEffect(() => {
     if (!showHomeContent) return;
     const urls = [
-      ...defaultFallbackImages.map((item) => item.webUrl),
-      ...cards.map((card, index) => {
-        if (card.imageUrl?.trim()) return card.imageUrl;
-        return getDefaultFallbackImageDisplaySrc(index, defaultFallbackImages) || undefined;
-      }),
+      ...cards.map((card) => (card.imageUrl?.trim() ? card.imageUrl : undefined)),
+      ...collectDisplayedDefaultImageUrls(cards, defaultFallbackImages),
       heroImageUrl || undefined,
     ].filter((url): url is string => !!url && isSharePointImageUrl(url));
     const pending = urls.filter((url) => !preloadedImageUrlsRef.current.has(url));
@@ -289,14 +290,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       };
 
       try {
-        const cachedCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY);
-        if (!cancelled && cachedCards && !userModifiedCardsRef.current) {
-          const normalized = normalizeCards(parseHomepageCardsContent(cachedCards));
-          if (!cardsMatch(normalized, cardsRef.current)) {
-            setCards(normalized);
-          }
-        }
-
+        // The cached copy is already painted via getInitialCards(); a cache-first getContent
+        // here would kick off a second, discarded download of homepage-cards.json.
         const remoteCards = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
         if (!cancelled && remoteCards && !userModifiedCardsRef.current) {
           const normalized = normalizeCards(parseHomepageCardsContent(remoteCards));
@@ -324,9 +319,11 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   useEffect(() => {
     if (!showHomeContent || !contentLoaded) return;
 
+    let lastSyncAt = Date.now();
     const syncCardsFromSharePoint = async () => {
       if (editCardDraftRef.current) return;
       if (userModifiedCardsRef.current && Date.now() - lastLocalCardSaveRef.current < 120_000) return;
+      lastSyncAt = Date.now();
       const remote = await getContent<unknown>(instance, CARDS_CONTENT_KEY, CARD_POLL);
       if (!remote) return;
       const normalized = normalizeCards(parseHomepageCardsContent(remote));
@@ -336,11 +333,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
       }
     };
 
+    // Background tabs don't poll; they catch up once when they become visible again.
     const intervalId = window.setInterval(() => {
+      if (document.hidden) return;
       void syncCardsFromSharePoint();
     }, CARD_POLL_MS);
+    const onVisible = () => {
+      if (document.hidden || Date.now() - lastSyncAt < CARD_POLL_MS) return;
+      void syncCardsFromSharePoint();
+    };
+    document.addEventListener('visibilitychange', onVisible);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [showHomeContent, contentLoaded, instance]);
 
   // ── Card editing ──
@@ -397,9 +404,22 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setLinkInsertSuffix('');
   }, [editCardDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix]);
 
+  /** Object URL for the local file preview; revoked when replaced or the editor closes. */
+  const previewObjectUrlRef = useRef<string | null>(null);
+  const releasePreviewObjectUrl = useCallback(() => {
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
+      previewObjectUrlRef.current = null;
+    }
+  }, []);
+  useEffect(() => releasePreviewObjectUrl, [releasePreviewObjectUrl]);
+
   const handleImageFileChange = (file: File) => {
+    releasePreviewObjectUrl();
+    const objectUrl = URL.createObjectURL(file);
+    previewObjectUrlRef.current = objectUrl;
     setPendingImageFile(file);
-    setImagePreviewUrl(URL.createObjectURL(file));
+    setImagePreviewUrl(objectUrl);
   };
 
   const buildCardsWithDraft = useCallback(
@@ -525,12 +545,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     setIsNewCard(false);
     setPendingImageFile(null);
     pendingImageFileRef.current = null;
+    releasePreviewObjectUrl();
     setImagePreviewUrl('');
     setCardSaveStatus('idle');
     setLinkInsertUrl('');
     setLinkInsertLabel('');
     setLinkInsertSuffix('');
-  }, []);
+  }, [releasePreviewObjectUrl]);
 
   const closeCardEdit = useCallback(async () => {
     if (editCardDraftRef.current && canEdit) {
@@ -792,10 +813,21 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const sortAnnouncementsByDate = (list: Announcement[]) =>
     [...list].sort((a, b) => b.date.localeCompare(a.date));
 
-  const activeAnnouncements = sortAnnouncementsByDate(announcements.filter(a => a.isActive));
-  const inactiveAnnouncements = sortAnnouncementsByDate(announcements.filter(a => !a.isActive));
+  const activeAnnouncements = useMemo(
+    () => sortAnnouncementsByDate(announcements.filter((a) => a.isActive)),
+    [announcements]
+  );
+  const inactiveAnnouncements = useMemo(
+    () => sortAnnouncementsByDate(announcements.filter((a) => !a.isActive)),
+    [announcements]
+  );
   const visibleAnnouncements = announcementsExpanded ? activeAnnouncements : activeAnnouncements.slice(0, 2);
-  const todaysBirthdays = filterActiveBirthdays(birthdays.people, directoryUsers ?? null).filter((p) => isBirthdayToday(p));
+  // Narrow to today's date first, then run the (name-normalizing) directory match on that
+  // handful — not on every person on every keystroke in an edit modal.
+  const todaysBirthdays = useMemo(() => {
+    const today = birthdays.people.filter((p) => isBirthdayToday(p));
+    return filterActiveBirthdays(today, directoryUsers ?? null);
+  }, [birthdays.people, directoryUsers]);
   const showAnnouncementsSection =
     activeAnnouncements.length > 0 ||
     todaysBirthdays.length > 0 ||
@@ -859,11 +891,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
 
   const heroBanner = (
     <section className="homepage-hero editable-wrapper" aria-label="Homepage banner">
+      {/* Largest above-the-fold element: load eagerly at high priority (card images stay lazy). */}
       <SharePointImage
         src={heroImageUrl || howBanner}
         placeholderSrc={howBanner}
         alt="Homepage banner"
         className="homepage-hero-image"
+        loading="eager"
+        {...({ fetchpriority: 'high' } as Record<string, string>)}
       />
       <div className="homepage-hero-overlay">
         <h1 className="homepage-hero-title">

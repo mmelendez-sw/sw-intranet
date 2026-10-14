@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import { BYPASS_AUTH, isIcemanAllowlisted, loginRequest } from '../authConfig';
-import sti_logo_white from '../../images/sti-horizontal-white.png'
+import sti_logo_white from '../../images/optimized/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import { useTheme } from '../context/ThemeContext';
-import { DEPARTMENTS } from '../config/departments';
 import { clearUserSessionState } from '../utils/signOutCleanup';
 
 interface HeaderProps {
@@ -79,12 +78,8 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
   const { theme, canToggle: canToggleTheme, toggleTheme } = useTheme();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDepartmentsOpen, setIsDepartmentsOpen] = useState(false);
   const [authBlockError, setAuthBlockError] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  const departmentsRef = useRef<HTMLDivElement>(null);
-  const departmentsMenuRef = useRef<HTMLDivElement>(null);
-  const [departmentsMenuStyle, setDepartmentsMenuStyle] = useState<React.CSSProperties>({});
 
   // Listen for redirect-based auth failures (e.g. CA block on the redirect flow).
   useEffect(() => {
@@ -97,53 +92,6 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       if (callbackId) instance.removeEventCallback(callbackId);
     };
   }, [instance]);
-
-  const updateDepartmentsMenuPosition = useCallback(() => {
-    const header = headerRef.current;
-    const trigger = departmentsRef.current;
-    if (!header || !trigger) return;
-
-    const headerRect = header.getBoundingClientRect();
-    const triggerRect = trigger.getBoundingClientRect();
-
-    setDepartmentsMenuStyle({
-      position: 'fixed',
-      top: `${headerRect.bottom}px`,
-      left: `${triggerRect.left}px`,
-      zIndex: 10000,
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!isDepartmentsOpen) return;
-    updateDepartmentsMenuPosition();
-  }, [isDepartmentsOpen, updateDepartmentsMenuPosition]);
-
-  useEffect(() => {
-    if (!isDepartmentsOpen) return;
-
-    window.addEventListener('resize', updateDepartmentsMenuPosition);
-    window.addEventListener('scroll', updateDepartmentsMenuPosition, true);
-
-    return () => {
-      window.removeEventListener('resize', updateDepartmentsMenuPosition);
-      window.removeEventListener('scroll', updateDepartmentsMenuPosition, true);
-    };
-  }, [isDepartmentsOpen, updateDepartmentsMenuPosition]);
-
-  useEffect(() => {
-    if (!isDepartmentsOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const clickedTrigger = departmentsRef.current?.contains(target);
-      const clickedMenu = departmentsMenuRef.current?.contains(target);
-      if (!clickedTrigger && !clickedMenu) {
-        setIsDepartmentsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDepartmentsOpen]);
 
   const handleLogin = async () => {
     setAuthBlockError(false);
@@ -208,46 +156,10 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
     setIsDropdownOpen((prevState) => !prevState);
   };
 
-  const toggleDepartments = () => {
-    setIsDepartmentsOpen((prev) => !prev);
-  };
-
-  const closeDepartments = () => {
-    setIsDepartmentsOpen(false);
-  };
-
-  const DepartmentsMenu = () =>
-    ReactDOM.createPortal(
-      isDepartmentsOpen && (
-        <div
-          ref={departmentsMenuRef}
-          className="nav-dropdown-menu"
-          role="menu"
-          style={departmentsMenuStyle}
-        >
-          {/*
-            Department navigation disabled — restore Link when pages are ready:
-            <Link to={item.path} className="nav-dropdown-item" role="menuitem" onClick={closeDepartments}>…</Link>
-          */}
-          {DEPARTMENTS.map((item) => (
-            <span
-              key={item.path}
-              className="nav-dropdown-item nav-dropdown-item-disabled"
-              role="menuitem"
-              aria-disabled="true"
-            >
-              <i className={item.icon} aria-hidden="true" />
-              {item.label}
-            </span>
-          ))}
-        </div>
-      ),
-      document.body
-    );
-
-  const DropdownMenu = () =>
-    ReactDOM.createPortal(
-      isDropdownOpen && (
+  // Rendered inline (not as a component defined inside render): a nested component type is
+  // new on every Header render, which unmounted and remounted the portal each time.
+  const dropdownMenu = isDropdownOpen
+    ? ReactDOM.createPortal(
         <div
           className="dropdown-menu"
           style={{
@@ -278,10 +190,10 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
           >
             Logout
           </button>
-        </div>
-      ),
-      document.body
-    );
+        </div>,
+        document.body
+      )
+    : null;
 
   const bannerStyle: React.CSSProperties = {
     gridColumn: '1 / -1',
@@ -309,32 +221,11 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 <i className="fa-solid fa-satellite"></i> <Link to="/iceman">ICEMAN</Link>
               </>
             )}
-            {/* Departments dropdown hidden until pages are ready
-            <div className="nav-dropdown" ref={departmentsRef}>
-              <button
-                type="button"
-                className={`nav-dropdown-trigger${isDepartmentsOpen ? ' open' : ''}`}
-                onClick={toggleDepartments}
-                aria-expanded={isDepartmentsOpen}
-                aria-haspopup="true"
-              >
-                <i className="fa-solid fa-building" aria-hidden="true" />
-                <span className="nav-dropdown-label">
-                  Departments
-                  <span
-                    className={`nav-dropdown-caret${isDepartmentsOpen ? ' open' : ''}`}
-                    aria-hidden="true"
-                  >
-                    ▼
-                  </span>
-                </span>
-              </button>
-            </div>
-            */}
+            {/* Departments dropdown removed with the department pages (see git history for the
+                portal menu + DEPARTMENTS config if they come back). */}
           </>
         )}
       </nav>
-      {/* <DepartmentsMenu /> */}
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
           <>
@@ -385,7 +276,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
                 style={{ marginLeft: '5px' }}
               ></i>
             </span>
-            <DropdownMenu />
+            {dropdownMenu}
           </div>
           </>
         ) : (
