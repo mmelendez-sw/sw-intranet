@@ -4,13 +4,17 @@
  * Routes:
  *   GET /api/tv-cards              — homepage cards (SharePoint)
  *   GET /api/tv-cards/meta         — eTag / lastModified only
- *   GET /api/images/:id            — proxy SharePoint drive item bytes
+ *   GET /api/images/:id            — proxy SharePoint drive item bytes (ETag / 304 aware)
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/term-sheet-rankings       — signed-in users (Entra ID token)
  *   GET /api/powerbi/embed-token?reportId=
- *   POST /api/iceman/generate?max_rows=500 — Nearmap batch XLSX (multipart file); ICEMAN allowlist
+ *   POST /api/iceman/generate?max_rows=15 — Nearmap batch XLSX (multipart file); ICEMAN allowlist.
+ *        max_rows is clamped to ICEMAN_MAX_ROWS (server/iceman.ts); uploads capped at 4 MB.
  *
  * TV / image / Power BI routes stay unauthenticated: /tv kiosks run without a signed-in user.
+ *
+ * The ICEMAN stack (exceljs, jimp, busboy) is loaded on demand inside the ICEMAN branch so
+ * cold starts for the TV, image, Salesforce and Power BI routes do not pay for it.
  *
  * Env vars (set on the Lambda — never in the Amplify frontend build):
  *   Graph/TV:      TENANT_ID, CLIENT_ID, CLIENT_SECRET
@@ -27,11 +31,11 @@ import {
   getDriveImageContent,
   getDriveImageContentByWebUrl,
   ImageNotAllowedError,
+  ImageTooLargeError,
+  MAX_PROXY_IMAGE_BYTES,
 } from './tvImages';
 import { getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
-import { parseMultipart } from './multipart';
-import { generateIcemanWorkbook } from './iceman';
 import { requireEnv } from './env';
 import { AuthError, AuthServiceError, authenticateRequest } from './auth';
 
@@ -40,7 +44,11 @@ const JSON_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
 };
+
+/** Drive item images are immutable per eTag, so browsers/CDNs can hold them for a day. */
+const IMAGE_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
 
 /** Mirrors ICEMAN_ALLOWLIST in src/authConfig.ts; override with ICEMAN_ALLOWED_EMAILS on the Lambda. */
 const DEFAULT_ICEMAN_ALLOWED_EMAILS = 'mmelendez@symphonyinfra.com';
@@ -85,10 +93,11 @@ function getQuery(
   return out;
 }
 
+/** Raw (still percent-encoded) item id segment of /api/images/:id, or null. */
 function matchImageProxy(path: string): string | null {
   if (/\/api\/images\/by-url\/?$/i.test(path)) return null;
   const match = path.match(/\/api\/images\/([^/?#]+)/i);
-  return match ? decodeURIComponent(match[1]) : null;
+  return match ? match[1] : null;
 }
 
 function isImageByUrlPath(path: string): boolean {
@@ -185,6 +194,10 @@ export async function handler(event?: {
       }
 
       try {
+        // Lazy: exceljs/jimp/busboy are only evaluated when ICEMAN is actually hit.
+        const [{ parseMultipart }, { generateIcemanWorkbook, ICEMAN_MAX_ROWS }] =
+          await Promise.all([import('./multipart.js'), import('./iceman.js')]);
+
         const contentType = getHeader(event?.headers, 'content-type');
         const parsed = await parseMultipart(
           event?.body,
@@ -200,8 +213,13 @@ export async function handler(event?: {
           };
         }
 
-        const maxRowsRaw = Number(query.max_rows || parsed.fields.max_rows || '500');
-        const maxRows = Math.min(Math.max(1, Number.isFinite(maxRowsRaw) ? maxRowsRaw : 500), 500);
+        const maxRowsRaw = Number(
+          query.max_rows || parsed.fields.max_rows || String(ICEMAN_MAX_ROWS)
+        );
+        const maxRows = Math.min(
+          Math.max(1, Number.isFinite(maxRowsRaw) ? Math.floor(maxRowsRaw) : ICEMAN_MAX_ROWS),
+          ICEMAN_MAX_ROWS
+        );
 
         const closeObliqueMeters = Number(
           query.close_m || parsed.fields.close_m || parsed.fields.closeObliqueMeters
@@ -235,7 +253,11 @@ export async function handler(event?: {
         const msg = err instanceof Error ? err.message : 'ICEMAN request failed';
         const clientError =
           /^(missing request|missing latitude|unsupported|no valid|file has no data|upload too large)/i.test(msg);
-        console.error('[iceman]', err);
+        if (clientError) {
+          console.warn('[iceman] rejected upload:', msg);
+        } else {
+          console.error('[iceman]', err);
+        }
         return errorResult(
           clientError ? 400 : 500,
           clientError ? msg : 'ICEMAN request failed. Check the Lambda logs for details.'
@@ -263,7 +285,15 @@ export async function handler(event?: {
       };
     }
 
-    const imageItemId = matchImageProxy(path);
+    const rawImageItemId = matchImageProxy(path);
+    let imageItemId: string | null = null;
+    if (rawImageItemId) {
+      try {
+        imageItemId = decodeURIComponent(rawImageItemId);
+      } catch {
+        return errorResult(400, 'Malformed image id');
+      }
+    }
     // Unknown paths 404 here, before the Graph env check (which 500s when TV isn't configured).
     if (!isImageByUrlPath(path) && !imageItemId && !isCardsMetaPath(path) && !isCardsPath(path)) {
       return errorResult(404, 'Not found');
@@ -292,13 +322,15 @@ export async function handler(event?: {
           body: JSON.stringify({ error: 'Could not fetch SharePoint image' }),
         };
       }
+      const headers: Record<string, string> = {
+        'Content-Type': result.contentType,
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': IMAGE_CACHE_CONTROL,
+      };
+      if (result.eTag) headers.ETag = result.eTag;
       return {
         statusCode: 200,
-        headers: {
-          'Content-Type': result.contentType,
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=300',
-        },
+        headers,
         body: Buffer.from(result.body).toString('base64'),
         isBase64Encoded: true,
       };
@@ -306,15 +338,21 @@ export async function handler(event?: {
 
     if (imageItemId) {
       const token = await getGraphToken(tenantId, clientId, clientSecret);
-      const { body, contentType } = await getDriveImageContent(imageItemId, token);
+      const ifNoneMatch = getHeader(event?.headers, 'if-none-match');
+      const result = await getDriveImageContent(imageItemId, token, ifNoneMatch);
+      const headers: Record<string, string> = {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': IMAGE_CACHE_CONTROL,
+      };
+      if (result.eTag) headers.ETag = result.eTag;
+      if (result.notModified) {
+        return { statusCode: 304, headers, body: '' };
+      }
+      headers['Content-Type'] = result.contentType;
       return {
         statusCode: 200,
-        headers: {
-          'Content-Type': contentType,
-          'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'public, max-age=300',
-        },
-        body: Buffer.from(body).toString('base64'),
+        headers,
+        body: Buffer.from(result.body).toString('base64'),
         isBase64Encoded: true,
       };
     }
@@ -343,6 +381,12 @@ export async function handler(event?: {
     };
   } catch (err) {
     if (err instanceof ImageNotAllowedError) return errorResult(404, 'Image not found');
+    if (err instanceof ImageTooLargeError) {
+      return errorResult(
+        413,
+        `Image is too large to proxy (limit ${(MAX_PROXY_IMAGE_BYTES / (1024 * 1024)).toFixed(1)} MB). Resize it in SharePoint.`
+      );
+    }
     // Details go to CloudWatch only; raw upstream errors can include tenant and token details.
     console.error('[intranet-api]', err);
     return errorResult(500, 'API request failed');

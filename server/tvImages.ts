@@ -13,6 +13,12 @@ const IMAGE_FILE_RE = /\.(jpe?g|png|gif|webp|bmp)$/i;
 /** The proxies are unauthenticated, so only serve image files from the intranet content folder. */
 const ALLOWED_IMAGE_ROOT = 'general/intranet/';
 
+/**
+ * Function URL responses are capped at 6 MB and the image body is base64-encoded (4/3 overhead),
+ * so refuse anything over 4.5 MB instead of producing a truncated/failed response.
+ */
+export const MAX_PROXY_IMAGE_BYTES = Math.floor(4.5 * 1024 * 1024);
+
 function isAllowedImagePath(drivePath: string): boolean {
   const normalized = drivePath.replace(/^\/+/, '').toLowerCase();
   return (
@@ -34,6 +40,22 @@ export interface DriveImageFile {
 let folderIdCache: string | null = null;
 let filesCache: { at: number; files: DriveImageFile[] } | null = null;
 const FILES_CACHE_MS = 60_000;
+
+/** webUrl → drive item id; card URLs rarely change, so skip the two Graph lookups per card. */
+const WEB_URL_ITEM_CACHE_MS = 10 * 60_000;
+const webUrlItemIdCache = new Map<string, { itemId: string; at: number }>();
+
+/** Per-item allow-list / eTag memo so repeat image hits skip the Graph metadata call. */
+const IMAGE_META_CACHE_MS = 10 * 60_000;
+const IMAGE_META_CACHE_MAX = 500;
+type ImageMeta = {
+  allowed: boolean;
+  eTag: string | null;
+  name: string;
+  contentType: string;
+  at: number;
+};
+const imageMetaCache = new Map<string, ImageMeta>();
 
 function encodeDrivePath(path: string): string {
   return path
@@ -83,8 +105,20 @@ export function isSharePointWebUrl(url: string): boolean {
   return /sharepoint\.com/i.test(url) || /graph\.microsoft\.com/i.test(url);
 }
 
-/** Resolve a SharePoint file webUrl → drive item id (app token). */
+/** Resolve a SharePoint file webUrl → drive item id (app token). Successful lookups are cached. */
 export async function resolveDriveItemIdFromWebUrl(
+  webUrl: string,
+  token: string
+): Promise<string | null> {
+  const cached = webUrlItemIdCache.get(webUrl);
+  if (cached && Date.now() - cached.at < WEB_URL_ITEM_CACHE_MS) return cached.itemId;
+
+  const itemId = await lookupDriveItemIdFromWebUrl(webUrl, token);
+  if (itemId) webUrlItemIdCache.set(webUrl, { itemId, at: Date.now() });
+  return itemId;
+}
+
+async function lookupDriveItemIdFromWebUrl(
   webUrl: string,
   token: string
 ): Promise<string | null> {
@@ -125,7 +159,7 @@ export async function resolveDriveItemIdFromWebUrl(
 export async function getDriveImageContentByWebUrl(
   webUrl: string,
   token: string
-): Promise<{ body: ArrayBuffer; contentType: string } | null> {
+): Promise<{ body: ArrayBuffer; contentType: string; eTag: string | null } | null> {
   const drivePath = webUrlToDrivePath(webUrl);
   if (!drivePath || !isAllowedImagePath(drivePath)) return null;
 
@@ -140,7 +174,10 @@ export async function getDriveImageContentByWebUrl(
     console.warn(`[tvImages] getDriveImageContentByWebUrl failed (${byPath.status}):`, webUrl);
     return null;
   }
-  return { body: await byPath.arrayBuffer(), contentType };
+  assertProxyableSize(byPath.headers.get('content-length'));
+  const body = await byPath.arrayBuffer();
+  assertProxyableSize(body.byteLength);
+  return { body, contentType, eTag: byPath.headers.get('etag') };
 }
 
 /** Public origin for `/api/images/...` links (SPA may be on another port). */
@@ -221,42 +258,104 @@ export class ImageNotAllowedError extends Error {
   }
 }
 
-/** Fetch raw image bytes from Graph for a drive item id (intranet images only). */
-export async function getDriveImageContent(
-  itemId: string,
-  token: string
-): Promise<{ body: ArrayBuffer; contentType: string }> {
+export class ImageTooLargeError extends Error {
+  constructor() {
+    super(`Image exceeds the ${MAX_PROXY_IMAGE_BYTES} byte proxy limit`);
+  }
+}
+
+function assertProxyableSize(size: string | number | null): void {
+  const bytes = typeof size === 'number' ? size : Number(size);
+  if (Number.isFinite(bytes) && bytes > MAX_PROXY_IMAGE_BYTES) throw new ImageTooLargeError();
+}
+
+/** Strong/weak entity-tag comparison for If-None-Match (handles lists and `W/` prefixes). */
+function etagMatches(ifNoneMatch: string | undefined, eTag: string | null): boolean {
+  if (!ifNoneMatch || !eTag) return false;
+  const norm = (tag: string) => tag.trim().replace(/^W\//i, '');
+  const target = norm(eTag);
+  return ifNoneMatch.split(',').some((tag) => tag.trim() === '*' || norm(tag) === target);
+}
+
+async function getImageMeta(itemId: string, token: string): Promise<ImageMeta> {
+  const cached = imageMetaCache.get(itemId);
+  if (cached && Date.now() - cached.at < IMAGE_META_CACHE_MS) return cached;
+
   const itemUrl =
     `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
     `/items/${encodeURIComponent(itemId)}`;
-  const metaResp = await fetchWithTimeout(`${itemUrl}?$select=name,parentReference`, {
+  const metaResp = await fetchWithTimeout(`${itemUrl}?$select=name,parentReference,eTag,file`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (metaResp.status === 404) throw new ImageNotAllowedError();
   if (!metaResp.ok) {
     throw new Error(`Image lookup failed: ${metaResp.status}`);
   }
-  const meta = (await metaResp.json()) as { name?: string; parentReference?: { path?: string } };
+  const meta = (await metaResp.json()) as {
+    name?: string;
+    eTag?: string;
+    parentReference?: { path?: string };
+    file?: { mimeType?: string };
+  };
   // parentReference.path looks like "/drives/{id}/root:/General/intranet/Default Images".
   const parentPath = decodeURIComponent(meta.parentReference?.path?.split('root:')[1] ?? '');
-  if (!isAllowedImagePath(`${parentPath}/${meta.name ?? ''}`)) {
-    throw new ImageNotAllowedError();
-  }
-  const url = `${itemUrl}/content`;
+  const entry: ImageMeta = {
+    allowed: isAllowedImagePath(`${parentPath}/${meta.name ?? ''}`),
+    eTag: meta.eTag ?? null,
+    name: meta.name ?? '',
+    contentType: meta.file?.mimeType ?? '',
+    at: Date.now(),
+  };
+  // The route is unauthenticated: bound the memo so junk ids cannot grow it without limit.
+  if (imageMetaCache.size >= IMAGE_META_CACHE_MAX) imageMetaCache.clear();
+  imageMetaCache.set(itemId, entry);
+  return entry;
+}
 
+export type DriveImageContent =
+  | { notModified: true; eTag: string }
+  | { notModified: false; body: ArrayBuffer; contentType: string; eTag: string | null };
+
+/**
+ * Fetch raw image bytes from Graph for a drive item id (intranet images only).
+ * When `ifNoneMatch` matches the item's eTag the content download is skipped.
+ */
+export async function getDriveImageContent(
+  itemId: string,
+  token: string,
+  ifNoneMatch?: string
+): Promise<DriveImageContent> {
+  const meta = await getImageMeta(itemId, token);
+  if (!meta.allowed) throw new ImageNotAllowedError();
+  if (meta.eTag && etagMatches(ifNoneMatch, meta.eTag)) {
+    return { notModified: true, eTag: meta.eTag };
+  }
+
+  const url =
+    `https://graph.microsoft.com/v1.0/drives/${TV_SHAREPOINT_DRIVE_ID}` +
+    `/items/${encodeURIComponent(itemId)}/content`;
   const resp = await fetchWithTimeout(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (resp.status === 404) {
+    imageMetaCache.delete(itemId);
+    throw new ImageNotAllowedError();
+  }
   if (!resp.ok) {
     throw new Error(`Image content fetch failed: ${resp.status} ${await resp.text()}`);
   }
 
-  const contentType = resp.headers.get('content-type') || '';
+  const contentType = resp.headers.get('content-type') || meta.contentType;
   if (!isImageContentType(contentType)) throw new ImageNotAllowedError();
+  assertProxyableSize(resp.headers.get('content-length'));
   const body = await resp.arrayBuffer();
-  return { body, contentType };
+  assertProxyableSize(body.byteLength);
+  return { notModified: false, body, contentType, eTag: meta.eTag };
 }
 
 export function clearDefaultImagesCache(): void {
   folderIdCache = null;
   filesCache = null;
+  webUrlItemIdCache.clear();
+  imageMetaCache.clear();
 }

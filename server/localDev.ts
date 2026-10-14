@@ -66,5 +66,5 @@ server.listen(PORT, () => {
   console.log('  GET /api/images/by-url?url=');
   console.log('  GET /api/salesforce/term-sheet-rankings');
   console.log('  GET /api/powerbi/embed-token?reportId=');
-  console.log('  POST /api/iceman/generate?max_rows=500');
+  console.log('  POST /api/iceman/generate?max_rows=15');
 });

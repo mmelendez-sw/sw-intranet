@@ -10,8 +10,8 @@ Frontend: authenticated users on the ICEMAN allowlist (`mmelendez@symphonyinfra.
 
 | Item | Value |
 |------|--------|
-| Route | `POST /api/iceman/generate?max_rows=500` |
-| Body | `multipart/form-data` with field name **`file`** (`.csv` or `.xlsx`) |
+| Route | `POST /api/iceman/generate?max_rows=15` (clamped to `ICEMAN_MAX_ROWS` in `server/iceman.ts`) |
+| Body | `multipart/form-data` with field name **`file`** (`.csv` or `.xlsx`, max 4 MB; legacy `.xls` is rejected) |
 | Response | `.xlsx` attachment (base64-encoded in Lambda) |
 | Handler (AWS) | `handler.handler` |
 | Code entry | `server/handler.ts` → `server/iceman.ts` |
@@ -61,7 +61,7 @@ Put ICEMAN on the existing intranet API function (this repo’s `handler.ts` alr
 
 | Setting | Suggested | Why |
 |---------|-----------|-----|
-| **Timeout** | **5–15 minutes** (max 15) | Each row = coverage + 3 tiles + 0.2s delays |
+| **Timeout** | **1–5 minutes** | Max 15 rows; coverage lookups run in parallel, then rows in batches of 3 (3 tiles each) with 0.2s between batches |
 | **Memory** | **1024 MB** (512 minimum) | Image resize + Excel build |
 | Ephemeral storage | 512 MB default is fine | No disk cache required |
 
@@ -108,7 +108,7 @@ ICEMAN returns an Excel file as base64. On Function URL this is usually fine whe
 If uploads fail with payload errors:
 
 - Check Function URL / API limits
-- Cap rows with `?max_rows=` (max **500** in code)
+- Cap rows with `?max_rows=` (max **15** in code — `ICEMAN_MAX_ROWS`; the UI `MAX_ROWS` must match)
 - Prefer smaller CSVs for first tests
 
 ---
@@ -129,8 +129,8 @@ npm run deploy:lambda -- -FunctionName sw-intranet-iceman-api -Region us-east-2
 
 What the script does:
 
-1. Compiles `server/*.ts` → `server/dist`
-2. Stages `handler.js` + deps (`busboy`, `exceljs`, `jimp`, `xlsx`, …)
+1. Type-checks `server/*.ts` with `tsc --noEmit`
+2. Bundles `server/handler.ts` and its deps (`busboy`, `exceljs`, `jimp`, …) into one `handler.js` with esbuild (ICEMAN modules are loaded lazily at runtime)
 3. Zips and runs `aws lambda update-function-code`
 
 Wait until **Last update status** = **Successful** before testing.

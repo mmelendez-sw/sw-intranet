@@ -5,8 +5,11 @@ export type ParsedMultipart = {
   file?: { buffer: Buffer; filename: string; mimeType: string };
 };
 
-/** Lambda caps request payloads at 6 MB; keep uploads comfortably under that. */
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+/**
+ * Function URLs cap the request at 6 MB and that applies to the base64-encoded body (4/3 overhead),
+ * so the decoded upload must stay under ~4.5 MB. src/components/Iceman.tsx should enforce the same cap.
+ */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 /**
  * Parse multipart/form-data from a Lambda Function URL / API Gateway event.
@@ -45,7 +48,7 @@ export function parseMultipart(
       }
       const chunks: Buffer[] = [];
       stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-      stream.on('limit', () => reject(new Error('Upload too large (max 5 MB)')));
+      stream.on('limit', () => reject(new Error('Upload too large (max 4 MB)')));
       stream.on('end', () => {
         file = {
           buffer: Buffer.concat(chunks),

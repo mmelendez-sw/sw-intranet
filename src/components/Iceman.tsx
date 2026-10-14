@@ -12,8 +12,17 @@ interface IcemanProps {
   userInfo: UserInfo;
 }
 
-/** Amplify's proxy times out around 30s (~1–2s per row), so keep uploads small. */
+/**
+ * Amplify's proxy times out around 30s (~1–2s per row), so keep uploads small.
+ * Mirrors ICEMAN_MAX_ROWS in server/iceman.ts — the Lambda clamps to the same value.
+ */
 const MAX_ROWS = 15;
+
+/**
+ * Lambda Function URLs cap the request body at 6 MB *after* base64 encoding, so anything
+ * over ~4.5 MB is rejected before our handler runs. Mirrors MAX_UPLOAD_BYTES in server/multipart.ts.
+ */
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 const CLOSE_OBLIQUE_MIN_M = 15;
 const CLOSE_OBLIQUE_MAX_M = 50;
@@ -26,9 +35,10 @@ const FAR_OBLIQUE_DEFAULT_M = 300;
 /** Mirrors TOP_DOWN_M in server/iceman.ts. */
 const TOP_DOWN_M = 100;
 
+// Legacy .xls (BIFF) is no longer parsed server-side (the xlsx package was dropped).
 const isAcceptedFile = (name: string) => {
   const lower = name.toLowerCase();
-  return lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.xls');
+  return lower.endsWith('.csv') || lower.endsWith('.xlsx');
 };
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
@@ -58,6 +68,14 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
     if (!isAcceptedFile(picked.name)) {
       setFile(null);
       setError('Only .csv and .xlsx files are supported.');
+      return;
+    }
+    if (picked.size > MAX_UPLOAD_BYTES) {
+      setFile(null);
+      setError(
+        `That file is ${(picked.size / (1024 * 1024)).toFixed(1)} MB; uploads are limited to ` +
+          `${MAX_UPLOAD_BYTES / (1024 * 1024)} MB. Trim it to the first ${MAX_ROWS} rows and try again.`
+      );
       return;
     }
     setFile(picked);

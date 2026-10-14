@@ -10,18 +10,27 @@
  */
 
 import ExcelJS from 'exceljs';
-import * as XLSX from 'xlsx';
 import Jimp from 'jimp';
+import { Readable } from 'stream';
 import { fetchWithTimeout } from './fetchWithTimeout';
 
 const NEARMAP_TILES_BASE = 'https://api.nearmap.com/tiles/v3';
 const NEARMAP_COVERAGE_BASE = 'https://api.nearmap.com/coverage/v2';
-/** Pause between rows (not between a row's tiles) to stay polite to Nearmap. */
+/** Pause between row batches (not between a row's tiles) to stay polite to Nearmap. */
 const REQUEST_DELAY_MS = 200;
+/** Rows processed concurrently per batch; each row still fetches its three tiles in parallel. */
+const ROW_CONCURRENCY = 3;
 const NEARMAP_TIMEOUT_MS = 15_000;
 const THUMB_WIDTH = 160;
 const THUMB_HEIGHT = 120;
-const DEFAULT_MAX_ROWS = 500;
+const THUMB_JPEG_QUALITY = 80;
+
+/**
+ * Hard server-side row cap. Amplify's proxy times out around 30 s, so the handler clamps
+ * `max_rows` to this. MAX_ROWS in src/components/Iceman.tsx must match.
+ */
+export const ICEMAN_MAX_ROWS = 15;
+const DEFAULT_MAX_ROWS = ICEMAN_MAX_ROWS;
 
 /** Approximate tile ground width (m) → Web Mercator zoom. */
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
@@ -67,6 +76,10 @@ type CoverageSurvey = {
 
 /** Newest survey id per tile type; obliques are often captured less often than verticals. */
 type SurveyIdsByType = Partial<Record<ImageShot['contentType'], string>>;
+
+type CoverageResult = { surveyIds: SurveyIdsByType; note?: string };
+
+type CellPrimitive = string | number | boolean | null;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -156,7 +169,7 @@ async function getLatestSurveyIds(
   lat: number,
   lng: number,
   apiKey: string
-): Promise<{ surveyIds: SurveyIdsByType; note?: string }> {
+): Promise<CoverageResult> {
   const coord = `${lng},${lat}`;
   const url = `${NEARMAP_COVERAGE_BASE}/point/${encodeURIComponent(coord)}?apikey=${encodeURIComponent(apiKey)}`;
 
@@ -225,7 +238,7 @@ async function fetchTile(
 
     const image = await Jimp.read(raw);
     // Nearmap panorama tiles display correctly at 256×192 (foreshortening).
-    image.cover(THUMB_WIDTH, THUMB_HEIGHT);
+    image.cover(THUMB_WIDTH, THUMB_HEIGHT).quality(THUMB_JPEG_QUALITY);
     const thumb = await image.getBufferAsync(Jimp.MIME_JPEG);
     return { buffer: thumb };
   } catch (err) {
@@ -235,31 +248,121 @@ async function fetchTile(
   }
 }
 
-function parseWorkbookRows(buffer: Buffer, filename: string): {
+/** Flatten an ExcelJS cell value (rich text, hyperlink, formula result, date) to a primitive. */
+function cellToPrimitive(value: ExcelJS.CellValue): CellPrimitive {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'object') {
+    if ('richText' in value) return value.richText.map((part) => part.text).join('');
+    if ('text' in value) return String(value.text);
+    if ('result' in value) return cellToPrimitive(value.result as ExcelJS.CellValue);
+    if ('error' in value) return value.error;
+  }
+  return String(value);
+}
+
+/** Header text per column (1-based column → key), mirroring SheetJS `__EMPTY` / `_1` naming. */
+function readHeaderRow(ws: ExcelJS.Worksheet): Map<number, string> {
+  const headers = new Map<number, string>();
+  const seen = new Set<string>();
+  let emptyCount = 0;
+  const headerRow = ws.getRow(1);
+  const colCount = Math.max(headerRow.cellCount, ws.columnCount);
+  for (let col = 1; col <= colCount; col++) {
+    const raw = cellToPrimitive(headerRow.getCell(col).value);
+    let name = raw === null ? '' : String(raw).trim();
+    if (!name) {
+      name = emptyCount === 0 ? '__EMPTY' : `__EMPTY_${emptyCount}`;
+      emptyCount++;
+    }
+    let unique = name;
+    for (let n = 1; seen.has(unique); n++) unique = `${name}_${n}`;
+    seen.add(unique);
+    headers.set(col, unique);
+  }
+  return headers;
+}
+
+/** Keep CSV cells as text/number only (SheetJS parity); no date coercion. */
+function csvCellMap(datum: unknown): CellPrimitive {
+  if (datum === null || datum === undefined) return '';
+  const text = String(datum);
+  if (text.trim() === '') return '';
+  const n = Number(text);
+  return Number.isFinite(n) ? n : text;
+}
+
+function stripUtf8Bom(buffer: Buffer): Buffer {
+  const hasBom =
+    buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf;
+  return hasBom ? buffer.subarray(3) : buffer;
+}
+
+async function loadFirstWorksheet(
+  buffer: Buffer,
+  filename: string
+): Promise<{ ws?: ExcelJS.Worksheet; error?: string }> {
+  const lower = filename.toLowerCase();
+  const wb = new ExcelJS.Workbook();
+
+  if (lower.endsWith('.csv')) {
+    try {
+      // Strip a UTF-8 BOM so the first header is not prefixed with U+FEFF.
+      const ws = await wb.csv.read(Readable.from([stripUtf8Bom(buffer)]), { map: csvCellMap });
+      return { ws };
+    } catch {
+      return { error: 'Unsupported or malformed .csv file.' };
+    }
+  }
+
+  if (lower.endsWith('.xlsx')) {
+    try {
+      await wb.xlsx.load(buffer);
+    } catch {
+      return { error: 'Unsupported or corrupt .xlsx file.' };
+    }
+    const ws = wb.worksheets[0];
+    if (!ws) return { error: 'File has no data rows.' };
+    return { ws };
+  }
+
+  if (lower.endsWith('.xls')) {
+    return {
+      error: 'Unsupported file type: legacy .xls. Save as .xlsx or .csv and upload again.',
+    };
+  }
+
+  return { error: 'Unsupported file type. Upload .csv or .xlsx.' };
+}
+
+/**
+ * First row = headers; later rows become objects keyed by header text ('' for empty cells).
+ * Stops once `maxRows` coordinate rows have been collected instead of materialising the sheet.
+ */
+async function parseWorkbookRows(
+  buffer: Buffer,
+  filename: string,
+  maxRows: number
+): Promise<{
   rows: IcemanRow[];
   passThroughHeaders: string[];
   error?: string;
-} {
-  const lower = filename.toLowerCase();
-  let sheetRows: Record<string, unknown>[] = [];
-
-  if (lower.endsWith('.csv')) {
-    const wb = XLSX.read(buffer.toString('utf8'), { type: 'string' });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    sheetRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
-  } else if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
-    const wb = XLSX.read(buffer, { type: 'buffer' });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    sheetRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
-  } else {
-    return { rows: [], passThroughHeaders: [], error: 'Unsupported file type. Upload .csv or .xlsx.' };
+}> {
+  const loaded = await loadFirstWorksheet(buffer, filename);
+  if (loaded.error || !loaded.ws) {
+    return { rows: [], passThroughHeaders: [], error: loaded.error };
   }
+  const ws = loaded.ws;
 
-  if (!sheetRows.length) {
+  const headerByCol = readHeaderRow(ws);
+  const headers = [...headerByCol.values()];
+  if (!headers.length || ws.rowCount < 2) {
     return { rows: [], passThroughHeaders: [], error: 'File has no data rows.' };
   }
 
-  const headers = Object.keys(sheetRows[0]);
   const latLng = findLatLngColumns(headers);
   if (!latLng) {
     return {
@@ -275,22 +378,33 @@ function parseWorkbookRows(buffer: Buffer, filename: string): {
   );
 
   const rows: IcemanRow[] = [];
-  for (const raw of sheetRows) {
-    const lat = Number(raw[latLng.latCol]);
-    const lng = Number(raw[latLng.lngCol]);
+  let sawDataRow = false;
+  for (let r = 2; r <= ws.rowCount && rows.length < maxRows; r++) {
+    const excelRow = ws.getRow(r);
+    const record: Record<string, CellPrimitive> = {};
+    let hasValue = false;
+    for (const [col, key] of headerByCol) {
+      const v = cellToPrimitive(excelRow.getCell(col).value);
+      if (v !== '') hasValue = true;
+      record[key] = v;
+    }
+    if (!hasValue) continue;
+    sawDataRow = true;
+
+    const lat = Number(record[latLng.latCol]);
+    const lng = Number(record[latLng.lngCol]);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
 
     const passThrough: Record<string, string | number | boolean | null> = {};
     for (const h of passThroughHeaders) {
-      const v = raw[h];
-      passThrough[h] =
-        v === null || v === undefined
-          ? null
-          : typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'
-            ? v
-            : String(v);
+      const v = record[h];
+      passThrough[h] = v === null || v === undefined ? null : v;
     }
     rows.push({ lat, lng, passThrough });
+  }
+
+  if (!sawDataRow) {
+    return { rows: [], passThroughHeaders: [], error: 'File has no data rows.' };
   }
 
   if (!rows.length) {
@@ -304,6 +418,10 @@ function parseWorkbookRows(buffer: Buffer, filename: string): {
   return { rows, passThroughHeaders };
 }
 
+function coordKey(row: IcemanRow): string {
+  return `${row.lat.toFixed(6)},${row.lng.toFixed(6)}`;
+}
+
 export async function generateIcemanWorkbook(
   fileBuffer: Buffer,
   filename: string,
@@ -311,13 +429,14 @@ export async function generateIcemanWorkbook(
   imageOptions?: IcemanImageOptions
 ): Promise<{ buffer: Buffer; filename: string }> {
   const apiKey = requireNearmapKey();
-  const parsed = parseWorkbookRows(fileBuffer, filename);
+  const rowCap = Math.min(Math.max(1, Math.floor(maxRows)), ICEMAN_MAX_ROWS);
+  const parsed = await parseWorkbookRows(fileBuffer, filename, rowCap);
   if (parsed.error) {
     throw new Error(parsed.error);
   }
 
   const opts = normalizeIcemanImageOptions(imageOptions);
-  const rows = parsed.rows.slice(0, maxRows);
+  const rows = parsed.rows;
   const passThroughHeaders = parsed.passThroughHeaders;
 
   const shots: ImageShot[] = [
@@ -376,14 +495,61 @@ export async function generateIcemanWorkbook(
     ws.getColumn(imageColStart + i).width = 24;
   }
   ws.getColumn(imageColStart + shots.length).width = 36;
+  const statusCol = imageColStart + shots.length;
 
-  const surveyCache = new Map<string, SurveyIdsByType>();
+  // 1. Coverage: one lookup per unique coordinate, all in parallel.
+  const uniqueCoords = new Map<string, IcemanRow>();
+  for (const row of rows) {
+    const key = coordKey(row);
+    if (!uniqueCoords.has(key)) uniqueCoords.set(key, row);
+  }
+  const coverageByKey = new Map<string, CoverageResult>();
+  await Promise.all(
+    [...uniqueCoords].map(async ([key, row]) => {
+      coverageByKey.set(key, await getLatestSurveyIds(row.lat, row.lng, apiKey));
+    })
+  );
 
-  for (let i = 0; i < rows.length; i++) {
-    if (i > 0) await sleep(REQUEST_DELAY_MS);
+  // 2. Tiles: ROW_CONCURRENCY rows per batch, each row's three tiles in parallel.
+  type RowResult = { tiles: ImageFetchResult[]; notes: string[] };
+  const results: RowResult[] = new Array(rows.length);
+
+  const processRow = async (i: number): Promise<void> => {
     const row = rows[i];
+    const coverage = coverageByKey.get(coordKey(row)) ?? { surveyIds: {} };
+    const notes: string[] = [];
+    if (coverage.note) notes.push(coverage.note);
+    const tiles = await Promise.all(
+      shots.map((shot) =>
+        fetchTile(
+          row.lat,
+          row.lng,
+          shot.meters,
+          shot.label,
+          shot.contentType,
+          apiKey,
+          coverage.surveyIds[shot.contentType]
+        )
+      )
+    );
+    results[i] = { tiles, notes };
+  };
+
+  for (let start = 0; start < rows.length; start += ROW_CONCURRENCY) {
+    if (start > 0) await sleep(REQUEST_DELAY_MS);
+    const batch: Promise<void>[] = [];
+    for (let i = start; i < Math.min(start + ROW_CONCURRENCY, rows.length); i++) {
+      batch.push(processRow(i));
+    }
+    await Promise.all(batch);
+  }
+
+  // 3. Write rows in original order once every fetch has settled.
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const { tiles, notes } = results[i];
     const excelRowNum = i + 2;
-    const statusNotes: string[] = [];
+    const statusNotes = [...notes];
 
     const dataCells = [
       row.lat,
@@ -395,33 +561,8 @@ export async function generateIcemanWorkbook(
     ws.addRow(dataCells);
     ws.getRow(excelRowNum).height = 95;
 
-    const cacheKey = `${row.lat.toFixed(6)},${row.lng.toFixed(6)}`;
-    let surveyIds = surveyCache.get(cacheKey);
-    if (surveyIds === undefined) {
-      const coverage = await getLatestSurveyIds(row.lat, row.lng, apiKey);
-      surveyIds = coverage.surveyIds;
-      surveyCache.set(cacheKey, surveyIds);
-      if (coverage.note) statusNotes.push(coverage.note);
-    }
-
-    // A row's three tiles download in parallel; results are placed in shot order.
-    const rowSurveyIds = surveyIds;
-    const results = await Promise.all(
-      shots.map((shot) =>
-        fetchTile(
-          row.lat,
-          row.lng,
-          shot.meters,
-          shot.label,
-          shot.contentType,
-          apiKey,
-          rowSurveyIds[shot.contentType]
-        )
-      )
-    );
-
     for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
-      const result = results[imgIdx];
+      const result = tiles[imgIdx];
       if (result.note) statusNotes.push(result.note);
       if (!result.buffer) continue;
 
@@ -437,7 +578,6 @@ export async function generateIcemanWorkbook(
       });
     }
 
-    const statusCol = imageColStart + shots.length;
     ws.getCell(excelRowNum, statusCol).value = statusNotes.length
       ? [...new Set(statusNotes)].join('; ')
       : 'OK';

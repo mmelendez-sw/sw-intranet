@@ -19,9 +19,9 @@ export async function getHomepageCardsWithImages(
   clientSecret: string
 ): Promise<HomepageCard[]> {
   const token = await getGraphToken(tenantId, clientId, clientSecret);
-  const raw = await getHomepageCardsRaw(token);
+  // Cards JSON and the Default Images listing are independent: fetch both at once.
+  const [raw, files] = await Promise.all([getHomepageCardsRaw(token), listDefaultImageFiles(token)]);
   const cards = parseHomepageCardsContent(raw);
-  const files = await listDefaultImageFiles(token);
 
   return Promise.all(
     cards.map(async (card, idx) => {

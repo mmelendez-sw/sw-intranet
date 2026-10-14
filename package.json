@@ -23,8 +23,7 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.28.0",
-        "serverless-http": "^4.0.0",
-        "xlsx": "^0.18.5"
+        "serverless-http": "^4.0.0"
     },
     "devDependencies": {
         "@types/busboy": "^1.5.4",
@@ -35,6 +34,7 @@
         "css-loader": "^6.8.1",
         "esbuild": "^0.28.2",
         "html-webpack-plugin": "^5.5.3",
+        "mini-css-extract-plugin": "^2.10.2",
         "style-loader": "^3.3.3",
         "ts-loader": "^9.4.4",
         "typescript": "^5.1.3",
