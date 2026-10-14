@@ -209,6 +209,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
               <strong>Maximum {MAX_ROWS} rows per file.</strong> Only the first {MAX_ROWS} rows
               are processed — split larger lists into multiple files.
             </p>
+            <p>
+              <strong>Limits:</strong> .csv or .xlsx only (legacy .xls is not accepted), up to{' '}
+              {MAX_UPLOAD_BYTES / (1024 * 1024)} MB per upload. Larger files are rejected before
+              upload.
+            </p>
           </div>
 
           <div
@@ -244,7 +249,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
               id="iceman-file"
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx"
               onChange={onFileChange}
               disabled={loading}
               hidden
@@ -260,7 +265,10 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             ) : (
               <div>
                 <p className="iceman-dropzone-title">Drop your file here</p>
-                <p className="iceman-dropzone-hint">or click to browse · .csv / .xlsx · up to {MAX_ROWS} rows</p>
+                <p className="iceman-dropzone-hint">
+                  or click to browse · .csv / .xlsx · up to {MAX_ROWS} rows · max{' '}
+                  {MAX_UPLOAD_BYTES / (1024 * 1024)} MB
+                </p>
               </div>
             )}
           </div>
