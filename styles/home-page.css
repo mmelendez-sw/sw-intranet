@@ -442,6 +442,28 @@
   font-size: 18px; 
 }
 
+.welcome-login-button {
+  margin-top: 12px;
+  padding: 10px 32px;
+  background-color: #004E7C;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.welcome-login-button:hover {
+  background-color: #002e4c;
+}
+
+.welcome-login-button:focus-visible {
+  outline: 2px solid #004E7C;
+  outline-offset: 3px;
+}
+
 /* Responsive Design */
 @media (min-width: 1920px) { /* For 4K and larger screens */
   .content-container {

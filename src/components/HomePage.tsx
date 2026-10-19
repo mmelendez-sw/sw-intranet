@@ -9,6 +9,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import { useSharePointContent } from '../hooks/useSharePointContent';
 import { filterActiveBirthdays } from '../utils/birthdays';
+import { startLogin } from '../utils/login';
 import { BirthdayCoverageNotice, BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
   getContent,
@@ -1179,6 +1180,9 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
         <div className="unauthenticated-message">
           <h2>Welcome to the Company Intranet!</h2>
           <p>Please log in to access more features and content!</p>
+          <button type="button" className="welcome-login-button" onClick={() => void startLogin(instance)}>
+            Log in
+          </button>
         </div>
       )}
 

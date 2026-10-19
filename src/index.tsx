@@ -10,6 +10,7 @@ import { msalConfig } from "./authConfig";
 import { warmHomepageImageCache } from './services/contentService';
 import { preloadBundledHomepageImages } from './utils/homepageImageWarmup';
 import { clearLegacyLocalStorageImageCache } from './utils/sharePointImageIdb';
+import { expireStaleSignIns, trackInteractiveSignIns } from './utils/weeklySignIn';
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -22,6 +23,7 @@ const renderApp = async () => {
   preloadBundledHomepageImages();
 
   await msalInstance.initialize();
+  trackInteractiveSignIns(msalInstance);
   // Ensure any redirect-based auth response is processed before rendering.
   // This is especially important on mobile Safari where the redirect flow is
   // the primary path and timing can otherwise make the user look logged out.
@@ -31,6 +33,11 @@ const renderApp = async () => {
     // Don't block app render on redirect handling failures; MSAL will surface
     // auth errors via its event callbacks in-app.
     console.error(e);
+  }
+
+  // Weekly re-login. The unattended office TV (/tv) keeps its session.
+  if (!window.location.pathname.startsWith('/tv')) {
+    await expireStaleSignIns(msalInstance);
   }
 
   // Warm IndexedDB/object-URL cache without blocking first paint.
