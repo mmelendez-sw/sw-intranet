@@ -94,16 +94,20 @@ export function filterActiveBirthdays(people: BirthdayPerson[], users: GraphUser
   return people.filter((p) => birthdayDirectoryStatus(p, users) === 'active');
 }
 
-/** Directory people left off the missing-birthday notice. */
+/** People left off both birthday-gap notices (missing birthday, or birthday with no directory match). */
 const BIRTHDAY_GAP_IGNORED_NAMES = new Set([
   'ginu thomas',
   'teagan terry',
   'angela floyd',
+  // On leave (account disabled); birthdays.json spells it "Andjuar".
+  'daniella andujar',
+  'daniella andjuar',
 ]);
 
+const gapNameKey = (name: string): string => name.trim().toLowerCase().replace(/\s+/g, ' ');
+
 function isBirthdayGapIgnored(user: GraphUser): boolean {
-  const display = user.displayName.trim().toLowerCase().replace(/\s+/g, ' ');
-  if (BIRTHDAY_GAP_IGNORED_NAMES.has(display)) return true;
+  if (BIRTHDAY_GAP_IGNORED_NAMES.has(gapNameKey(user.displayName))) return true;
   const given = user.givenName?.trim().toLowerCase() ?? '';
   const family = user.surname?.trim().toLowerCase() ?? '';
   return !!(given && family && BIRTHDAY_GAP_IGNORED_NAMES.has(`${given} ${family}`));
@@ -131,7 +135,7 @@ export function findBirthdayCoverageGaps(
   for (const person of people) {
     const match = matchBirthdayToDirectory(person, users);
     if (!match) {
-      unmatched.push(person);
+      if (!BIRTHDAY_GAP_IGNORED_NAMES.has(gapNameKey(person.name))) unmatched.push(person);
       continue;
     }
     matchedIds.add(match.id);
