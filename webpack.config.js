@@ -85,6 +85,9 @@ module.exports = (_env, argv = {}) => {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendor',
+            // Only packages needed at startup: lazily imported ones (the Tiptap editor)
+            // stay in their own async chunks instead of being merged into this one.
+            chunks: 'initial',
             priority: -10,
           },
         },

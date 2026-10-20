@@ -287,9 +287,27 @@
 }
 
 .home-sidebar p,
-.home-sidebar ul {
+.home-sidebar ul,
+.home-sidebar ol {
   font-size: 0.9em;
   color: #333;
+}
+
+/* Section text from the rich-text editor (paragraphs, lists, links). */
+.sidebar-section-content ul,
+.sidebar-section-content ol {
+  padding-left: 20px;
+}
+
+/* Nested inside a sized <p>/<ul>; don't shrink twice. */
+.sidebar-section-content li p,
+.sidebar-section-content ul ul,
+.sidebar-section-content ol ol {
+  font-size: inherit;
+}
+
+.sidebar-section-content li p {
+  margin: 0;
 }
 
 .home-sidebar .home-button {

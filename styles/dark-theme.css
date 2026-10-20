@@ -59,7 +59,8 @@
 :where(:root[data-theme="dark"]) .card-text li,
 :where(:root[data-theme="dark"]) .card-text p,
 :where(:root[data-theme="dark"]) .home-sidebar p,
-:where(:root[data-theme="dark"]) .home-sidebar ul {
+:where(:root[data-theme="dark"]) .home-sidebar ul,
+:where(:root[data-theme="dark"]) .home-sidebar ol {
   color: var(--text-primary) !important;
 }
 
@@ -156,7 +157,8 @@
 }
 
 :where(:root[data-theme="dark"]) .home-sidebar p,
-:where(:root[data-theme="dark"]) .home-sidebar ul {
+:where(:root[data-theme="dark"]) .home-sidebar ul,
+:where(:root[data-theme="dark"]) .home-sidebar ol {
   color: var(--text-primary);
 }
 
@@ -263,25 +265,54 @@
   color: var(--text-muted);
 }
 
-:where(:root[data-theme="dark"]) .edit-link-insert {
+:where(:root[data-theme="dark"]) .rte {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .rte-toolbar,
+:where(:root[data-theme="dark"]) .rte-link-row {
   background: var(--surface-muted);
-  border: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-:where(:root[data-theme="dark"]) .edit-link-insert-label {
+:where(:root[data-theme="dark"]) .rte-btn,
+:where(:root[data-theme="dark"]) .rte-link-row button {
   color: var(--text-primary);
 }
 
-:where(:root[data-theme="dark"]) .edit-link-insert input[type="url"] {
+:where(:root[data-theme="dark"]) .rte-btn:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .rte-btn.is-active {
+  background: #8ec8ef;
+  color: #1c2633;
+}
+
+:where(:root[data-theme="dark"]) .rte-sep {
+  background: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .rte-link-row input,
+:where(:root[data-theme="dark"]) .rte-link-row button {
   border: 1px solid var(--border-subtle);
   background: var(--surface);
   color: var(--text-primary);
 }
 
-:where(:root[data-theme="dark"]) .edit-link-insert input[type="text"] {
-  border: 1px solid var(--border-subtle);
-  background: var(--surface);
+:where(:root[data-theme="dark"]) .rte-link-row .rte-link-apply {
+  background: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+:where(:root[data-theme="dark"]) .rte-content {
   color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .rte-content a {
+  color: var(--text-heading);
 }
 
 :where(:root[data-theme="dark"]) .edit-modal-footer {

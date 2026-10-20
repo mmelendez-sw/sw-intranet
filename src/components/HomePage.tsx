@@ -68,7 +68,8 @@ import {
   parseHeroContent,
   parseCardsPerRow,
 } from './homePageShared';
-import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
+import { bulletsToHtml, htmlToBullets, isRichTextEmpty, renderRichText, sanitizeHtml, toBlockHtml } from '../utils/richText';
+import LazyRichTextEditor from './LazyRichTextEditor';
 import TermSheetRankings from './TermSheetRankings';
 import { isTermSheetRankingsAllowlisted } from '../authConfig';
 import { isAcquisitionsManagerTitle } from '../data/termSheetRankingsRoster';
@@ -193,9 +194,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
   const [draggingCardIdx, setDraggingCardIdx] = useState<number | null>(null);
   const [dragOverCardIdx, setDragOverCardIdx] = useState<number | null>(null);
   const [cardSaveStatus, setCardSaveStatus] = useState<EditSaveStatus>('idle');
-  const [linkInsertUrl, setLinkInsertUrl] = useState('');
-  const [linkInsertLabel, setLinkInsertLabel] = useState('');
-  const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
 
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
@@ -361,9 +359,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     originalCardImageUrlRef.current = card.imageUrl || '';
     setIsNewCard(false);
     setCardSaveStatus('idle');
-    setLinkInsertUrl('');
-    setLinkInsertLabel('');
-    setLinkInsertSuffix('');
   }, []);
 
   const openNewCardEdit = useCallback(() => {
@@ -381,29 +376,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     originalCardImageUrlRef.current = '';
     setIsNewCard(true);
     setCardSaveStatus('idle');
-    setLinkInsertUrl('');
-    setLinkInsertLabel('');
-    setLinkInsertSuffix('');
   }, [cards]);
-
-  const insertClickHereLink = useCallback(() => {
-    if (!editCardDraft) return;
-    const url = linkInsertUrl.trim();
-    if (!url) return;
-    try {
-      new URL(url);
-    } catch {
-      window.alert('Please enter a valid URL (include https://).');
-      return;
-    }
-    setEditCardDraft({
-      ...editCardDraft,
-      bullets: [...editCardDraft.bullets, buildClickHereBullet(url, linkInsertLabel, linkInsertSuffix)],
-    });
-    setLinkInsertUrl('');
-    setLinkInsertLabel('');
-    setLinkInsertSuffix('');
-  }, [editCardDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix]);
 
   /** Object URL for the local file preview; revoked when replaced or the editor closes. */
   const previewObjectUrlRef = useRef<string | null>(null);
@@ -549,9 +522,6 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     releasePreviewObjectUrl();
     setImagePreviewUrl('');
     setCardSaveStatus('idle');
-    setLinkInsertUrl('');
-    setLinkInsertLabel('');
-    setLinkInsertSuffix('');
   }, [releasePreviewObjectUrl]);
 
   const closeCardEdit = useCallback(async () => {
@@ -992,7 +962,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <div className="announcement-item-inner">
                         <div className="announcement-item-content">
                           <div className="announcement-item-title">{ann.title}</div>
-                          <div className="announcement-item-body">{ann.content}</div>
+                          <div className="announcement-item-body" dangerouslySetInnerHTML={{ __html: renderRichText(ann.content) }} />
                           <div className="announcement-item-date">
                             {formatAnnouncementDate(ann.date)}
                           </div>
@@ -1024,7 +994,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           <div className="announcement-inactive-content">
                             <span className="announcement-inactive-badge">Inactive</span>
                             <div className="announcement-inactive-title">{ann.title}</div>
-                            <div className="announcement-inactive-body">{ann.content}</div>
+                            <div className="announcement-inactive-body" dangerouslySetInnerHTML={{ __html: renderRichText(ann.content) }} />
                             <div className="announcement-inactive-date">
                               {formatAnnouncementDate(ann.date)}
                             </div>
@@ -1133,7 +1103,7 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       <h2>{card.title}</h2>
                       <ul>
                         {sanitizeBullets(card.bullets).map((bullet, bi) => (
-                          <li key={bi} dangerouslySetInnerHTML={{ __html: bullet }} />
+                          <li key={bi} dangerouslySetInnerHTML={{ __html: sanitizeHtml(bullet) }} />
                         ))}
                       </ul>
                     </div>
@@ -1213,41 +1183,16 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           </div>
           <div className="edit-field-group">
             <label>Bullet Points</label>
-            <textarea
-              rows={8}
-              value={bulletsToText(editCardDraft.bullets)}
-              onChange={e => setEditCardDraft({ ...editCardDraft, bullets: parseBulletLines(e.target.value) })}
+            <LazyRichTextEditor
+              key={isNewCard ? 'new-card' : `card-${editingCard?.order}`}
+              variant="bullets"
+              ariaLabel="Bullet points"
+              value={bulletsToHtml(editCardDraft.bullets)}
+              onChange={(html) =>
+                setEditCardDraft((d) => (d ? { ...d, bullets: htmlToBullets(html) } : d))
+              }
             />
-            <div className="edit-link-insert">
-              <span className="edit-link-insert-label">Insert link</span>
-              <input
-                type="url"
-                placeholder="https://…"
-                value={linkInsertUrl}
-                onChange={e => setLinkInsertUrl(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder={`Link text (defaults to ${DEFAULT_LINK_LABEL})`}
-                value={linkInsertLabel}
-                onChange={e => setLinkInsertLabel(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Optional text after link (e.g. to learn more…)"
-                value={linkInsertSuffix}
-                onChange={e => setLinkInsertSuffix(e.target.value)}
-              />
-              <button
-                type="button"
-                className="edit-link-insert-btn"
-                onClick={insertClickHereLink}
-                disabled={!linkInsertUrl.trim()}
-              >
-                Insert link
-              </button>
-            </div>
-            <span className="edit-field-hint">One bullet per line. HTML is supported, or use the insert tool above.</span>
+            <span className="edit-field-hint">Press Enter for a new bullet. Select text and use 🔗 Link to add a link.</span>
           </div>
 
           {/* ── Image section ── */}
@@ -1348,8 +1293,14 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
           </div>
           <div className="edit-field-group">
             <label>Message</label>
-            <textarea rows={4} value={editAnnouncementDraft.content}
-              onChange={e => setEditAnnouncementDraft({ ...editAnnouncementDraft, content: e.target.value })} />
+            <LazyRichTextEditor
+              key={editAnnouncementDraft.id}
+              ariaLabel="Announcement message"
+              value={toBlockHtml(editAnnouncementDraft.content)}
+              onChange={(html) =>
+                setEditAnnouncementDraft((d) => (d ? { ...d, content: isRichTextEmpty(html) ? '' : html } : d))
+              }
+            />
           </div>
           <div className="edit-field-group">
             <label>Date</label>

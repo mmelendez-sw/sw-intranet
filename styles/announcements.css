@@ -95,6 +95,25 @@
   line-height: 1.5;
 }
 
+/* Rich-text messages: paragraphs and lists from the announcement editor. */
+.announcement-item-body p,
+.announcement-inactive-body p {
+  margin: 0 0 4px;
+}
+
+.announcement-item-body ul,
+.announcement-item-body ol,
+.announcement-inactive-body ul,
+.announcement-inactive-body ol {
+  margin: 0 0 4px;
+  padding-left: 20px;
+}
+
+.announcement-item-body > :last-child,
+.announcement-inactive-body > :last-child {
+  margin-bottom: 0;
+}
+
 .announcement-item-date {
   font-size: 11px;
   color: #b45309;

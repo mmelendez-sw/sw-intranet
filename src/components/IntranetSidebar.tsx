@@ -33,7 +33,8 @@ import {
   finishEditSave,
 } from './EditSaveStatusText';
 import { EditModal } from './homePageShared';
-import { buildClickHereBullet, DEFAULT_LINK_LABEL } from '../utils/htmlLinks';
+import { isRichTextEmpty, renderRichText, toBlockHtml } from '../utils/richText';
+import LazyRichTextEditor from './LazyRichTextEditor';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
@@ -181,9 +182,6 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
   const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
   const [savingSection, setSavingSection] = useState(false);
   const [sectionSaveStatus, setSectionSaveStatus] = useState<EditSaveStatus>('idle');
-  const [linkInsertUrl, setLinkInsertUrl] = useState('');
-  const [linkInsertLabel, setLinkInsertLabel] = useState('');
-  const [linkInsertSuffix, setLinkInsertSuffix] = useState('');
 
   // ── Quick link edit state ──
   const [editingLink, setEditingLink] = useState<QuickLink | null>(null);
@@ -219,44 +217,17 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
     [birthdays.people, directoryUsers, currentMonth]
   );
 
-  const resetSectionLinkInsert = useCallback(() => {
-    setLinkInsertUrl('');
-    setLinkInsertLabel('');
-    setLinkInsertSuffix('');
-  }, []);
-
   const closeSectionEdit = useCallback(() => {
     setEditingSection(null);
     setSectionSaveStatus('idle');
-    resetSectionLinkInsert();
-  }, [resetSectionLinkInsert]);
+  }, []);
 
   // ── Section handlers ──
   const openSectionEdit = useCallback((section: SidebarSection) => {
     setEditingSection(section);
     setSectionSaveStatus('idle');
     setEditSectionDraft({ ...section });
-    resetSectionLinkInsert();
-  }, [resetSectionLinkInsert]);
-
-  const insertLinkIntoSection = useCallback(() => {
-    if (!editSectionDraft) return;
-    const url = linkInsertUrl.trim();
-    if (!url) return;
-    try {
-      new URL(url);
-    } catch {
-      window.alert('Please enter a valid URL (include https://).');
-      return;
-    }
-    const snippet = buildClickHereBullet(url, linkInsertLabel, linkInsertSuffix);
-    const content = editSectionDraft.content.trim();
-    setEditSectionDraft({
-      ...editSectionDraft,
-      content: content ? `${content} ${snippet}` : snippet,
-    });
-    resetSectionLinkInsert();
-  }, [editSectionDraft, linkInsertUrl, linkInsertLabel, linkInsertSuffix, resetSectionLinkInsert]);
+  }, []);
 
   const persistSidebarLayout = async (newBlocks: SidebarLayoutBlock[]) => {
     setLayoutBlocks(newBlocks);
@@ -488,7 +459,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             return (
               <section key={section.key} className="updates editable-wrapper">
                 {section.title && <h2>{section.title}</h2>}
-                <p dangerouslySetInnerHTML={{ __html: section.content }} />
+                <div className="sidebar-section-content" dangerouslySetInnerHTML={{ __html: renderRichText(section.content) }} />
                 {section.linkLabel && section.linkUrl && (
                   <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">
                     {section.linkLabel}
@@ -617,42 +588,15 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             />
           </div>
           <div className="edit-field-group">
-            <label>Content (HTML allowed)</label>
-            <textarea
-              rows={4}
-              value={editSectionDraft.content}
-              onChange={e => setEditSectionDraft({ ...editSectionDraft, content: e.target.value })}
+            <label>Content</label>
+            <LazyRichTextEditor
+              key={editSectionDraft.key}
+              ariaLabel="Section content"
+              value={toBlockHtml(editSectionDraft.content)}
+              onChange={(html) =>
+                setEditSectionDraft((d) => (d ? { ...d, content: isRichTextEmpty(html) ? '' : html } : d))
+              }
             />
-            <div className="edit-link-insert">
-              <span className="edit-link-insert-label">Insert link</span>
-              <input
-                type="url"
-                placeholder="https://…"
-                value={linkInsertUrl}
-                onChange={e => setLinkInsertUrl(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder={`Link text (defaults to ${DEFAULT_LINK_LABEL})`}
-                value={linkInsertLabel}
-                onChange={e => setLinkInsertLabel(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="Optional text after link"
-                value={linkInsertSuffix}
-                onChange={e => setLinkInsertSuffix(e.target.value)}
-              />
-              <button
-                type="button"
-                className="edit-link-insert-btn"
-                onClick={insertLinkIntoSection}
-                disabled={!linkInsertUrl.trim()}
-              >
-                Insert link
-              </button>
-            </div>
-            <span className="edit-field-hint">HTML is supported, or use the insert tool above.</span>
           </div>
           <div className="edit-field-group">
             <label>Link Label {linkUrlSet ? '(required)' : '(optional)'}</label>
