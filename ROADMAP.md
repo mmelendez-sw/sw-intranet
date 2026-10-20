@@ -26,7 +26,7 @@
 | ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240); allowlisted, rollout pending |
 | Dark mode | Per-user toggle |
 
-**Built but switched off:** site-wide alert banner and ticker (`src/App.tsx`), Lead Generation Excel logging (see below).
+**Built but switched off:** site-wide alert banner and ticker (`src/App.tsx`).
 **Separate branch:** the office TV display runs from `serena-tv-dev` — don't touch it without asking.
 
 ---
@@ -36,9 +36,6 @@
 ### ICEMAN rollout
 - Full 15-row test run (time, workbook size, image quality).
 - Demo with the underwriting and origination group, then uncomment them in `ICEMAN_ALLOWLIST` (`src/authConfig.ts`) **and** add the same emails to `ICEMAN_ALLOWED_EMAILS` on the Lambda.
-
-### Lead Generation Excel logging
-Code is ready in `LeadGeneration.tsx` but off. Needs a workbook with a `LeadSubmissions` table in a location **every lead submitter can edit** (the intranet content folder is editor-only), then its drive and item IDs.
 
 ---
 

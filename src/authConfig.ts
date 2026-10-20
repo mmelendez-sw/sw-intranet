@@ -33,7 +33,7 @@ export const msalConfig = {
 };
 
 export const loginRequest = {
-  // Files.ReadWrite.All — lead submission Excel workbook
+  // Files.ReadWrite.All — SharePoint file and image access (see SHAREPOINT_SCOPES)
   // Sites.ReadWrite.All — SharePoint CMS read/write (requires admin consent)
   // User.Read.All — Employee Directory (active users; requires admin consent)
   scopes: [
