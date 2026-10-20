@@ -2,6 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import '../styles/global.css';
+// Lazy routes' stylesheets, pulled into the main bundle: as route chunks they would load after
+// dark-theme.css and win its cascade ties. The route JS stays lazy.
+import './styles/reports.css';
+import '../styles/employee-directory.css';
+import '../styles/iceman.css';
+import '../styles/lead-generation.css';
 // After App + global.css so its :where()-scoped rules win cascade ties; inert unless data-theme="dark".
 import '../styles/dark-theme.css';
 import { PublicClientApplication } from "@azure/msal-browser";
