@@ -25,15 +25,15 @@ const MAX_ROWS = 15;
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 const CLOSE_OBLIQUE_MIN_M = 15;
-const CLOSE_OBLIQUE_MAX_M = 50;
-const CLOSE_OBLIQUE_DEFAULT_M = 30;
+const CLOSE_OBLIQUE_MAX_M = 75;
+const CLOSE_OBLIQUE_DEFAULT_M = 45;
 
 const FAR_OBLIQUE_MIN_M = 200;
-const FAR_OBLIQUE_MAX_M = 500;
-const FAR_OBLIQUE_DEFAULT_M = 300;
+const FAR_OBLIQUE_MAX_M = 750;
+const FAR_OBLIQUE_DEFAULT_M = 375;
 
 /** Mirrors TOP_DOWN_M in server/iceman.ts. */
-const TOP_DOWN_M = 100;
+const TOP_DOWN_M = 180;
 
 // Legacy .xls (BIFF) is no longer parsed server-side (the xlsx package was dropped).
 const isAcceptedFile = (name: string) => {
@@ -291,9 +291,9 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <div className="iceman-panel-header">
             <h3 id="iceman-range-heading">2. Set oblique distances</h3>
             <p>
-              Choose approximate ground coverage for each north-oblique thumbnail. Defaults are
-              30&nbsp;m (close) and 300&nbsp;m (context). The top-down view is fixed at
-              ~{TOP_DOWN_M}&nbsp;m.
+              Choose the ground width of each north-oblique thumbnail, centred on the site. Defaults
+              are {CLOSE_OBLIQUE_DEFAULT_M}&nbsp;m (close) and {FAR_OBLIQUE_DEFAULT_M}&nbsp;m
+              (context). The top-down view is fixed at {TOP_DOWN_M}&nbsp;m.
             </p>
           </div>
 

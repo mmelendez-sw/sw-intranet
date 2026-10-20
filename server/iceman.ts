@@ -4,9 +4,10 @@
  * Env: NEARMAP_API_KEY
  *
  * Output images per row:
- *   - Top-down (vertical): ~100 m ground coverage (fixed)
- *   - Close north oblique: 15–50 m ground coverage (default 30 m)
- *   - Far north oblique:   200–500 m ground coverage (default 300 m)
+ *   - Top-down (vertical): 180 m ground width (fixed)
+ *   - Close north oblique: 15–75 m ground width (default 45 m)
+ *   - Far north oblique:   200–750 m ground width (default 375 m)
+ * Each is cropped to exactly that width, centred on the site, from up to 2×2 tiles.
  */
 
 import ExcelJS from 'exceljs';
@@ -32,18 +33,17 @@ const THUMB_JPEG_QUALITY = 80;
 export const ICEMAN_MAX_ROWS = 15;
 const DEFAULT_MAX_ROWS = ICEMAN_MAX_ROWS;
 
-/** Approximate tile ground width (m) → Web Mercator zoom. */
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 
 export const CLOSE_OBLIQUE_MIN_M = 15;
-export const CLOSE_OBLIQUE_MAX_M = 50;
-export const CLOSE_OBLIQUE_DEFAULT_M = 30;
+export const CLOSE_OBLIQUE_MAX_M = 75;
+export const CLOSE_OBLIQUE_DEFAULT_M = 45;
 
 export const FAR_OBLIQUE_MIN_M = 200;
-export const FAR_OBLIQUE_MAX_M = 500;
-export const FAR_OBLIQUE_DEFAULT_M = 300;
+export const FAR_OBLIQUE_MAX_M = 750;
+export const FAR_OBLIQUE_DEFAULT_M = 375;
 
-export const TOP_DOWN_M = 100;
+export const TOP_DOWN_M = 180;
 
 export type IcemanRow = {
   lat: number;
@@ -130,14 +130,14 @@ function findLatLngColumns(headers: string[]): { latCol: string; lngCol: string 
   return { latCol, lngCol };
 }
 
-function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number } {
+/** Fractional Web Mercator tile coordinates (integer part = tile, fraction = position in it). */
+function latLngToTileFraction(lat: number, lng: number, zoom: number): { x: number; y: number } {
   const n = 2 ** zoom;
-  const x = Math.floor(((lng + 180) / 360) * n);
   const latRad = (lat * Math.PI) / 180;
-  const y = Math.floor(
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
-  );
-  return { x, y };
+  return {
+    x: ((lng + 180) / 360) * n,
+    y: ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n,
+  };
 }
 
 /** Ground width of one 256px Web Mercator tile at latitude / zoom. */
@@ -147,22 +147,15 @@ function tileGroundWidthMeters(lat: number, zoom: number): number {
 }
 
 /**
- * Pick integer zoom whose tile ground width is closest to the requested meters.
- * Nearmap typically tops out around zoom 21 for high-res surveys.
+ * Most detailed zoom whose single tile still spans `targetMeters`, so the crop window fits in
+ * at most 2×2 tiles. Nearmap typically tops out around zoom 21 for high-res surveys.
  */
 function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number {
   const target = Math.max(1, targetMeters);
-  let bestZoom = 19;
-  let bestDiff = Number.POSITIVE_INFINITY;
-  for (let z = 14; z <= 21; z++) {
-    const width = tileGroundWidthMeters(lat, z);
-    const diff = Math.abs(width - target);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      bestZoom = z;
-    }
+  for (let z = 21; z > 14; z--) {
+    if (tileGroundWidthMeters(lat, z) >= target) return z;
   }
-  return bestZoom;
+  return 14;
 }
 
 async function getLatestSurveyIds(
@@ -216,31 +209,79 @@ async function fetchTile(
   apiKey: string,
   surveyId: string | undefined
 ): Promise<ImageFetchResult> {
+  // Crop a window exactly `meters` wide, centred on the site, from the tiles it overlaps.
+  // A single tile only comes in 2× zoom steps and puts the site wherever it falls in that tile.
   const zoom = zoomForGroundCoverageMeters(lat, meters);
-  const { x, y } = latLngToTile(lat, lng, zoom);
+  const center = latLngToTileFraction(lat, lng, zoom);
+  const widthTiles = Math.min(1, meters / tileGroundWidthMeters(lat, zoom));
 
-  const path = surveyId
-    ? `surveys/${surveyId}/${contentType}/${zoom}/${x}/${y}.jpg`
-    : `${contentType}/${zoom}/${x}/${y}.jpg`;
+  const tileUrl = (x: number, y: number) => {
+    const path = surveyId
+      ? `surveys/${surveyId}/${contentType}/${zoom}/${x}/${y}.jpg`
+      : `${contentType}/${zoom}/${x}/${y}.jpg`;
+    return `${NEARMAP_TILES_BASE}/${path}?apikey=${encodeURIComponent(apiKey)}`;
+  };
 
-  const url = `${NEARMAP_TILES_BASE}/${path}?apikey=${encodeURIComponent(apiKey)}`;
+  const fetchOne = async (x: number, y: number): Promise<{ image: Jimp | null; note?: string }> => {
+    try {
+      const res = await fetchWithTimeout(tileUrl(x, y), {}, NEARMAP_TIMEOUT_MS);
+      if (!res.ok) return { image: null, note: `${label} ${res.status}` };
+      const raw = Buffer.from(await res.arrayBuffer());
+      if (!raw.length) return { image: null, note: `${label} empty` };
+      return { image: await Jimp.read(raw) };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Tile fetch failed';
+      console.error('[iceman] tile error', label, lat, lng, msg);
+      return { image: null, note: `${label}: ${msg}` };
+    }
+  };
 
   try {
-    const res = await fetchWithTimeout(url, {}, NEARMAP_TIMEOUT_MS);
-    if (!res.ok) {
-      return { buffer: null, note: `${label} ${res.status}` };
-    }
-    const arrayBuf = await res.arrayBuffer();
-    const raw = Buffer.from(arrayBuf);
-    if (!raw.length) {
-      return { buffer: null, note: `${label} empty` };
+    // The tile under the site sets the pixel size (oblique tiles need not be square).
+    const centerX = Math.floor(center.x);
+    const centerY = Math.floor(center.y);
+    const centerTile = await fetchOne(centerX, centerY);
+    if (!centerTile.image) return { buffer: null, note: centerTile.note };
+    const tileW = centerTile.image.bitmap.width;
+    const tileH = centerTile.image.bitmap.height;
+
+    // Window in pixels keeps the thumbnail's 4:3 shape, like the old cover() crop.
+    const winW = widthTiles * tileW;
+    const winH = (winW * THUMB_HEIGHT) / THUMB_WIDTH;
+    const left = center.x * tileW - winW / 2;
+    const top = center.y * tileH - winH / 2;
+    const x0 = Math.floor(left / tileW);
+    const x1 = Math.floor((left + winW - 1) / tileW);
+    const y0 = Math.floor(top / tileH);
+    const y1 = Math.floor((top + winH - 1) / tileH);
+
+    const neighbours: Promise<{ x: number; y: number; image: Jimp | null }>[] = [];
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (x === centerX && y === centerY) continue;
+        neighbours.push(fetchOne(x, y).then((r) => ({ x, y, image: r.image })));
+      }
     }
 
-    const image = await Jimp.read(raw);
-    // Nearmap panorama tiles display correctly at 256×192 (foreshortening).
-    image.cover(THUMB_WIDTH, THUMB_HEIGHT).quality(THUMB_JPEG_QUALITY);
-    const thumb = await image.getBufferAsync(Jimp.MIME_JPEG);
-    return { buffer: thumb };
+    // Missing neighbours (edge of a survey) stay dark rather than failing the whole image.
+    const canvas = new Jimp((x1 - x0 + 1) * tileW, (y1 - y0 + 1) * tileH, 0x1f2937ff);
+    canvas.composite(centerTile.image, (centerX - x0) * tileW, (centerY - y0) * tileH);
+    for (const { x, y, image } of await Promise.all(neighbours)) {
+      if (image) canvas.composite(image, (x - x0) * tileW, (y - y0) * tileH);
+    }
+
+    const cropX = Math.max(0, Math.round(left - x0 * tileW));
+    const cropY = Math.max(0, Math.round(top - y0 * tileH));
+    canvas
+      .crop(
+        cropX,
+        cropY,
+        Math.min(Math.round(winW), canvas.bitmap.width - cropX),
+        Math.min(Math.round(winH), canvas.bitmap.height - cropY)
+      )
+      .resize(THUMB_WIDTH, THUMB_HEIGHT)
+      .quality(THUMB_JPEG_QUALITY);
+    return { buffer: await canvas.getBufferAsync(Jimp.MIME_JPEG) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Tile fetch failed';
     console.error('[iceman] tile error', label, lat, lng, msg);
