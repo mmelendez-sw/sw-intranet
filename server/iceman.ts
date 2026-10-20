@@ -472,7 +472,7 @@ export async function generateIcemanWorkbook(
   filename: string,
   maxRows = DEFAULT_MAX_ROWS,
   imageOptions?: IcemanImageOptions
-): Promise<{ buffer: Buffer; filename: string }> {
+): Promise<{ buffer: Buffer; filename: string; rowCount: number }> {
   const apiKey = requireNearmapKey();
   const rowCap = Math.min(Math.max(1, Math.floor(maxRows)), ICEMAN_MAX_ROWS);
   const parsed = await parseWorkbookRows(fileBuffer, filename, rowCap);
@@ -633,5 +633,6 @@ export async function generateIcemanWorkbook(
   return {
     buffer: Buffer.from(out),
     filename: `iceman-output-${stamp}.xlsx`,
+    rowCount: rows.length,
   };
 }

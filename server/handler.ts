@@ -170,14 +170,22 @@ export async function handler(event?: {
     const needsAuth =
       isIcemanGeneratePath(path) ||
       isSalesforceTermSheetRankingsPath(path);
+    let icemanUser = '';
     if (needsAuth) {
       try {
         const user = await authenticateRequest(getHeader(event?.headers, 'authorization'));
-        if (user && isIcemanGeneratePath(path) && !isIcemanAllowed(user.email)) {
-          return errorResult(403, 'ICEMAN is not enabled for this account.');
+        if (user && isIcemanGeneratePath(path)) {
+          icemanUser = user.email;
+          if (!isIcemanAllowed(user.email)) {
+            console.warn('[iceman] access denied:', user.email);
+            return errorResult(403, 'ICEMAN is not enabled for this account.');
+          }
         }
       } catch (err) {
-        if (err instanceof AuthError) return errorResult(401, err.message);
+        if (err instanceof AuthError) {
+          if (isIcemanGeneratePath(path)) console.warn('[iceman] sign-in rejected:', err.message);
+          return errorResult(401, err.message);
+        }
         if (err instanceof AuthServiceError) return errorResult(503, err.message);
         throw err;
       }
@@ -228,7 +236,8 @@ export async function handler(event?: {
           query.far_m || parsed.fields.far_m || parsed.fields.farObliqueMeters
         );
 
-        const { buffer, filename } = await generateIcemanWorkbook(
+        const startedAt = Date.now();
+        const { buffer, filename, rowCount } = await generateIcemanWorkbook(
           parsed.file.buffer,
           parsed.file.filename,
           maxRows,
@@ -236,6 +245,12 @@ export async function handler(event?: {
             closeObliqueMeters: Number.isFinite(closeObliqueMeters) ? closeObliqueMeters : undefined,
             farObliqueMeters: Number.isFinite(farObliqueMeters) ? farObliqueMeters : undefined,
           }
+        );
+
+        console.log(
+          `[iceman] run by ${icemanUser || 'unknown'}: ${rowCount} rows in ` +
+            `${((Date.now() - startedAt) / 1000).toFixed(1)} s, ` +
+            `${(buffer.length / 1024 / 1024).toFixed(2)} MB workbook`
         );
 
         return {
@@ -254,7 +269,7 @@ export async function handler(event?: {
         const clientError =
           /^(missing request|missing latitude|unsupported|no valid|file has no data|upload too large)/i.test(msg);
         if (clientError) {
-          console.warn('[iceman] rejected upload:', msg);
+          console.warn(`[iceman] rejected upload from ${icemanUser || 'unknown'}:`, msg);
         } else {
           console.error('[iceman]', err);
         }
