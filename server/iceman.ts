@@ -8,7 +8,7 @@
  *   - Close north oblique: 15–75 m ground width (default 45 m)
  *   - Far north oblique:   200–750 m ground width (default 375 m)
  * Each is cropped to exactly that width, centred on the site, from up to 3×3 tiles, and
- * shown at 240×180 in the workbook.
+ * shown at 320×240 in the workbook.
  */
 
 import ExcelJS from 'exceljs';
@@ -24,8 +24,10 @@ const REQUEST_DELAY_MS = 200;
 const ROW_CONCURRENCY = 3;
 const NEARMAP_TIMEOUT_MS = 15_000;
 /** Displayed size in the workbook; the JPEG keeps its native 240–480 px width for zooming in. */
-const THUMB_WIDTH = 240;
-const THUMB_HEIGHT = 180;
+const THUMB_WIDTH = 320;
+const THUMB_HEIGHT = 240;
+/** Fewest real pixels across a view; raising it means a closer zoom and more tiles. */
+const MIN_SOURCE_WIDTH = 240;
 const THUMB_JPEG_QUALITY = 80;
 
 /**
@@ -149,14 +151,14 @@ function tileGroundWidthMeters(lat: number, zoom: number): number {
 }
 
 /**
- * Least detailed zoom at which `targetMeters` spans at least THUMB_WIDTH source pixels, so the
- * thumbnail is never upscaled; the window is then under 2 tiles wide (≤ 3×3 tiles).
+ * Least detailed zoom at which `targetMeters` spans at least MIN_SOURCE_WIDTH pixels; the
+ * window is then under 2 tiles wide (≤ 3×3 tiles).
  * Nearmap typically tops out around zoom 21 for high-res surveys.
  */
 function zoomForGroundCoverageMeters(lat: number, targetMeters: number): number {
   const target = Math.max(1, targetMeters);
   for (let z = 14; z < 21; z++) {
-    if ((target / tileGroundWidthMeters(lat, z)) * 256 >= THUMB_WIDTH) return z;
+    if ((target / tileGroundWidthMeters(lat, z)) * 256 >= MIN_SOURCE_WIDTH) return z;
   }
   return 21;
 }
@@ -283,8 +285,10 @@ async function fetchTile(
         Math.min(Math.round(winH), canvas.bitmap.height - cropY)
       )
       .quality(THUMB_JPEG_QUALITY);
-    // Upscale only when even zoom 21 can't fill the thumbnail.
-    if (canvas.bitmap.width < THUMB_WIDTH) canvas.resize(THUMB_WIDTH, THUMB_HEIGHT);
+    // Upscale only when even zoom 21 can't reach the minimum detail.
+    if (canvas.bitmap.width < MIN_SOURCE_WIDTH) {
+      canvas.resize(MIN_SOURCE_WIDTH, (MIN_SOURCE_WIDTH * THUMB_HEIGHT) / THUMB_WIDTH);
+    }
     return { buffer: await canvas.getBufferAsync(Jimp.MIME_JPEG) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Tile fetch failed';
@@ -537,7 +541,7 @@ export async function generateIcemanWorkbook(
   }
   const imageColStart = 3 + passThroughHeaders.length;
   for (let i = 0; i < shots.length; i++) {
-    ws.getColumn(imageColStart + i).width = 35;
+    ws.getColumn(imageColStart + i).width = 46;
   }
   ws.getColumn(imageColStart + shots.length).width = 36;
   const statusCol = imageColStart + shots.length;
@@ -604,7 +608,7 @@ export async function generateIcemanWorkbook(
       '',
     ];
     ws.addRow(dataCells);
-    ws.getRow(excelRowNum).height = 140;
+    ws.getRow(excelRowNum).height = 185;
 
     for (let imgIdx = 0; imgIdx < shots.length; imgIdx++) {
       const result = tiles[imgIdx];
