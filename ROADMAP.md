@@ -1,174 +1,84 @@
 # Symphony Towers Infrastructure — Intranet Roadmap
 
-> **Branch:** `main-edit`  
-> **Last updated:** March 2026  
-> **Stack:** React 18 · TypeScript · MSAL (Azure AD) · Microsoft Graph API · AWS Amplify · SharePoint
+> **Branch:** `main` (Amplify production)
+> **Last updated:** October 2026
+> **Stack:** React 18 · TypeScript · MSAL (Azure AD) · Microsoft Graph · SharePoint · AWS Amplify · AWS Lambda (`sw-intranet-api`, us-east-2)
 
 ---
 
-## Current State (v1.0 — Shipped)
+## Shipped
 
-| Feature | Status | Notes |
+| Feature | Notes |
+|---|---|
+| Azure AD login (MSAL) | Popup with redirect fallback for iOS, Android and Brave; Log in button on the welcome page |
+| Weekly re-login | Sessions older than 7 days are cleared at startup (`/tv` exempt) |
+| New-version prompt | Gold bar under the header when a newer deploy is live; next navigation loads it |
+| Elite and editor roles | `IntranetExecs` / `IntranetEditors` groups; editors edit content in place, saved to SharePoint |
+| Homepage cards, hero, announcements | SharePoint-backed; editors use the rich text editor |
+| Rich text editor | Tiptap toolbar (bold, italic, underline, lists, links) for cards, announcements and sidebar sections; output sanitised with DOMPurify; loads only when an edit modal opens |
+| Sidebar sections, quick links, site settings | Shared `IntranetSidebar` on every page |
+| Birthdays | `birthdays.json`, matched against the live directory; gap notice for editors |
+| Monthly Term Sheet Leaderboard | Live Salesforce counts via the Lambda (5-minute cache) |
+| Reports page | Power BI links, elite/include/exclude rules, **★ My Reports** favourites (per browser) |
+| IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
+| Employee Directory | `/directory`, live Graph users with photos |
+| Lead Generation | Graph `sendMail` with photos |
+| ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240); allowlisted, rollout pending |
+| Dark mode | Per-user toggle |
+
+**Built but switched off:** site-wide alert banner and ticker (`src/App.tsx`), Lead Generation Excel logging (see below).
+**Separate branch:** the office TV display runs from `serena-tv-dev` — don't touch it without asking.
+
+---
+
+## In progress
+
+### ICEMAN rollout
+- Full 15-row test run (time, workbook size, image quality).
+- Demo with the underwriting and origination group, then uncomment them in `ICEMAN_ALLOWLIST` (`src/authConfig.ts`) **and** add the same emails to `ICEMAN_ALLOWED_EMAILS` on the Lambda.
+
+### Lead Generation Excel logging
+Code is ready in `LeadGeneration.tsx` but off. Needs a workbook with a `LeadSubmissions` table in a location **every lead submitter can edit** (the intranet content folder is editor-only), then its drive and item IDs.
+
+---
+
+## Next up
+
+| Feature | Value | Effort |
 |---|---|---|
-| Azure AD login (MSAL) | ✅ | Popup with redirect fallback; Android/Brave fixed |
-| Elite group gate (`IntranetExecs`) | ✅ | 24-hr localStorage cache, retry logic |
-| Homepage — 6 content cards | ✅ | Hardcoded defaults, SharePoint-backed when edited |
-| Homepage — sidebar sections | ✅ | HR Updates, IT Updates, Exciting News, Holiday Photos |
-| Reports page — Power BI link table | ✅ | Elite vs. standard split; per-user email exclusions |
-| Lead Generation page | ✅ | Graph `sendMail` integration |
-| Editor role (`IntranetEditors` group) | ✅ | Pencil-icon inline editing, SharePoint persistence |
-| Image upload in card editor | ✅ | Drag-and-drop to SharePoint `IntranetImages/` folder |
-| Mobile auth — iOS Safari | ✅ | Redirect fallback on popup failure |
-| Mobile auth — Android / Brave | ✅ | Always-redirect flow, navigator.brave detection |
-| AWS Amplify deployment | ✅ | SPA rewrite rule, `npm run build` → `dist/` |
+| Shared company calendar | Company-wide events from a SharePoint list | 3–4 days |
+| Document library browser | Browse SharePoint files in the intranet | 3–5 days |
+| Org chart | Built from the directory (`/manager`, `/directReports`) | ~1 week |
+| PWA ("Add to Home Screen") | Manifest exists; needs a service worker | 2–3 days |
+| Editor analytics | Which reports and cards get used | ~1 week |
+| Work anniversaries | Same pattern as birthdays | 1–2 days |
+| Leaderboard history | Last month's winners / year to date | 1–2 days |
+| New-hire welcome card | Replaces manual hide/show edits for onboarding | 1–2 days |
+| ICEMAN usage view | Who ran it and how many sites (from the `[iceman]` logs) | 1–2 days |
+
+**Backlog:** push notifications, Spanish (i18n).
 
 ---
 
-## Phase 1 — Intranet Essentials (v1.1) — *This sprint*
-
-> **Goal:** Turn the app from a styled landing page into a working intranet hub.
-
-### 1.1 · Site-wide Alert Banner ✅ Implemented
-- Editors push a dismissible org-wide alert from the header
-- Types: `info`, `warning`, `success`, `error`
-- Optional CTA link
-- Dismissed per-session in `sessionStorage`
-- Stored in `contentService` key `"site-alert"`
-
-### 1.2 · Employee Directory ✅ Implemented
-- `/directory` route, accessible to all authenticated users
-- Pulls `displayName`, `jobTitle`, `department`, `mail` from Graph `/users`
-- Per-card avatar photo from Graph `/users/{id}/photo/$value`
-- Live search/filter by name or department
-- Requires `User.ReadBasic.All` scope (admin consent)
-
-### 1.3 · Announcements Feed ✅ Implemented
-- Collapsible announcements strip at the top of the homepage
-- Each announcement: title, body, date, active toggle
-- Editors add/edit/remove via existing pencil-icon modal pattern
-- Stored in `contentService` key `"announcements"`
-
-### 1.4 · Microsoft Calendar Integration ✅ Implemented
-- `Calendar.tsx` rewritten to show user's upcoming Outlook events via Graph
-- Sidebar date-picker highlights days with events
-- Requires `Calendars.Read` scope (user consent only, no admin needed)
-
----
-
-## Phase 2 — Productivity Layer (v1.2) — *Next sprint*
-
-> **Goal:** Replace manual workarounds with proper intranet tooling.
-
-### 2.1 · WYSIWYG Rich Text Editor
-- Replace raw `<textarea>` in card/sidebar edit modals with a proper rich text editor
-- **Recommended library:** [Tiptap](https://tiptap.dev/) (MIT, no server required)
-- Outputs clean HTML stored in SharePoint as today; zero data model change
-- Unblocks non-technical editors who can't write `<a href>` by hand
-- **Effort:** 2–3 days
-
-### 2.2 · IT Ticket Submission
-- Replace `mailto:Symphony_Tech@symphonywireless.com` button with an inline form
-- Fields: Category, Subject, Description, Priority, Attachment
-- Submits via Graph `sendMail` (same pattern as Lead Generation)
-- Optional: auto-CC the submitting user
-- **Effort:** 1–2 days
-
-### 2.3 · Document Library Browser
-- Browse SharePoint document libraries directly in the intranet
-- Replaces scattered SharePoint deep-links in sidebar
-- Graph `/drives/{id}/root/children` with breadcrumb navigation
-- Download / preview PDFs and images inline
-- **Effort:** 3–5 days
-
-### 2.4 · Report Favoriting
-- Users can star reports they use frequently
-- Stars stored in `localStorage` per user (no backend needed)
-- "My Reports" section pinned to top of the reports table
-- **Effort:** 1 day
-
-### 2.5 · Mobile PWA Improvements
-- Add `manifest.json` and service worker for "Add to Home Screen"
-- Offline fallback page (cached shell)
-- Push notification permission prompt (for alert banner delivery)
-- **Effort:** 2–3 days
-
----
-
-## Phase 3 — Advanced Features (v2.0) — *Backlog*
-
-> **Goal:** Make the intranet a strategic communications and operations platform.
-
-### 3.1 · Org Chart Visualization
-- Interactive org chart built from Graph `/users/{id}/directReports` and `/users/{id}/manager`
-- Click a node to see profile card
-- Export to PNG
-- **Effort:** 1 week
-- **Dependency:** `User.Read.All` scope (admin consent)
-
-### 3.2 · Push Notifications
-- When editors publish a new alert or announcement, subscribed users receive a browser push notification
-- Requires a backend to store Web Push subscriptions (serverless Lambda on Amplify)
-- **Effort:** 1–2 weeks
-- **Dependency:** Amplify Functions setup
-
-### 3.3 · Analytics Dashboard (Editors Only)
-- Track which reports are clicked, which cards are viewed longest
-- Lightweight event logging to SharePoint list via Graph
-- Dashboard page at `/analytics` gated to editors
-- **Effort:** 1 week
-
-### 3.4 · SharePoint Shared Company Calendar
-- Replace personal Outlook calendar with a shared org-wide event calendar
-- Events managed by HR/admins in SharePoint; displayed on the intranet
-- Graph `/sites/{id}/lists/{calendarListId}/items`
-- **Effort:** 3–4 days
-
-### 3.5 · Dark Mode
-- CSS custom properties already in `global.css` ready for theme switching
-- Toggle stored in `localStorage`
-- Respects `prefers-color-scheme` media query by default
-- **Effort:** 2 days
-
-### 3.6 · Multi-language Support (i18n)
-- English baseline with Spanish secondary (common in telecom infrastructure)
-- `react-i18next` library
-- Language preference stored per user in SharePoint user profile
-- **Effort:** 1–2 weeks (translation time dominates)
-
----
-
-## Technical Debt
+## Technical debt
 
 | Item | Priority | Notes |
 |---|---|---|
-| Remove all `console.log` debug statements from `App.tsx` | High | Left from group-check debugging |
-| Replace `window.*` debug helpers in `App.tsx` | High | `debugGroups`, `forceEliteCheck`, etc. — production risk |
-| Deduplicate `EditModal` component | Medium | Defined separately in `HomePage.tsx` and `Reports.tsx` — extract to `src/components/EditModal.tsx` |
-| `ReportSection.tsx` is unused | Low | Delete or wire to a route |
-| `HRPage.tsx` imported but route shows placeholder | Low | Implement or remove import |
-| `Sites.ReadWrite.All` for all users | Medium | Scope down to `Sites.Read.All` for non-editors; acquire write scope on demand |
-| Token retry uses `acquireTokenPopup` in `authConfig.ts` | Medium | Fails silently on Android; replace with redirect fallback |
+| `Calendars.Read` still requested at login | Medium | The calendar was removed; drop the scope |
+| `Sites.ReadWrite.All` for every user | Medium | Only editors write; request write access on demand |
+| Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
+| `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
+| Unit tests and CI | Medium | `intranet-tests-refactor` has vitest tests and PR checks that never reached `main` |
+| Salesforce integration password expiry | High | Set "Password Never Expires" on that user's profile (it broke the leaderboard on 2026-10-19) |
 
 ---
 
-## Scope & Permission Reference
+## Definition of done
 
-| Scope | Who needs it | Admin consent? | Used for |
-|---|---|---|---|
-| `User.Read` | All | No | Login, user profile |
-| `GroupMember.Read.All` | All | Yes | Elite + editor group checks |
-| `Mail.Send` | All | No | Lead gen emails, IT tickets |
-| `Sites.ReadWrite.All` | All | Yes | Read/write SharePoint content |
-| `User.ReadBasic.All` | All | Yes | Employee Directory |
-| `Calendars.Read` | All | No | Personal Outlook calendar events |
-
----
-
-## Definition of Done
-
-- [ ] Feature works on desktop Chrome, Edge, Firefox, Safari
-- [ ] Feature works on iOS Safari and Android Chrome / Brave
-- [ ] Editor-only controls are invisible to non-editor authenticated users
-- [ ] Content falls back gracefully if SharePoint is unreachable
-- [ ] No new TypeScript linter errors introduced
-- [ ] Feature is documented in this roadmap with status updated to ✅
+- [ ] Works on desktop Chrome, Edge, Firefox and Safari
+- [ ] Works on iOS Safari and Android Chrome / Brave
+- [ ] Editor-only controls are hidden from non-editors
+- [ ] Falls back gracefully when SharePoint or the Lambda is unreachable
+- [ ] Light and dark mode both checked
+- [ ] `npx tsc --noEmit -p .` (and `-p server` for Lambda changes) passes
+- [ ] This roadmap is updated
