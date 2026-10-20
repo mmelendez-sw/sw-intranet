@@ -542,8 +542,27 @@
   border: 1px solid var(--border-subtle);
 }
 
-:where(:root[data-theme="dark"]) .reports-table tr:nth-child(even) {
+:where(:root[data-theme="dark"]) .reports-table tr.even-row {
   background-color: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .reports-table tr.reports-group-row th {
+  background-color: var(--surface-muted);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .report-favorite-btn {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .report-favorite-btn:hover,
+:where(:root[data-theme="dark"]) .report-favorite-btn:focus-visible {
+  background-color: rgba(142, 200, 239, 0.12);
+  color: #ffc845;
+}
+
+:where(:root[data-theme="dark"]) .report-favorite-btn.is-favorite {
+  color: #ffc845;
 }
 
 :where(:root[data-theme="dark"]) .report-description-cell {

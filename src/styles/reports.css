@@ -86,8 +86,46 @@
     color: white;
 }
 
-.reports-table tr:nth-child(even) {
+.reports-table tr.even-row {
     background-color: #d9ecf9;
+}
+
+/* "★ My Reports" / "All Reports" dividers when the user has starred reports. */
+.reports-table tr.reports-group-row th {
+    background-color: #e8eef5;
+    color: #003366;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+}
+
+.report-title-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-favorite-btn {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: #8a96a3;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.report-favorite-btn:hover,
+.report-favorite-btn:focus-visible {
+    background-color: rgba(0, 51, 102, 0.08);
+    color: #d4a017;
+}
+
+.report-favorite-btn.is-favorite {
+    color: #e0a800;
 }
 
 .report-description-cell {

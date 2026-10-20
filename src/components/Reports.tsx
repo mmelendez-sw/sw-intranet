@@ -18,6 +18,7 @@ import {
   stampReportEditor,
 } from '../services/contentService';
 import { useSharePointContent } from '../hooks/useSharePointContent';
+import { reportFavoriteKey, useReportFavorites } from '../hooks/useReportFavorites';
 import IntranetSidebar from './IntranetSidebar';
 import {
   EditSaveStatus,
@@ -130,6 +131,35 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
 
   const orderedReports = sortReportsByOrder(allReports);
   const visibleReports = canEdit ? orderedReports : orderedReports.filter(isReportVisible);
+
+  // Starred reports float to a "My Reports" group. Not while editing: drag/arrow reordering
+  // works on the shared order, so edit mode shows that order as-is.
+  const { favorites, toggleFavorite } = useReportFavorites(userInfo.email);
+  const showFavorites = !canEdit && !!userInfo.email;
+  const favoriteSet = new Set(favorites);
+  const favoriteReports = showFavorites
+    ? visibleReports.filter((r) => favoriteSet.has(reportFavoriteKey(r)))
+    : [];
+  const otherReports = favoriteReports.length
+    ? visibleReports.filter((r) => !favoriteSet.has(reportFavoriteKey(r)))
+    : visibleReports;
+  type ReportRow =
+    | { kind: 'group'; label: string }
+    | { kind: 'report'; report: ReportItemContent; index: number; stripe: number };
+  const reportRows: ReportRow[] = [];
+  const pushGroup = (label: string, reports: ReportItemContent[]) => {
+    if (label) reportRows.push({ kind: 'group', label });
+    reports.forEach((report, stripe) =>
+      reportRows.push({ kind: 'report', report, index: visibleReports.indexOf(report), stripe })
+    );
+  };
+  if (favoriteReports.length) {
+    pushGroup('★ My Reports', favoriteReports);
+    pushGroup('All Reports', otherReports);
+  } else {
+    pushGroup('', otherReports);
+  }
+  const columnCount = 2 + (canEdit ? 2 : 0);
 
   const pageTitle = userInfo.isEliteGroup
     ? `${siteConfig.companyName} Elite Status Reports`
@@ -270,11 +300,22 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
                 </tr>
               </thead>
               <tbody>
-                {visibleReports.map((report, index) => (
+                {reportRows.map((row) => {
+                  if (row.kind === 'group') {
+                    return (
+                      <tr key={`group-${row.label}`} className="reports-group-row">
+                        <th colSpan={columnCount} scope="colgroup">{row.label}</th>
+                      </tr>
+                    );
+                  }
+                  const { report, index, stripe } = row;
+                  const favKey = reportFavoriteKey(report);
+                  const isFavorite = favoriteSet.has(favKey);
+                  return (
                   <tr
                     key={`report-${report.order}-${report.title}`}
                     className={[
-                      index % 2 === 0 ? 'odd-row' : 'even-row',
+                      stripe % 2 === 0 ? 'odd-row' : 'even-row',
                       canEdit ? 'report-row-reorderable' : '',
                       draggingReportIdx === index ? 'report-row-dragging' : '',
                       dragOverReportIdx === index && draggingReportIdx !== index ? 'report-row-drag-over' : '',
@@ -308,13 +349,27 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
                       </td>
                     )}
                     <td>
-                      {report.link ? (
-                        <button className="report-button" onClick={() => window.open(report.link, '_blank')}>
-                          {report.title}
-                        </button>
-                      ) : (
-                        <button className="report-button" disabled>{report.title}</button>
-                      )}
+                      <div className="report-title-cell">
+                        {showFavorites && (
+                          <button
+                            type="button"
+                            className={`report-favorite-btn${isFavorite ? ' is-favorite' : ''}`}
+                            onClick={() => toggleFavorite(favKey)}
+                            aria-pressed={isFavorite}
+                            aria-label={isFavorite ? `Remove ${report.title} from My Reports` : `Add ${report.title} to My Reports`}
+                            title={isFavorite ? 'Remove from My Reports' : 'Add to My Reports'}
+                          >
+                            {isFavorite ? '★' : '☆'}
+                          </button>
+                        )}
+                        {report.link ? (
+                          <button className="report-button" onClick={() => window.open(report.link, '_blank')}>
+                            {report.title}
+                          </button>
+                        ) : (
+                          <button className="report-button" disabled>{report.title}</button>
+                        )}
+                      </div>
                     </td>
                     <td className="report-description-cell">
                       {report.description}
@@ -341,7 +396,8 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
                       </td>
                     )}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
 
