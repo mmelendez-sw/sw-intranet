@@ -35,6 +35,7 @@ import {
 import { EditModal } from './homePageShared';
 import { isRichTextEmpty, renderRichText, toBlockHtml } from '../utils/richText';
 import LazyRichTextEditor from './LazyRichTextEditor';
+import ITTicketModal from './ITTicketModal';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
@@ -179,6 +180,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
 
   // ── Section edit state ──
   const [editingSection, setEditingSection] = useState<SidebarSection | null>(null);
+  const [ticketOpen, setTicketOpen] = useState(false);
   const [editSectionDraft, setEditSectionDraft] = useState<SidebarSection | null>(null);
   const [savingSection, setSavingSection] = useState(false);
   const [sectionSaveStatus, setSectionSaveStatus] = useState<EditSaveStatus>('idle');
@@ -426,10 +428,7 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
         {/* ── Support email / Site Settings ── */}
         <section className="quick-links">
           {siteConfig.supportEmail ? (
-            <button
-              className="home-button"
-              onClick={() => window.open(`mailto:${siteConfig.supportEmail}`, '_self')}
-            >
+            <button className="home-button" onClick={() => setTicketOpen(true)}>
               Report IT Issue
             </button>
           ) : (
@@ -565,6 +564,16 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
           </div>
         )}
       </aside>
+
+      {ticketOpen && siteConfig.supportEmail && (
+        <ITTicketModal
+          supportEmail={siteConfig.supportEmail}
+          companyName={siteConfig.companyName}
+          userName={userInfo.name || ''}
+          userEmail={userInfo.email || ''}
+          onClose={() => setTicketOpen(false)}
+        />
+      )}
 
       {/* ── Section Edit Modal ── */}
       {editingSection && editSectionDraft && (() => {

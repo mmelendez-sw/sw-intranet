@@ -1,0 +1,114 @@
+/* "Report IT Issue" form — builds on the edit-modal styles in edit-mode.css. */
+.it-ticket-modal {
+  max-width: 620px;
+}
+
+.it-ticket-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 560px) {
+  .it-ticket-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.it-ticket-files {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.it-ticket-attach-btn {
+  padding: 7px 14px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.it-ticket-attach-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.it-ticket-file-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.it-ticket-file-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  border: 1px solid #dde4ee;
+  border-radius: 4px;
+  background: #f4f7fb;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.it-ticket-file-list small {
+  color: #6c757d;
+}
+
+.it-ticket-file-list button {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #6c757d;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.it-ticket-error {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #fdecea;
+  color: #b42318;
+  font-size: 13px;
+}
+
+.it-ticket-to {
+  margin-right: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.it-ticket-sent {
+  text-align: center;
+  padding: 28px 20px;
+}
+
+.it-ticket-sent-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #198754;
+  color: #fff;
+  font-size: 28px;
+  line-height: 52px;
+}
+
+.it-ticket-sent h4 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.it-ticket-sent p {
+  margin: 0;
+  color: #495057;
+}

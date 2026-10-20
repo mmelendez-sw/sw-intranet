@@ -265,6 +265,28 @@
   color: var(--text-muted);
 }
 
+:where(:root[data-theme="dark"]) .it-ticket-attach-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .it-ticket-file-list li {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .it-ticket-file-list small,
+:where(:root[data-theme="dark"]) .it-ticket-file-list button,
+:where(:root[data-theme="dark"]) .it-ticket-sent p {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .it-ticket-error {
+  background: #4a1f1f;
+  color: #ffb4ab;
+}
+
 :where(:root[data-theme="dark"]) .rte {
   border: 1px solid var(--border-subtle);
   background: var(--surface);
