@@ -77,6 +77,6 @@
 - [ ] Works on iOS Safari and Android Chrome / Brave
 - [ ] Editor-only controls are hidden from non-editors
 - [ ] Falls back gracefully when SharePoint or the Lambda is unreachable
-- [ ] Light and dark mode both checked
+- [ ] Light and dark mode both checked; `npm run check:dark` passes
 - [ ] `npx tsc --noEmit -p .` (and `-p server` for Lambda changes) passes
 - [ ] This roadmap is updated
