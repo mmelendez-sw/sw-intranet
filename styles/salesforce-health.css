@@ -1,0 +1,48 @@
+/* Admin-only Salesforce integration warning, top of the page under the header */
+.sf-health-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  border-bottom: 1px solid;
+}
+
+.sf-health-banner.is-error {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #7f1d1d;
+}
+
+.sf-health-banner.is-warn {
+  background: #fff7e6;
+  border-color: #fbbf24;
+  color: #5c3d00;
+}
+
+.sf-health-icon {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.sf-health-text {
+  flex: 1;
+}
+
+.sf-health-meta {
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.sf-health-dismiss {
+  flex-shrink: 0;
+  padding: 0 0 0 8px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}

@@ -5,6 +5,7 @@ import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
+import SalesforceHealthBanner from './components/SalesforceHealthBanner';
 // import TvDisplay from './components/TvDisplay';
 import {
   BYPASS_AUTH,
@@ -239,6 +240,7 @@ const App: React.FC = () => {
             <EditMenuProvider>
               <Header userInfo={userInfo} />
               <div className="main-content">
+                <SalesforceHealthBanner userInfo={userInfo} />
                 <Suspense fallback={<RouteFallback />}>
                   <Routes>
                     <Route path="/" element={<HomePage userInfo={userInfo} />} />

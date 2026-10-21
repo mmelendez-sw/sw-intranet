@@ -7,6 +7,7 @@
  *   GET /api/images/:id            — proxy SharePoint drive item bytes (ETag / 304 aware)
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/term-sheet-rankings       — signed-in users (Entra ID token)
+ *   GET /api/salesforce/health                    — integration sign-in status; Salesforce admins only
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=15 — Nearmap batch XLSX (multipart file); ICEMAN allowlist.
  *        max_rows is clamped to ICEMAN_MAX_ROWS (server/iceman.ts); uploads capped at 4 MB.
@@ -18,7 +19,9 @@
  *
  * Env vars (set on the Lambda — never in the Amplify frontend build):
  *   Graph/TV:      TENANT_ID, CLIENT_ID, CLIENT_SECRET
- *   Salesforce:    SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN?, SF_DOMAIN?
+ *   Salesforce:    SF_USERNAME, SF_PASSWORD, SF_SECURITY_TOKEN?, SF_DOMAIN?,
+ *                  SF_PASSWORD_EXPIRY_DAYS? (default 90; 0 = never expires),
+ *                  SALESFORCE_ADMIN_EMAILS? (comma-separated; default below)
  *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
  *   ICEMAN:        NEARMAP_API_KEY, ICEMAN_ALLOWED_EMAILS? (comma-separated; default below)
@@ -34,7 +37,7 @@ import {
   ImageTooLargeError,
   MAX_PROXY_IMAGE_BYTES,
 } from './tvImages';
-import { getTermSheetRankings } from './salesforce';
+import { getSalesforceHealth, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { requireEnv } from './env';
 import { AuthError, AuthServiceError, authenticateRequest } from './auth';
@@ -62,13 +65,28 @@ const DEFAULT_ICEMAN_ALLOWED_EMAILS = [
   'smarkovitch@symphonyinfra.com',
 ].join(',');
 
-function isIcemanAllowed(email: string): boolean {
-  const allowed = (process.env.ICEMAN_ALLOWED_EMAILS || DEFAULT_ICEMAN_ALLOWED_EMAILS)
+/** Mirrors SALESFORCE_ADMIN_ALLOWLIST in src/authConfig.ts; override with SALESFORCE_ADMIN_EMAILS. */
+const DEFAULT_SALESFORCE_ADMIN_EMAILS = [
+  'mmelendez@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+].join(',');
+
+function isInEmailList(list: string, email: string): boolean {
+  const allowed = list
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
   // Some sign-in names (UPNs) still use the legacy symphonywireless.com domain.
   return allowed.includes(email.replace(/@symphonywireless\.com$/, '@symphonyinfra.com'));
+}
+
+function isIcemanAllowed(email: string): boolean {
+  return isInEmailList(process.env.ICEMAN_ALLOWED_EMAILS || DEFAULT_ICEMAN_ALLOWED_EMAILS, email);
+}
+
+function isSalesforceAdmin(email: string): boolean {
+  return isInEmailList(process.env.SALESFORCE_ADMIN_EMAILS || DEFAULT_SALESFORCE_ADMIN_EMAILS, email);
 }
 
 function errorResult(statusCode: number, error: string): LambdaResult {
@@ -129,6 +147,10 @@ function isSalesforceTermSheetRankingsPath(path: string): boolean {
   return /\/api\/salesforce\/term-sheet-rankings\/?$/i.test(path);
 }
 
+function isSalesforceHealthPath(path: string): boolean {
+  return /\/api\/salesforce\/health\/?$/i.test(path);
+}
+
 function isPowerbiEmbedTokenPath(path: string): boolean {
   return /\/api\/powerbi\/embed-token\/?$/i.test(path);
 }
@@ -178,7 +200,8 @@ export async function handler(event?: {
     // ── Signed-in routes: Salesforce data and ICEMAN (Nearmap spend) ──
     const needsAuth =
       isIcemanGeneratePath(path) ||
-      isSalesforceTermSheetRankingsPath(path);
+      isSalesforceTermSheetRankingsPath(path) ||
+      isSalesforceHealthPath(path);
     let icemanUser = '';
     if (needsAuth) {
       try {
@@ -189,6 +212,9 @@ export async function handler(event?: {
             console.warn('[iceman] access denied:', user.email);
             return errorResult(403, 'ICEMAN is not enabled for this account.');
           }
+        }
+        if (user && isSalesforceHealthPath(path) && !isSalesforceAdmin(user.email)) {
+          return errorResult(403, 'Not a Salesforce admin.');
         }
       } catch (err) {
         if (err instanceof AuthError) {
@@ -296,6 +322,14 @@ export async function handler(event?: {
         statusCode: 200,
         headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
         body: JSON.stringify(data),
+      };
+    }
+
+    if (isSalesforceHealthPath(path)) {
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(await getSalesforceHealth()),
       };
     }
 

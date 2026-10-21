@@ -633,6 +633,19 @@
   color: var(--link);
 }
 
+/* ── Salesforce admin warning ── */
+:where(:root[data-theme="dark"]) .sf-health-banner.is-error {
+  background: var(--tint-error-bg);
+  border-color: #b91c1c;
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .sf-health-banner.is-warn {
+  background: var(--tint-warn-bg);
+  border-color: #b45309;
+  color: var(--tint-warn-text);
+}
+
 /* ── Header search ── */
 :where(:root[data-theme="dark"]) .header-search-backdrop {
   background: rgba(0, 0, 0, 0.6);

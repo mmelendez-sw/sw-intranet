@@ -26,6 +26,13 @@ function getTag(xml: string, tagName: string): string {
   return match ? match[1] : '';
 }
 
+/** SOAP login fault, e.g. sf:INVALID_OPERATION_WITH_EXPIRED_PASSWORD or sf:INVALID_LOGIN. */
+export class SalesforceLoginError extends Error {
+  constructor(readonly faultCode: string, message: string) {
+    super(message);
+  }
+}
+
 async function loginToSalesforce(): Promise<{ sessionId: string; instanceUrl: string }> {
   const username = requireEnv('SF_USERNAME');
   const password = requireEnv('SF_PASSWORD');
@@ -56,7 +63,7 @@ async function loginToSalesforce(): Promise<{ sessionId: string; instanceUrl: st
   const text = await response.text();
   if (!response.ok || text.includes('<faultcode>')) {
     const message = getTag(text, 'faultstring') || `Salesforce login failed (${response.status})`;
-    throw new Error(message);
+    throw new SalesforceLoginError(getTag(text, 'faultcode'), message);
   }
 
   const sessionId = getTag(text, 'sessionId');
@@ -219,5 +226,64 @@ export async function getTermSheetRankings(): Promise<{
 
   const value = { monthLabel, counts };
   termSheetCache = { at: Date.now(), value };
+  return value;
+}
+
+export type SalesforceHealth = {
+  ok: boolean;
+  /** Set when ok is false. */
+  problem?: 'password_expired' | 'login_failed' | 'check_failed';
+  checkedAt: string;
+  /** Integration user's last password change (ISO), when the login worked. */
+  passwordChangedAt?: string;
+  /** Days left under SF_PASSWORD_EXPIRY_DAYS; absent when that is 0 (never expires). */
+  passwordExpiresInDays?: number;
+};
+
+/** Org password policy for the integration user; set 0 once "Password Never Expires" is on. */
+const DEFAULT_PASSWORD_EXPIRY_DAYS = 90;
+/** Each check is a fresh login (a cached session outlives an expired password), so throttle it. */
+const HEALTH_CACHE_MS = 15 * 60 * 1000;
+let healthCache: { at: number; value: SalesforceHealth } | null = null;
+
+const escapeSoql = (value: string) => value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+/**
+ * Integration sign-in status for the admin warning banner. Only fault codes and dates leave
+ * this function; raw Salesforce responses stay in CloudWatch.
+ */
+export async function getSalesforceHealth(): Promise<SalesforceHealth> {
+  if (healthCache && Date.now() - healthCache.at < HEALTH_CACHE_MS) return healthCache.value;
+
+  const checkedAt = new Date().toISOString();
+  let value: SalesforceHealth;
+  try {
+    const session = await loginToSalesforce();
+    sessionCache = session;
+    const data = (await querySalesforce(
+      session,
+      `SELECT LastPasswordChangeDate FROM User WHERE Username = '${escapeSoql(requireEnv('SF_USERNAME'))}' LIMIT 1`
+    )) as { records?: { LastPasswordChangeDate?: string | null }[] };
+    const changed = data.records?.[0]?.LastPasswordChangeDate || undefined;
+    const expiryDays = Number(process.env.SF_PASSWORD_EXPIRY_DAYS ?? DEFAULT_PASSWORD_EXPIRY_DAYS);
+    value = { ok: true, checkedAt, passwordChangedAt: changed };
+    if (changed && Number.isFinite(expiryDays) && expiryDays > 0) {
+      const expiresAt = Date.parse(changed) + expiryDays * 24 * 60 * 60 * 1000;
+      value.passwordExpiresInDays = Math.floor((expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+    }
+  } catch (err) {
+    console.error('[salesforce] health check failed:', err);
+    const fault = err instanceof SalesforceLoginError ? err.faultCode : '';
+    value = {
+      ok: false,
+      checkedAt,
+      problem: /EXPIRED_PASSWORD/i.test(fault)
+        ? 'password_expired'
+        : err instanceof SalesforceLoginError
+          ? 'login_failed'
+          : 'check_failed',
+    };
+  }
+  healthCache = { at: Date.now(), value };
   return value;
 }

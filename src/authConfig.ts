@@ -97,6 +97,20 @@ export const NETSUITE_ADMIN_ALLOWLIST = new Set([
 export const isNetSuiteAdminAllowlisted = (email?: string): boolean =>
   isInAllowlist(NETSUITE_ADMIN_ALLOWLIST, email);
 
+/**
+ * Salesforce integration admins: see the warning banner when the integration user's sign-in
+ * fails or its password is close to expiring. Keep in step with DEFAULT_SALESFORCE_ADMIN_EMAILS
+ * in server/handler.ts.
+ */
+export const SALESFORCE_ADMIN_ALLOWLIST = new Set([
+  'mmelendez@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+]);
+
+export const isSalesforceAdminAllowlisted = (email?: string): boolean =>
+  isInAllowlist(SALESFORCE_ADMIN_ALLOWLIST, email, { legacyDomain: true });
+
 /** ICEMAN Nearmap tool — restricted to this allowlist. */
 export const ICEMAN_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
@@ -207,6 +221,7 @@ export const POWERBI_EMBED_TOKEN_URL = intranetApiUrl('/api/powerbi/embed-token'
 
 /** ICEMAN Nearmap batch endpoint (local API or Lambda). */
 export const ICEMAN_GENERATE_URL = intranetApiUrl('/api/iceman/generate');
+export const SALESFORCE_HEALTH_URL = intranetApiUrl('/api/salesforce/health');
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const BIRTHDAYS_DATA_FILENAME = 'birthdays.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';
