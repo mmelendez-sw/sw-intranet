@@ -133,20 +133,20 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
     <header ref={headerRef} className="header" style={{ zIndex: 5000 }}>
       <img src={sti_logo_white} alt="Logo" className="logo-image" />
       <nav className="nav-bar">
-        <i className="fa-solid fa-house"></i> <Link to="/">Home</Link>
+        <Link to="/"><i className="fa-solid fa-house" aria-hidden="true"></i>Home</Link>
         {userInfo.isAuthenticated && (
           <>
-            <i className="fa-solid fa-users"></i> <Link to="/directory">Directory</Link>
-            <i className="fa-solid fa-chart-bar"></i> <Link to="/reports">Reports</Link>
-            <i className="fa-solid fa-tower-cell"></i> <Link to="/lead-generation">Lead Generation</Link>
+            <Link to="/directory"><i className="fa-solid fa-users" aria-hidden="true"></i>Directory</Link>
+            <Link to="/reports"><i className="fa-solid fa-chart-bar" aria-hidden="true"></i>Reports</Link>
+            <Link to="/lead-generation"><i className="fa-solid fa-tower-cell" aria-hidden="true"></i>Lead Generation</Link>
             {isIcemanAllowlisted(userInfo.email) && (
               <>
-                <i className="fa-solid fa-satellite"></i> <Link to="/iceman">ICEMAN</Link>
+                <Link to="/iceman"><i className="fa-solid fa-satellite" aria-hidden="true"></i>ICEMAN</Link>
               </>
             )}
             {isDevPreviewAllowlisted(userInfo.email) && (
               <>
-                <i className="fa-solid fa-keyboard"></i> <Link to="/dev">Dev</Link>
+                <Link to="/dev"><i className="fa-solid fa-keyboard" aria-hidden="true"></i>Dev</Link>
               </>
             )}
             {/* Departments dropdown removed with the department pages (see git history for the

@@ -33,6 +33,11 @@
 }
 
 .nav-bar a:not(.nav-dropdown-item) {
+    /* Icon sits inside the link: one click target, and they wrap as a unit. */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
     color: #ffffff; /* Link color */
     margin-right: 15px;
     margin-left: 5px;
