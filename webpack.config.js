@@ -67,6 +67,14 @@ module.exports = (_env, argv = {}) => {
           },
         },
         {
+          // Font Awesome webfonts, referenced from its bundled CSS.
+          test: /\.(woff2?|ttf)$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: isProduction ? 'assets/fonts/[name].[contenthash][ext]' : 'assets/fonts/[name][ext]',
+          },
+        },
+        {
           test: /\.webmanifest$/,
           type: 'asset/resource',
           generator: {

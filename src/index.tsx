@@ -1,6 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+// Icons: only the solid set is used (fa-solid fa-*), bundled instead of the old remote kit.
+import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+import '@fortawesome/fontawesome-free/css/solid.min.css';
 import '../styles/global.css';
 // Lazy routes' stylesheets, pulled into the main bundle: as route chunks they would load after
 // dark-theme.css and win its cascade ties. The route JS stays lazy.
