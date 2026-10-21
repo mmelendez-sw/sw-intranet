@@ -134,7 +134,7 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
 
   // Starred reports float to a "My Reports" group. Not while editing: drag/arrow reordering
   // works on the shared order, so edit mode shows that order as-is.
-  const { favorites, toggleFavorite } = useReportFavorites(userInfo.email);
+  const { favorites, toggleFavorite } = useReportFavorites(userInfo.email, instance);
   const showFavorites = !canEdit && !!userInfo.email;
   const favoriteSet = new Set(favorites);
   const favoriteReports = showFavorites

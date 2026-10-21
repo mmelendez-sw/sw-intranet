@@ -19,7 +19,7 @@
 | Sidebar sections, quick links, site settings | Shared `IntranetSidebar` on every page |
 | Birthdays | `birthdays.json`, matched against the live directory; gap notice for editors |
 | Monthly Term Sheet Leaderboard | Live Salesforce counts via the Lambda (5-minute cache) |
-| Reports page | Power BI links, elite/include/exclude rules, **★ My Reports** favourites (per browser) |
+| Reports page | Power BI links, elite/include/exclude rules, **★ My Reports** favourites (synced through the user's OneDrive, `Apps/Symphony Intranet/report-favorites.json`) |
 | IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
 | Employee Directory | `/directory`, live Graph users with photos |
 | Lead Generation | Graph `sendMail` with photos |
