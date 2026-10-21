@@ -51,7 +51,16 @@ const JSON_HEADERS = {
 const IMAGE_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
 
 /** Mirrors ICEMAN_ALLOWLIST in src/authConfig.ts; override with ICEMAN_ALLOWED_EMAILS on the Lambda. */
-const DEFAULT_ICEMAN_ALLOWED_EMAILS = 'mmelendez@symphonyinfra.com';
+const DEFAULT_ICEMAN_ALLOWED_EMAILS = [
+  'mmelendez@symphonyinfra.com',
+  'bglass@symphonyinfra.com',
+  'dhernandez@symphonyinfra.com',
+  'jsinger@symphonyinfra.com',
+  'jfarrington@symphonyinfra.com',
+  'janhalt@symphonyinfra.com',
+  'jcymbalista@symphonyinfra.com',
+  'smarkovitch@symphonyinfra.com',
+].join(',');
 
 function isIcemanAllowed(email: string): boolean {
   const allowed = (process.env.ICEMAN_ALLOWED_EMAILS || DEFAULT_ICEMAN_ALLOWED_EMAILS)

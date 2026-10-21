@@ -100,18 +100,19 @@ export const isNetSuiteAdminAllowlisted = (email?: string): boolean =>
 /** ICEMAN Nearmap tool — restricted to this allowlist. */
 export const ICEMAN_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
-  // Underwriting / origination rollout — uncomment after testing, and add the same emails to
-  // ICEMAN_ALLOWED_EMAILS on the Lambda.
-  // 'bglass@symphonyinfra.com', // Brady Glass, Underwriting Analyst
-  // 'dhernandez@symphonyinfra.com', // Daniel Hernandez, Sr. Underwriting Associate
-  // 'jsinger@symphonyinfra.com', // Jacob Singer, Origination Associate
-  // 'jfarrington@symphonyinfra.com', // Jake Farrington, Senior Origination Associate
-  // 'janhalt@symphonyinfra.com', // Jordan Anhalt, Sr. Underwriting Associate
-  // 'jcymbalista@symphonyinfra.com', // Josh Cymbalista, VP of Underwriting
-  // 'smarkovitch@symphonyinfra.com', // Simon Markovitch, Senior Origination Associate
+  // Underwriting / origination rollout. Keep in step with DEFAULT_ICEMAN_ALLOWED_EMAILS in
+  // server/handler.ts (and ICEMAN_ALLOWED_EMAILS on the Lambda, if set).
+  'bglass@symphonyinfra.com', // Brady Glass, Underwriting Analyst
+  'dhernandez@symphonyinfra.com', // Daniel Hernandez, Sr. Underwriting Associate
+  'jsinger@symphonyinfra.com', // Jacob Singer, Origination Associate
+  'jfarrington@symphonyinfra.com', // Jake Farrington, Senior Origination Associate
+  'janhalt@symphonyinfra.com', // Jordan Anhalt, Sr. Underwriting Associate
+  'jcymbalista@symphonyinfra.com', // Josh Cymbalista, VP of Underwriting
+  'smarkovitch@symphonyinfra.com', // Simon Markovitch, Senior Origination Associate
 ]);
 
-export const isIcemanAllowlisted = (email?: string): boolean => isInAllowlist(ICEMAN_ALLOWLIST, email);
+export const isIcemanAllowlisted = (email?: string): boolean =>
+  isInAllowlist(ICEMAN_ALLOWLIST, email, { legacyDomain: true });
 
 /** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
 export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
