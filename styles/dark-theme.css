@@ -884,6 +884,93 @@
   color: var(--tint-success-text);
 }
 
+:where(:root[data-theme="dark"]) .iceman-tabs {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-tab {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-tab:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-tab.is-active {
+  color: var(--text-heading);
+  background: var(--surface-muted);
+  border-bottom-color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-hint,
+:where(:root[data-theme="dark"]) .iceman-optional,
+:where(:root[data-theme="dark"]) .iceman-coords-num,
+:where(:root[data-theme="dark"]) .iceman-coords-count,
+:where(:root[data-theme="dark"]) .iceman-icon-btn {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-hint code {
+  background: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-coords {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-coords-table th {
+  background: var(--surface-muted);
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .iceman-coords-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .iceman-cell {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .iceman-cell::placeholder {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-cell:focus {
+  border-color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-cell.is-invalid {
+  background: var(--tint-error-bg);
+  border-color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .iceman-cell:disabled {
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .iceman-map-link:hover {
+  background: var(--surface-alt);
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-icon-btn:hover:not(:disabled) {
+  background: var(--tint-error-bg);
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .iceman-field-error {
+  color: var(--tint-error-text);
+}
+
+:where(:root[data-theme="dark"]) .iceman-notice {
+  color: var(--tint-success-text);
+}
+
 /* ── Birthdays: sidebar list + editor ── */
 :where(:root[data-theme="dark"]) .sidebar-birthdays {
   background: #3a2433;
