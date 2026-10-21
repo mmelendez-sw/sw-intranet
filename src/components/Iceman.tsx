@@ -53,6 +53,33 @@ const isAcceptedFile = (name: string) => {
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+/**
+ * The Lambda returns the workbook in one response, so progress is estimated from the site
+ * count (~30 s for a full 15-site batch). Tune these from the [iceman] timing logs.
+ */
+const ESTIMATE_OVERHEAD_S = 3;
+const ESTIMATE_SECONDS_PER_SITE = 1.8;
+/** The bar holds here until the download actually arrives. */
+const ESTIMATE_MAX_PERCENT = 95;
+
+/** Rows in a CSV that carry a lat/lng pair (skips the header). Null for .xlsx. */
+async function countCsvSites(file: File): Promise<number | null> {
+  if (!file.name.toLowerCase().endsWith('.csv')) return null;
+  try {
+    const text = await file.text();
+    const sites = text.split(/\r?\n/).filter((line) => (line.match(/-?\d+(\.\d+)?/g) || []).length >= 2).length;
+    return sites ? Math.min(sites, MAX_ROWS) : null;
+  } catch {
+    return null;
+  }
+}
+
+interface ProgressEstimate {
+  /** Known site count, or null when the server will find out (xlsx uploads). */
+  sites: number | null;
+  startedAt: number;
+}
+
 type InputMode = 'manual' | 'file';
 type CellField = 'lat' | 'lng' | 'name';
 
@@ -72,6 +99,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const [closeMeters, setCloseMeters] = useState(CLOSE_OBLIQUE_DEFAULT_M);
   const [farMeters, setFarMeters] = useState(FAR_OBLIQUE_DEFAULT_M);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<ProgressEstimate | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const { instance } = useMsal();
@@ -234,6 +263,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
     const farM = Math.round(clamp(farMeters, FAR_OBLIQUE_MIN_M, FAR_OBLIQUE_MAX_M));
 
     setLoading(true);
+    setProgress({
+      sites: mode === 'manual' ? filledRows.length : await countCsvSites(upload as File),
+      startedAt: Date.now(),
+    });
+    setNow(Date.now());
     setError(null);
     setStatus(
       `Fetching north oblique imagery (~${closeM}m and ~${farM}m) and building workbook…`
@@ -283,8 +317,30 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
       setStatus(null);
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
+
+  useEffect(() => {
+    if (!progress) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, [progress]);
+
+  const progressView = (() => {
+    if (!progress) return null;
+    const elapsedS = Math.max(0, (now - progress.startedAt) / 1000);
+    const sites = progress.sites ?? MAX_ROWS;
+    const totalS = ESTIMATE_OVERHEAD_S + sites * ESTIMATE_SECONDS_PER_SITE;
+    const percent = Math.min(ESTIMATE_MAX_PERCENT, Math.round((elapsedS / totalS) * 100));
+    const siteNow = Math.floor((elapsedS - ESTIMATE_OVERHEAD_S / 2) / ESTIMATE_SECONDS_PER_SITE) + 1;
+    let label: string;
+    if (siteNow < 1) label = 'Sending coordinates…';
+    else if (siteNow <= sites) {
+      label = progress.sites ? `Fetching imagery: about site ${siteNow} of ${sites}` : `Fetching imagery: about site ${siteNow}`;
+    } else label = 'Building the workbook…';
+    return { percent, label, elapsed: Math.floor(elapsedS) };
+  })();
 
   // After every hook, so hooks run in the same order on each render.
   if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
@@ -704,6 +760,25 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
               )}
             </button>
           </div>
+
+          {progressView && (
+            <div className="iceman-progress">
+              <div
+                className="iceman-progress-track"
+                role="progressbar"
+                aria-label="Estimated progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressView.percent}
+              >
+                <div className="iceman-progress-fill" style={{ width: `${progressView.percent}%` }} />
+              </div>
+              <p className="iceman-progress-text">
+                <span>{progressView.label}</span>
+                <span>{progressView.elapsed}s elapsed · estimate</span>
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="iceman-guide" aria-labelledby="iceman-guide-heading">

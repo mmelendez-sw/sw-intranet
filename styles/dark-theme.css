@@ -976,6 +976,18 @@
   color: var(--tint-success-text);
 }
 
+:where(:root[data-theme="dark"]) .iceman-progress-track {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .iceman-progress-fill {
+  background: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .iceman-progress-text {
+  color: var(--text-muted);
+}
+
 /* ── Birthdays: sidebar list + editor ── */
 :where(:root[data-theme="dark"]) .sidebar-birthdays {
   background: #3a2433;

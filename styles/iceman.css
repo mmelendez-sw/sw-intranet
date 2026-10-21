@@ -157,6 +157,35 @@
   border-radius: 4px;
 }
 
+/* Estimated generate progress */
+.iceman-progress {
+  margin-top: 14px;
+}
+
+.iceman-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #e2eef5;
+}
+
+.iceman-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: #009acd;
+  transition: width 0.25s linear;
+}
+
+.iceman-progress-text {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Input mode tabs */
 .iceman-tabs {
   display: flex;
