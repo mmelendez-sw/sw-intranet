@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { BYPASS_AUTH, isIcemanAllowlisted } from '../authConfig';
+import { BYPASS_AUTH, isDevPreviewAllowlisted, isIcemanAllowlisted } from '../authConfig';
 import sti_logo_white from '../../images/optimized/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -142,6 +142,11 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
             {isIcemanAllowlisted(userInfo.email) && (
               <>
                 <i className="fa-solid fa-satellite"></i> <Link to="/iceman">ICEMAN</Link>
+              </>
+            )}
+            {isDevPreviewAllowlisted(userInfo.email) && (
+              <>
+                <i className="fa-solid fa-keyboard"></i> <Link to="/dev">Dev</Link>
               </>
             )}
             {/* Departments dropdown removed with the department pages (see git history for the

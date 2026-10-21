@@ -16,6 +16,7 @@ import {
   resolveIsEditor,
   isNetSuiteAdminAllowlisted,
   isIcemanAllowlisted,
+  isDevPreviewAllowlisted,
 } from './authConfig';
 
 // Secondary routes load on first visit; the homepage bundle stays small for everyone.
@@ -23,6 +24,7 @@ const Reports = lazy(() => import('./components/Reports'));
 const LeadGeneration = lazy(() => import('./components/LeadGeneration'));
 const Iceman = lazy(() => import('./components/Iceman'));
 const EmployeeDirectory = lazy(() => import('./components/EmployeeDirectory'));
+const DevPreview = lazy(() => import('./components/DevPreview'));
 
 const RouteFallback: React.FC = () => (
   <div className="app-loading" role="status" aria-label="Loading">
@@ -260,6 +262,14 @@ const App: React.FC = () => {
                       <>
                         <Route path="/directory" element={<EmployeeDirectory />} />
                         <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+                        <Route
+                          path="/dev"
+                          element={
+                            isDevPreviewAllowlisted(userInfo.email)
+                              ? <DevPreview userInfo={userInfo} />
+                              : <Navigate to="/" replace />
+                          }
+                        />
                       </>
                     )}
                   </Routes>

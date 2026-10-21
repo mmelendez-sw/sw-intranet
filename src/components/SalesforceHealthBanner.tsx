@@ -19,8 +19,8 @@ const WARN_DAYS = 14;
 /** Dismissing hides the banner for the rest of the browser session. */
 const DISMISS_KEY = 'salesforce-health-dismissed';
 
-/** BYPASS_AUTH has no Lambda token; show the near-expiry state so the banner can be reviewed. */
-const MOCK_HEALTH: SalesforceHealth = {
+/** Near-expiry sample, for BYPASS_AUTH (no Lambda token) and the /dev preview. */
+export const SALESFORCE_HEALTH_PREVIEW: SalesforceHealth = {
   ok: true,
   checkedAt: new Date().toISOString(),
   passwordChangedAt: new Date(Date.now() - 84 * 24 * 60 * 60 * 1000).toISOString(),
@@ -53,8 +53,14 @@ function describe(health: SalesforceHealth): { tone: 'error' | 'warn'; title: st
   return null;
 }
 
-/** Admin-only warning for the Salesforce integration user (see SALESFORCE_ADMIN_ALLOWLIST). */
-const SalesforceHealthBanner: React.FC<{ userInfo: UserInfo }> = ({ userInfo }) => {
+/**
+ * Admin-only warning for the Salesforce integration user (see SALESFORCE_ADMIN_ALLOWLIST).
+ * `previewHealth` renders a fixed state without fetching (the /dev preview).
+ */
+const SalesforceHealthBanner: React.FC<{ userInfo: UserInfo; previewHealth?: SalesforceHealth }> = ({
+  userInfo,
+  previewHealth,
+}) => {
   const { instance } = useMsal();
   const isAdmin = userInfo.isAuthenticated && isSalesforceAdminAllowlisted(userInfo.email);
   const [health, setHealth] = useState<SalesforceHealth | null>(null);
@@ -67,9 +73,13 @@ const SalesforceHealthBanner: React.FC<{ userInfo: UserInfo }> = ({ userInfo }) 
   });
 
   useEffect(() => {
+    if (previewHealth) {
+      setHealth(previewHealth);
+      return;
+    }
     if (!isAdmin || dismissed) return;
     if (BYPASS_AUTH) {
-      setHealth(MOCK_HEALTH);
+      setHealth(SALESFORCE_HEALTH_PREVIEW);
       return;
     }
     let cancelled = false;
@@ -84,9 +94,9 @@ const SalesforceHealthBanner: React.FC<{ userInfo: UserInfo }> = ({ userInfo }) 
     return () => {
       cancelled = true;
     };
-  }, [isAdmin, dismissed, instance]);
+  }, [isAdmin, dismissed, instance, previewHealth]);
 
-  const message = isAdmin && !dismissed && health ? describe(health) : null;
+  const message = previewHealth ? describe(previewHealth) : isAdmin && !dismissed && health ? describe(health) : null;
   if (!message) return null;
 
   const dismiss = () => {

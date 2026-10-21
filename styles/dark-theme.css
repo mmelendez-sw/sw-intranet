@@ -646,6 +646,69 @@
   color: var(--tint-warn-text);
 }
 
+/* ── /dev preview: pipeline card + deal-closed banner ── */
+:where(:root[data-theme="dark"]) .pipeline-card {
+  background: var(--surface);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-card-header h2,
+:where(:root[data-theme="dark"]) .pipeline-stat strong,
+:where(:root[data-theme="dark"]) .dev-preview-header h1 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-card-header p,
+:where(:root[data-theme="dark"]) .pipeline-subhead,
+:where(:root[data-theme="dark"]) .pipeline-attention em,
+:where(:root[data-theme="dark"]) .dev-preview-header p,
+:where(:root[data-theme="dark"]) .dev-preview-section {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-stat {
+  background: var(--surface-muted);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-stat span,
+:where(:root[data-theme="dark"]) .pipeline-stages li,
+:where(:root[data-theme="dark"]) .pipeline-attention li,
+:where(:root[data-theme="dark"]) .pipeline-how {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-attention li {
+  border-top-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-stage-bar {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-stage-bar span {
+  background: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-how {
+  background: var(--surface-muted);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-card-footer a,
+:where(:root[data-theme="dark"]) .pipeline-how-btn {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .pipeline-mock-badge {
+  background: var(--tint-warn-bg);
+  color: var(--tint-warn-text);
+}
+
+:where(:root[data-theme="dark"]) .deal-closed-banner {
+  background: var(--tint-success-bg);
+  border-color: #15803d;
+  color: var(--tint-success-text);
+}
+
 /* ── Header search ── */
 :where(:root[data-theme="dark"]) .header-search-backdrop {
   background: rgba(0, 0, 0, 0.6);

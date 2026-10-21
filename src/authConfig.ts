@@ -111,6 +111,12 @@ export const SALESFORCE_ADMIN_ALLOWLIST = new Set([
 export const isSalesforceAdminAllowlisted = (email?: string): boolean =>
   isInAllowlist(SALESFORCE_ADMIN_ALLOWLIST, email, { legacyDomain: true });
 
+/** /dev preview page and its header link (features in progress, sample data). */
+export const DEV_PREVIEW_ALLOWLIST = new Set(['mmelendez@symphonyinfra.com']);
+
+export const isDevPreviewAllowlisted = (email?: string): boolean =>
+  isInAllowlist(DEV_PREVIEW_ALLOWLIST, email, { legacyDomain: true });
+
 /** ICEMAN Nearmap tool — restricted to this allowlist. */
 export const ICEMAN_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
