@@ -576,7 +576,7 @@
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
- * Site-wide coverage beyond serena-dev: header, footer, ticker, alerts,
+ * Site-wide coverage beyond serena-dev: header, footer, alerts,
  * Salesforce panels, Lead Generation, Iceman, calendar.
  * ──────────────────────────────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
@@ -631,40 +631,6 @@
 :where(:root[data-theme="dark"]) .edit-upload-filename,
 :where(:root[data-theme="dark"]) .edit-upload-progress {
   color: var(--link);
-}
-
-/* ── Ticker + alert banner ── */
-:where(:root[data-theme="dark"]) .ticker-wrap {
-  background-color: var(--surface);
-  border-color: var(--border-subtle);
-}
-
-:where(:root[data-theme="dark"]) .ticker__item {
-  color: #ff8a8a;
-}
-
-:where(:root[data-theme="dark"]) .site-alert-banner.alert-info {
-  background: var(--tint-info-bg);
-  border-color: #1d4ed8;
-  color: var(--tint-info-text);
-}
-
-:where(:root[data-theme="dark"]) .site-alert-banner.alert-warning {
-  background: var(--tint-warn-bg);
-  border-color: #b45309;
-  color: var(--tint-warn-text);
-}
-
-:where(:root[data-theme="dark"]) .site-alert-banner.alert-success {
-  background: var(--tint-success-bg);
-  border-color: #15803d;
-  color: var(--tint-success-text);
-}
-
-:where(:root[data-theme="dark"]) .site-alert-banner.alert-error {
-  background: var(--tint-error-bg);
-  border-color: #b91c1c;
-  color: var(--tint-error-text);
 }
 
 /* ── Company progress / Salesforce panels ── */

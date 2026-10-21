@@ -14,9 +14,7 @@ import type {
   ReportItemContent,
   SidebarLayout,
   SidebarSection,
-  SiteAlert,
   SiteConfig,
-  TickerItem,
 } from '../services/contentService';
 import type { GraphUser } from '../services/directoryService';
 import seedCards from './homepage-cards.seed.json';
@@ -138,20 +136,6 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 
 const MOCK_BIRTHDAYS: BirthdaysContent = seedBirthdays as BirthdaysContent;
 
-const MOCK_TICKER: TickerItem[] = [
-  { id: 't1', text: '🎉 Welcome to the Symphony Towers intranet (spoofed data — BYPASS_AUTH is on)', order: 1 },
-  { id: 't2', text: '📣 Submit your two leads this month in the Leads App', order: 2 },
-  { id: 't3', text: '🗓 Benefits open enrollment starts November 1', order: 3 },
-];
-
-const MOCK_ALERT: SiteAlert = {
-  message: 'Spoofed alert banner — SharePoint is not being read while BYPASS_AUTH is on.',
-  isActive: true,
-  type: 'info',
-  linkLabel: 'Learn more',
-  linkUrl: 'https://symphonyinfra.com/',
-};
-
 const MOCK_SITE_CONFIG: SiteConfig = {
   supportEmail: 'support@example.com',
   leadGenEmail: 'leads@example.com',
@@ -175,8 +159,6 @@ const MOCK_CONTENT: Record<string, unknown> = {
   'quick-links': MOCK_QUICK_LINKS,
   'sidebar-layout': MOCK_SIDEBAR_LAYOUT,
   'site-config': MOCK_SITE_CONFIG,
-  'site-alert': MOCK_ALERT,
-  'ticker-items': MOCK_TICKER,
   announcements: MOCK_ANNOUNCEMENTS,
   birthdays: MOCK_BIRTHDAYS,
   reports: MOCK_REPORTS,

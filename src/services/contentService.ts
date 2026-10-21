@@ -39,7 +39,7 @@
  * Department page content (updates, resources, FAQ) is stored as:
  *   General/intranet/departments/{slug}.json  (e.g. it.json, hr.json)
  *
- * Other content blocks (hero, site-alert, ticker, etc.) use the IntranetContent SharePoint list:
+ * Other content blocks (hero, announcements, etc.) use the IntranetContent SharePoint list:
  *   Title       – content key  (e.g. "announcements")
  *   ContentJson – JSON string of the actual data
  */
@@ -581,17 +581,6 @@ export function buildDefaultDepartmentContent(
   };
 }
 
-export interface SiteAlert {
-  message: string;
-  isActive: boolean;
-  /** Visual style of the banner */
-  type: 'info' | 'warning' | 'success' | 'error';
-  /** Optional CTA link label */
-  linkLabel?: string;
-  /** Optional CTA link URL */
-  linkUrl?: string;
-}
-
 export interface BirthdayPerson {
   id: string;
   name: string;
@@ -655,12 +644,6 @@ export function parseAnnouncementsContent(raw: unknown): Announcement[] {
   return [];
 }
 
-export interface TickerItem {
-  id: string;
-  text: string;
-  order: number;
-}
-
 export interface QuickLink {
   id: string;
   label: string;
@@ -684,12 +667,6 @@ export interface SiteConfig {
   leadGenEmail: string;
   companyName: string;
 }
-
-export const DEFAULT_ALERT: SiteAlert = {
-  message: '',
-  isActive: false,
-  type: 'info',
-};
 
 /** HR birthday list (month/day only) used until birthdays.json exists in SharePoint. */
 export const DEFAULT_BIRTHDAYS: BirthdaysContent = parseBirthdaysContent(seedBirthdays);
@@ -735,8 +712,6 @@ export function isBirthdayToday(person: BirthdayPerson, now: Date = new Date()):
 }
 
 export const DEFAULT_ANNOUNCEMENTS: Announcement[] = [];
-
-export const DEFAULT_TICKER_ITEMS: TickerItem[] = [];
 
 // export const DEFAULT_QUICK_LINKS: QuickLink[] = [
 //   { id: '1', label: 'Salesforce', url: 'https://symphonyinfra.my.salesforce.com/', order: 1 },

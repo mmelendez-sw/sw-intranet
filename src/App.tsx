@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 import { useMsal } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
 import Header from './components/Header';
-// AlertBanner / Ticker are disabled below — restore their imports when re-enabling the JSX.
 import HomePage from './components/HomePage';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 // import TvDisplay from './components/TvDisplay';
@@ -232,17 +231,13 @@ const App: React.FC = () => {
         <Route path="/tv" element={<TvDisplay />} />
         */}
 
-        {/* ── All standard routes — wrapped with header + alert banner ── */}
+        {/* ── All standard routes — wrapped with the header ── */}
         <Route
           path="/*"
           element={
             <ThemeProvider email={userInfo.isAuthenticated ? userInfo.email : undefined}>
             <EditMenuProvider>
               <Header userInfo={userInfo} />
-              {/* <div className="below-header">
-                <AlertBanner userInfo={userInfo} />
-                <Ticker userInfo={userInfo} />
-              </div> */}
               <div className="main-content">
                 <Suspense fallback={<RouteFallback />}>
                   <Routes>

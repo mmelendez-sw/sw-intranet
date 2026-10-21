@@ -101,18 +101,6 @@ body {
   left: 0;
 }
 
-/* Ticker styles live in ticker.css */
-
-.below-header {
-  margin-top: 3.7rem; /* clear fixed header */
-}
-
-@media (max-width: 768px) {
-  .below-header {
-    margin-top: 0;
-  }
-}
-
 @media (max-width: 768px) {
   .main-content {
     padding-top: 10px; /* Header becomes static on mobile */
