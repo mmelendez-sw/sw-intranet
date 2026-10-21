@@ -633,6 +633,45 @@
   color: var(--link);
 }
 
+/* ── Header search ── */
+:where(:root[data-theme="dark"]) .header-search-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+:where(:root[data-theme="dark"]) .header-search-dialog {
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+:where(:root[data-theme="dark"]) .header-search-input-row {
+  border-bottom-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .header-search-input-row .header-search-kbd {
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .header-search-input,
+:where(:root[data-theme="dark"]) .header-search-result-title {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .header-search-result.is-active {
+  background: var(--surface-alt);
+}
+
+:where(:root[data-theme="dark"]) .header-search-result-icon {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .header-search-result-detail,
+:where(:root[data-theme="dark"]) .header-search-result-kind,
+:where(:root[data-theme="dark"]) .header-search-empty {
+  color: var(--text-muted);
+}
+
 /* ── Company progress / Salesforce panels ── */
 :where(:root[data-theme="dark"]) .salesforce-panel,
 :where(:root[data-theme="dark"]) .salesforce-summary-card,

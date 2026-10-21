@@ -14,6 +14,7 @@ import {
   ReportItemContent,
   SiteConfig,
   parseReportsContent,
+  isReportVisibleTo,
   buildReportsContentFile,
   stampReportEditor,
 } from '../services/contentService';
@@ -115,19 +116,11 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
     };
   }, [userInfo.isAuthenticated, instance]);
 
-  const isReportVisible = useCallback((report: ReportItemContent) => {
-    if (report.isEliteOnly && !userInfo.isEliteGroup) return false;
-    const email = userInfo.email?.toLowerCase();
-    if (report.includedEmails?.length) {
-      if (!email || !report.includedEmails.map((e) => e.toLowerCase()).includes(email)) {
-        return false;
-      }
-    }
-    if (report.excludedEmails?.length && email) {
-      return !report.excludedEmails.map((e) => e.toLowerCase()).includes(email);
-    }
-    return true;
-  }, [userInfo.isEliteGroup, userInfo.email]);
+  const isReportVisible = useCallback(
+    (report: ReportItemContent) =>
+      isReportVisibleTo(report, { email: userInfo.email, isEliteGroup: userInfo.isEliteGroup }),
+    [userInfo.isEliteGroup, userInfo.email]
+  );
 
   const orderedReports = sortReportsByOrder(allReports);
   const visibleReports = canEdit ? orderedReports : orderedReports.filter(isReportVisible);

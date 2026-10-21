@@ -9,6 +9,7 @@ import sti_logo_white from '../../images/optimized/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
 import { useTheme } from '../context/ThemeContext';
+import HeaderSearch from './HeaderSearch';
 import { clearUserSessionState } from '../utils/signOutCleanup';
 import { isAndroidNonEdge, isConditionalAccessError, isMobileSafari, startLogin } from '../utils/login';
 
@@ -151,6 +152,7 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
       <div className="user">
         {(isAuthenticated && accounts[0]) || (BYPASS_AUTH && userInfo.isAuthenticated) ? (
           <>
+          <HeaderSearch userInfo={userInfo} />
           {canToggleTheme && (
             <button
               type="button"

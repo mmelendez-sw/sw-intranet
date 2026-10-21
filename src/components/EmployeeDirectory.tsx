@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useMsal } from '@azure/msal-react';
+import { useSearchParams } from 'react-router-dom';
 import '../../styles/employee-directory.css';
 import { BYPASS_AUTH } from '../authConfig';
 import { MOCK_DIRECTORY_USERS } from '../data/mockContent';
@@ -78,7 +79,13 @@ const EmployeeDirectory: React.FC = () => {
   const [users, setUsers] = useState<GraphUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
+  // Header search links here as /directory?q=<name>.
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get('q') || '');
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) setSearch(q);
+  }, [searchParams]);
   /** Object URLs created for avatars this mount; revoked on unmount / reload. */
   const photoUrlsRef = useRef<string[]>([]);
   const loadGenerationRef = useRef(0);

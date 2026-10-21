@@ -634,6 +634,24 @@ export function parseReportsContent(raw: unknown): ReportItemContent[] {
   }));
 }
 
+/** Elite-only and include/exclude email rules; editors in edit mode bypass these. */
+export function isReportVisibleTo(
+  report: ReportItemContent,
+  viewer: { email?: string; isEliteGroup?: boolean }
+): boolean {
+  if (report.isEliteOnly && !viewer.isEliteGroup) return false;
+  const email = viewer.email?.toLowerCase();
+  if (report.includedEmails?.length) {
+    if (!email || !report.includedEmails.map((e) => e.toLowerCase()).includes(email)) {
+      return false;
+    }
+  }
+  if (report.excludedEmails?.length && email) {
+    return !report.excludedEmails.map((e) => e.toLowerCase()).includes(email);
+  }
+  return true;
+}
+
 /** Read announcements from a bare array or a wrapped { announcements: [...] } file. */
 export function parseAnnouncementsContent(raw: unknown): Announcement[] {
   if (!raw) return [];
