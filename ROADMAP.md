@@ -23,7 +23,7 @@
 | IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
 | Employee Directory | `/directory`, live Graph users with photos |
 | Lead Generation | Graph `sendMail` with photos |
-| ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240); allowlisted, rollout pending |
+| ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240). Coordinates are typed or pasted into a table (Excel rows, Google Maps pairs, optional site name, map check per row); .csv/.xlsx upload is the second tab. Open to the underwriting/origination group |
 | Dark mode | Per-user toggle |
 
 **Built but switched off:** site-wide alert banner and ticker (`src/App.tsx`).
@@ -35,7 +35,7 @@
 
 ### ICEMAN rollout
 - Full 15-row test run (time, workbook size, image quality).
-- Demo with the underwriting and origination group, then uncomment them in `ICEMAN_ALLOWLIST` (`src/authConfig.ts`) **and** add the same emails to `ICEMAN_ALLOWED_EMAILS` on the Lambda.
+- The underwriting and origination group is in `ICEMAN_ALLOWLIST` (`src/authConfig.ts`) and the Lambda's default list (`server/handler.ts`). Keep both in step; setting `ICEMAN_ALLOWED_EMAILS` on the Lambda overrides the default.
 
 ---
 
@@ -66,6 +66,7 @@
 | Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
 | `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
 | Unit tests and CI | Medium | `intranet-tests-refactor` has vitest tests and PR checks that never reached `main` |
+| Font Awesome not loaded | Low | The kit `<script>` in `public/index.html` was commented out in Dec 2024, so the ~30 `fa-*` icons render blank. Icon-only buttons need inline SVG (ICEMAN does this) until it is restored |
 | Salesforce integration password expiry | High | Set "Password Never Expires" on that user's profile (it broke the leaderboard on 2026-10-19) |
 
 ---

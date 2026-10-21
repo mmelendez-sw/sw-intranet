@@ -1,9 +1,19 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
 import { ICEMAN_GENERATE_URL, isIcemanAllowlisted } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { intranetApiFetch } from '../services/intranetApi';
+import {
+  CoordinateRow,
+  buildCoordinateCsv,
+  emptyRow,
+  isBlankRow,
+  isStructuredPaste,
+  mapLinkFor,
+  parseCoordinateText,
+  validateRow,
+} from '../utils/icemanCoordinates';
 import closeObliqueExample from '../../images/iceman/north-oblique-close-example.jpg';
 import farObliqueExample from '../../images/iceman/north-oblique-far-example.jpg';
 import '../../styles/iceman.css';
@@ -43,8 +53,20 @@ const isAcceptedFile = (name: string) => {
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+type InputMode = 'manual' | 'file';
+type CellField = 'lat' | 'lng' | 'name';
+
+const INITIAL_ROWS = 3;
+
 const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [mode, setMode] = useState<InputMode>('manual');
+  const [rows, setRows] = useState<CoordinateRow[]>(() =>
+    Array.from({ length: INITIAL_ROWS }, emptyRow)
+  );
+  const [pendingFocus, setPendingFocus] = useState<{ row: number; field: CellField } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [closeMeters, setCloseMeters] = useState(CLOSE_OBLIQUE_DEFAULT_M);
@@ -54,9 +76,95 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   const [status, setStatus] = useState<string | null>(null);
   const { instance } = useMsal();
 
-  if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    if (!pendingFocus) return;
+    tableRef.current
+      ?.querySelector<HTMLInputElement>(
+        `[data-row="${pendingFocus.row}"][data-field="${pendingFocus.field}"]`
+      )
+      ?.focus();
+    setPendingFocus(null);
+  }, [pendingFocus, rows]);
+
+  const resetMessages = () => {
+    setError(null);
+    setStatus(null);
+    setNotice(null);
+  };
+
+  const updateCell = (index: number, field: CellField, value: string) => {
+    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  };
+
+  const addRow = () => {
+    if (rows.length >= MAX_ROWS) return;
+    setRows((prev) => [...prev, emptyRow()]);
+    setPendingFocus({ row: rows.length, field: 'lat' });
+  };
+
+  const removeRow = (index: number) => {
+    setRows((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : [emptyRow()]));
+  };
+
+  const clearRows = () => {
+    resetMessages();
+    setRows(Array.from({ length: INITIAL_ROWS }, emptyRow));
+  };
+
+  /** Spreads pasted coordinates across rows, starting at the row that was pasted into. */
+  const onTablePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const rowAttr = target.getAttribute('data-row');
+    const text = e.clipboardData.getData('text');
+    if (rowAttr === null || !isStructuredPaste(text)) return;
+
+    e.preventDefault();
+    resetMessages();
+    const parsed = parseCoordinateText(text);
+    if (!parsed.length) {
+      setError('No coordinates found in the pasted text. Paste latitude and longitude pairs.');
+      return;
+    }
+
+    const start = Number(rowAttr);
+    const fits = parsed.slice(0, Math.max(0, MAX_ROWS - start));
+    setRows((prev) => {
+      const next = [...prev];
+      fits.forEach((p, k) => {
+        const i = start + k;
+        const existing = next[i] ?? emptyRow();
+        // A lone "lat, lng" pasted over a row keeps the site name already typed there.
+        const name = fits.length === 1 && !p.name ? existing.name : p.name;
+        next[i] = { ...existing, ...p, name };
+      });
+      return next;
+    });
+
+    const dropped = parsed.length - fits.length;
+    setNotice(
+      `Pasted ${fits.length} location${fits.length === 1 ? '' : 's'}.` +
+        (dropped > 0
+          ? ` ${dropped} more did not fit — the limit is ${MAX_ROWS} rows per run.`
+          : '')
+    );
+  };
+
+  /** Enter moves down a row in the same column, adding a row at the end when there is room. */
+  const onCellKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number, field: CellField) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    if (index + 1 < rows.length) {
+      setPendingFocus({ row: index + 1, field });
+    } else if (rows.length < MAX_ROWS) {
+      setRows((prev) => [...prev, emptyRow()]);
+      setPendingFocus({ row: index + 1, field });
+    }
+  };
+
+  const filledRows = rows.filter((r) => !isBlankRow(r));
+  const rowErrors = rows.map(validateRow);
+  const invalidCount = rowErrors.filter((v) => v.lat || v.lng).length;
+  const canGenerate = mode === 'manual' ? filledRows.length > 0 && invalidCount === 0 : !!file;
 
   const selectFile = useCallback((picked: File | null) => {
     setError(null);
@@ -99,9 +207,27 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
   };
 
   const onGenerate = async () => {
-    if (!file) {
-      setError('Choose a .csv or .xlsx file first.');
-      return;
+    setNotice(null);
+    let upload: Blob;
+    let uploadName: string;
+    if (mode === 'manual') {
+      if (invalidCount > 0) {
+        setError('Fix the highlighted coordinates before generating.');
+        return;
+      }
+      if (!filledRows.length) {
+        setError('Enter at least one latitude and longitude.');
+        return;
+      }
+      upload = new Blob([buildCoordinateCsv(filledRows)], { type: 'text/csv' });
+      uploadName = 'iceman-coordinates.csv';
+    } else {
+      if (!file) {
+        setError('Choose a .csv or .xlsx file first.');
+        return;
+      }
+      upload = file;
+      uploadName = file.name;
     }
 
     const closeM = Math.round(clamp(closeMeters, CLOSE_OBLIQUE_MIN_M, CLOSE_OBLIQUE_MAX_M));
@@ -115,7 +241,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
 
     try {
       const form = new FormData();
-      form.append('file', file);
+      form.append('file', upload, uploadName);
       form.append('close_m', String(closeM));
       form.append('far_m', String(farM));
 
@@ -160,6 +286,11 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
     }
   };
 
+  // After every hook, so hooks run in the same order on each render.
+  if (!userInfo.isAuthenticated || !isIcemanAllowlisted(userInfo.email)) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="iceman-page">
       <div className="iceman-container">
@@ -167,8 +298,9 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <p className="iceman-kicker">Site imagery toolkit</p>
           <h1>ICEMAN</h1>
           <p className="iceman-subtitle">
-            Upload coordinates and download an Excel workbook with three Nearmap thumbnails per
-            location — a top-down view, a close north oblique and a wider context oblique.
+            Enter or paste coordinates and download an Excel workbook with three Nearmap
+            thumbnails per location — a top-down view, a close north oblique and a wider context
+            oblique.
           </p>
           {userInfo.email && (
             <p className="iceman-signed-in">Signed in as {userInfo.email}</p>
@@ -201,88 +333,275 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
 
         <section className="iceman-panel" aria-labelledby="iceman-upload-heading">
           <div className="iceman-panel-header">
-            <h3 id="iceman-upload-heading">1. Upload coordinates</h3>
+            <h3 id="iceman-upload-heading">1. Add coordinates</h3>
             <p>
-              CSV or Excel with <code>lat</code>/<code>lng</code> (or latitude/longitude) columns.
-            </p>
-            <p>
-              <strong>Maximum {MAX_ROWS} rows per file.</strong> Only the first {MAX_ROWS} rows
-              are processed — split larger lists into multiple files.
-            </p>
-            <p>
-              <strong>Limits:</strong> .csv or .xlsx only (legacy .xls is not accepted), up to{' '}
-              {MAX_UPLOAD_BYTES / (1024 * 1024)} MB per upload. Larger files are rejected before
-              upload.
+              <strong>Up to {MAX_ROWS} locations per run.</strong> Split larger lists into
+              several runs.
             </p>
           </div>
 
-          <div
-            className={`iceman-dropzone${dragOver ? ' is-dragover' : ''}${file ? ' has-file' : ''}${loading ? ' is-disabled' : ''}`}
-            onDragEnter={(e) => {
-              e.preventDefault();
-              if (!loading) setDragOver(true);
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (!loading) setDragOver(true);
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-            }}
-            onDrop={loading ? undefined : onDrop}
-            onClick={() => {
-              if (!loading) fileInputRef.current?.click();
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (loading) return;
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                fileInputRef.current?.click();
-              }
-            }}
-            aria-label="Choose or drop a CSV or Excel file"
-          >
-            <input
-              id="iceman-file"
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.xlsx"
-              onChange={onFileChange}
+          <div className="iceman-tabs" role="tablist" aria-label="How to add coordinates">
+            <button
+              type="button"
+              role="tab"
+              id="iceman-tab-manual"
+              aria-controls="iceman-tabpanel-manual"
+              aria-selected={mode === 'manual'}
+              className={`iceman-tab${mode === 'manual' ? ' is-active' : ''}`}
+              onClick={() => {
+                setMode('manual');
+                resetMessages();
+              }}
               disabled={loading}
-              hidden
-            />
-            <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
-            {file ? (
-              <div className="iceman-file-selected">
-                <p className="iceman-file-name">{file.name}</p>
-                <p className="iceman-file-meta">
-                  {(file.size / 1024).toFixed(1)} KB · click to replace
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="iceman-dropzone-title">Drop your file here</p>
-                <p className="iceman-dropzone-hint">
-                  or click to browse · .csv / .xlsx · up to {MAX_ROWS} rows · max{' '}
-                  {MAX_UPLOAD_BYTES / (1024 * 1024)} MB
-                </p>
-              </div>
-            )}
+            >
+              <i className="fa-solid fa-keyboard" aria-hidden="true" />
+              Enter or paste
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="iceman-tab-file"
+              aria-controls="iceman-tabpanel-file"
+              aria-selected={mode === 'file'}
+              className={`iceman-tab${mode === 'file' ? ' is-active' : ''}`}
+              onClick={() => {
+                setMode('file');
+                resetMessages();
+              }}
+              disabled={loading}
+            >
+              <i className="fa-solid fa-file-arrow-up" aria-hidden="true" />
+              Upload a file
+            </button>
           </div>
 
-          {file && (
-            <div className="iceman-file-actions">
-              <button
-                type="button"
-                className="iceman-btn-secondary"
-                onClick={clearFile}
-                disabled={loading}
+          {mode === 'manual' && (
+            <div id="iceman-tabpanel-manual" role="tabpanel" aria-labelledby="iceman-tab-manual">
+              <p className="iceman-hint">
+                Type coordinates, or paste into any cell — rows copied from Excel or{' '}
+                <code>40.7128, -74.0060</code> pairs from Google Maps fill the rows below
+                automatically. Press Enter to move to the next row.
+              </p>
+
+              <div className="iceman-coords" ref={tableRef} onPaste={onTablePaste}>
+                <table className="iceman-coords-table">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="iceman-coords-num">
+                        #
+                      </th>
+                      <th scope="col">Latitude</th>
+                      <th scope="col">Longitude</th>
+                      <th scope="col">
+                        Site name <span className="iceman-optional">(optional)</span>
+                      </th>
+                      <th scope="col" className="iceman-coords-remove">
+                        <span className="iceman-sr-only">Remove</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, i) => {
+                      const errs = rowErrors[i];
+                      const mappable = !isBlankRow(row) && !errs.lat && !errs.lng;
+                      return (
+                        <tr key={row.id}>
+                          <td className="iceman-coords-num">{i + 1}</td>
+                          {(['lat', 'lng'] as const).map((field) => (
+                            <td key={field}>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                autoComplete="off"
+                                spellCheck={false}
+                                className={`iceman-cell${errs[field] ? ' is-invalid' : ''}`}
+                                placeholder={field === 'lat' ? '40.7128' : '-74.0060'}
+                                value={row[field]}
+                                data-row={i}
+                                data-field={field}
+                                aria-label={`Row ${i + 1} ${field === 'lat' ? 'latitude' : 'longitude'}`}
+                                aria-invalid={!!errs[field]}
+                                title={errs[field]}
+                                disabled={loading}
+                                onChange={(e) => updateCell(i, field, e.target.value)}
+                                onKeyDown={(e) => onCellKeyDown(e, i, field)}
+                              />
+                            </td>
+                          ))}
+                          <td>
+                            <input
+                              type="text"
+                              autoComplete="off"
+                              className="iceman-cell"
+                              placeholder="e.g. Main St rooftop"
+                              value={row.name}
+                              data-row={i}
+                              data-field="name"
+                              aria-label={`Row ${i + 1} site name`}
+                              disabled={loading}
+                              onChange={(e) => updateCell(i, 'name', e.target.value)}
+                              onKeyDown={(e) => onCellKeyDown(e, i, 'name')}
+                            />
+                          </td>
+                          <td className="iceman-coords-remove">
+                            {mappable && (
+                              <a
+                                className="iceman-icon-btn iceman-map-link"
+                                href={mapLinkFor(row)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`View row ${i + 1} on a map`}
+                                title="Check this location on Google Maps"
+                              >
+                                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"
+                                  />
+                                </svg>
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              className="iceman-icon-btn"
+                              onClick={() => removeRow(i)}
+                              disabled={loading}
+                              aria-label={`Remove row ${i + 1}`}
+                              title="Remove row"
+                            >
+                              {/* Inline SVG: Font Awesome is not loaded (public/index.html). */}
+                              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path
+                                  stroke="currentColor"
+                                  strokeWidth="2.2"
+                                  strokeLinecap="round"
+                                  d="M6 6l12 12M18 6L6 18"
+                                />
+                              </svg>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {invalidCount > 0 && (
+                <p className="iceman-field-error" role="alert">
+                  {invalidCount} row{invalidCount === 1 ? ' has' : 's have'} an invalid
+                  coordinate. Latitude must be between -90 and 90, longitude between -180 and 180.
+                </p>
+              )}
+              {notice && !error && (
+                <p className="iceman-notice" role="status">
+                  {notice}
+                </p>
+              )}
+
+              <div className="iceman-coords-actions">
+                <button
+                  type="button"
+                  className="iceman-btn-secondary"
+                  onClick={addRow}
+                  disabled={loading || rows.length >= MAX_ROWS}
+                >
+                  <i className="fa-solid fa-plus" aria-hidden="true" />
+                  Add row
+                </button>
+                <span className="iceman-coords-count">
+                  {filledRows.length} of {MAX_ROWS} locations
+                </span>
+                <button
+                  type="button"
+                  className="iceman-btn-secondary"
+                  onClick={clearRows}
+                  disabled={loading || filledRows.length === 0}
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mode === 'file' && (
+            <div id="iceman-tabpanel-file" role="tabpanel" aria-labelledby="iceman-tab-file">
+              <p className="iceman-hint">
+                CSV or Excel with <code>lat</code>/<code>lng</code> (or latitude/longitude) columns.
+                Only the first {MAX_ROWS} rows are processed. Any other columns are copied into the
+                output. .csv or .xlsx only (legacy .xls is not accepted), up to{' '}
+                {MAX_UPLOAD_BYTES / (1024 * 1024)} MB.
+              </p>
+
+              <div
+                className={`iceman-dropzone${dragOver ? ' is-dragover' : ''}${file ? ' has-file' : ''}${loading ? ' is-disabled' : ''}`}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  if (!loading) setDragOver(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!loading) setDragOver(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                }}
+                onDrop={loading ? undefined : onDrop}
+                onClick={() => {
+                  if (!loading) fileInputRef.current?.click();
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (loading) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                aria-label="Choose or drop a CSV or Excel file"
               >
-                Clear file
-              </button>
+                <input
+                  id="iceman-file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx"
+                  onChange={onFileChange}
+                  disabled={loading}
+                  hidden
+                />
+                <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
+                {file ? (
+                  <div className="iceman-file-selected">
+                    <p className="iceman-file-name">{file.name}</p>
+                    <p className="iceman-file-meta">
+                      {(file.size / 1024).toFixed(1)} KB · click to replace
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="iceman-dropzone-title">Drop your file here</p>
+                    <p className="iceman-dropzone-hint">
+                      or click to browse · .csv / .xlsx · up to {MAX_ROWS} rows · max{' '}
+                      {MAX_UPLOAD_BYTES / (1024 * 1024)} MB
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {file && (
+                <div className="iceman-file-actions">
+                  <button
+                    type="button"
+                    className="iceman-btn-secondary"
+                    onClick={clearFile}
+                    disabled={loading}
+                  >
+                    Clear file
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -360,8 +679,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
           <div className="iceman-panel-header">
             <h3 id="iceman-generate-heading">3. Generate &amp; download</h3>
             <p>
-              Nearmap imagery is fetched for each row (up to {MAX_ROWS}). This can take up to
-              30 seconds; keep the tab open until the download starts.
+              Nearmap imagery is fetched for each location (up to {MAX_ROWS}). This can take up
+              to 30 seconds; keep the tab open until the download starts.
             </p>
           </div>
 
@@ -370,7 +689,7 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
               type="button"
               className="iceman-btn-primary"
               onClick={onGenerate}
-              disabled={loading || !file}
+              disabled={loading || !canGenerate}
             >
               {loading ? (
                 <>
@@ -394,14 +713,14 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
               <span className="iceman-guide-num">A–B</span>
               <div>
                 <strong>Coordinates</strong>
-                <p>Latitude and longitude from your upload</p>
+                <p>Latitude and longitude you entered or uploaded</p>
               </div>
             </div>
             <div className="iceman-guide-item">
               <span className="iceman-guide-num">C+</span>
               <div>
                 <strong>Pass-through</strong>
-                <p>Any other columns copied into the output</p>
+                <p>Site names, or any other columns from your file</p>
               </div>
             </div>
             <div className="iceman-guide-item">

@@ -157,6 +157,216 @@
   border-radius: 4px;
 }
 
+/* Input mode tabs */
+.iceman-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.iceman-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.iceman-tab:hover:not(:disabled) {
+  color: #004e7c;
+  background: #f7fbfe;
+}
+
+.iceman-tab.is-active {
+  color: #003366;
+  border-bottom-color: #009acd;
+}
+
+.iceman-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.iceman-hint {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.iceman-hint code {
+  font-size: 0.9em;
+  background: #f1f5f9;
+  color: #004e7c;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Coordinate entry table */
+.iceman-coords {
+  overflow-x: auto;
+  border: 1px solid #e2eef5;
+  border-radius: 8px;
+}
+
+.iceman-coords-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.iceman-coords-table th {
+  padding: 9px 10px;
+  background: #f7fbfe;
+  border-bottom: 1px solid #e2eef5;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.iceman-coords-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.iceman-coords-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.iceman-optional {
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #6b7280;
+}
+
+.iceman-coords-num {
+  width: 36px;
+  text-align: center !important;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.iceman-coords-remove {
+  width: 72px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.iceman-map-link:hover {
+  background: #eef7fc;
+  color: #004e7c;
+}
+
+.iceman-cell {
+  width: 100%;
+  min-width: 110px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #dbe3ea;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1a1a2e;
+  background: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.iceman-cell::placeholder {
+  color: #9ca3af;
+}
+
+.iceman-cell:focus {
+  outline: none;
+  border-color: #009acd;
+  box-shadow: 0 0 0 2px rgba(0, 154, 205, 0.2);
+}
+
+.iceman-cell.is-invalid {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.iceman-cell:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.iceman-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.iceman-icon-btn:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.iceman-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.iceman-coords-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.iceman-coords-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.iceman-field-error,
+.iceman-notice {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.iceman-field-error {
+  color: #b91c1c;
+}
+
+.iceman-notice {
+  color: #065f46;
+}
+
+.iceman-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* Dropzone */
 .iceman-dropzone {
   display: flex;
@@ -479,6 +689,45 @@
   .iceman-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .iceman-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+  }
+
+  .iceman-coords-actions {
+    flex-wrap: wrap;
+  }
+
+  /* Fit all four columns on a phone instead of scrolling the table sideways. */
+  .iceman-coords-num {
+    display: none;
+  }
+
+  .iceman-coords-table th {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+
+  .iceman-coords-table td {
+    padding: 3px 2px;
+  }
+
+  .iceman-cell {
+    min-width: 0;
+    padding: 7px 6px;
+    font-size: 13px;
+  }
+
+  .iceman-coords-remove {
+    width: 52px;
+  }
+
+  .iceman-icon-btn {
+    width: 24px;
+    height: 28px;
   }
 
   .iceman-btn-primary {
