@@ -1,3 +1,5 @@
+import type { ClosedDeal } from '../components/DealClosedBanner';
+
 /**
  * Sample data for the /dev preview (DEV_PREVIEW_ALLOWLIST only), in the shape the Lambda would
  * return. Stage names are the org's real active Opportunity stages; the deals are made up.
@@ -27,17 +29,8 @@ export interface MyPipeline {
   attention: PipelineDeal[];
 }
 
-export interface ClosedDeal {
-  name: string;
-  city: string;
-  sourceType: 'Proprietary';
-  amName: string;
-  /** Current_Investment_Date__c, YYYY-MM-DD. */
-  investmentDate: string;
-}
 
 const today = new Date();
-const isoToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
 export const MOCK_MY_PIPELINE: MyPipeline = {
   amName: 'Ethan Sanandaji',
@@ -63,12 +56,7 @@ export const MOCK_MY_PIPELINE: MyPipeline = {
   ],
 };
 
+/** Deal-closed banner preview, in the shape GET /api/salesforce/closed-today returns. */
 export const MOCK_CLOSED_TODAY: ClosedDeal[] = [
-  {
-    name: 'Maple Ridge Rooftop',
-    city: 'Tampa, FL',
-    sourceType: 'Proprietary',
-    amName: 'Ethan Sanandaji',
-    investmentDate: isoToday,
-  },
+  { name: '26-FL0042', city: 'Tampa', state: 'FL', amName: 'Ethan Sanandaji' },
 ];

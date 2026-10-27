@@ -9,6 +9,7 @@ import { useEditMode } from '../context/EditMenuContext';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import { useSharePointContent } from '../hooks/useSharePointContent';
 import { filterActiveBirthdays } from '../utils/birthdays';
+import { recentNewHires, todaysWorkAnniversaries } from '../utils/hireDates';
 import { startLogin } from '../utils/login';
 import { BirthdayCoverageNotice, BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
@@ -71,6 +72,7 @@ import {
 import { bulletsToHtml, htmlToBullets, isRichTextEmpty, renderRichText, sanitizeHtml, toBlockHtml } from '../utils/richText';
 import LazyRichTextEditor from './LazyRichTextEditor';
 import TermSheetRankings from './TermSheetRankings';
+import DealClosedBanner from './DealClosedBanner';
 import { isTermSheetRankingsAllowlisted } from '../authConfig';
 import { isAcquisitionsManagerTitle } from '../data/termSheetRankingsRoster';
 import {
@@ -799,9 +801,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
     const today = birthdays.people.filter((p) => isBirthdayToday(p));
     return filterActiveBirthdays(today, directoryUsers ?? null);
   }, [birthdays.people, directoryUsers]);
+  const todaysAnniversaries = useMemo(() => todaysWorkAnniversaries(directoryUsers ?? null), [directoryUsers]);
+  const newHires = useMemo(() => recentNewHires(directoryUsers ?? null), [directoryUsers]);
   const showAnnouncementsSection =
     activeAnnouncements.length > 0 ||
     todaysBirthdays.length > 0 ||
+    todaysAnniversaries.length > 0 ||
+    newHires.length > 0 ||
     (canEdit && inactiveAnnouncements.length > 0) ||
     canEdit;
 
@@ -906,6 +912,8 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
               {/* ── Hero Banner ── */}
               {!showLeaderboard && heroBanner}
 
+              <DealClosedBanner viewerName={userInfo.name} />
+
               {/* Company Progress — re-enable after Lambda + amplify /api rewrite are live
               <CompanyProgress userInfo={userInfo} />
               */}
@@ -950,6 +958,41 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                           </div>
                           <div className="announcement-item-body">
                             Wishing you a wonderful day!
+                          </div>
+                          <div className="announcement-item-date">Today</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {newHires.map(({ user, startedOn }) => (
+                    <div key={`welcome-${user.id}`} className="announcement-item birthday-announcement-item">
+                      <div className="announcement-item-inner">
+                        <div className="announcement-item-content">
+                          <div className="announcement-item-title">
+                            Welcome to the team, {user.displayName}! 👋
+                          </div>
+                          <div className="announcement-item-body">
+                            {user.jobTitle ? `Joining us as ${user.jobTitle}` : 'Joining us'}
+                            {user.department ? ` in ${user.department}` : ''}. Say hello!
+                          </div>
+                          <div className="announcement-item-date">
+                            Started {startedOn.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {todaysAnniversaries.map(({ user, years }) => (
+                    <div key={`anniversary-${user.id}`} className="announcement-item birthday-announcement-item">
+                      <div className="announcement-item-inner">
+                        <div className="announcement-item-content">
+                          <div className="announcement-item-title">
+                            Happy {years}-year work anniversary, {user.displayName}! 🎉
+                          </div>
+                          <div className="announcement-item-body">
+                            Thank you for {years} year{years === 1 ? '' : 's'} with Symphony Towers.
                           </div>
                           <div className="announcement-item-date">Today</div>
                         </div>

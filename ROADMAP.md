@@ -18,11 +18,14 @@
 | Rich text editor | Tiptap toolbar (bold, italic, underline, lists, links) for cards, announcements and sidebar sections; output sanitised with DOMPurify; loads only when an edit modal opens |
 | Sidebar sections, quick links, site settings | Shared `IntranetSidebar` on every page |
 | Birthdays | `birthdays.json`, matched against the live directory; gap notice for editors |
-| Monthly Term Sheet Leaderboard | Live Salesforce counts via the Lambda (5-minute cache) |
+| Monthly Term Sheet Leaderboard | Live Salesforce counts via the Lambda (5-minute cache); last month's winner and a year-to-date top 5 underneath (`/api/salesforce/term-sheet-history`, 15-minute cache) |
+| Deal-closed banner | Home page, everyone: Proprietary deals whose `Current_Investment_Date__c` is today, with a personal line for the closing AM (`/api/salesforce/closed-today`, 5-minute cache). Dismissing hides those deals for the day |
+| Work anniversaries and new-hire welcomes | In Announcements, from Entra `employeeHireDate` (welcomes run 14 days from the start date). Only people with a hire date in Entra appear |
 | Reports page | Power BI links, elite/include/exclude rules, **★ My Reports** favourites (synced through the user's OneDrive, `Apps/Symphony Intranet/report-favorites.json`) |
 | IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
 | Employee Directory | `/directory`, live Graph users with photos |
 | Lead Generation | Graph `sendMail` with photos |
+| ICEMAN usage | Panel at the bottom of `/iceman` for `ICEMAN_ADMIN_ALLOWLIST`: runs, sites and people over 30 days, from the `[iceman]` CloudWatch lines via Logs Insights (`/api/iceman/usage`). Needs `scripts/iceman-usage-policy.json` on the Lambda role |
 | ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240). Coordinates are typed or pasted into a table (Excel rows, Google Maps pairs, optional site name, map check per row); .csv/.xlsx upload is the second tab. Estimated progress bar while it runs. Open to the underwriting/origination group |
 | Dark mode | Per-user toggle; `npm run check:dark` flags new colours with no dark override |
 | Header search | Ctrl+K / ⌘K: pages, reports (same visibility rules), quick links, people (opens `/directory?q=`) |
@@ -50,11 +53,8 @@
 | Org chart | Built from the directory (`/manager`, `/directReports`) | ~1 week |
 | PWA ("Add to Home Screen") | Manifest exists; needs a service worker | 2–3 days |
 | Editor analytics | Which reports and cards get used | ~1 week |
-| Work anniversaries | Same pattern as birthdays | 1–2 days |
-| Leaderboard history | Last month's winners / year to date | 1–2 days |
-| New-hire welcome card | Replaces manual hide/show edits for onboarding | 1–2 days |
-| ICEMAN usage view | Who ran it and how many sites (from the `[iceman]` logs) | 1–2 days |
-| My Pipeline card + deal-closed banner | Mockup on `mockup/ethan-pipeline` (local only); needs `/api/salesforce/my-pipeline` and a closed-today route | 2–3 days |
+| My Pipeline card | Mockup on `/dev`; needs `/api/salesforce/my-pipeline` | 2–3 days |
+| Hire dates in Entra | Anniversaries cover only the ~26 of 82 people with `employeeHireDate` set; HR to backfill | — |
 
 **Backlog:** push notifications, Spanish (i18n).
 
@@ -64,12 +64,12 @@
 
 | Item | Priority | Notes |
 |---|---|---|
-| `Calendars.Read` still requested at login | Medium | The calendar was removed; drop the scope |
-| `Sites.ReadWrite.All` for every user | Medium | Only editors write; request write access on demand |
+| `Calendars.Read` still on the app registration | Low | No longer requested at login; remove it from the app registration's API permissions in Entra to finish |
+| `Sites.ReadWrite.All` for every user | Low | Delegated and admin-consented, so tokens carry it whether or not it's requested, and `Files.ReadWrite.All` already allows file writes. Users are still limited by their SharePoint site permissions. Narrowing it means app-registration changes in Entra, not code |
 | Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
 | `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
 | Unit tests and CI | Medium | `intranet-tests-refactor` has vitest tests and PR checks that never reached `main` |
-| Salesforce integration password expiry | High | Set "Password Never Expires" on that user's profile (it broke the leaderboard on 2026-10-19), then set `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda. The admin banner warns until then |
+| Salesforce integration password expiry | High | Grant "Password Never Expires" to the integration user alone through a permission set (not the System Administrator profile, which would cover every admin), then set `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda. It broke the leaderboard on 2026-10-19; the admin banner warns until then |
 
 ---
 

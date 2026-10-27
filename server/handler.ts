@@ -8,6 +8,9 @@
  *   GET /api/images/by-url?url=    — proxy SharePoint webUrl bytes
  *   GET /api/salesforce/term-sheet-rankings       — signed-in users (Entra ID token)
  *   GET /api/salesforce/health                    — integration sign-in status; Salesforce admins only
+ *   GET /api/salesforce/closed-today              — today's Proprietary closings (deal-closed banner)
+ *   GET /api/salesforce/term-sheet-history        — last month's and year-to-date term sheet counts
+ *   GET /api/iceman/usage                          — ICEMAN runs from CloudWatch (last 30 days); ICEMAN admins only
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=15 — Nearmap batch XLSX (multipart file); ICEMAN allowlist.
  *        max_rows is clamped to ICEMAN_MAX_ROWS (server/iceman.ts); uploads capped at 4 MB.
@@ -24,7 +27,8 @@
  *                  SALESFORCE_ADMIN_EMAILS? (comma-separated; default below)
  *   Power BI:      POWERBI_TENANT_ID, POWERBI_CLIENT_ID, POWERBI_USERNAME,
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
- *   ICEMAN:        NEARMAP_API_KEY, ICEMAN_ALLOWED_EMAILS? (comma-separated; default below)
+ *   ICEMAN:        NEARMAP_API_KEY, ICEMAN_ALLOWED_EMAILS? (comma-separated; default below),
+ *                  ICEMAN_ADMIN_EMAILS? (usage view; default below)
  *   Auth:          INTRANET_TENANT_ID?, INTRANET_CLIENT_ID?, INTRANET_API_AUTH_DISABLED? (see auth.ts)
  */
 
@@ -37,7 +41,7 @@ import {
   ImageTooLargeError,
   MAX_PROXY_IMAGE_BYTES,
 } from './tvImages';
-import { getSalesforceHealth, getTermSheetRankings } from './salesforce';
+import { getDealsClosedToday, getSalesforceHealth, getTermSheetHistory, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { requireEnv } from './env';
 import { AuthError, AuthServiceError, authenticateRequest } from './auth';
@@ -72,6 +76,9 @@ const DEFAULT_SALESFORCE_ADMIN_EMAILS = [
   'vasmar@symphonyinfra.com',
 ].join(',');
 
+/** Mirrors ICEMAN_ADMIN_ALLOWLIST in src/authConfig.ts; override with ICEMAN_ADMIN_EMAILS. */
+const DEFAULT_ICEMAN_ADMIN_EMAILS = 'mmelendez@symphonyinfra.com';
+
 function isInEmailList(list: string, email: string): boolean {
   const allowed = list
     .split(',')
@@ -83,6 +90,10 @@ function isInEmailList(list: string, email: string): boolean {
 
 function isIcemanAllowed(email: string): boolean {
   return isInEmailList(process.env.ICEMAN_ALLOWED_EMAILS || DEFAULT_ICEMAN_ALLOWED_EMAILS, email);
+}
+
+function isIcemanAdmin(email: string): boolean {
+  return isInEmailList(process.env.ICEMAN_ADMIN_EMAILS || DEFAULT_ICEMAN_ADMIN_EMAILS, email);
 }
 
 function isSalesforceAdmin(email: string): boolean {
@@ -151,6 +162,18 @@ function isSalesforceHealthPath(path: string): boolean {
   return /\/api\/salesforce\/health\/?$/i.test(path);
 }
 
+function isSalesforceClosedTodayPath(path: string): boolean {
+  return /\/api\/salesforce\/closed-today\/?$/i.test(path);
+}
+
+function isSalesforceTermSheetHistoryPath(path: string): boolean {
+  return /\/api\/salesforce\/term-sheet-history\/?$/i.test(path);
+}
+
+function isIcemanUsagePath(path: string): boolean {
+  return /\/api\/iceman\/usage\/?$/i.test(path);
+}
+
 function isPowerbiEmbedTokenPath(path: string): boolean {
   return /\/api\/powerbi\/embed-token\/?$/i.test(path);
 }
@@ -200,7 +223,10 @@ export async function handler(event?: {
     // ── Signed-in routes: Salesforce data and ICEMAN (Nearmap spend) ──
     const needsAuth =
       isIcemanGeneratePath(path) ||
+      isIcemanUsagePath(path) ||
       isSalesforceTermSheetRankingsPath(path) ||
+      isSalesforceTermSheetHistoryPath(path) ||
+      isSalesforceClosedTodayPath(path) ||
       isSalesforceHealthPath(path);
     let icemanUser = '';
     if (needsAuth) {
@@ -216,6 +242,9 @@ export async function handler(event?: {
         if (user && isSalesforceHealthPath(path) && !isSalesforceAdmin(user.email)) {
           return errorResult(403, 'Not a Salesforce admin.');
         }
+        if (user && isIcemanUsagePath(path) && !isIcemanAdmin(user.email)) {
+          return errorResult(403, 'Not an ICEMAN admin.');
+        }
       } catch (err) {
         if (err instanceof AuthError) {
           if (isIcemanGeneratePath(path)) console.warn('[iceman] sign-in rejected:', err.message);
@@ -224,6 +253,15 @@ export async function handler(event?: {
         if (err instanceof AuthServiceError) return errorResult(503, err.message);
         throw err;
       }
+    }
+
+    if (isIcemanUsagePath(path)) {
+      const { getIcemanUsage } = await import('./icemanUsage.js');
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(await getIcemanUsage()),
+      };
     }
 
     // ── ICEMAN Nearmap batch (no Graph credentials required) ──
@@ -322,6 +360,22 @@ export async function handler(event?: {
         statusCode: 200,
         headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
         body: JSON.stringify(data),
+      };
+    }
+
+    if (isSalesforceClosedTodayPath(path)) {
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(await getDealsClosedToday()),
+      };
+    }
+
+    if (isSalesforceTermSheetHistoryPath(path)) {
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(await getTermSheetHistory()),
       };
     }
 

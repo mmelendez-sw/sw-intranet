@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { useMsal } from '@azure/msal-react';
-import { BYPASS_AUTH, SALESFORCE_TERM_SHEET_RANKINGS_URL } from '../authConfig';
+import {
+  BYPASS_AUTH,
+  SALESFORCE_TERM_SHEET_HISTORY_URL,
+  SALESFORCE_TERM_SHEET_RANKINGS_URL,
+} from '../authConfig';
 import { isAcquisitionsManagerTitle, TERM_SHEET_RANKING_ROSTER } from '../data/termSheetRankingsRoster';
 import { GraphUser, isNameOnHold } from '../services/directoryService';
 import { intranetApiFetch } from '../services/intranetApi';
@@ -23,6 +27,15 @@ type TermSheetCountRow = {
   name: string;
   count: number;
 };
+
+/** GET /api/salesforce/term-sheet-history (mirrors TermSheetHistory in server/salesforce.ts). */
+type TermSheetHistory = {
+  lastMonth: { label: string; counts: TermSheetCountRow[] };
+  yearToDate: { year: number; counts: TermSheetCountRow[] };
+};
+
+/** Top of the year-to-date list shown under the board. */
+const YTD_SHOWN = 5;
 
 type TierGroup = {
   tier: TermSheetTier;
@@ -196,6 +209,15 @@ function writeCachedCounts(email: string, counts: TermSheetCountRow[]): number {
 const countsEqual = (a: TermSheetCountRow[] | null, b: TermSheetCountRow[]): boolean =>
   !!a && JSON.stringify(a) === JSON.stringify(b);
 
+/** Highest count and everyone tied on it; empty when nobody signed one. */
+function winners(counts: TermSheetCountRow[]): { names: string[]; count: number } {
+  const visible = counts.filter((row) => row.count > 0 && !isNameOnHold(row.name));
+  const top = visible[0]?.count ?? 0;
+  return { names: visible.filter((row) => row.count === top).map((row) => row.name), count: top };
+}
+
+const HISTORY_REFRESH_MS = 15 * 60_000;
+
 interface TermSheetRankingsProps {
   /** Entra directory (from useDirectoryUsers); drives the roster of Acquisitions Managers. */
   directoryUsers?: GraphUser[] | null;
@@ -250,6 +272,33 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
       window.clearInterval(intervalId);
     };
   }, [instance, signedIn, accountId, cacheEmail]);
+
+  const [history, setHistory] = useState<TermSheetHistory | null>(null);
+  useEffect(() => {
+    if (!signedIn || SHOW_DEMO_ATHLETES) return;
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const res = await intranetApiFetch(instance, SALESFORCE_TERM_SHEET_HISTORY_URL, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = (await res.json()) as TermSheetHistory;
+        if (!cancelled && data?.lastMonth && data?.yearToDate) setHistory(data);
+      } catch {
+        /* history is optional; the monthly board still renders */
+      }
+    };
+    void refresh();
+    const intervalId = window.setInterval(() => void refresh(), HISTORY_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [instance, signedIn, accountId]);
+
+  const lastMonthWinners = history ? winners(history.lastMonth.counts) : null;
+  const ytdTop = history
+    ? history.yearToDate.counts.filter((row) => row.count > 0 && !isNameOnHold(row.name)).slice(0, YTD_SHOWN)
+    : [];
 
   const groups = useMemo(() => {
     if (SHOW_DEMO_ATHLETES) return buildTierGroups(DEMO_ATHLETES);
@@ -319,6 +368,31 @@ const TermSheetRankings: React.FC<TermSheetRankingsProps> = ({ directoryUsers })
         })}
       </ul>
       )}
+
+      {history && (lastMonthWinners?.names.length || ytdTop.length) ? (
+        <div className="term-sheet-rankings-history">
+          {lastMonthWinners && lastMonthWinners.names.length > 0 && (
+            <p className="term-sheet-rankings-history-winner">
+              <span aria-hidden="true">🏅 </span>
+              {history.lastMonth.label} winner{lastMonthWinners.names.length > 1 ? 's' : ''}:{' '}
+              <strong>{lastMonthWinners.names.join(', ')}</strong> ({lastMonthWinners.count})
+            </p>
+          )}
+          {ytdTop.length > 0 && (
+            <details className="term-sheet-rankings-history-ytd">
+              <summary>{history.yearToDate.year} year to date</summary>
+              <ol>
+                {ytdTop.map((row) => (
+                  <li key={row.name}>
+                    <span>{row.name}</span>
+                    <span className="term-sheet-rankings-history-count">{row.count}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </div>
+      ) : null}
 
       <div className="term-sheet-rankings-legend" aria-hidden="true">
         {TIER_ORDER.map((tierKey) => (

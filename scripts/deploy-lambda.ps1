@@ -30,8 +30,9 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "tsc type-check failed (exit $LASTEXITCODE)" }
 
   # One minified CommonJS file: no staging npm install, and nothing stale from server/dist ships.
+  # @aws-sdk/* is provided by the Node.js 22 runtime, so it stays out of the bundle.
   Write-Host "Bundling server/handler.ts..."
-  npx esbuild server/handler.ts --bundle --platform=node --target=node22 --format=cjs --minify --legal-comments=none "--outfile=$stageDir\handler.js"
+  npx esbuild server/handler.ts --bundle --platform=node --target=node22 --format=cjs --minify --legal-comments=none "--external:@aws-sdk/*" "--outfile=$stageDir\handler.js"
   if ($LASTEXITCODE -ne 0) { throw "esbuild bundle failed (exit $LASTEXITCODE)" }
 } finally {
   Pop-Location

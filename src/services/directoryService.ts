@@ -16,6 +16,8 @@ export interface GraphUser {
   companyName?: string | null;
   mail: string | null;
   accountEnabled?: boolean;
+  /** Set by HR in Entra; drives work anniversaries and new-hire welcomes (utils/hireDates). */
+  employeeHireDate?: string | null;
   photoUrl?: string; // resolved client-side
 }
 
@@ -26,7 +28,7 @@ const ACTIVE_USERS_URL =
   '?$filter=accountEnabled%20eq%20true' +
   '&$count=true' +
   '&$top=999' +
-  '&$select=id,displayName,givenName,surname,mail,jobTitle,department,companyName,accountEnabled';
+  '&$select=id,displayName,givenName,surname,mail,jobTitle,department,companyName,accountEnabled,employeeHireDate';
 
 function hasFirstAndLastName(user: GraphUser): boolean {
   const given = user.givenName?.trim();

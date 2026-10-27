@@ -1,0 +1,43 @@
+/* Deal-closed banner (home page): today's Proprietary closings */
+.deal-closed-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e6f6ec, #f0fbf4);
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.deal-closed-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.deal-closed-text {
+  flex: 1;
+}
+
+.deal-closed-text p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.deal-closed-you {
+  font-weight: 700;
+}
+
+.deal-closed-dismiss {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.deal-closed-place {
+  opacity: 0.85;
+}

@@ -287,3 +287,124 @@ export async function getSalesforceHealth(): Promise<SalesforceHealth> {
   healthCache = { at: Date.now(), value };
   return value;
 }
+
+/** Proprietary deals whose Current_Investment_Date__c is today (SOQL TODAY, org timezone). */
+const CLOSED_TODAY_QUERY = `
+SELECT Name, Site_City__c, Site_State__c, Acquisition_Advisor_Manager__r.Name
+FROM Opportunity
+WHERE Source_Type__c = 'Proprietary'
+AND Current_Investment_Date__c = TODAY
+ORDER BY Name
+`;
+
+export type ClosedDeal = {
+  name: string;
+  city: string;
+  state: string;
+  amName: string;
+};
+
+/** Same cadence as the leaderboard: a closing shows up within 5 minutes. */
+const CLOSED_TODAY_CACHE_MS = 5 * 60_000;
+let closedTodayCache: { at: number; value: { date: string; deals: ClosedDeal[] } } | null = null;
+
+/** YYYY-MM-DD in the org's timezone (what SOQL TODAY means). */
+function orgDateKey(timeZone: string, date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+}
+
+/** Deal-closed banner: everyone signed in sees today's Proprietary closings. */
+export async function getDealsClosedToday(): Promise<{ date: string; deals: ClosedDeal[] }> {
+  const date = orgDateKey(await getOrgTimeZone());
+  if (closedTodayCache && closedTodayCache.value.date === date && Date.now() - closedTodayCache.at < CLOSED_TODAY_CACHE_MS) {
+    return closedTodayCache.value;
+  }
+
+  const data = (await runSalesforceQuery(CLOSED_TODAY_QUERY)) as {
+    records?: Array<{
+      Name?: string | null;
+      Site_City__c?: string | null;
+      Site_State__c?: string | null;
+      Acquisition_Advisor_Manager__r?: { Name?: string | null } | null;
+    }>;
+  };
+  const deals: ClosedDeal[] = (data.records || []).map((r) => ({
+    name: (r.Name || '').trim(),
+    city: (r.Site_City__c || '').trim(),
+    state: (r.Site_State__c || '').trim(),
+    amName: (r.Acquisition_Advisor_Manager__r?.Name || '').trim(),
+  }));
+
+  const value = { date, deals };
+  closedTodayCache = { at: Date.now(), value };
+  return value;
+}
+
+/** Proprietary term sheets per manager per month, this calendar year plus last month (for January). */
+const TERM_SHEET_HISTORY_QUERY = `
+SELECT Acquisition_Advisor_Manager__r.Name, CALENDAR_YEAR(Term_Sheet_Signed_Date__c),
+  CALENDAR_MONTH(Term_Sheet_Signed_Date__c), COUNT(Id)
+FROM Opportunity
+WHERE (Term_Sheet_Signed_Date__c = THIS_YEAR OR Term_Sheet_Signed_Date__c = LAST_MONTH)
+AND Source_Type__c = 'Proprietary'
+GROUP BY Acquisition_Advisor_Manager__r.Name, CALENDAR_YEAR(Term_Sheet_Signed_Date__c),
+  CALENDAR_MONTH(Term_Sheet_Signed_Date__c)
+`;
+
+export type TermSheetHistory = {
+  lastMonth: { label: string; counts: TermSheetCountRow[] };
+  yearToDate: { year: number; counts: TermSheetCountRow[] };
+};
+
+/** Past months don't change; YTD includes this month, so keep it near the leaderboard's cadence. */
+const TERM_SHEET_HISTORY_CACHE_MS = 15 * 60_000;
+let termSheetHistoryCache: { at: number; key: string; value: TermSheetHistory } | null = null;
+
+const sortCounts = (counts: Map<string, number>): TermSheetCountRow[] =>
+  [...counts]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+/** Leaderboard history: last month's counts and year-to-date totals per manager. */
+export async function getTermSheetHistory(): Promise<TermSheetHistory> {
+  const timeZone = await getOrgTimeZone();
+  const [year, month] = orgDateKey(timeZone).split('-').map(Number);
+  const key = `${year}-${month}`;
+  if (termSheetHistoryCache && termSheetHistoryCache.key === key && Date.now() - termSheetHistoryCache.at < TERM_SHEET_HISTORY_CACHE_MS) {
+    return termSheetHistoryCache.value;
+  }
+
+  const lastYear = month === 1 ? year - 1 : year;
+  const lastMonth = month === 1 ? 12 : month - 1;
+  const data = (await runSalesforceQuery(TERM_SHEET_HISTORY_QUERY)) as {
+    records?: Array<{
+      Name?: string | null;
+      Acquisition_Advisor_Manager__r?: { Name?: string | null } | null;
+      expr0?: number;
+      expr1?: number;
+      expr2?: number;
+    }>;
+  };
+
+  const lastMonthCounts = new Map<string, number>();
+  const ytdCounts = new Map<string, number>();
+  for (const r of data.records || []) {
+    const name = (r.Name ?? r.Acquisition_Advisor_Manager__r?.Name ?? '').trim();
+    const count = Number(r.expr2) || 0;
+    if (!name || count <= 0) continue;
+    if (r.expr0 === year) ytdCounts.set(name, (ytdCounts.get(name) || 0) + count);
+    if (r.expr0 === lastYear && r.expr1 === lastMonth) lastMonthCounts.set(name, count);
+  }
+
+  const label = new Date(Date.UTC(lastYear, lastMonth - 1, 15)).toLocaleString('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  const value: TermSheetHistory = {
+    lastMonth: { label, counts: sortCounts(lastMonthCounts) },
+    yearToDate: { year, counts: sortCounts(ytdCounts) },
+  };
+  termSheetHistoryCache = { at: Date.now(), key, value };
+  return value;
+}

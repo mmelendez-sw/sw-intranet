@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "IcemanUsageStartQuery",
+      "Effect": "Allow",
+      "Action": "logs:StartQuery",
+      "Resource": [
+        "arn:aws:logs:us-east-2:332441963654:log-group:/aws/lambda/sw-intranet-api",
+        "arn:aws:logs:us-east-2:332441963654:log-group:/aws/lambda/sw-intranet-api:*"
+      ]
+    },
+    {
+      "Sid": "IcemanUsageQueryResults",
+      "Effect": "Allow",
+      "Action": "logs:GetQueryResults",
+      "Resource": "*"
+    }
+  ]
+}

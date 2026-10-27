@@ -43,7 +43,6 @@ export const loginRequest = {
     "Files.ReadWrite.All",
     "Sites.ReadWrite.All",
     "User.Read.All",
-    "Calendars.Read",
   ],
 };
 
@@ -133,6 +132,12 @@ export const ICEMAN_ALLOWLIST = new Set([
 
 export const isIcemanAllowlisted = (email?: string): boolean =>
   isInAllowlist(ICEMAN_ALLOWLIST, email, { legacyDomain: true });
+
+/** ICEMAN usage panel on /iceman. Keep in step with DEFAULT_ICEMAN_ADMIN_EMAILS in server/handler.ts. */
+export const ICEMAN_ADMIN_ALLOWLIST = new Set(['mmelendez@symphonyinfra.com']);
+
+export const isIcemanAdminAllowlisted = (email?: string): boolean =>
+  isInAllowlist(ICEMAN_ADMIN_ALLOWLIST, email, { legacyDomain: true });
 
 /** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
 export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
@@ -227,7 +232,10 @@ export const POWERBI_EMBED_TOKEN_URL = intranetApiUrl('/api/powerbi/embed-token'
 
 /** ICEMAN Nearmap batch endpoint (local API or Lambda). */
 export const ICEMAN_GENERATE_URL = intranetApiUrl('/api/iceman/generate');
+export const ICEMAN_USAGE_URL = intranetApiUrl('/api/iceman/usage');
 export const SALESFORCE_HEALTH_URL = intranetApiUrl('/api/salesforce/health');
+export const SALESFORCE_CLOSED_TODAY_URL = intranetApiUrl('/api/salesforce/closed-today');
+export const SALESFORCE_TERM_SHEET_HISTORY_URL = intranetApiUrl('/api/salesforce/term-sheet-history');
 export const ANNOUNCEMENTS_DATA_FILENAME = 'announcements.json';
 export const BIRTHDAYS_DATA_FILENAME = 'birthdays.json';
 export const REPORTS_DATA_FILENAME = 'reports.json';

@@ -709,6 +709,23 @@
   color: var(--tint-success-text);
 }
 
+/* ── ICEMAN usage ── */
+:where(:root[data-theme="dark"]) .iceman-usage-note,
+:where(:root[data-theme="dark"]) .iceman-usage-table th {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .iceman-usage-totals,
+:where(:root[data-theme="dark"]) .iceman-usage-empty,
+:where(:root[data-theme="dark"]) .iceman-usage-table td {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .iceman-usage-table th,
+:where(:root[data-theme="dark"]) .iceman-usage-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
 /* ── Header search ── */
 :where(:root[data-theme="dark"]) .header-search-backdrop {
   background: rgba(0, 0, 0, 0.6);
@@ -1154,4 +1171,17 @@
 :where(:root[data-theme="dark"]) .term-sheet-rankings-legend {
   border-top-color: var(--border-subtle);
   color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-history {
+  border-top-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-history-winner strong {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .term-sheet-rankings-history-ytd summary {
+  color: var(--link);
 }

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useMsal } from '@azure/msal-react';
-import { ICEMAN_GENERATE_URL, isIcemanAllowlisted } from '../authConfig';
+import { ICEMAN_GENERATE_URL, isIcemanAdminAllowlisted, isIcemanAllowlisted } from '../authConfig';
+import IcemanUsage from './IcemanUsage';
 import { UserInfo } from '../types/user';
 import { intranetApiFetch } from '../services/intranetApi';
 import {
@@ -818,6 +819,8 @@ const Iceman: React.FC<IcemanProps> = ({ userInfo }) => {
             </div>
           </div>
         </section>
+
+        {isIcemanAdminAllowlisted(userInfo.email) && <IcemanUsage />}
       </div>
     </div>
   );
