@@ -30,6 +30,7 @@
 | Dark mode | Per-user toggle; `npm run check:dark` flags new colours with no dark override |
 | Header search | Ctrl+K / ⌘K: pages, reports (same visibility rules), quick links, people (opens `/directory?q=`) |
 | Salesforce admin warning | Banner for mmelendez, htolani, vasmar when the integration sign-in fails or the password is within 14 days of `SF_PASSWORD_EXPIRY_DAYS` (`/api/salesforce/health`) |
+| Unit tests and CI | Vitest (`npm test`, ~430 tests) and `.github/workflows/ci.yml` (typecheck, tests, `check:dark`, both builds) on every push and PR; checks only, never deploys |
 | Icons | Font Awesome Free (solid) bundled from npm; the old kit script is gone |
 
 **Separate branch:** the office TV display runs from `serena-tv-dev` — don't touch it without asking.
@@ -68,7 +69,7 @@
 | `Sites.ReadWrite.All` for every user | Low | Delegated and admin-consented, so tokens carry it whether or not it's requested, and `Files.ReadWrite.All` already allows file writes. Users are still limited by their SharePoint site permissions. Narrowing it means app-registration changes in Entra, not code |
 | Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
 | `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
-| Unit tests and CI | Medium | `intranet-tests-refactor` has vitest tests and PR checks that never reached `main` |
+| ICEMAN blank coordinate cell becomes 0 | Low | `parseWorkbookRows` in `server/iceman.ts` keeps a row like `41,,name` with longitude 0 instead of skipping it (recorded as a known-issue test) |
 | Salesforce integration password expiry | High | Grant "Password Never Expires" to the integration user alone through a permission set (not the System Administrator profile, which would cover every admin), then set `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda. It broke the leaderboard on 2026-10-19; the admin banner warns until then |
 
 ---
@@ -80,5 +81,5 @@
 - [ ] Editor-only controls are hidden from non-editors
 - [ ] Falls back gracefully when SharePoint or the Lambda is unreachable
 - [ ] Light and dark mode both checked; `npm run check:dark` passes
-- [ ] `npx tsc --noEmit -p .` (and `-p server` for Lambda changes) passes
+- [ ] `npm run typecheck` and `npm test` pass (CI runs both)
 - [ ] This roadmap is updated
