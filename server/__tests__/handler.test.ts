@@ -7,6 +7,10 @@ vi.mock('../salesforce', () => ({
   getSalesforceHealth: vi.fn(),
 }));
 vi.mock('../icemanUsage', () => ({ getIcemanUsage: vi.fn() }));
+vi.mock('../analyticsSummary', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../analyticsSummary')>();
+  return { ...actual, getAnalyticsSummary: vi.fn() };
+});
 vi.mock('../powerbi', () => ({ getEmbedConfig: vi.fn() }));
 vi.mock('../tvHomepageCards', () => ({
   getGraphToken: vi.fn(),
@@ -32,6 +36,7 @@ vi.mock('../iceman', () => ({ generateIcemanWorkbook: vi.fn(), ICEMAN_MAX_ROWS: 
 import { handler } from '../handler';
 import { getDealsClosedToday, getSalesforceHealth, getTermSheetHistory, getTermSheetRankings } from '../salesforce';
 import { getIcemanUsage } from '../icemanUsage';
+import { getAnalyticsSummary } from '../analyticsSummary';
 import { getEmbedConfig } from '../powerbi';
 import { getGraphToken, getHomepageCardsMeta } from '../tvHomepageCards';
 import { getHomepageCardsWithImages } from '../enrichCards';
@@ -53,7 +58,7 @@ const CORS = {
 };
 const IMAGE_CACHE_CONTROL = 'public, max-age=86400, stale-while-revalidate=604800';
 
-const ENV = ['TENANT_ID', 'CLIENT_ID', 'CLIENT_SECRET', 'ICEMAN_ALLOWED_EMAILS', 'SALESFORCE_ADMIN_EMAILS', 'ICEMAN_ADMIN_EMAILS'] as const;
+const ENV = ['TENANT_ID', 'CLIENT_ID', 'CLIENT_SECRET', 'ICEMAN_ALLOWED_EMAILS', 'SALESFORCE_ADMIN_EMAILS', 'ICEMAN_ADMIN_EMAILS', 'ANALYTICS_VIEWER_EMAILS'] as const;
 let savedEnv: Record<string, string | undefined>;
 
 const user = (email: string) => ({ email, name: email });
@@ -71,6 +76,7 @@ beforeEach(() => {
   delete process.env.ICEMAN_ALLOWED_EMAILS;
   delete process.env.SALESFORCE_ADMIN_EMAILS;
   delete process.env.ICEMAN_ADMIN_EMAILS;
+  delete process.env.ANALYTICS_VIEWER_EMAILS;
   vi.mocked(getGraphToken).mockResolvedValue('GRAPH_TOKEN');
   vi.mocked(authenticateRequest).mockResolvedValue(user('mmelendez@symphonyinfra.com'));
 });
@@ -294,6 +300,57 @@ describe('ICEMAN usage route', () => {
     expect((await handler(fnUrlEvent('/api/iceman/usage'))).statusCode).toBe(200);
     vi.mocked(authenticateRequest).mockResolvedValue(user('mmelendez@symphonyinfra.com'));
     expect((await handler(fnUrlEvent('/api/iceman/usage'))).statusCode).toBe(403);
+  });
+});
+
+describe('analytics routes', () => {
+  const summary = {
+    days: 30,
+    totals: { events: 0, people: 0 },
+    since: null,
+    kinds: { page: [], report: [], 'quick-link': [], 'card-link': [], 'sidebar-link': [], search: [] },
+  };
+  const post = (body: unknown, extra: Extra = {}) =>
+    fnUrlEvent('/api/analytics/event', 'POST', { body: JSON.stringify(body), ...extra });
+
+  it('logs a valid event for the signed-in user and returns 204', async () => {
+    const res = await handler(post({ kind: 'report', label: 'Portfolio Overview' }));
+    expect(res.statusCode).toBe(204);
+    expect(console.log).toHaveBeenCalledWith('[analytics] report by mmelendez@symphonyinfra.com: Portfolio Overview');
+  });
+
+  it('reads base64 bodies (Function URL)', async () => {
+    const body = Buffer.from(JSON.stringify({ kind: 'page', label: '/reports' })).toString('base64');
+    const res = await handler(fnUrlEvent('/api/analytics/event', 'POST', { body, isBase64Encoded: true }));
+    expect(res.statusCode).toBe(204);
+    expect(console.log).toHaveBeenCalledWith('[analytics] page by mmelendez@symphonyinfra.com: /reports');
+  });
+
+  it('400 for a bad body, 405 for GET, 401 when not signed in', async () => {
+    expect((await handler(post({ kind: 'nope', label: 'x' }))).statusCode).toBe(400);
+    expect((await handler(fnUrlEvent('/api/analytics/event', 'POST', { body: '{oops' }))).statusCode).toBe(400);
+    expect((await handler(fnUrlEvent('/api/analytics/event'))).statusCode).toBe(405);
+    vi.mocked(authenticateRequest).mockRejectedValue(new AuthError('Sign in to use this endpoint'));
+    expect((await handler(post({ kind: 'page', label: '/' }))).statusCode).toBe(401);
+    expect(console.log).not.toHaveBeenCalled();
+  });
+
+  it('returns the summary to analytics viewers, passing days through', async () => {
+    vi.mocked(getAnalyticsSummary).mockResolvedValue({ ...summary, days: 7 });
+    const res = await handler(fnUrlEvent('/api/analytics/summary', 'GET', { queryStringParameters: { days: '7' } }));
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['Cache-Control']).toBe('no-store');
+    expect(getAnalyticsSummary).toHaveBeenCalledWith(7);
+  });
+
+  it('403 for other users; honours ANALYTICS_VIEWER_EMAILS', async () => {
+    vi.mocked(getAnalyticsSummary).mockResolvedValue(summary);
+    vi.mocked(authenticateRequest).mockResolvedValue(user('janhalt@symphonyinfra.com'));
+    const res = await handler(fnUrlEvent('/api/analytics/summary'));
+    expect(res.statusCode).toBe(403);
+    expect(json(res)).toEqual({ error: 'Not an analytics viewer.' });
+    process.env.ANALYTICS_VIEWER_EMAILS = 'janhalt@symphonyinfra.com';
+    expect((await handler(fnUrlEvent('/api/analytics/summary'))).statusCode).toBe(200);
   });
 });
 

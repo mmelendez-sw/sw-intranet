@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import '../../styles/header.css';
 import { useMsal, useIsAuthenticated } from '@azure/msal-react';
 import { EventType } from '@azure/msal-browser';
-import { BYPASS_AUTH, isDevPreviewAllowlisted, isIcemanAllowlisted } from '../authConfig';
+import { BYPASS_AUTH, isAnalyticsViewerAllowlisted, isDevPreviewAllowlisted, isIcemanAllowlisted } from '../authConfig';
 import sti_logo_white from '../../images/optimized/sti-horizontal-white.png'
 import { UserInfo } from '../types/user';
 import { useEditMode } from '../context/EditMenuContext';
@@ -143,6 +143,9 @@ const Header: React.FC<HeaderProps> = ({ userInfo }) => {
               <>
                 <Link to="/iceman"><i className="fa-solid fa-satellite" aria-hidden="true"></i>ICEMAN</Link>
               </>
+            )}
+            {isAnalyticsViewerAllowlisted(userInfo.email) && (
+              <Link to="/usage"><i className="fa-solid fa-chart-line" aria-hidden="true"></i>Usage</Link>
             )}
             {isDevPreviewAllowlisted(userInfo.email) && (
               <>

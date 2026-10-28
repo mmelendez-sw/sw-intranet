@@ -27,6 +27,7 @@
 | Lead Generation | Graph `sendMail` with photos |
 | ICEMAN usage | Panel at the bottom of `/iceman` for `ICEMAN_ADMIN_ALLOWLIST`: runs, sites and people over 30 days, from the `[iceman]` CloudWatch lines via Logs Insights (`/api/iceman/usage`). Role policy `iceman-usage` (`scripts/iceman-usage-policy.json`) is attached |
 | ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240). Coordinates are typed or pasted into a table (Excel rows, Google Maps pairs, optional site name, map check per row); .csv/.xlsx upload is the second tab. Estimated progress bar while it runs. Open to the underwriting/origination group |
+| Site usage (editor analytics) | `/usage` for `ANALYTICS_VIEWER_ALLOWLIST` (the editor allowlist): opens and distinct people per page, report, quick link, card link, sidebar link and search pick over 7/30/90 days, plus reports and quick links nobody opened. Each click POSTs `/api/analytics/event`, which logs an `[analytics]` line; `/api/analytics/summary` adds them up via Logs Insights (10-minute cache). Counts only on the page; emails stay in CloudWatch |
 | Dark mode | Per-user toggle; `npm run check:dark` flags new colours with no dark override |
 | Header search | Ctrl+K / ⌘K: pages, reports (same visibility rules), quick links, people (opens `/directory?q=`) |
 | Salesforce integration password | Never expires: permission set `Intranet_Integration_Password_Never_Expires` (only `automationuser@symphonywireless.com`) and `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda, so the admin warning now shows only on a failed sign-in (2026-10-28) |
@@ -51,10 +52,8 @@
 | Feature | Value | Effort |
 |---|---|---|
 | Shared company calendar | Company-wide events from a SharePoint list | 3–4 days |
-| Document library browser | Browse SharePoint files in the intranet | 3–5 days |
-| Org chart | Built from the directory (`/manager`, `/directReports`) | ~1 week |
+| Org chart | Built from the directory (`/manager`, `/directReports`). On hold: reporting lines live in TriNet and may not be set in Entra; check how many users have a manager first | ~1 week |
 | PWA ("Add to Home Screen") | Manifest exists; needs a service worker | 2–3 days |
-| Editor analytics | Which reports and cards get used | ~1 week |
 | My Pipeline card | Mockup on `/dev`; needs `/api/salesforce/my-pipeline` | 2–3 days |
 | Hire dates in Entra | Anniversaries cover only the ~26 of 82 people with `employeeHireDate` set; HR to backfill | — |
 

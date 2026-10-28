@@ -726,6 +726,54 @@
   border-bottom-color: var(--border-subtle);
 }
 
+/* ── Site usage ── */
+:where(:root[data-theme="dark"]) .site-usage-header h1,
+:where(:root[data-theme="dark"]) .site-usage-card h2 {
+  color: var(--text-heading);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-header p,
+:where(:root[data-theme="dark"]) .site-usage-card h3,
+:where(:root[data-theme="dark"]) .site-usage-table th {
+  color: var(--text-muted);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-totals,
+:where(:root[data-theme="dark"]) .site-usage-empty,
+:where(:root[data-theme="dark"]) .site-usage-unopened,
+:where(:root[data-theme="dark"]) .site-usage-table td {
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-card {
+  background: var(--surface);
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-table th,
+:where(:root[data-theme="dark"]) .site-usage-table td {
+  border-bottom-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-days,
+:where(:root[data-theme="dark"]) .site-usage-days button + button {
+  border-color: var(--border-subtle);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-days button {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+:where(:root[data-theme="dark"]) .site-usage-days button.is-active {
+  background: var(--text-heading);
+  color: #1c2633;
+}
+
+:where(:root[data-theme="dark"]) .site-usage-more {
+  color: var(--text-heading);
+}
+
 /* ── Header search ── */
 :where(:root[data-theme="dark"]) .header-search-backdrop {
   background: rgba(0, 0, 0, 0.6);

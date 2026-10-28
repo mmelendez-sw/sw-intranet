@@ -36,6 +36,8 @@ import { EditModal } from './homePageShared';
 import { isRichTextEmpty, renderRichText, toBlockHtml } from '../utils/richText';
 import LazyRichTextEditor from './LazyRichTextEditor';
 import ITTicketModal from './ITTicketModal';
+import { trackEvent } from '../services/analytics';
+import { linkClickLabel } from '../utils/linkClickLabel';
 
 const SIDEBAR_CONTENT_KEY = 'homepage-sidebar';
 const BIRTHDAYS_CONTENT_KEY = 'birthdays';
@@ -458,14 +460,32 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
             return (
               <section key={section.key} className="updates editable-wrapper">
                 {section.title && <h2>{section.title}</h2>}
-                <div className="sidebar-section-content" dangerouslySetInnerHTML={{ __html: renderRichText(section.content) }} />
+                <div
+                  className="sidebar-section-content"
+                  onClick={(e) => {
+                    const label = linkClickLabel(e.target, section.title);
+                    if (label) trackEvent(instance, 'sidebar-link', label);
+                  }}
+                  dangerouslySetInnerHTML={{ __html: renderRichText(section.content) }}
+                />
                 {section.linkLabel && section.linkUrl && (
-                  <a href={section.linkUrl} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={section.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackEvent(instance, 'sidebar-link', `${section.title || 'Sidebar'} → ${section.linkLabel}`)}
+                  >
                     {section.linkLabel}
                   </a>
                 )}
                 {section.buttonLabel && section.buttonUrl && (
-                  <button className="home-button" onClick={() => window.open(section.buttonUrl, '_self')}>
+                  <button
+                    className="home-button"
+                    onClick={() => {
+                      trackEvent(instance, 'sidebar-link', `${section.title || 'Sidebar'} → ${section.buttonLabel}`);
+                      window.open(section.buttonUrl, '_self');
+                    }}
+                  >
                     {section.buttonLabel}
                   </button>
                 )}
@@ -510,7 +530,10 @@ const IntranetSidebar: React.FC<IntranetSidebarProps> = ({ userInfo, className }
                     <button
                       className="home-button"
                       style={{ width: '100%' }}
-                      onClick={() => window.open(link.url, '_blank')}
+                      onClick={() => {
+                        window.open(link.url, '_blank');
+                        trackEvent(instance, 'quick-link', link.label);
+                      }}
                     >
                       {link.label}
                     </button>

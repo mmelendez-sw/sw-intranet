@@ -6,6 +6,7 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 import SalesforceHealthBanner from './components/SalesforceHealthBanner';
+import PageViewTracker from './components/PageViewTracker';
 // import TvDisplay from './components/TvDisplay';
 import {
   BYPASS_AUTH,
@@ -16,6 +17,7 @@ import {
   resolveIsEditor,
   isNetSuiteAdminAllowlisted,
   isIcemanAllowlisted,
+  isAnalyticsViewerAllowlisted,
   isDevPreviewAllowlisted,
 } from './authConfig';
 
@@ -25,6 +27,7 @@ const LeadGeneration = lazy(() => import('./components/LeadGeneration'));
 const Iceman = lazy(() => import('./components/Iceman'));
 const EmployeeDirectory = lazy(() => import('./components/EmployeeDirectory'));
 const DevPreview = lazy(() => import('./components/DevPreview'));
+const SiteUsage = lazy(() => import('./components/SiteUsage'));
 
 const RouteFallback: React.FC = () => (
   <div className="app-loading" role="status" aria-label="Loading">
@@ -229,6 +232,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <UpdateAvailableBanner />
+      <PageViewTracker enabled={userInfo.isAuthenticated} />
       <Routes>
         {/* ── Standalone TV / kiosk display — disabled on this branch
         <Route path="/tv" element={<TvDisplay />} />
@@ -262,6 +266,14 @@ const App: React.FC = () => {
                       <>
                         <Route path="/directory" element={<EmployeeDirectory />} />
                         <Route path="/reports" element={<Reports userInfo={userInfo} />} />
+                        <Route
+                          path="/usage"
+                          element={
+                            isAnalyticsViewerAllowlisted(userInfo.email)
+                              ? <SiteUsage />
+                              : <Navigate to="/" replace />
+                          }
+                        />
                         <Route
                           path="/dev"
                           element={
