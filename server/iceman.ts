@@ -387,6 +387,13 @@ async function loadFirstWorksheet(
   return { error: 'Unsupported file type. Upload .csv or .xlsx.' };
 }
 
+/** A coordinate cell as a number; blank or non-numeric cells are NaN (Number('') would be 0). */
+function coordinateValue(v: CellPrimitive | undefined): number {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string' && v.trim() !== '') return Number(v);
+  return NaN;
+}
+
 /**
  * First row = headers; later rows become objects keyed by header text ('' for empty cells).
  * Stops once `maxRows` coordinate rows have been collected instead of materialising the sheet.
@@ -440,8 +447,8 @@ async function parseWorkbookRows(
     if (!hasValue) continue;
     sawDataRow = true;
 
-    const lat = Number(record[latLng.latCol]);
-    const lng = Number(record[latLng.lngCol]);
+    const lat = coordinateValue(record[latLng.latCol]);
+    const lng = coordinateValue(record[latLng.lngCol]);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
 
     const passThrough: Record<string, string | number | boolean | null> = {};

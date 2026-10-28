@@ -68,9 +68,7 @@
 |---|---|---|
 | `Calendars.Read` still on the app registration | Low | No longer requested at login; remove it from the app registration's API permissions in Entra to finish |
 | `Sites.ReadWrite.All` for every user | Low | Delegated and admin-consented, so tokens carry it whether or not it's requested, and `Files.ReadWrite.All` already allows file writes. Users are still limited by their SharePoint site permissions. Narrowing it means app-registration changes in Entra, not code |
-| Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
 | `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
-| ICEMAN blank coordinate cell becomes 0 | Low | `parseWorkbookRows` in `server/iceman.ts` keeps a row like `41,,name` with longitude 0 instead of skipping it (recorded as a known-issue test) |
 
 ---
 
