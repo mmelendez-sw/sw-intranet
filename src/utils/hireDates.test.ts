@@ -28,21 +28,21 @@ describe('hireCalendarDate', () => {
 });
 
 describe('recentNewHires', () => {
-  it('welcomes starters from the last 14 days, newest first, skipping future dates and consultants', () => {
+  it('welcomes starters from the last 8 days, newest first, skipping future dates and consultants', () => {
     const hires = recentNewHires(
       [
         user('Day Zero', '2026-10-27T04:00:00Z'),
-        user('Nine Days', '2026-10-18T18:30:00Z'),
-        user('Thirteen Days', '2026-10-14T04:00:00Z'),
-        user('Fourteen Days', '2026-10-13T04:00:00Z'),
+        user('Three Days', '2026-10-23T18:30:00Z'),
+        user('Seven Days', '2026-10-20T04:00:00Z'),
+        user('Eight Days', '2026-10-19T04:00:00Z'),
         user('Future', '2026-11-02T04:00:00Z'),
         user('Consultant', '2026-10-20T04:00:00Z', 'Consultant'),
         user('No Date', null),
       ],
       now
     );
-    expect(hires.map((h) => h.user.displayName)).toEqual(['Day Zero', 'Nine Days', 'Thirteen Days']);
-    expect(hires[1].startedOn).toEqual(new Date(2026, 9, 19));
+    expect(hires.map((h) => h.user.displayName)).toEqual(['Day Zero', 'Three Days', 'Seven Days']);
+    expect(hires[1].startedOn).toEqual(new Date(2026, 9, 24));
   });
 
   it('handles a null directory', () => {
