@@ -5,7 +5,7 @@
 import { GraphUser, isContractorOrConsultant } from '../services/directoryService';
 
 /** New starters are welcomed on the home page for this many days, start day included. */
-export const NEW_HIRE_WELCOME_DAYS = 14;
+export const NEW_HIRE_WELCOME_DAYS = 8;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

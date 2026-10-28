@@ -20,7 +20,7 @@
 | Birthdays | `birthdays.json`, matched against the live directory; gap notice for editors |
 | Monthly Term Sheet Leaderboard | Live Salesforce counts via the Lambda (5-minute cache); last month's winner and a year-to-date top 5 underneath (`/api/salesforce/term-sheet-history`, 15-minute cache) |
 | Deal-closed banner | Home page, everyone: Proprietary deals whose `Current_Investment_Date__c` is today, with a personal line for the closing AM (`/api/salesforce/closed-today`, 5-minute cache). Dismissing hides those deals for the day |
-| Work anniversaries and new-hire welcomes | In Announcements, from Entra `employeeHireDate` (welcomes run 14 days from the start date). Only people with a hire date in Entra appear |
+| Work anniversaries and new-hire welcomes | In Announcements, from Entra `employeeHireDate` (welcomes run 8 days from the start date). Only people with a hire date in Entra appear |
 | Reports page | Power BI links, elite/include/exclude rules, **★ My Reports** favourites (synced through the user's OneDrive, `Apps/Symphony Intranet/report-favorites.json`) |
 | IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
 | Employee Directory | `/directory`, live Graph users with photos |
