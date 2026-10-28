@@ -139,6 +139,15 @@ export const ICEMAN_ADMIN_ALLOWLIST = new Set(['mmelendez@symphonyinfra.com']);
 export const isIcemanAdminAllowlisted = (email?: string): boolean =>
   isInAllowlist(ICEMAN_ADMIN_ALLOWLIST, email, { legacyDomain: true });
 
+/**
+ * Site usage page (/usage): opens per page, report and link. The editor allowlist, since editors
+ * decide what goes on the site. Keep in step with DEFAULT_ANALYTICS_VIEWER_EMAILS in server/handler.ts.
+ */
+export const ANALYTICS_VIEWER_ALLOWLIST: ReadonlySet<string> = EDIT_ALLOWLIST;
+
+export const isAnalyticsViewerAllowlisted = (email?: string): boolean =>
+  isInAllowlist(ANALYTICS_VIEWER_ALLOWLIST, email, { legacyDomain: true });
+
 /** Shown the birthday-list gap notice when the directory and birthdays.json disagree. */
 export const BIRTHDAY_GAP_NOTIFY_ALLOWLIST = new Set([
   'mmelendez@symphonyinfra.com',
@@ -233,6 +242,8 @@ export const POWERBI_EMBED_TOKEN_URL = intranetApiUrl('/api/powerbi/embed-token'
 /** ICEMAN Nearmap batch endpoint (local API or Lambda). */
 export const ICEMAN_GENERATE_URL = intranetApiUrl('/api/iceman/generate');
 export const ICEMAN_USAGE_URL = intranetApiUrl('/api/iceman/usage');
+export const ANALYTICS_EVENT_URL = intranetApiUrl('/api/analytics/event');
+export const ANALYTICS_SUMMARY_URL = intranetApiUrl('/api/analytics/summary');
 export const SALESFORCE_HEALTH_URL = intranetApiUrl('/api/salesforce/health');
 export const SALESFORCE_CLOSED_TODAY_URL = intranetApiUrl('/api/salesforce/closed-today');
 export const SALESFORCE_TERM_SHEET_HISTORY_URL = intranetApiUrl('/api/salesforce/term-sheet-history');

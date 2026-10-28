@@ -10,6 +10,8 @@ import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import { useSharePointContent } from '../hooks/useSharePointContent';
 import { filterActiveBirthdays } from '../utils/birthdays';
 import { recentNewHires, todaysWorkAnniversaries } from '../utils/hireDates';
+import { trackEvent } from '../services/analytics';
+import { linkClickLabel } from '../utils/linkClickLabel';
 import { startLogin } from '../utils/login';
 import { BirthdayCoverageNotice, BirthdayImportPanel, BirthdayStatusBadge } from './BirthdayEditorParts';
 import {
@@ -1142,7 +1144,13 @@ const HomePage: React.FC<HomePageProps> = ({ userInfo }) => {
                       </div>
                     )}
                     {renderCardImage(card, index)}
-                    <div className="card-text">
+                    <div
+                      className="card-text"
+                      onClick={(e) => {
+                        const label = linkClickLabel(e.target, card.title);
+                        if (label) trackEvent(instance, 'card-link', label);
+                      }}
+                    >
                       <h2>{card.title}</h2>
                       <ul>
                         {sanitizeBullets(card.bullets).map((bullet, bi) => (

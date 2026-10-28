@@ -12,6 +12,7 @@ import {
 } from '../services/contentService';
 import { useDirectoryUsers } from '../hooks/useDirectoryUsers';
 import { useSharePointContent } from '../hooks/useSharePointContent';
+import { useTrackEvent } from '../hooks/useTrackEvent';
 import { UserInfo } from '../types/user';
 
 type ResultKind = 'Page' | 'Person' | 'Report' | 'Link';
@@ -57,6 +58,7 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
  */
 const HeaderSearch: React.FC<{ userInfo: UserInfo }> = ({ userInfo }) => {
   const navigate = useNavigate();
+  const track = useTrackEvent();
   const [open, setOpen] = useState(false);
   const [hasOpened, setHasOpened] = useState(false);
   const [query, setQuery] = useState('');
@@ -139,6 +141,10 @@ const HeaderSearch: React.FC<{ userInfo: UserInfo }> = ({ userInfo }) => {
   const choose = (result: SearchResult | undefined) => {
     if (!result) return;
     setOpen(false);
+    track('search', `${result.kind}: ${result.title}`);
+    // Opened from search still counts as using that report or link.
+    if (result.kind === 'Report') track('report', result.title);
+    if (result.kind === 'Link') track('quick-link', result.title);
     if (result.external) window.open(result.to, '_blank', 'noopener');
     else navigate(result.to);
   };

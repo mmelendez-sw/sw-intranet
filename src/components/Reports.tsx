@@ -20,6 +20,7 @@ import {
 } from '../services/contentService';
 import { useSharePointContent } from '../hooks/useSharePointContent';
 import { reportFavoriteKey, useReportFavorites } from '../hooks/useReportFavorites';
+import { trackEvent } from '../services/analytics';
 import IntranetSidebar from './IntranetSidebar';
 import {
   EditSaveStatus,
@@ -356,7 +357,13 @@ const Reports: React.FC<ReportsProps> = ({ userInfo }) => {
                           </button>
                         )}
                         {report.link ? (
-                          <button className="report-button" onClick={() => window.open(report.link, '_blank')}>
+                          <button
+                            className="report-button"
+                            onClick={() => {
+                              window.open(report.link, '_blank');
+                              trackEvent(instance, 'report', report.title);
+                            }}
+                          >
                             {report.title}
                           </button>
                         ) : (

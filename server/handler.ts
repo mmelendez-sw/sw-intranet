@@ -11,6 +11,8 @@
  *   GET /api/salesforce/closed-today              — today's Proprietary closings (deal-closed banner)
  *   GET /api/salesforce/term-sheet-history        — last month's and year-to-date term sheet counts
  *   GET /api/iceman/usage                          — ICEMAN runs from CloudWatch (last 30 days); ICEMAN admins only
+ *   POST /api/analytics/event                      — one click or page view ({ kind, label }); signed-in users
+ *   GET /api/analytics/summary?days=30             — opens per page/report/link (7, 30 or 90 days); analytics viewers
  *   GET /api/powerbi/embed-token?reportId=
  *   POST /api/iceman/generate?max_rows=15 — Nearmap batch XLSX (multipart file); ICEMAN allowlist.
  *        max_rows is clamped to ICEMAN_MAX_ROWS (server/iceman.ts); uploads capped at 4 MB.
@@ -29,6 +31,7 @@
  *                  POWERBI_PASSWORD, POWERBI_REPORT_ID, POWERBI_WORKSPACE_ID?
  *   ICEMAN:        NEARMAP_API_KEY, ICEMAN_ALLOWED_EMAILS? (comma-separated; default below),
  *                  ICEMAN_ADMIN_EMAILS? (usage view; default below)
+ *   Analytics:     ANALYTICS_VIEWER_EMAILS? (summary view; default below)
  *   Auth:          INTRANET_TENANT_ID?, INTRANET_CLIENT_ID?, INTRANET_API_AUTH_DISABLED? (see auth.ts)
  */
 
@@ -44,6 +47,7 @@ import {
 import { getDealsClosedToday, getSalesforceHealth, getTermSheetHistory, getTermSheetRankings } from './salesforce';
 import { getEmbedConfig } from './powerbi';
 import { requireEnv } from './env';
+import { formatAnalyticsLine, parseAnalyticsEvent } from './analytics';
 import { AuthError, AuthServiceError, authenticateRequest } from './auth';
 
 const JSON_HEADERS = {
@@ -79,6 +83,17 @@ const DEFAULT_SALESFORCE_ADMIN_EMAILS = [
 /** Mirrors ICEMAN_ADMIN_ALLOWLIST in src/authConfig.ts; override with ICEMAN_ADMIN_EMAILS. */
 const DEFAULT_ICEMAN_ADMIN_EMAILS = 'mmelendez@symphonyinfra.com';
 
+/** Mirrors ANALYTICS_VIEWER_ALLOWLIST in src/authConfig.ts; override with ANALYTICS_VIEWER_EMAILS. */
+const DEFAULT_ANALYTICS_VIEWER_EMAILS = [
+  'mmelendez@symphonyinfra.com',
+  'shuang@symphonyinfra.com',
+  'sraffington@symphonyinfra.com',
+  'vasmar@symphonyinfra.com',
+  'jpeterson@symphonyinfra.com',
+  'htolani@symphonyinfra.com',
+  'aquinn@symphonyinfra.com',
+].join(',');
+
 function isInEmailList(list: string, email: string): boolean {
   const allowed = list
     .split(',')
@@ -94,6 +109,10 @@ function isIcemanAllowed(email: string): boolean {
 
 function isIcemanAdmin(email: string): boolean {
   return isInEmailList(process.env.ICEMAN_ADMIN_EMAILS || DEFAULT_ICEMAN_ADMIN_EMAILS, email);
+}
+
+function isAnalyticsViewer(email: string): boolean {
+  return isInEmailList(process.env.ANALYTICS_VIEWER_EMAILS || DEFAULT_ANALYTICS_VIEWER_EMAILS, email);
 }
 
 function isSalesforceAdmin(email: string): boolean {
@@ -174,6 +193,25 @@ function isIcemanUsagePath(path: string): boolean {
   return /\/api\/iceman\/usage\/?$/i.test(path);
 }
 
+function isAnalyticsEventPath(path: string): boolean {
+  return /\/api\/analytics\/event\/?$/i.test(path);
+}
+
+function isAnalyticsSummaryPath(path: string): boolean {
+  return /\/api\/analytics\/summary\/?$/i.test(path);
+}
+
+/** JSON request body (Function URL bodies may arrive base64-encoded); undefined if unparseable. */
+function parseJsonBody(event?: { body?: string; isBase64Encoded?: boolean }): unknown {
+  if (!event?.body) return undefined;
+  try {
+    const text = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf8') : event.body;
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
 function isPowerbiEmbedTokenPath(path: string): boolean {
   return /\/api\/powerbi\/embed-token\/?$/i.test(path);
 }
@@ -224,14 +262,18 @@ export async function handler(event?: {
     const needsAuth =
       isIcemanGeneratePath(path) ||
       isIcemanUsagePath(path) ||
+      isAnalyticsEventPath(path) ||
+      isAnalyticsSummaryPath(path) ||
       isSalesforceTermSheetRankingsPath(path) ||
       isSalesforceTermSheetHistoryPath(path) ||
       isSalesforceClosedTodayPath(path) ||
       isSalesforceHealthPath(path);
     let icemanUser = '';
+    let signedInEmail = '';
     if (needsAuth) {
       try {
         const user = await authenticateRequest(getHeader(event?.headers, 'authorization'));
+        signedInEmail = user?.email || '';
         if (user && isIcemanGeneratePath(path)) {
           icemanUser = user.email;
           if (!isIcemanAllowed(user.email)) {
@@ -244,6 +286,9 @@ export async function handler(event?: {
         }
         if (user && isIcemanUsagePath(path) && !isIcemanAdmin(user.email)) {
           return errorResult(403, 'Not an ICEMAN admin.');
+        }
+        if (user && isAnalyticsSummaryPath(path) && !isAnalyticsViewer(user.email)) {
+          return errorResult(403, 'Not an analytics viewer.');
         }
       } catch (err) {
         if (err instanceof AuthError) {
@@ -261,6 +306,23 @@ export async function handler(event?: {
         statusCode: 200,
         headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
         body: JSON.stringify(await getIcemanUsage()),
+      };
+    }
+
+    if (isAnalyticsEventPath(path)) {
+      if (method !== 'POST') return errorResult(405, 'Method not allowed. Use POST.');
+      const analyticsEvent = parseAnalyticsEvent(parseJsonBody(event));
+      if (!analyticsEvent) return errorResult(400, 'Expected { kind, label }.');
+      console.log(formatAnalyticsLine(signedInEmail || 'unknown', analyticsEvent));
+      return { statusCode: 204, headers: JSON_HEADERS, body: '' };
+    }
+
+    if (isAnalyticsSummaryPath(path)) {
+      const { analyticsDays, getAnalyticsSummary } = await import('./analyticsSummary.js');
+      return {
+        statusCode: 200,
+        headers: { ...JSON_HEADERS, 'Cache-Control': 'no-store' },
+        body: JSON.stringify(await getAnalyticsSummary(analyticsDays(query.days))),
       };
     }
 

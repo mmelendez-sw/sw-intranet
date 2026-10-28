@@ -1,15 +1,8 @@
 /**
  * ICEMAN usage from the Lambda's own CloudWatch logs (the `[iceman] run by …` lines in
- * handler.ts), via Logs Insights. Needs logs:StartQuery and logs:GetQueryResults on this
- * function's log group (scripts/iceman-usage-policy.json).
- *
- * @aws-sdk/* ships with the Lambda Node.js runtime, so the deploy bundle leaves it external.
+ * handler.ts), via Logs Insights (see logsInsights.ts).
  */
-import {
-  CloudWatchLogsClient,
-  GetQueryResultsCommand,
-  StartQueryCommand,
-} from '@aws-sdk/client-cloudwatch-logs';
+import { runInsightsQuery } from './logsInsights';
 
 export type IcemanRun = { at: string; email: string; rows: number; seconds: number; mb: number };
 export type IcemanUserUsage = { email: string; runs: number; sites: number; lastRunAt: string };
@@ -22,8 +15,6 @@ export type IcemanUsage = {
 
 const USAGE_DAYS = 30;
 const RECENT_RUNS = 15;
-/** Insights usually answers in 1–3 s; stay well inside the Function URL timeout. */
-const QUERY_TIMEOUT_MS = 20_000;
 const USAGE_CACHE_MS = 10 * 60_000;
 let usageCache: { at: number; value: IcemanUsage } | null = null;
 
@@ -35,46 +26,13 @@ fields @timestamp, @message
 | limit 10000
 `;
 
-function logGroupName(): string {
-  const fn = process.env.AWS_LAMBDA_FUNCTION_NAME || 'sw-intranet-api';
-  return `/aws/lambda/${fn}`;
-}
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export async function getIcemanUsage(): Promise<IcemanUsage> {
   if (usageCache && Date.now() - usageCache.at < USAGE_CACHE_MS) return usageCache.value;
 
-  const client = new CloudWatchLogsClient({ region: process.env.AWS_REGION || 'us-east-2' });
-  const endTime = Math.floor(Date.now() / 1000);
-  const { queryId } = await client.send(
-    new StartQueryCommand({
-      logGroupName: logGroupName(),
-      startTime: endTime - USAGE_DAYS * 24 * 60 * 60,
-      endTime,
-      queryString: QUERY,
-    })
-  );
-  if (!queryId) throw new Error('Logs Insights did not return a query id');
-
-  const deadline = Date.now() + QUERY_TIMEOUT_MS;
-  let results: { field?: string; value?: string }[][] = [];
-  for (;;) {
-    const res = await client.send(new GetQueryResultsCommand({ queryId }));
-    if (res.status === 'Complete') {
-      results = res.results || [];
-      break;
-    }
-    if (res.status === 'Failed' || res.status === 'Cancelled' || res.status === 'Timeout') {
-      throw new Error(`Logs Insights query ${res.status}`);
-    }
-    if (Date.now() > deadline) throw new Error('Logs Insights query timed out');
-    await sleep(700);
-  }
+  const results = await runInsightsQuery(QUERY, USAGE_DAYS);
 
   const runs: IcemanRun[] = [];
-  for (const row of results) {
-    const f = Object.fromEntries(row.map((c) => [c.field, c.value ?? '']));
+  for (const f of results) {
     const email = (f.email || '').trim().toLowerCase();
     if (!email) continue;
     runs.push({
