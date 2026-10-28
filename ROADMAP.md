@@ -25,10 +25,11 @@
 | IT ticket form | "Report IT Issue" opens a form (category, priority, attachments) sent via Graph to the support address in Site Settings |
 | Employee Directory | `/directory`, live Graph users with photos |
 | Lead Generation | Graph `sendMail` with photos |
-| ICEMAN usage | Panel at the bottom of `/iceman` for `ICEMAN_ADMIN_ALLOWLIST`: runs, sites and people over 30 days, from the `[iceman]` CloudWatch lines via Logs Insights (`/api/iceman/usage`). Needs `scripts/iceman-usage-policy.json` on the Lambda role |
+| ICEMAN usage | Panel at the bottom of `/iceman` for `ICEMAN_ADMIN_ALLOWLIST`: runs, sites and people over 30 days, from the `[iceman]` CloudWatch lines via Logs Insights (`/api/iceman/usage`). Role policy `iceman-usage` (`scripts/iceman-usage-policy.json`) is attached |
 | ICEMAN | Nearmap batch imagery → Excel (15 rows, 1.5× centred views at 320×240). Coordinates are typed or pasted into a table (Excel rows, Google Maps pairs, optional site name, map check per row); .csv/.xlsx upload is the second tab. Estimated progress bar while it runs. Open to the underwriting/origination group |
 | Dark mode | Per-user toggle; `npm run check:dark` flags new colours with no dark override |
 | Header search | Ctrl+K / ⌘K: pages, reports (same visibility rules), quick links, people (opens `/directory?q=`) |
+| Salesforce integration password | Never expires: permission set `Intranet_Integration_Password_Never_Expires` (only `automationuser@symphonywireless.com`) and `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda, so the admin warning now shows only on a failed sign-in (2026-10-28) |
 | Salesforce admin warning | Banner for mmelendez, htolani, vasmar when the integration sign-in fails or the password is within 14 days of `SF_PASSWORD_EXPIRY_DAYS` (`/api/salesforce/health`) |
 | Unit tests and CI | Vitest (`npm test`, ~430 tests) and `.github/workflows/ci.yml` (typecheck, tests, `check:dark`, both builds) on every push and PR; checks only, never deploys |
 | Icons | Font Awesome Free (solid) bundled from npm; the old kit script is gone |
@@ -70,7 +71,6 @@
 | Lead Generation token refresh uses a popup | Medium | Can fail silently on Android; the header login already handles this |
 | `TENANT_ID` / `CLIENT_ID` / `CLIENT_SECRET` not set on `sw-intranet-api` | Low | The Lambda's SharePoint image routes would fail; nothing visible uses them today |
 | ICEMAN blank coordinate cell becomes 0 | Low | `parseWorkbookRows` in `server/iceman.ts` keeps a row like `41,,name` with longitude 0 instead of skipping it (recorded as a known-issue test) |
-| Salesforce integration password expiry | High | Grant "Password Never Expires" to the integration user alone through a permission set (not the System Administrator profile, which would cover every admin), then set `SF_PASSWORD_EXPIRY_DAYS=0` on the Lambda. It broke the leaderboard on 2026-10-19; the admin banner warns until then |
 
 ---
 

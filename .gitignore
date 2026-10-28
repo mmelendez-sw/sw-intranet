@@ -32,3 +32,5 @@ server/.env.example
 server/dist/
 dist-lambda/
 sw-intranet-api.zip
+
+.claude/settings.local.json
