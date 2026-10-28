@@ -7,6 +7,7 @@ import { BYPASS_AUTH } from '../authConfig';
 import { UserInfo } from '../types/user';
 import { SiteConfig, DEFAULT_SITE_CONFIG } from '../services/contentService';
 import { useSharePointContent } from '../hooks/useSharePointContent';
+import { isAndroidNonEdge } from '../utils/login';
 import '../../styles/lead-generation.css';
 
 interface FormData {
@@ -449,10 +450,40 @@ const LeadGenerationForm: React.FC<LeadGenerationProps> = ({ userInfo }) => {
         })
       );
     } catch {
-      // acquireTokenRedirect would navigate the mobile browser away from the
-      // form entirely. Use acquireTokenPopup instead so the user stays on the
-      // page and their form data is preserved. The popup is triggered from a
-      // form-submit user gesture, which mobile browsers allow.
+      // Save the serializable form fields so they are restored after the
+      // redirect, then kick off a full-page token refresh.
+      const redirectForToken = async () => {
+        sessionStorage.setItem(LEADGEN_RESTORE_KEY, JSON.stringify({
+          email: restoreOwnerEmail(),
+          savedAt: Date.now(),
+          fields: {
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zipCode: data.zipCode,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            notes: data.notes,
+            siteType: data.siteType,
+          },
+        }));
+        await instance.acquireTokenRedirect({
+          scopes: ['Mail.Send'],
+          account: activeAccount,
+        });
+      };
+
+      // Android browsers other than Edge open the sign-in popup in a Custom
+      // Tab that never reports back, so the submit would hang with no error.
+      // Redirect straight away there, as the header login does.
+      if (isAndroidNonEdge()) {
+        await redirectForToken();
+        return; // Page navigates away — execution stops here.
+      }
+
+      // Elsewhere a popup keeps the user on the page with their photos. The
+      // popup is triggered from a form-submit user gesture, which mobile
+      // browsers allow.
       try {
         tokenResponse = await msalWithInteractionRetry(() =>
           instance.acquireTokenPopup({
@@ -466,28 +497,9 @@ const LeadGenerationForm: React.FC<LeadGenerationProps> = ({ userInfo }) => {
           popupError.errorCode === 'empty_window_error'
         ) {
           // On any iOS browser (WKWebView), popups land on about:blank and can
-          // never complete. Save the serializable form fields to sessionStorage
-          // so the user's work is restored after the redirect, then kick off a
-          // full-page token refresh redirect.
+          // never complete, so fall back to the redirect.
           if (isIOS()) {
-            sessionStorage.setItem(LEADGEN_RESTORE_KEY, JSON.stringify({
-              email: restoreOwnerEmail(),
-              savedAt: Date.now(),
-              fields: {
-                address: data.address,
-                city: data.city,
-                state: data.state,
-                zipCode: data.zipCode,
-                latitude: data.latitude,
-                longitude: data.longitude,
-                notes: data.notes,
-                siteType: data.siteType,
-              },
-            }));
-            await instance.acquireTokenRedirect({
-              scopes: ['Mail.Send'],
-              account: activeAccount,
-            });
+            await redirectForToken();
             return; // Page navigates away — execution stops here.
           }
           throw new Error(

@@ -271,14 +271,20 @@ describe('generateIcemanWorkbook', () => {
     ]);
   });
 
-  // KNOWN ISSUE (reported, not fixed): a blank lat/lng cell parses as '' and Number('') === 0,
-  // so the row is kept at coordinate 0 instead of being skipped.
-  it('currently keeps a row with a blank coordinate cell as 0 (known issue)', async () => {
+  it('skips rows with a blank coordinate cell instead of reading it as 0', async () => {
     installNearmapFetch({ tile: noTiles });
-    const { buffer, rowCount } = await generateIcemanWorkbook(csv('lat,lng,name\n41,,blank-lng\n'), 'x.csv');
+    const input = csv('lat,lng,name\n41,,blank-lng\n,-74,blank-lat\n" ",-74,space-lat\n42,-75,ok\n');
+    const { buffer, rowCount } = await generateIcemanWorkbook(input, 'x.csv');
     expect(rowCount).toBe(1);
     const { rows } = await loadOutput(buffer);
-    expect(rows[1].slice(0, 3)).toEqual([41, 0, 'blank-lng']);
+    expect(rows.slice(1).map((r) => r.slice(0, 3))).toEqual([[42, -75, 'ok']]);
+  });
+
+  it('rejects a file whose only coordinate rows have blank cells', async () => {
+    installNearmapFetch({ tile: noTiles });
+    await expect(generateIcemanWorkbook(csv('lat,lng,name\n41,,blank-lng\n'), 'x.csv')).rejects.toThrow(
+      /No valid coordinate rows/
+    );
   });
 
   it(`caps rows at ICEMAN_MAX_ROWS (${ICEMAN_MAX_ROWS}) and honours a smaller maxRows`, async () => {
